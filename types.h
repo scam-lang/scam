@@ -17,6 +17,7 @@ extern char *INTEGER;// = "INTEGER";
 extern char *REAL;// = "REAL";
 extern char *STRING;// = "STRING";
 extern char *SYMBOL;// = "SYMBOL";
+extern char *CONS;// = "THUNK";
 
 /* error codes */
 

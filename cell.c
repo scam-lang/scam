@@ -4,25 +4,36 @@
 #include <assert.h>
 #include "cell.h"
 #include "types.h"
+#include "util.h"
 
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
 int MemorySize =  4 * 128 * 8192; 
 
-void (*save)(int,char *);
-int (*restore)(char *);
-int  savedRegisters[STACKSIZE];
-int saveCount = 0;
-
-#if CHECK_SAVES
-char *savedRegisterNames[STACKSIZE];
-static void saveCheck(int,char *);
-static int restoreCheck(char *);
-#else
-static void saveNoCheck(int,char *);
-static int restoreNoCheck(char *);
-#endif
+int zero;
+int one;
+int contextSymbol;
+int codeSymbol;
+int dynamicContextSymbol;
+int thisSymbol;
+int parametersSymbol;
+int thunkSymbol;
+int nameSymbol;
+int closureSymbol;
+int builtInSymbol;
+int constructorSymbol;
+int objectSymbol;
+int typeSymbol;
+int valueSymbol;
+int traceSymbol;
+int throwSymbol;
+int quoteSymbol;
+int anonymousSymbol;
+int lambdaSymbol;
+int dollarSymbol;
+int atSymbol;
+int uninitializedSymbol;
 
 CELL *the_cars;
 CELL *new_cars;
@@ -31,12 +42,9 @@ int *new_cdrs;
 
 int LineNumber;
 int FileIndex;
-int Indent;
-int Indenting = 1;
 
 int MaxSymbols = 100;
-
-static int symbol_equal(void *,void *);
+char **SymbolTable;
 static int SymbolCount;
 static int SymbolsIncrement = 100;
 
@@ -45,25 +53,50 @@ memoryInit(int memsize)
     {
     SymbolTable = (char **) malloc(MaxSymbols * sizeof(char *));
     if (SymbolTable == 0)
-        Fatal(OUT_OF_MEMORY, "could not allocate Symbol table\n");
+        Fatal("could not allocate Symbol table\n");
 
     if (memsize > 0) MemorySize = memsize;
 
     the_cars = (CELL *) malloc(sizeof(CELL) * MemorySize);
     if (the_cars == 0)
-        Fatal(OUT_OF_MEMORY, "could not allocate code segment (cars)\n");
+        Fatal("could not allocate code segment (cars)\n");
     new_cars = (CELL *) malloc(sizeof(CELL) * MemorySize);
     if (new_cars == 0)
-        Fatal(OUT_OF_MEMORY, "could not allocate code segment\n");
+        Fatal("could not allocate code segment (new cars)\n");
 
     the_cdrs = (int *) malloc(sizeof(int) * MemorySize);
     if (the_cdrs == 0)
-        Fatal(OUT_OF_MEMORY, "could not allocate code segment (cdrs)\n");
+        Fatal("could not allocate code segment (cdrs)\n");
     new_cdrs = (int *) malloc(sizeof(int) * MemorySize);
     if (new_cdrs == 0)
-        Fatal(OUT_OF_MEMORY, "could not allocate code segment\n");
+        Fatal("could not allocate code segment (new cdrs)\n");
 
     MemorySpot = 1;
+
+    zero = newInteger(0);
+    one = newInteger(1);
+
+    contextSymbol        = newSymbol("context");
+    codeSymbol           = newSymbol("code");
+    dynamicContextSymbol = newSymbol("dynamicContext");
+    thisSymbol           = newSymbol("this");
+    parametersSymbol     = newSymbol("parameters");
+    thunkSymbol          = newSymbol("thunk");
+    nameSymbol           = newSymbol("name");
+    closureSymbol        = newSymbol("closure");
+    builtInSymbol        = newSymbol("builtIn");
+    constructorSymbol    = newSymbol("constructor");
+    objectSymbol         = newSymbol("object");
+    typeSymbol           = newSymbol("type");
+    valueSymbol          = newSymbol("value");
+    traceSymbol          = newSymbol("trace");
+    throwSymbol          = newSymbol("throw");
+    quoteSymbol          = newSymbol("quote");
+    anonymousSymbol      = newSymbol("anonymous");
+    lambdaSymbol         = newSymbol("lambda");
+    dollarSymbol         = newSymbol("$");
+    atSymbol             = newSymbol("@");
+    uninitializedSymbol  = newSymbol("UNINITIALIZED");
     }
 
 int
@@ -95,8 +128,6 @@ newString(char *s)
     {
     int start;
     int length = strlen(s);
-
-    ensureMemory(length + 1); /* extra cell for null character */
 
     start = MemorySpot;
 
@@ -157,9 +188,11 @@ newReal(double r)
     }
 
 int
-isThisSymbol(int a,char *name)
+newPunctuation(char *t)
     {
-    return type(a) == SYMBOL && strcmp(SymbolTable[ival(a)],name) == 0;
+    int result = cons(0,0);
+    type(result) = t;
+    return result;
     }
 
 int
@@ -181,7 +214,6 @@ int
 findSymbol(char *s)
     {
     int i;
-    int result;
     char *dup;
 
     for (i = 0; i < SymbolCount; ++i)
@@ -197,7 +229,7 @@ findSymbol(char *s)
 
     dup = strdup(s);
     if (SymbolTable == 0 || dup == 0)
-        Fatal(OUT_OF_MEMORY,"Symbol Table is full\n");
+        Fatal("Symbol Table is full\n");
 
     SymbolTable[SymbolCount++] = dup;
 

@@ -13,33 +13,25 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 
 #include "cell.h"
 #include "types.h"
 #include "lexer.h"
+#include "util.h"
 
 #define LINUX 0
 
 #define FILENAMESIZE 256
-
-extern void Fatal(int,char *, ...);
 
 FILE *Input;
 
 int pushBack;
 int pushedBack = 0;
 
-static char *inputBuffer = 0;
-static int inputBufferIndex = 0;
-
 static int skipWhiteSpace(void);
 static int lexNumber(void);
 static int lexSymbol(int);
 static int lexString(void);
-
-static void addToSave(int);
 
 int
 lex() 
@@ -52,15 +44,15 @@ lex()
         { 
         /* single character tokens */ 
         case EOF: 
-            return cons(END_OF_INPUT,0,0);
+            return newPunctuation(END_OF_INPUT);
         case '(': 
-            return cons(OPEN_PARENTHESIS,0,0);
+            return newPunctuation(OPEN_PARENTHESIS);
         case ')': 
-            return cons(CLOSE_PARENTHESIS,0,0);
+            return newPunctuation(CLOSE_PARENTHESIS);
         case '\'': 
-            return cons(QUOTE,0,0);
+            return newPunctuation(QUOTE);
         case ',': 
-            return cons(COMMA,0,0);
+            return newPunctuation(COMMA);
         default: 
             /* numbers, tokens, and strings */ 
             if (isdigit(ch) || ch == '-' || ch == '.') 
@@ -75,14 +67,13 @@ lex()
             else
                 return lexSymbol(ch);
         } 
-    Fatal(BAD_CHARACTER_CODE,"unexpected character (%c)\n", ch);
+    Fatal("line %d: unexpected character (%c)\n", LineNumber,ch);
     } 
 
 static int
 skipWhiteSpace()
     {
     int ch;
-    int spot = 0;
 
     while ((ch = getNextCharacter(Input))
     && ch != EOF && (isspace(ch) || ch == '/'))
@@ -90,11 +81,7 @@ skipWhiteSpace()
         if (ch == '\n')
             {
             ++LineNumber;
-            spot = 0;
-            Indenting = 1;
             }
-        else if (Indenting && ch == ' ') ++spot;
-        else if (Indenting && ch == '\t') spot = (spot / 8 + 1) * 8;
         else if (ch == ';')
             { 
             ch = getNextCharacter(Input);
@@ -122,35 +109,26 @@ skipWhiteSpace()
             }
             else if (ch == '*')
             {
-            int ln = LineNumber;
-            int fn = FileIndex;
             int more = 1;
-            spot += 2;
             while (more)
                 {
                 while ((ch = getNextCharacter(Input))
                 && ch != EOF && ch != '*')
                 {
-                if (ch == '\t') spot = (spot / 8 + 1) * 8;
-                else ++spot;
                 if (ch == '\n')
                     {
                     ++LineNumber;
-                    spot = 0;
                     }
                 }
-                ++spot;
                 ch = getNextCharacter(Input);
-                ++spot;
                 if (ch == '\n')
                     {
                     ++LineNumber;
-                    spot = 0;
                     }
                 if (ch == EOF)
-                    Fatal(UNTERMINATED_COMMENT,"SOURCE CODE ERROR\n"
-                        "file %s,line %d: unterminated comment\n",
-                cellString(0,0,fn), ln);
+                    Fatal("SOURCE CODE ERROR\n"
+                        "line %d: unterminated comment\n",
+                        LineNumber);
                 more = ch != '/';
                 }
             }
@@ -163,15 +141,6 @@ skipWhiteSpace()
             }
         }
 
-    //printf("non-whitespace: %c\n",ch);
-    if (!Indenting)
-        Indent = -1;
-    else
-        {
-        Indenting = 0;
-        Indent = spot;
-        }
-    //printf("final indent is %d\n",Indent);
     return ch;
     }
 
@@ -213,15 +182,15 @@ lexNumber()
         if (isdigit(ch)) digits = 1;
         s[count++] = ch;
         if (count >= sizeof(s) - 1)
-            Fatal(NUMBER_TOO_LARGE,"SOURCE CODE ERROR\nfile %s,line %d\n"
-                "number is too large\n",symbols[FileIndex],LineNumber);
+            Fatal("SOURCE CODE ERROR\nline %d\n"
+                "number is too large\n",LineNumber);
         ch = getNextCharacter(Input);
         }
 
     s[count] = '\0';
 
     if (digits && strchr(" \t\n()[];,",ch) == 0)
-        return cons(BAD_NUMBER,0,0);
+        return newPunctuation(BAD_NUMBER);
 
     unread(ch);
 
@@ -255,8 +224,8 @@ lexSymbol(int ch)
         //printf("symbol: %c\n", ch);
             buffer[index++] = ch;
         if (index == sizeof(buffer))
-            Fatal(SYMBOL_TOO_LARGE,"SOURCE CODE ERROR\nfile %s,line %d\n"
-                "token too large\n",symbols[FileIndex],LineNumber);
+            Fatal("SOURCE CODE ERROR\nline %d\n"
+                "token too large\n",LineNumber);
         }
 
     unread(ch);
@@ -276,8 +245,6 @@ lexString()
     int index;
     char buffer[4096];
     int result;
-    int ln = LineNumber;
-    int fn = FileIndex;
     int backslashed;
 
     index = 0;
@@ -292,9 +259,9 @@ lexString()
             {
             ch = getNextCharacter(Input);
             if (ch == EOF)
-                Fatal(STRING_TOO_LARGE,"SOURCE CODE ERROR\nfile %s,line %d\n"
+                Fatal("SOURCE CODE ERROR\nline %d\n"
                     "unexpected end of file (last char was a backslash)\n",
-                    cellString(0,0,fn), ln);
+                    LineNumber);
             if (ch == 'n')
                 buffer[index++] = '\n';
             else if (ch == 't')
@@ -313,23 +280,16 @@ lexString()
             buffer[index++] = ch;
 
         if (index == sizeof(buffer) - 1)
-            Fatal(STRING_TOO_LARGE,"SOURCE CODE ERROR\nfile %s,line %d\n"
-                "string too large\n",cellString(0,0,fn), ln);
+            Fatal("SOURCE CODE ERROR\nline %d\n"
+                "string too large\n",LineNumber);
         }
 
     buffer[index] = '\0';
 
     if (ch != '\"')
         {
-        int i;
-        printf("SOURCE CODE ERROR\nfile %s,line %d\nunterminated string: \"",
-            cellString(0,0,fn), ln);
-        for (i = 0; i < 40; ++i)
-            {
-            if (buffer[i] == '\n') break;
-            putchar(buffer[i]);
-            }
-        Fatal(UNTERMINATED_STRING,"\n");
+        Fatal("SOURCE CODE ERROR\nline %d\nunterminated string: \"",
+            LineNumber);
         }
 
     //printf("string is <%s>\n", buffer);
@@ -365,31 +325,4 @@ unread(int ch)
     {
     pushedBack = 1;
     pushBack = ch;
-    }
-
-int
-stringGetChar(FILE *fp)
-    {
-    extern char *InputString;
-    extern int InputStringIndex;
-    extern int InputStringLength;
-
-    int ch;
-
-    if (pushedBack)
-        {
-        pushedBack = 0;
-        //printf("stringGetChar: returning pushed back <%c>\n",pushBack);
-        return pushBack;
-        }
-    else if (InputStringIndex == InputStringLength)
-        {
-        return -1;
-        }
-    else
-        {
-        ch = InputString[InputStringIndex++];
-        //printf("stringGetChar: returning <%c>\n",ch);
-        return ch;
-        }
     }

@@ -54,7 +54,7 @@ extern int cons(int,int);
 
 #define line(a) (the_cars[a].line)
 
-#define sameSymbol(a,b) (ival(a) == ival(b))
+#define sameSymbol(a,b) (type(a) == SYMBOL && ival(a) == ival(b))
 
 /* top level helpers */
 
@@ -66,8 +66,32 @@ extern int newString(char *);
 extern int newSymbol(char *);
 extern int newInteger(int);
 extern int newReal(double);
-extern int isThisSymbol(int,char *);
+extern int newPunctuation(char *);
 
 extern char **SymbolTable;
 extern int MaxSymbols;
 extern int findSymbol(char *);
+
+extern int zero;
+extern int one;
+extern int contextSymbol;
+extern int codeSymbol;
+extern int dynamicContextSymbol;
+extern int thisSymbol;
+extern int parametersSymbol;
+extern int thunkSymbol;
+extern int nameSymbol;
+extern int closureSymbol;
+extern int builtInSymbol;
+extern int constructorSymbol;
+extern int objectSymbol;
+extern int typeSymbol;
+extern int valueSymbol;
+extern int traceSymbol;
+extern int throwSymbol;
+extern int quoteSymbol;
+extern int anonymousSymbol;
+extern int lambdaSymbol;
+extern int dollarSymbol;
+extern int atSymbol;
+extern int uninitializedSymbol;

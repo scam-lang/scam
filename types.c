@@ -17,3 +17,4 @@ char *REAL = "REAL";
 char *INTEGER = "INTEGER";
 char *STRING = "STRING";
 char *SYMBOL = "SYMBOL";
+char *THUNK = "THUNK";
