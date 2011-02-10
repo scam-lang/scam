@@ -261,14 +261,16 @@ begin(int args,int env)
     {
     int items = thunk_code(car(args));
     int context = thunk_context(car(args));
-    printf("in begin...\n");
-    pp(stdout,args);
+    //pp(stdout,args);
     while (cdr(items) != 0)
         {
         printf("in begin...\n");
         eval(car(items),context);
         items = cdr(items);
         }
+    printf("returning a thunk from begin: ");
+    pp(stdout,car(items));
+    printf("\n");
     return makeThunk(car(items),context);
     }
 
@@ -344,6 +346,7 @@ wwhile(int args,int env)
         int b = bodyExprs;
         while (b != 0)
             {
+            pp(stdout,car(b)); printf("\n");
             last = eval(car(b),bodyContext);
             b = cdr(b);
             }

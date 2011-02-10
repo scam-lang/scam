@@ -25,9 +25,9 @@ eval(int expr, int env)
 
         code = thunk_code(t);
 
-        fprintf(stdout,"eval: ");
-        pp(stdout,code);
-        fprintf(stdout,"\n");
+        //fprintf(stdout,"eval: ");
+        //pp(stdout,code);
+        //fprintf(stdout,"\n");
 
         context = thunk_context(t);
 
@@ -39,7 +39,7 @@ eval(int expr, int env)
         if (type(code) == SYMBOL)
             return lookupVariableValue(code,context);
 
-        printf("eval type is %s\n",type(code));
+        //printf("eval type is %s\n",type(code));
         assert(type(code) == CONS);
 
         t = evalCall(code,context);
@@ -57,7 +57,11 @@ evalCall(int call,int env)
     //pp(stdout,car(call));
     //printf("\n");
     closure = eval(car(call),env);
-    pp(stdout,call); printf(" in evalCall\n");
+
+    printf("evalCall: ");
+    pp(stdout,call);
+    printf("\n");
+
     assert(isClosure(closure) || isBuiltIn(closure));
     params = closure_parameters(closure);
     args = cdr(call);
@@ -65,13 +69,13 @@ evalCall(int call,int env)
 
     if (isBuiltIn(closure))
         {
-        printf("call is a builtin\n");
+        //printf("call is a builtin\n");
         return evalBuiltIn(eargs,closure,env);
         }
     else
         {
         int body, xenv;
-        printf("call is user defined\n");
+        //printf("call is user defined\n");
         body = closure_body(closure);
         xenv = closure_context(closure);
         xenv = makeObject(xenv,closure,params,eargs);
