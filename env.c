@@ -3,6 +3,7 @@
 #include "cell.h"
 #include "types.h"
 #include "env.h"
+#include "pp.h"
 #include "util.h"
 
 int
@@ -69,63 +70,33 @@ makeThunk(int expr,int env)
     vars = cons(contextSymbol,cons(codeSymbol,0));
     vals = cons(env,cons(expr,0));
 
+
     return cons(thunkSymbol,cons(vars,cons(vals,0)));
     }
 
 int
-makeClosure(int env,int rest)
+makeBuiltIn(int env,int name,int parameters,int body)
     {
-    int vars,vals;
+    int b = makeClosure(env,name,parameters,body);
 
-    vars =
-        cons(contextSymbol,
-            cons(parametersSymbol,
-                cons(codeSymbol,
-                    cons(nameSymbol,0))));
+    car(b) = builtInSymbol;
 
-    vals = cons(env, rest); 
-
-    return cons(closureSymbol,cons(vars,cons(vals,0)));
+    return b;
     }
 
 int
-makeBuiltIn(int env,int parameters,int body,int name)
-    {
-    int vars,vals;
-
-    vars =
-        cons(contextSymbol,
-            cons(parametersSymbol,
-                cons(codeSymbol,
-                    cons(nameSymbol,0))));
-
-    vals = 
-        cons(env,
-            cons(parameters,
-                cons(body,
-                    cons(name,0))));
-
-    printf("adding %d (%d)\n",ival(name),SymbolCount);
-    printf("adding %s\n",SymbolTable[ival(name)]);
-    printf("adding %s to <object %d>\n",SymbolTable[ival(name)],env);
-    return defineVariable(name,cons(builtInSymbol,cons(vars,cons(vals,0))),env);
-    }
-
-int
-makeObject(int context,int dynamic,int constructor,int vars,int vals)
+makeObject(int context,int constructor,int vars,int vals)
     {
     int o;
 
     vars = 
         cons(contextSymbol,
-            cons(dynamicContextSymbol,
-                cons(constructorSymbol,
-                    cons(thisSymbol,vars))));
+            cons(constructorSymbol,
+                cons(thisSymbol,vars)));
     vals =
         cons(context,
-            cons(dynamic,
-                cons(constructor,
-                    cons(0,vals))));
+            cons(constructor,
+                cons(0,vals)));
 
     o = cons(objectSymbol,cons(vars,cons(vals,0)));
     object_this(o) = o;
@@ -134,7 +105,7 @@ makeObject(int context,int dynamic,int constructor,int vars,int vals)
     }
 
 int
-makeLambda(int context,int name,int parameters,int body)
+makeClosure(int context,int name,int parameters,int body)
     {
     int vars,vals;
 
@@ -149,7 +120,7 @@ makeLambda(int context,int name,int parameters,int body)
                 cons(parameters,
                     cons(body,0))));
 
-    return cons(lambdaSymbol,cons(vars,cons(vals,0)));
+    return cons(closureSymbol,cons(vars,cons(vals,0)));
     }
 
 int
@@ -196,15 +167,18 @@ findLocation(int index,int env)
     {
     while (env != 0)
         {
-        int vars = car(env);
-        int vals = cadr(env);
+        int vars = object_variables(env);
+        int vals = object_values(env);
         while (vars != 0)
             {
+            //printf("looking at %s\n",SymbolTable[ival(car(vars))]);
             if (ival(car(vars)) == index) return vals;
             vars = cdr(vars);
             vals = cdr(vals);
             }
         env = object_context(env);
+        //printf("not in this environment, how about...");
+        //pp(stdout,env);
         }
 
    return 0;

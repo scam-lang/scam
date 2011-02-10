@@ -6,13 +6,14 @@
 #include "env.h"
 #include "eval.h"
 #include "prim.h"
+#include "pp.h"
 #include "util.h"
 
 static int evalCall(int,int);
 static int evalBuiltIn(int,int,int);
 static int processArguments(int,int,int,int);
-static int thunkizedList(int,int);
 static int evaluatedList(int,int);
+static int unevaluatedList(int);
 
 int
 eval(int expr, int env)
@@ -30,6 +31,7 @@ eval(int expr, int env)
 
         context = thunk_context(t);
 
+        if (code == 0) return 0;
         if (type(code) == INTEGER) return code;
         if (type(code) == REAL)    return code;
         if (type(code) == STRING)  return code;
@@ -37,6 +39,7 @@ eval(int expr, int env)
         if (type(code) == SYMBOL)
             return lookupVariableValue(code,context);
 
+        printf("eval type is %s\n",type(code));
         assert(type(code) == CONS);
 
         t = evalCall(code,context);
@@ -50,11 +53,11 @@ evalCall(int call,int env)
     {
     int closure,params,args,eargs;
 
-    printf("in evalCall: ");
-    pp(stdout,car(call));
-    printf("\n");
+    //printf("in evalCall: ");
+    //pp(stdout,car(call));
+    //printf("\n");
     closure = eval(car(call),env);
-    printf("in evalCall...\n");
+    pp(stdout,call); printf(" in evalCall\n");
     assert(isClosure(closure) || isBuiltIn(closure));
     params = closure_parameters(closure);
     args = cdr(call);
@@ -68,9 +71,10 @@ evalCall(int call,int env)
     else
         {
         int body, xenv;
+        printf("call is user defined\n");
         body = closure_body(closure);
         xenv = closure_context(closure);
-        xenv = makeObject(xenv,env,closure,params,eargs);
+        xenv = makeObject(xenv,closure,params,eargs);
         return makeThunk(body,xenv);
         }
     }
@@ -79,6 +83,14 @@ static int
 evalBuiltIn(int args,int builtIn,int env)
     {
     PRIM prim;
+
+    //printf("builtIn arguments are: ");
+    //pp(stdout,args);
+    //printf("\n");
+
+    //printf("closure body is: ");
+    //pp(stdout,closure_body(builtIn));
+    //printf("\n");
 
     prim = BuiltIns[ival(closure_body(builtIn))];
     return prim(args,env);
@@ -96,7 +108,7 @@ processArguments(int name, int params,int args,int env)
         return 0;
         }
     else if (sameSymbol(car(params),dollarSymbol))
-        return thunkizedList(args,env);
+        return cons(makeThunk(unevaluatedList(args),env),0);
     else if (sameSymbol(car(params),atSymbol))
         return evaluatedList(args,env);
     else if (args == 0)
@@ -118,13 +130,14 @@ processArguments(int name, int params,int args,int env)
     }
 
 static int
-thunkizedList(args,env)
+unevaluatedList(args)
     {
     if (args == 0)
         return 0;
     else
-        return cons(makeThunk(car(args),env),thunkizedList(cdr(args),env));
+        return cons(car(args),unevaluatedList(cdr(args)));
     }
+
 static int
 evaluatedList(args,env)
     {

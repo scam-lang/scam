@@ -82,7 +82,7 @@ parse()
     result = exprSeq();
     match(END_OF_INPUT);
 
-    return cons(newSymbol("begin"),result);
+    return cons(beginSymbol,result);
     }
 
 static int
@@ -122,6 +122,7 @@ expr()
         }
     else if (check(OPEN_PARENTHESIS))
         {
+        match(OPEN_PARENTHESIS);
         result = exprSeq();
         match(CLOSE_PARENTHESIS);
         }

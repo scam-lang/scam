@@ -6,12 +6,11 @@ extern int defineVariable(int,int,int);
 extern int findLocation(int,int);
 
 extern int makeThunk(int,int);
-extern int makeClosure(int,int);
-extern int makeObject(int,int,int,int,int);
+extern int makeClosure(int,int,int,int);
+extern int makeObject(int,int,int,int);
 extern int makeError(int,int,int,int,int,int);
 extern int makeError_from_error(int,int);
 extern int makeThrow(int,int,int);
-extern int makeLambda(int,int,int,int);
 extern int makeBuiltIn(int,int,int,int);
 
 #define DEFINE_VARIABLE_CELLS 2
@@ -25,9 +24,9 @@ extern int makeBuiltIn(int,int,int,int);
 #define closure_variables(x)   (cadr(x))
 #define closure_values(x)      (caddr(x))
 #define closure_context(x)     (car(closure_values(x)))
-#define closure_parameters(x)  (cadr(closure_values(x)))
-#define closure_body(x)        (caddr(closure_values(x)))
-#define closure_name(x)        (cadddr(closure_values(x)))
+#define closure_name(x)        (cadr(closure_values(x)))
+#define closure_parameters(x)  (caddr(closure_values(x)))
+#define closure_body(x)        (cadddr(closure_values(x)))
 
 #define thunk_variables(x)     (cadr(x))
 #define thunk_values(x)        (caddr(x))
@@ -37,9 +36,8 @@ extern int makeBuiltIn(int,int,int,int);
 #define object_variables(x)    (cadr(x))
 #define object_values(x)       (caddr(x))
 #define object_context(x)      (car(object_values(x)))
-#define object_dynamic(x)      (cadr(object_values(x)))
-#define object_constructor(x)  (caddr(object_values(x)))
-#define object_this(x)         (cadddr(object_values(x)))
+#define object_constructor(x)  (cadr(object_values(x)))
+#define object_this(x)         (caddr(object_values(x)))
 
 #define error_variables(x)     (cadr(x))
 #define error_values(x)        (caddr(x))
@@ -55,5 +53,5 @@ extern int makeBuiltIn(int,int,int,int);
 #define isThunk(x)    ((type(x) == CONS && sameSymbol(car(x),thunkSymbol)))
 #define isError(x)    ((type(x) == CONS && sameSymbol(car(x),errorSymbol)))
 
-#define ENV_PREDEFINED 4
+#define ENV_PREDEFINED 3
 

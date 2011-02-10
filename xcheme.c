@@ -45,14 +45,14 @@ main(int argc,char **argv,char **envv)
     parserInit(argv[argIndex]);
     ptree = parse();
 
-    env = makeObject(0,0,0,0,0);
+    env = makeObject(0,0,0,0);
     loadBuiltIns(env);
 
     fprintf(stdout,"global env: ");
     pp(stdout,env);
     fprintf(stdout,"\n");
 
-    env = makeObject(env,0,0,0,0);
+    env = makeObject(env,0,0,0);
 
     fprintf(stdout,"parse tree: ");
     pp(stdout,ptree);

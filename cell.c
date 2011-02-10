@@ -34,6 +34,11 @@ int lambdaSymbol;
 int dollarSymbol;
 int atSymbol;
 int uninitializedSymbol;
+int errorSymbol;
+int beginSymbol;
+int sharpSymbol;
+int trueSymbol;
+int falseSymbol;
 
 CELL *the_cars;
 CELL *new_cars;
@@ -96,7 +101,12 @@ memoryInit(int memsize)
     lambdaSymbol         = newSymbol("lambda");
     dollarSymbol         = newSymbol("$");
     atSymbol             = newSymbol("@");
+    sharpSymbol          = newSymbol("#");
     uninitializedSymbol  = newSymbol("UNINITIALIZED");
+    errorSymbol          = newSymbol("error");
+    beginSymbol          = newSymbol("begin");
+    trueSymbol           = newSymbol("#t");
+    falseSymbol          = newSymbol("#f");
     }
 
 int
