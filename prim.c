@@ -325,6 +325,33 @@ iff(int args,int env)
         }
     }
 
+static int
+wwhile(int args,int env)
+    {
+    int last = 0;
+    int test,then,testExpr,testContext,body,bodyExprs,bodyContext;
+    
+    test = car(args);
+    testExpr = thunk_code(test);
+    testContext = thunk_context(test);
+    args = cdr(args);
+    body = car(args);
+    bodyExprs = thunk_code(body);
+    bodyContext = thunk_context(body);
+
+    while (sameSymbol(eval(testExpr,testContext),falseSymbol))
+        {
+        int b = bodyExprs;
+        while (b != 0)
+            {
+            last = eval(car(b),bodyContext);
+            b = cdr(b);
+            }
+        }
+
+    return last;
+    }
+
 void
 loadBuiltIns(int env)
     {
@@ -403,6 +430,15 @@ loadBuiltIns(int env)
         newInteger(count));
     defineVariable(closure_name(b),b,env);
     ++count;
+
+    BuiltIns[count] = wwhile;
+    b = makeBuiltIn(env,
+        newSymbol("while"),
+        cons(newSymbol("$test"),cons(dollarSymbol,0)),
+        newInteger(count));
+    defineVariable(closure_name(b),b,env);
+    ++count;
+
 
     BuiltIns[count] = lessThan;
     b = makeBuiltIn(env,
