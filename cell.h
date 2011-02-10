@@ -69,6 +69,7 @@ extern int newReal(double);
 extern int newPunctuation(char *);
 
 extern char **SymbolTable;
+extern int SymbolCount;
 extern int MaxSymbols;
 extern int findSymbol(char *);
 

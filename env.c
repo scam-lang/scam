@@ -48,8 +48,8 @@ defineVariable(int var,int val,int env)
 
    /* there are five predefined variables, skip over those */
 
-   vars = car(env);
-   vals = cadr(env);
+   vars = cadr(env);
+   vals = caddr(env);
    for (i = 0; i < ENV_PREDEFINED - 1; ++i)
        {
        vars = cdr(vars);
@@ -62,7 +62,7 @@ defineVariable(int var,int val,int env)
    }
 
 int
-makeThunk(int env,int expr)
+makeThunk(int expr,int env)
     {
     int vars,vals;
     
@@ -105,7 +105,10 @@ makeBuiltIn(int env,int parameters,int body,int name)
                 cons(body,
                     cons(name,0))));
 
-    return cons(builtInSymbol,cons(vars,cons(vals,0)));
+    printf("adding %d (%d)\n",ival(name),SymbolCount);
+    printf("adding %s\n",SymbolTable[ival(name)]);
+    printf("adding %s to <object %d>\n",SymbolTable[ival(name)],env);
+    return defineVariable(name,cons(builtInSymbol,cons(vars,cons(vals,0))),env);
     }
 
 int

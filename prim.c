@@ -79,6 +79,18 @@ plus(int args,int env)
     return newInteger(total);
     }
 
+static int
+begin(int args,int env)
+    {
+    int thunks = car(args);
+    while (cdr(thunks) != 0)
+        {
+        eval(thunk_code(car(thunks)),thunk_context(car(thunks)));
+        thunks = cdr(thunks);
+        }
+    return car(thunks);
+    }
+
 void
 loadBuiltIns(int env)
     {
@@ -86,30 +98,37 @@ loadBuiltIns(int env)
 
     BuiltIns[count] = quote;
     makeBuiltIn(env,
-        cons(newString("$item"),0),
+        cons(newSymbol("$item"),0),
         newInteger(count),
-        newString("quote"));
+        newSymbol("quote"));
     ++count;
 
     BuiltIns[count] = define;
     makeBuiltIn(env,
-        cons(newString("$name"),cons(newString("$"),0)),
+        cons(newSymbol("$name"),cons(dollarSymbol,0)),
         newInteger(count),
-        newString("define"));
+        newSymbol("define"));
     ++count;
 
     BuiltIns[count] = lambda;
     makeBuiltIn(env,
-        cons(newString("$params"),cons(newString("$"),0)),
+        cons(newSymbol("$params"),cons(dollarSymbol,0)),
         newInteger(count),
-        newString("lambda"));
+        newSymbol("lambda"));
     ++count;
 
     BuiltIns[count] = plus;
     makeBuiltIn(env,
-        cons(newString("@"),0),
+        cons(atSymbol,0),
         newInteger(count),
-        newString("plus"));
+        newSymbol("plus"));
+    ++count;
+
+    BuiltIns[count] = begin;
+    makeBuiltIn(env,
+        cons(dollarSymbol,0),
+        newInteger(count),
+        newSymbol("begin"));
     ++count;
 
     assert(count <= sizeof(BuiltIns) / sizeof(PRIM));

@@ -45,7 +45,7 @@ int FileIndex;
 
 int MaxSymbols = 100;
 char **SymbolTable;
-static int SymbolCount;
+int SymbolCount;
 static int SymbolsIncrement = 100;
 
 void

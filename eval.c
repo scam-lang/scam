@@ -23,6 +23,11 @@ eval(int expr, int env)
         int code,context;
 
         code = thunk_code(t);
+
+        fprintf(stdout,"eval: ");
+        pp(stdout,code);
+        fprintf(stdout,"\n");
+
         context = thunk_context(t);
 
         if (type(code) == INTEGER) return code;
@@ -45,7 +50,11 @@ evalCall(int call,int env)
     {
     int closure,params,args,eargs;
 
+    printf("in evalCall: ");
+    pp(stdout,car(call));
+    printf("\n");
     closure = eval(car(call),env);
+    printf("in evalCall...\n");
     assert(isClosure(closure) || isBuiltIn(closure));
     params = closure_parameters(closure);
     args = cdr(call);
@@ -53,6 +62,7 @@ evalCall(int call,int env)
 
     if (isBuiltIn(closure))
         {
+        printf("call is a builtin\n");
         return evalBuiltIn(eargs,closure,env);
         }
     else

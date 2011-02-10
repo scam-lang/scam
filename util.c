@@ -19,7 +19,7 @@ Fatal(char *fmt, ...)
 {
     va_list ap;
 
-    printf("encountered a fatal error...\n");
+    //printf("encountered a fatal error...\n");
 
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
