@@ -1,0 +1,11 @@
+(define z 10)
+(define (square x) (+ x x))
+(define (fib n)
+    (if (< n 2) n (+ (fib (- n 1)) (fib (- n 2))))
+    )
+
+(define i 0)
+(while (< i z)
+    (println "i is " i)
+    (set! i (+ i 1))
+    )
