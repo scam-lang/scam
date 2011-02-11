@@ -331,8 +331,9 @@ static int
 wwhile(int args,int env)
     {
     int last = 0;
-    int test,then,testExpr,testContext,body,bodyExprs,bodyContext;
+    int test,testExpr,testContext,testResult,body,bodyExprs,bodyContext;
     
+    printf("in while...\n");
     test = car(args);
     testExpr = thunk_code(test);
     testContext = thunk_context(test);
@@ -341,7 +342,8 @@ wwhile(int args,int env)
     bodyExprs = thunk_code(body);
     bodyContext = thunk_context(body);
 
-    while (sameSymbol(eval(testExpr,testContext),falseSymbol))
+    testResult = eval(testExpr,testContext);
+    while (sameSymbol(testResult,trueSymbol))
         {
         int b = bodyExprs;
         while (b != 0)
@@ -350,9 +352,24 @@ wwhile(int args,int env)
             last = eval(car(b),bodyContext);
             b = cdr(b);
             }
+        testResult = eval(testExpr,testContext);
         }
 
     return last;
+    }
+
+static int
+set(int args,int env)
+    {
+    int var,value;
+    
+    var = car(args);
+    args = cdr(args);
+    value = car(args);
+
+    setVariableValue(thunk_code(var),value,thunk_context(var));
+
+    return value;
     }
 
 void
@@ -360,6 +377,14 @@ loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = set;
+    b = makeBuiltIn(env,
+        newSymbol("set!"),
+        cons(newSymbol("$var"),cons(newSymbol("value"),0)),
+        newInteger(count));
+    defineVariable(closure_name(b),b,env);
+    ++count;
 
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
