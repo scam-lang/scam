@@ -9,7 +9,7 @@
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
-int MemorySize =  4 * 128 * 8192; 
+int MemorySize =  8 * 128 * 8192; 
 
 int zero;
 int one;
@@ -53,6 +53,9 @@ char **SymbolTable;
 int SymbolCount;
 static int SymbolsIncrement = 100;
 
+int rootList;
+static int rootBottom;
+
 void
 memoryInit(int memsize)
     {
@@ -76,7 +79,13 @@ memoryInit(int memsize)
     if (new_cdrs == 0)
         Fatal("could not allocate code segment (new cdrs)\n");
 
+    /* nil has to be the first symbol */
+
     MemorySpot = 1;
+
+    assert(MemorySpot == 1);
+
+    rootList = 0;
 
     zero = newInteger(0);
     one = newInteger(1);
@@ -102,11 +111,13 @@ memoryInit(int memsize)
     dollarSymbol         = newSymbol("$");
     atSymbol             = newSymbol("@");
     sharpSymbol          = newSymbol("#");
-    uninitializedSymbol  = newSymbol("UNINITIALIZED");
+    uninitializedSymbol  = newSymbol(":UNINITIALIZED:");
     errorSymbol          = newSymbol("error");
     beginSymbol          = newSymbol("begin");
     trueSymbol           = newSymbol("#t");
     falseSymbol          = newSymbol("#f");
+
+    rootBottom = MemorySpot;
     }
 
 int
@@ -117,6 +128,14 @@ getMemorySize()
 
 int
 cons(int a,int b)
+    {
+    assureMemory(1,a,b,0);
+
+    return ucons(a,b);
+    }
+
+int
+ucons(int a,int b)
     {
     CELL *spot;
 
@@ -133,11 +152,14 @@ cons(int a,int b)
     return MemorySpot - 1;
     }
 
+
 int
 newString(char *s)
     {
     int start;
     int length = strlen(s);
+
+    assureMemory(length + 1,0);
 
     start = MemorySpot;
 
@@ -173,7 +195,11 @@ int
 newSymbol(char *s)
     {
     int index = findSymbol(s);
-    int result = cons(0,0);
+    int result;
+
+    assureMemory(1,0);
+
+    result = ucons(0,0);
     type(result) = SYMBOL;
     ival(result) = index;
     return result;
@@ -182,7 +208,11 @@ newSymbol(char *s)
 int
 newInteger(int i)
     {
-    int result = cons(0,0);
+    int result;
+
+    assureMemory(1,0);
+
+    result = ucons(0,0);
     type(result) = INTEGER;
     ival(result) = i;
     return result;
@@ -191,7 +221,11 @@ newInteger(int i)
 int
 newReal(double r)
     {
-    int result = cons(0,0);
+    int result;
+
+    assureMemory(1,0);
+
+    result = ucons(0,0);
     type(result) = REAL;
     rval(result) = r;
     return result;
@@ -200,7 +234,11 @@ newReal(double r)
 int
 newPunctuation(char *t)
     {
-    int result = cons(0,0);
+    int result;
+
+    assureMemory(1,0);
+
+    result = ucons(0,0);
     type(result) = t;
     return result;
     }
@@ -244,4 +282,45 @@ findSymbol(char *s)
     SymbolTable[SymbolCount++] = dup;
 
     return SymbolCount - 1;
+    }
+
+int
+pop()
+    {
+    int temp;
+    assert(rootList != 0);
+    temp = car(rootList);
+    rootList = cdr(rootList);
+    return temp;
+    }
+
+void 
+gc()
+    {
+    int i;
+    int *temp_cdrs;
+    CELL *temp_cars;
+
+    for (i = 0; i < rootBottom; ++i)
+        {
+        new_cars[i] = the_cars[i];
+        new_cdrs[i] = the_cdrs[i];
+        }
+
+    //transfer(rootList);
+
+    temp_cars = the_cars;
+    the_cars = new_cars;
+    new_cars = temp_cars;
+
+    temp_cdrs = the_cdrs;
+    the_cdrs = new_cdrs;
+    new_cdrs = temp_cdrs;
+    }
+
+void
+assureMemory(int needed,...)
+    {
+    if (MemorySpot + needed >= MemorySize)
+        Fatal("out of memory\n");
     }

@@ -10,15 +10,21 @@
 #include "util.h"
 
 static int evalCall(int,int);
-static int evalBuiltIn(int,int,int);
+static int evalBuiltIn(int,int);
 static int processArguments(int,int,int,int);
+static int thunkizedList(int,int);
 static int evaluatedList(int,int);
 static int unevaluatedList(int);
 
 int
 eval(int expr, int env)
     {
-    int t = makeThunk(expr,env);
+    int t;
+
+    /* no need to assure memory here, since t holes expr and env */
+
+    t = makeThunk(expr,env);
+
     while (type(t) == CONS && sameSymbol(car(t),thunkSymbol))
         {
         int code,context;
@@ -29,18 +35,20 @@ eval(int expr, int env)
         //pp(stdout,code);
         //fprintf(stdout,"\n");
 
-        context = thunk_context(t);
-
         if (code == 0) return 0;
         if (type(code) == INTEGER) return code;
         if (type(code) == REAL)    return code;
         if (type(code) == STRING)  return code;
+
+        context = thunk_context(t);
 
         if (type(code) == SYMBOL)
             return lookupVariableValue(code,context);
 
         //printf("eval type is %s\n",type(code));
         assert(type(code) == CONS);
+
+        /* as before, no need to assure memory here */
 
         t = evalCall(code,context);
         }
@@ -56,26 +64,36 @@ evalCall(int call,int env)
     //printf("in evalCall: ");
     //pp(stdout,car(call));
     //printf("\n");
+    push(env);
+    push(call);
     closure = eval(car(call),env);
+    call = pop();
+    env = pop();
 
-    printf("evalCall: ");
-    pp(stdout,call);
-    printf("\n");
+    //printf("evalCall: ");
+    //pp(stdout,call);
+    //printf("\n");
 
     assert(isClosure(closure) || isBuiltIn(closure));
     params = closure_parameters(closure);
     args = cdr(call);
+
+    push(closure);
     eargs = processArguments(closure_name(closure),params,args,env);
+    closure = pop();
 
     if (isBuiltIn(closure))
         {
         //printf("call is a builtin\n");
-        return evalBuiltIn(eargs,closure,env);
+        return evalBuiltIn(eargs,closure);
         }
     else
         {
         int body, xenv;
         //printf("call is user defined\n");
+        
+        assureMemory(OBJECT_CELLS+THUNK_CELLS,closure,params,eargs,0);
+
         body = closure_body(closure);
         xenv = closure_context(closure);
         xenv = makeObject(xenv,closure,params,eargs);
@@ -84,7 +102,7 @@ evalCall(int call,int env)
     }
 
 static int
-evalBuiltIn(int args,int builtIn,int env)
+evalBuiltIn(int args,int builtIn)
     {
     PRIM prim;
 
@@ -97,7 +115,7 @@ evalBuiltIn(int args,int builtIn,int env)
     //printf("\n");
 
     prim = BuiltIns[ival(closure_body(builtIn))];
-    return prim(args,env);
+    return prim(args);
     }
 
 static int
@@ -111,10 +129,12 @@ processArguments(int name, int params,int args,int env)
             SymbolTable[ival(name)]);
         return 0;
         }
-    else if (sameSymbol(car(params),dollarSymbol))
+    else if (sameSymbol(car(params),sharpSymbol))
         return cons(makeThunk(unevaluatedList(args),env),0);
+    else if (sameSymbol(car(params),dollarSymbol))
+        return cons(thunkizedList(args,env),0);
     else if (sameSymbol(car(params),atSymbol))
-        return evaluatedList(args,env);
+        return cons(evaluatedList(args,env),0);
     else if (args == 0)
         {
         Fatal("too few arguments to function %s\n",
@@ -131,6 +151,15 @@ processArguments(int name, int params,int args,int env)
         return cons(eval(car(args),env),
             processArguments(name,cdr(params),cdr(args),env));
         }
+    }
+
+static int
+thunkizedList(int args,int env)
+    {
+    if (args == 0)
+        return 0;
+    else
+        return cons(makeThunk(car(args),env),thunkizedList(cdr(args),env));
     }
 
 static int

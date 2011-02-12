@@ -11,62 +11,106 @@
 PRIM BuiltIns[1000];
 
 static int
-quote(int args,int env)
+evalListExceptLast(int items)
+    {
+    int result = 0;
+    while (cdr(items) != 0)
+        {
+        push(items);
+        result = eval(thunk_code(car(items)),thunk_context(car(items)));
+        items = pop();
+
+        items = cdr(items);
+        }
+    return car(items);
+    }
+
+static int
+evalList(int items)
+    {
+    int result = 0;
+    while (items != 0)
+        {
+        push(items);
+        result = eval(thunk_code(car(items)),thunk_context(car(items)));
+        items = pop();
+
+        items = cdr(items);
+        }
+    return result;
+    }
+
+static int
+quote(int args)
     {
     return thunk_code(car(args));
     }
 
+/* (define #) */
+
 static int
-defineIdentifier(int name,int args,int definingEnv,int initEnv)
+defineIdentifier(int name,int init,int env)
     {
-    int init;
+    if (init != 0)
+        {
+        push(name);
+        push(env);
+        init = eval(init,env);
+        env = pop();
+        name = pop();
+        }
 
-    if (args == 0)
-        init = 0;
-    else
-        init = eval(car(args),initEnv);
+     assureMemory(DEFINE_CELLS,env,name,init,0);
 
-     return defineVariable(name,init,definingEnv);
+     return defineVariable(env,name,init);
      }
         
 static int
 defineFunction(int name,int parameters,int body,int env)
     {
-    int closure = makeClosure(env,name,parameters,cons(beginSymbol,body));
+    int closure;
+    int actualArgs;
+    
+    assureMemory(CLOSURE_CELLS + DEFINE_CELLS,name,parameters,body,env,0);
 
-    return defineVariable(name,closure,env);
+    closure = makeClosure(env,name,parameters,body,ADD_BEGIN);
+
+    return defineVariable(env,name,closure);
     }
-        
+
+/* (define #) */
+
 static int
-define(int args,int env)
+define(int args)
     {
     int actualArgs = thunk_code(car(args));
-    int name = car(actualArgs);
+    int first = car(actualArgs);
     int rest = cdr(actualArgs);
 
-    if (type(name) == CONS)
-        return defineFunction(car(name),cdr(name),rest,env);
-    else if (type(name) == SYMBOL)
-        return defineIdentifier(name,rest,env,thunk_context(car(args)));
+    if (type(first) == CONS)
+        return defineFunction(car(first),cdr(first),rest,
+            thunk_context(car(args)));
+    else if (type(first) == SYMBOL)
+        return defineIdentifier(first,car(rest),
+            thunk_context(car(args)));
     else
-        {
-        Fatal("cannot define a %s\n",type(name));
-        return 0;
-        }
+        return Fatal("cannot define a %s\n",type(first));
     }
 
+/* (lambda $params #) */
+
 static int
-lambda(int args,int env)
+lambda(int args)
     {
     int name = anonymousSymbol;
     int params = thunk_code(car(args));
     int body = thunk_code(cadr(args));
 
-    return  makeClosure(env,name,params,cons(beginSymbol,body));
+    return  makeClosure(thunk_context(car(args)),name,params,body,ADD_BEGIN);
     }
 
 static int
-rplus(int args,int env,int accum)
+rplus(int args,int accum)
     {
     while (args != 0)
         {
@@ -85,7 +129,7 @@ rplus(int args,int env,int accum)
     }
 
 static int
-iplus(int args,int env,int accum)
+iplus(int args,int accum)
     {
     while (args != 0)
         {
@@ -95,7 +139,7 @@ iplus(int args,int env,int accum)
             {
             type(accum) = REAL;
             rval(accum) = ival(accum);
-            return rplus(args,env,accum);
+            return rplus(args,accum);
             }
         else if (t == INTEGER)
             ival(accum) += ival(car(args));
@@ -108,17 +152,23 @@ iplus(int args,int env,int accum)
     return accum;
     }
 
+/* (+ @) */
+
 static int
-plus(int args,int env)
+plus(int args)
     {
     char *t;
 
+    args = car(args);
+
     if (args == 0) return zero;
+
+    assureMemory(1,args,0);
 
     t = type(car(args));
 
-    if (t == INTEGER) return iplus(args,env,newInteger(0));
-    if (t == REAL) return rplus(args,env,newReal(0));
+    if (t == INTEGER) return iplus(args,newInteger(0));
+    if (t == REAL) return rplus(args,newReal(0));
     
     Fatal("wrong type for '+': %s\n",t);
 
@@ -126,7 +176,7 @@ plus(int args,int env)
     }
 
 static int
-rminus(int args,int env,int accum)
+rminus(int args,int accum)
     {
     while (args != 0)
         {
@@ -145,7 +195,7 @@ rminus(int args,int env,int accum)
     }
 
 static int
-iminus(int args,int env,int accum)
+iminus(int args,int accum)
     {
     while (args != 0)
         {
@@ -155,7 +205,7 @@ iminus(int args,int env,int accum)
             {
             type(accum) = REAL;
             rval(accum) = ival(accum);
-            return rminus(args,env,accum);
+            return rminus(args,accum);
             }
         else if (t == INTEGER)
             ival(accum) -= ival(car(args));
@@ -168,25 +218,31 @@ iminus(int args,int env,int accum)
     return accum;
     }
 
+/* (- @) */
+
 static int
-minus(int args,int env)
+minus(int args)
     {
     char *t;
     int accum;
 
+    args = car(args);
+
     if (args == 0) return zero;
+
+    assureMemory(1,args,0);
 
     t = type(car(args));
 
     if (t == INTEGER)
         {
         accum = newInteger(ival(car(args)));
-        return iminus(cdr(args),env,accum);
+        return iminus(cdr(args),accum);
         }
     if (t == REAL)
         {
         accum = newReal(rval(car(args)));
-        return rminus(cdr(args),env,accum);
+        return rminus(cdr(args),accum);
         }
     
     Fatal("wrong type for '-': %s\n",t);
@@ -243,41 +299,35 @@ lessThanLoop(int first,int remaining)
     }
 
 static int
-lessThan(int args,int env)
+lessThan(int args)
     {
     int result;
     if (args == 0) return trueSymbol;
 
-    pp(stdout,args); printf(": more than one arg, calling lessThanLoop\n");
+    //pp(stdout,args); printf(": more than one arg, calling lessThanLoop\n");
 
     result = lessThanLoop(car(args),cdr(args));
-    pp(stdout,result); printf(" is the result\n");
+    //pp(stdout,result); printf(" is the result\n");
 
     return result;
     }
 
-static int
-begin(int args,int env)
-    {
-    int items = thunk_code(car(args));
-    int context = thunk_context(car(args));
-    //pp(stdout,args);
-    while (cdr(items) != 0)
-        {
-        printf("in begin...\n");
-        eval(car(items),context);
-        items = cdr(items);
-        }
-    printf("returning a thunk from begin: ");
-    pp(stdout,car(items));
-    printf("\n");
-    return makeThunk(car(items),context);
-    }
+/* (begin $) */
 
 static int
-print(int args,int env)
+begin(int args)
+    {
+    return evalListExceptLast(args);
+    }
+
+/* (print @) */
+
+static int
+print(int args)
     {
     int last = 0;
+
+    args = car(args);
 
     while (args != 0)
         {
@@ -290,82 +340,73 @@ print(int args,int env)
     }
 
 static int
-println(int args,int env)
+println(int args)
     {
-    int result = print(args,env);
+    int result = print(args);
     fprintf(stdout,"\n");
     return result;
     }
 
+/* (if test $then $) */
+
 static int
-iff(int args,int env)
+iff(int args)
     {
-    int test,then,rest,otherwise;
-    
-    test = car(args);
-    args = cdr(args);
-    then = car(args);
-    args = cdr(args);
-    rest = car(args);
+    //pp(stdout,test); printf(" is the test");
 
-    pp(stdout,test); printf(" is the test");
-
-    otherwise = thunk_code(rest);
-
-    if (sameSymbol(test,trueSymbol))
+    if (sameSymbol(car(args),trueSymbol))
         {
-        printf("if test is true\n");
-        return then;
+        //printf("if test is true\n");
+        return cadr(args);
         }
     else
         {
-        printf("if test is false\n");
+        //printf("if test is false\n");
+        int otherwise = caddr(args);
         if (otherwise != 0)
-            return makeThunk(car(otherwise),thunk_context(rest));
+            return car(otherwise);
         else
             return 0;
         }
     }
 
+/* (while $test $) */
+
 static int
-wwhile(int args,int env)
+wwhile(int args)
     {
     int last = 0;
-    int test,testExpr,testContext,testResult,body,bodyExprs,bodyContext;
+    int testResult;
     
-    printf("in while...\n");
-    test = car(args);
-    testExpr = thunk_code(test);
-    testContext = thunk_context(test);
-    args = cdr(args);
-    body = car(args);
-    bodyExprs = thunk_code(body);
-    bodyContext = thunk_context(body);
+    //printf("in while...\n");
 
-    testResult = eval(testExpr,testContext);
+    push(args);
+    testResult = eval(thunk_code(car(args)),thunk_context(car(args)));
+    args = pop();
+
     while (sameSymbol(testResult,trueSymbol))
         {
-        int b = bodyExprs;
-        while (b != 0)
-            {
-            pp(stdout,car(b)); printf("\n");
-            last = eval(car(b),bodyContext);
-            b = cdr(b);
-            }
-        testResult = eval(testExpr,testContext);
+        push(args);
+        last = evalList(cadr(args));
+        args = pop();
+
+        push(args);
+        testResult = eval(thunk_code(car(args)),thunk_context(args));
+        args = pop();
         }
 
     return last;
     }
 
+/* (set! $var value) */
+
 static int
-set(int args,int env)
+set(int args)
     {
     int var,value;
     
     var = car(args);
-    args = cdr(args);
-    value = car(args);
+    value = cadr(args);
 
     setVariableValue(thunk_code(var),value,thunk_context(var));
 
@@ -381,101 +422,105 @@ loadBuiltIns(int env)
     BuiltIns[count] = set;
     b = makeBuiltIn(env,
         newSymbol("set!"),
-        cons(newSymbol("$var"),cons(newSymbol("value"),0)),
+        ucons(newSymbol("$var"),
+            ucons(newSymbol("value"),0)),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
         newSymbol("quote"),
-        cons(newSymbol("$item"),0),
+        ucons(newSymbol("$item"),0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = define;
     b = makeBuiltIn(env,
         newSymbol("define"),
-        cons(dollarSymbol,0),
+        ucons(sharpSymbol,0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = lambda;
     b = makeBuiltIn(env,
         newSymbol("lambda"),
-        cons(newSymbol("$params"),cons(dollarSymbol,0)),
+        ucons(newSymbol("$params"),
+            ucons(sharpSymbol,0)),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = plus;
     b = makeBuiltIn(env,
         newSymbol("+"),
-        cons(atSymbol,0),
+        ucons(atSymbol,0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = minus;
     b = makeBuiltIn(env,
         newSymbol("-"),
-        cons(atSymbol,0),
+        ucons(atSymbol,0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
 
     BuiltIns[count] = begin;
     b = makeBuiltIn(env,
         beginSymbol,
-        cons(dollarSymbol,0),
+        ucons(dollarSymbol,0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = print;
     b = makeBuiltIn(env,
         newSymbol("print"),
-        cons(atSymbol,0),
+        ucons(atSymbol,0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = println;
     b = makeBuiltIn(env,
         newSymbol("println"),
-        cons(atSymbol,0),
+        ucons(atSymbol,0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = iff;
     b = makeBuiltIn(env,
         newSymbol("if"),
-        cons(newSymbol("test"),cons(newSymbol("$then"),cons(dollarSymbol,0))),
+        ucons(newSymbol("test"),
+            ucons(newSymbol("$then"),
+                ucons(dollarSymbol,0))),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = wwhile;
     b = makeBuiltIn(env,
         newSymbol("while"),
-        cons(newSymbol("$test"),cons(dollarSymbol,0)),
+        ucons(newSymbol("$test"),
+            ucons(dollarSymbol,0)),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
 
     BuiltIns[count] = lessThan;
     b = makeBuiltIn(env,
         newSymbol("<"),
-        cons(atSymbol,0),
+        ucons(atSymbol,0),
         newInteger(count));
-    defineVariable(closure_name(b),b,env);
+    defineVariable(env,closure_name(b),b);
     ++count;
 
     assert(count <= sizeof(BuiltIns) / sizeof(PRIM));
     }
-

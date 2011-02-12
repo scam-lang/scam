@@ -27,6 +27,7 @@ extern int LineNumber;
 extern int FileIndex;
 
 extern int cons(int,int);
+extern int ucons(int,int);
 
 #define cfile (symbols[FileIndex])
 #define cline (LineNumber)
@@ -56,9 +57,13 @@ extern int cons(int,int);
 
 #define sameSymbol(a,b) (type(a) == SYMBOL && ival(a) == ival(b))
 
+#define push(x) (rootList = cons(x,rootList))
+#define notEnoughMemory(x) (MemorySpot + (needed) >= MemorySize)
+
 /* top level helpers */
 
 extern void memoryInit(int);
+extern int pop(void);
 
 /* lexing helpers */
 
@@ -72,6 +77,9 @@ extern char **SymbolTable;
 extern int SymbolCount;
 extern int MaxSymbols;
 extern int findSymbol(char *);
+
+extern int rootList;
+extern void assureMemory(int,...);
 
 extern int zero;
 extern int one;

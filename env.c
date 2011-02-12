@@ -39,45 +39,53 @@ setVariableValue(int var,int val,int env)
     }
 
 int 
-defineVariable(int var,int val,int env)
-   {
-   int i;
-   int vars,vals;
+defineVariable(int env,int var,int val)
+    {
+    int i;
+    int vars,vals;
 
-   //printf("defining variable %s\n",symbols[ival(var)]);
-   //ppf("env: ",env,"\n");
+    //printf("defining variable %s\n",symbols[ival(var)]);
+    //ppf("env: ",env,"\n");
 
-   /* there are five predefined variables, skip over those */
+    assert(DEFINE_CELLS == 2);
 
-   vars = cadr(env);
-   vals = caddr(env);
-   for (i = 0; i < ENV_PREDEFINED - 1; ++i)
-       {
-       vars = cdr(vars);
-       vals = cdr(vals);
-       }
-   cdr(vars) = cons(var,cdr(vars));
-   cdr(vals) = cons(val,cdr(vals));
+    assureMemory(2,val,var,env,0);
 
-   return val;
-   }
+    /* there are five predefined variables, skip over those */
+
+    vars = cadr(env);
+    vals = caddr(env);
+    for (i = 0; i < ENV_PREDEFINED - 1; ++i)
+        {
+        vars = cdr(vars);
+        vals = cdr(vals);
+        }
+    cdr(vars) = ucons(var,cdr(vars));
+    cdr(vals) = ucons(val,cdr(vals));
+ 
+    return val;
+    }
 
 int
 makeThunk(int expr,int env)
     {
     int vars,vals;
     
-    vars = cons(contextSymbol,cons(codeSymbol,0));
-    vals = cons(env,cons(expr,0));
+    assert(THUNK_CELLS == 7);
+
+    assureMemory(7,expr,env,0);
+
+    vars = ucons(contextSymbol,ucons(codeSymbol,0));
+    vals = ucons(env,ucons(expr,0));
 
 
-    return cons(thunkSymbol,cons(vars,cons(vals,0)));
+    return ucons(thunkSymbol,ucons(vars,ucons(vals,0)));
     }
 
 int
 makeBuiltIn(int env,int name,int parameters,int body)
     {
-    int b = makeClosure(env,name,parameters,body);
+    int b = makeClosure(env,name,parameters,body,NO_BEGIN);
 
     car(b) = builtInSymbol;
 
@@ -89,38 +97,49 @@ makeObject(int context,int constructor,int vars,int vals)
     {
     int o;
 
-    vars = 
-        cons(contextSymbol,
-            cons(constructorSymbol,
-                cons(thisSymbol,vars)));
-    vals =
-        cons(context,
-            cons(constructor,
-                cons(0,vals)));
+    assert(OBJECT_CELLS == 9);
 
-    o = cons(objectSymbol,cons(vars,cons(vals,0)));
+    assureMemory(9,context,constructor,vars,vals,0);
+
+    vars = 
+        ucons(contextSymbol,
+            ucons(constructorSymbol,
+                ucons(thisSymbol,vars)));
+    vals =
+        ucons(context,
+            ucons(constructor,
+                ucons(0,vals)));
+
+    o = ucons(objectSymbol,ucons(vars,ucons(vals,0)));
     object_this(o) = o;
 
     return o;
     }
 
 int
-makeClosure(int context,int name,int parameters,int body)
+makeClosure(int context,int name,int parameters,int body,int mode)
     {
     int vars,vals;
 
-    vars = 
-        cons(contextSymbol,
-            cons(nameSymbol,
-                cons(parametersSymbol,
-                    cons(codeSymbol,0))));
-    vals =
-        cons(context,
-            cons(name,
-                cons(parameters,
-                    cons(body,0))));
+    assert(CLOSURE_CELLS == 12);
 
-    return cons(closureSymbol,cons(vars,cons(vals,0)));
+    assureMemory(12,context,name,parameters,body,0);
+
+    if (mode == ADD_BEGIN)
+       body = ucons(beginSymbol,body);
+
+    vars = 
+        ucons(contextSymbol,
+            ucons(nameSymbol,
+                ucons(parametersSymbol,
+                    ucons(codeSymbol,0))));
+    vals =
+        ucons(context,
+            ucons(name,
+                ucons(parameters,
+                    ucons(body,0))));
+
+    return ucons(closureSymbol,ucons(vars,ucons(vals,0)));
     }
 
 int
@@ -128,20 +147,24 @@ makeError(int tag,int context,int expr,int kind,int value,int trace)
     {
     int vars,vals;
 
-    vars =
-        cons(contextSymbol,
-            cons(codeSymbol,
-                cons(typeSymbol,
-                    cons(valueSymbol,
-                        cons(traceSymbol,0)))));
-    vals =
-        cons(context,
-            cons(expr,
-                cons(kind,
-                    cons(value,
-                        cons(trace, 0)))));
+    assert(ERROR_CELLS == 13);
 
-    return cons(tag,cons(vars,cons(vals,0)));
+    assureMemory(13,tag,context,expr,kind,value,trace,0);
+
+    vars =
+        ucons(contextSymbol,
+            ucons(codeSymbol,
+                ucons(typeSymbol,
+                    ucons(valueSymbol,
+                        ucons(traceSymbol,0)))));
+    vals =
+        ucons(context,
+            ucons(expr,
+                ucons(kind,
+                    ucons(value,
+                        ucons(trace, 0)))));
+
+    return ucons(tag,ucons(vars,ucons(vals,0)));
     }
 
 int

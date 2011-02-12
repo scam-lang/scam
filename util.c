@@ -14,9 +14,9 @@
 extern char *PROGRAM_NAME;
 extern char *PROGRAM_VERSION;
 
-void
+int
 Fatal(char *fmt, ...)
-{
+    {
     va_list ap;
 
     //printf("encountered a fatal error...\n");
@@ -26,11 +26,13 @@ Fatal(char *fmt, ...)
     va_end(ap);
 
     exit(-1);
-}
+
+    return -1;
+    }
 
 FILE *
 OpenFile(char *fileName,char *mode)
-{
+    {
     FILE *fp;
 
     if ((fp = fopen(fileName, mode)) == 0)
@@ -58,7 +60,7 @@ OpenFile(char *fileName,char *mode)
         }
 
     return fp;
-}
+    }
 
 char *
 StringDup(char *src)
