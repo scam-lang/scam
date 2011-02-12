@@ -114,11 +114,23 @@ expr()
         result = match(STRING);
     else if (check(SYMBOL))
         result = match(SYMBOL);
-    else if (check(QUOTE) || check(BACKQUOTE) || check(COMMA))
+    else if (check(QUOTE))
         {
         p = match(QUOTE);
         q = expr();
-        result = cons(p,cons(q,0));
+        result = cons(quoteSymbol,cons(q,0));
+        }
+    else if (check(BACKQUOTE))
+        {
+        p = match(BACKQUOTE);
+        q = expr();
+        result = cons(backquoteSymbol,cons(q,0));
+        }
+    else if (check(COMMA))
+        {
+        p = match(COMMA);
+        q = expr();
+        result = cons(commaSymbol,cons(q,0));
         }
     else if (check(OPEN_PARENTHESIS))
         {

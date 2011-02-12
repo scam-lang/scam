@@ -1,15 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <assert.h>
 #include "cell.h"
 #include "types.h"
 #include "util.h"
+#include "pp.h"
 
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
-int MemorySize =  8 * 128 * 8192; 
+int MemorySize =  2 * 128 * 8192; 
+int StackPtr = 0;
+int Stack[1000];
+int StackSize = sizeof(Stack) / sizeof(int);
 
 int zero;
 int one;
@@ -39,6 +44,8 @@ int beginSymbol;
 int sharpSymbol;
 int trueSymbol;
 int falseSymbol;
+int backquoteSymbol;
+int commaSymbol;
 
 CELL *the_cars;
 CELL *new_cars;
@@ -81,7 +88,7 @@ memoryInit(int memsize)
 
     /* nil has to be the first symbol */
 
-    MemorySpot = 1;
+    newSymbol("nil");
 
     assert(MemorySpot == 1);
 
@@ -116,6 +123,8 @@ memoryInit(int memsize)
     beginSymbol          = newSymbol("begin");
     trueSymbol           = newSymbol("#t");
     falseSymbol          = newSymbol("#f");
+    backquoteSymbol      = newSymbol("backquote");
+    commaSymbol          = newSymbol("comma");
 
     rootBottom = MemorySpot;
     }
@@ -129,7 +138,7 @@ getMemorySize()
 int
 cons(int a,int b)
     {
-    assureMemory(1,a,b,0);
+    assureMemory(1,&a,&b,0);
 
     return ucons(a,b);
     }
@@ -144,6 +153,7 @@ ucons(int a,int b)
     spot->ival = a;
     spot->line = LineNumber;
     spot->file = FileIndex;
+    spot->transferred = 0;
 
     the_cdrs[MemorySpot] = b;
 
@@ -170,6 +180,7 @@ newString(char *s)
         count(MemorySpot) = length;
         line(MemorySpot) = LineNumber;
         file(MemorySpot) = FileIndex;
+        transferred(MemorySpot) = 0;
 
         cdr(MemorySpot) = MemorySpot + 1;
 
@@ -183,6 +194,7 @@ newString(char *s)
     the_cars[MemorySpot].count = 0;
     the_cars[MemorySpot].line = LineNumber;
     the_cars[MemorySpot].file = FileIndex;
+    the_cars[MemorySpot].transferred = 0;
 
     the_cdrs[MemorySpot] = 0;
 
@@ -288,26 +300,132 @@ int
 pop()
     {
     int temp;
-    assert(rootList != 0);
-    temp = car(rootList);
-    rootList = cdr(rootList);
+    assert(StackPtr > 0);
+    temp = Stack[--StackPtr];
+    //debug("pop ",temp);
     return temp;
+    }
+
+void push(int i)
+    {
+    //debug("push",i);
+    assert(StackPtr < StackSize);
+    Stack[StackPtr++] = i;
+    }
+
+static int
+transfer(int limit)
+    {
+    int spot = 1;
+    while (spot < limit)
+        {
+        /* only need to transfer over conses */
+
+        printf("spot %d\n",spot);
+        if (new_cars[spot].type == CONS)
+            {
+            int old;
+
+            /* transfer over the car, if necessary */
+
+            old = new_cars[spot].ival;
+            if (!transferred(old))
+                {
+                debug("transferring",old);
+                new_cars[limit] = the_cars[old];
+                new_cdrs[limit] = the_cdrs[old];
+                transferred(old) = 1;
+                cdr(old) = limit;
+                ++limit;
+                }
+            else
+                debug("TRANSFERRED ",old);
+
+            /* update the car to the transferred locaiion */
+
+            new_cars[spot].ival = cdr(old);
+
+            /* transfer over the cdr, if necessary */
+
+            old = new_cdrs[spot];
+            if (!transferred(old))
+                {
+                debug("transferring",old);
+                new_cars[limit] = the_cars[old];
+                new_cdrs[limit] = the_cdrs[old];
+                transferred(old) = 1;
+                cdr(old) = limit;
+                ++limit;
+                }
+            else
+                debug("TRANSFERRED ",old);
+
+            /* update the car to the transferred locaiion */
+
+            new_cdrs[spot] = cdr(old);
+
+            getchar();
+
+            }
+        ++spot;
+        }
+    printf("new memory spot is %d\n",spot);
+    return spot;
     }
 
 void 
 gc()
     {
-    int i;
+    int i,spot;
     int *temp_cdrs;
     CELL *temp_cars;
+
+    ppObject(stdout,Stack[0],0);
+    for (i = 0; i < StackPtr; ++i)
+        {
+        debug("root list was",Stack[i]);
+        printf("    at location %d\n",Stack[i]);
+        }
+
+    printf("MemorySpot is %d\n",MemorySpot);
+
+    /* transfer over symbols */
 
     for (i = 0; i < rootBottom; ++i)
         {
         new_cars[i] = the_cars[i];
         new_cdrs[i] = the_cdrs[i];
+        transferred(i) = 1;
+        cdr(i) = i;
+        }
+
+    spot = i;
+
+    /* transfer over the root list */
+
+    for (i = 0; i < StackPtr; ++i)
+        {
+        debug("root list after symbol transfer was",Stack[i]);
+        printf("    at location %d\n",Stack[i]);
+        if (!transferred(Stack[i]))
+            {
+            new_cars[spot] = the_cars[Stack[i]];
+            new_cdrs[spot] = the_cdrs[Stack[i]];
+            transferred(Stack[i]) = 1;
+            cdr(Stack[i]) = spot;
+            }
+        /* update the stack to hold the new location */
+        Stack[i] = cdr(Stack[i]);
+        printf("    new location %d\n",Stack[i]);
+        ++spot;
         }
 
     //transfer(rootList);
+
+    ppObject(stdout,Stack[0],0);
+    MemorySpot = transfer(spot);
+
+    /* swap the new and old memory */
 
     temp_cars = the_cars;
     the_cars = new_cars;
@@ -316,11 +434,56 @@ gc()
     temp_cdrs = the_cdrs;
     the_cdrs = new_cdrs;
     new_cdrs = temp_cdrs;
+
+    for (i = 0; i < StackPtr; ++i)
+        {
+        printf("    new location %d\n",Stack[i]);
+        debug("root list now is",Stack[i]);
+        }
+
+    getchar();
+
+    for (i = 0; i < MemorySpot; ++i)
+        {
+        printf("%d: ",i);
+        debug("new",i);
+        }
+
+    getchar();
     }
 
+
 void
-assureMemory(int needed,...)
+assureMemory(int needed, int *item, ...)
     {
+    va_list ap;
+    int i;
+    int *store[10];
+    int storeSize = sizeof(store) / sizeof(int *);
+    int storePtr = 0;
+
+    va_start(ap, item);
+
     if (MemorySpot + needed >= MemorySize)
-        Fatal("out of memory\n");
+        {
+        /* save items */
+        
+        while (item != 0)
+            {
+            push(*item);
+            assert(storePtr < storeSize);
+            store[storePtr++] = item;
+            item = va_arg(ap,int *);
+            }
+
+        gc();
+
+        if (MemorySpot + needed >= MemorySize)
+            Fatal("gc failed: out of memory\n");
+
+        /* restore items (reverse order) */
+
+        for (i = storePtr - 1;i >= 0;--i)
+            *(store[i]) = pop();
+        }
     }

@@ -7,6 +7,7 @@ typedef struct cellobj
     int line;
     int file;
     int count;
+    int transferred;
 
     int ival;
     double rval;
@@ -40,6 +41,8 @@ extern int ucons(int,int);
 #define file(a)     (the_cars[a].file)
 #define filename(a) (symbols[the_cars[a].file])
 #define line(a)     (the_cars[a].line)
+#define transferred(a)     (the_cars[a].transferred)
+
 #define car(a)      (the_cars[a].ival)
 #define caar(a)     (car(car(a)))
 #define cdar(a)     (cdr(car(a)))
@@ -58,13 +61,14 @@ extern int ucons(int,int);
 
 #define sameSymbol(a,b) (type(a) == SYMBOL && ival(a) == ival(b))
 
-#define push(x) (rootList = cons(x,rootList))
-#define notEnoughMemory(x) (MemorySpot + (needed) >= MemorySize)
+//#define push(x) (rootList = cons(x,rootList))
 
 /* top level helpers */
 
 extern void memoryInit(int);
 extern int pop(void);
+extern void push(int);
+extern int StackPtr;
 
 /* lexing helpers */
 
@@ -80,7 +84,7 @@ extern int MaxSymbols;
 extern int findSymbol(char *);
 
 extern int rootList;
-extern void assureMemory(int,...);
+extern void assureMemory(int,int *,...);
 
 extern int zero;
 extern int one;
@@ -110,3 +114,5 @@ extern int errorSymbol;
 extern int beginSymbol;
 extern int trueSymbol;
 extern int falseSymbol;
+extern int backquoteSymbol;
+extern int commaSymbol;

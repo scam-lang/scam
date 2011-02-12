@@ -6,11 +6,11 @@ char *BACKQUOTE = "BACKQUOTE";
 char *COMMA = "COMMA";
 char *END_OF_INPUT = "END_OF_INPUT";
 
-/* sway keywords */
+/* xcheme keywords */
 
 char *BAD_NUMBER = "BAD_NUMBER";
 
-/* sway internal types */
+/* xcheme internal types */
 
 char *CONS = "CONS";
 char *REAL = "REAL";
@@ -18,3 +18,4 @@ char *INTEGER = "INTEGER";
 char *STRING = "STRING";
 char *SYMBOL = "SYMBOL";
 char *THUNK = "THUNK";
+char *TRANSFERRED = "TRANSFERRED";

@@ -59,7 +59,13 @@ main(int argc,char **argv,char **envv)
     pp(stdout,ptree);
     fprintf(stdout,"\n");
 
+    push(env);
+    push(ptree);
+
     result = eval(ptree,env);
+
+    pop();
+    pop();
 
     pp(stdout,result);
     printf("\n");

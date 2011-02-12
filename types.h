@@ -18,6 +18,7 @@ extern char *REAL;// = "REAL";
 extern char *STRING;// = "STRING";
 extern char *SYMBOL;// = "SYMBOL";
 extern char *CONS;// = "THUNK";
+extern char *TRANSFERRED;// = "TRANSFERRED";
 
 /* error codes */
 

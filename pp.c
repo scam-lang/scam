@@ -27,13 +27,19 @@ ppObject(FILE *fp,int expr,int mode)
     int vars = object_variables(expr);
     int vals = object_values(expr);
 
-    fprintf(fp,"<object %d>",expr);
+    fprintf(fp,"<");
+    ppLevel(fp,car(expr),mode);
+    fprintf(fp," %d>",expr);
     if (mode < 1)
         {
         fprintf(fp,"\n");
         while (vars != 0)
             {
-            fprintf(fp,"%20s : ",SymbolTable[ival(car(vars))]);
+            fprintf(fp,"%20s",SymbolTable[ival(car(vars))]);
+            if (transferred(car(vars)))
+                fprintf(fp,"* : ");
+            else
+                fprintf(fp,"  : ");
             ppLevel(fp,car(vals),mode+1);
             fprintf(fp,"\n");
             vars = cdr(vars);
@@ -73,6 +79,8 @@ void ppCons(FILE *fp,int expr,int mode)
         ppList(fp,closure_parameters(expr),mode);
         fprintf(fp,">");
         }
+    else if (type(car(expr)) == TRANSFERRED)
+        fprintf(fp,"(XXX ...)");
     else
         ppList(fp,expr,mode);
 
@@ -114,12 +122,14 @@ ppLevel(FILE *fp,int expr,int mode)
         ppCons(fp,expr,mode);
     else
         Fatal("pretty printing: type %s unknown\n",type(expr));
+
+    if (transferred(expr)) fprintf(fp,"*");
     }
 
 void
 debug(char *s,int i)
     {
     printf("%s: ",s);
-    pp(stdout,i);
+    ppLevel(stdout,i,1);
     printf("\n");
     }

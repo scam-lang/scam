@@ -1,4 +1,7 @@
-(println "hello")
+(define (up) (up))
+(up)
+;$
+;(println "hello")
 (define z 22)
 (define (square x) (+ x x))
 (define (fib n)
@@ -9,12 +12,12 @@
    (climb (+ x 1))
    )
 
-
 (define i 0)
 (while (< i z)
     (println "i is " i)
     (set! i (+ i 1))
     )
+
 
 (climb 0)
 ;$

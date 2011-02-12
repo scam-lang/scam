@@ -23,15 +23,14 @@ eval(int expr, int env)
         {
         int t;
 
-        //debug("eval",expr)
+        //debug("eval",expr);
 
         if (expr == 0) return 0;
         if (type(expr) == INTEGER) return expr;
         if (type(expr) == REAL)    return expr;
         if (type(expr) == STRING)  return expr;
 
-        if (type(expr) == SYMBOL)
-            return lookupVariableValue(expr,env);
+        if (type(expr) == SYMBOL) return lookupVariableValue(expr,env);
 
         //printf("eval type is %s\n",type(expr));
         assert(type(expr) == CONS);
@@ -54,18 +53,15 @@ evalCall(int call,int env)
     {
     int closure,params,args,eargs;
 
-    //printf("in evalCall: ");
-    //pp(stdout,car(call));
-    //printf("\n");
+    //printf("getting closure\n");
     push(env);
     push(call);
     closure = eval(car(call),env);
     call = pop();
     env = pop();
+    //printf("done getting closure\n");
 
-    //printf("evalCall: ");
-    //pp(stdout,call);
-    //printf("\n");
+    //debug("evalCall",call);
 
     assert(isClosure(closure) || isBuiltIn(closure));
     params = closure_parameters(closure);
@@ -85,7 +81,7 @@ evalCall(int call,int env)
         int body, xenv;
         //printf("call is user defined\n");
         
-        assureMemory(OBJECT_CELLS+THUNK_CELLS,closure,params,eargs,0);
+        assureMemory(OBJECT_CELLS+THUNK_CELLS,&closure,&params,&eargs,0);
 
         body = closure_body(closure);
         xenv = closure_context(closure);

@@ -30,7 +30,7 @@ defineIdentifier(int name,int init,int env)
         name = pop();
         }
 
-     assureMemory(DEFINE_CELLS,env,name,init,0);
+     assureMemory(DEFINE_CELLS,&env,&name,&init,0);
 
      return defineVariable(env,name,init);
      }
@@ -40,7 +40,7 @@ defineFunction(int name,int parameters,int body,int env)
     {
     int closure;
     
-    assureMemory(CLOSURE_CELLS + DEFINE_CELLS,name,parameters,body,env,0);
+    assureMemory(CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,0);
 
     closure = makeClosure(env,name,parameters,body,ADD_BEGIN);
 
@@ -132,7 +132,7 @@ plus(int args)
 
     if (args == 0) return zero;
 
-    assureMemory(1,args,0);
+    assureMemory(1,&args,0);
 
     t = type(car(args));
 
@@ -199,7 +199,7 @@ minus(int args)
 
     if (args == 0) return zero;
 
-    assureMemory(1,args,0);
+    assureMemory(1,&args,0);
 
     t = type(car(args));
 
