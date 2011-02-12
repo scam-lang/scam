@@ -11,36 +11,6 @@
 PRIM BuiltIns[1000];
 
 static int
-evalListExceptLast(int items)
-    {
-    int result = 0;
-    while (cdr(items) != 0)
-        {
-        push(items);
-        result = eval(thunk_code(car(items)),thunk_context(car(items)));
-        items = pop();
-
-        items = cdr(items);
-        }
-    return car(items);
-    }
-
-static int
-evalList(int items)
-    {
-    int result = 0;
-    while (items != 0)
-        {
-        push(items);
-        result = eval(thunk_code(car(items)),thunk_context(car(items)));
-        items = pop();
-
-        items = cdr(items);
-        }
-    return result;
-    }
-
-static int
 quote(int args)
     {
     return thunk_code(car(args));
@@ -69,7 +39,6 @@ static int
 defineFunction(int name,int parameters,int body,int env)
     {
     int closure;
-    int actualArgs;
     
     assureMemory(CLOSURE_CELLS + DEFINE_CELLS,name,parameters,body,env,0);
 
@@ -257,11 +226,15 @@ lessThanLoop(int first,int remaining)
     char *firstType;
     char *nextType;
 
+    //debug("first",first);
+
     if (remaining == 0) return trueSymbol;
 
     next = car(remaining);
     firstType = type(first);
     nextType = type(next);
+
+    //debug("next",next);
 
     if (firstType == INTEGER && nextType == INTEGER)
         {
@@ -304,9 +277,9 @@ lessThan(int args)
     int result;
     if (args == 0) return trueSymbol;
 
-    //pp(stdout,args); printf(": more than one arg, calling lessThanLoop\n");
+    //debug("lessThan args",args);
 
-    result = lessThanLoop(car(args),cdr(args));
+    result = lessThanLoop(caar(args),cdar(args));
     //pp(stdout,result); printf(" is the result\n");
 
     return result;
@@ -317,7 +290,8 @@ lessThan(int args)
 static int
 begin(int args)
     {
-    return evalListExceptLast(args);
+    //printf("in begin...\n");
+    return evalListExceptLast(car(args));
     }
 
 /* (print @) */
@@ -391,8 +365,10 @@ wwhile(int args)
         args = pop();
 
         push(args);
-        testResult = eval(thunk_code(car(args)),thunk_context(args));
+        testResult = eval(thunk_code(car(args)),thunk_context(car(args)));
         args = pop();
+
+        //debug("test result",testResult);
         }
 
     return last;

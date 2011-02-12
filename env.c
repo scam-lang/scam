@@ -63,6 +63,7 @@ defineVariable(int env,int var,int val)
     cdr(vars) = ucons(var,cdr(vars));
     cdr(vals) = ucons(val,cdr(vals));
  
+    //debug("defined value",val);
     return val;
     }
 

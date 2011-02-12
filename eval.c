@@ -19,41 +19,34 @@ static int unevaluatedList(int);
 int
 eval(int expr, int env)
     {
-    int t;
-
-    /* no need to assure memory here, since t holes expr and env */
-
-    t = makeThunk(expr,env);
-
-    while (type(t) == CONS && sameSymbol(car(t),thunkSymbol))
+    while (1)
         {
-        int code,context;
+        int t;
 
-        code = thunk_code(t);
+        //debug("eval",expr)
 
-        //fprintf(stdout,"eval: ");
-        //pp(stdout,code);
-        //fprintf(stdout,"\n");
+        if (expr == 0) return 0;
+        if (type(expr) == INTEGER) return expr;
+        if (type(expr) == REAL)    return expr;
+        if (type(expr) == STRING)  return expr;
 
-        if (code == 0) return 0;
-        if (type(code) == INTEGER) return code;
-        if (type(code) == REAL)    return code;
-        if (type(code) == STRING)  return code;
+        if (type(expr) == SYMBOL)
+            return lookupVariableValue(expr,env);
 
-        context = thunk_context(t);
+        //printf("eval type is %s\n",type(expr));
+        assert(type(expr) == CONS);
 
-        if (type(code) == SYMBOL)
-            return lookupVariableValue(code,context);
+        /* no need to assure memory here */
 
-        //printf("eval type is %s\n",type(code));
-        assert(type(code) == CONS);
+        t = evalCall(expr,env);
 
-        /* as before, no need to assure memory here */
+        if (!isThunk(t)) return t;
 
-        t = evalCall(code,context);
+        expr = thunk_code(t);
+        env = thunk_context(t);
         }
 
-    return t;
+    return 0;
     }
         
 static int
@@ -117,6 +110,41 @@ evalBuiltIn(int args,int builtIn)
     prim = BuiltIns[ival(closure_body(builtIn))];
     return prim(args);
     }
+
+/* evalListExceptLast expects a list of thunks */
+
+int
+evalListExceptLast(int items)
+    {
+    int result = 0;
+    while (cdr(items) != 0)
+        {
+        push(items);
+        result = eval(thunk_code(car(items)),thunk_context(car(items)));
+        items = pop();
+
+        items = cdr(items);
+        }
+    return car(items);
+    }
+
+/* evalList expects a list of thunks */
+
+int
+evalList(int items)
+    {
+    int result = 0;
+    while (items != 0)
+        {
+        push(items);
+        result = eval(thunk_code(car(items)),thunk_context(car(items)));
+        items = pop();
+
+        items = cdr(items);
+        }
+    return result;
+    }
+
 
 static int
 processArguments(int name, int params,int args,int env)

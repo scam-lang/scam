@@ -46,6 +46,7 @@ main(int argc,char **argv,char **envv)
     ptree = parse();
 
     env = makeObject(0,0,0,0);
+
     loadBuiltIns(env);
 
     fprintf(stdout,"global env: ");

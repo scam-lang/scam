@@ -34,7 +34,7 @@ ppObject(FILE *fp,int expr,int mode)
         while (vars != 0)
             {
             fprintf(fp,"%20s : ",SymbolTable[ival(car(vars))]);
-            //ppLevel(fp,car(vals),mode+1);
+            ppLevel(fp,car(vals),mode+1);
             fprintf(fp,"\n");
             vars = cdr(vars);
             vals = cdr(vals);
@@ -114,4 +114,12 @@ ppLevel(FILE *fp,int expr,int mode)
         ppCons(fp,expr,mode);
     else
         Fatal("pretty printing: type %s unknown\n",type(expr));
+    }
+
+void
+debug(char *s,int i)
+    {
+    printf("%s: ",s);
+    pp(stdout,i);
+    printf("\n");
     }

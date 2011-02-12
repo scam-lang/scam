@@ -76,68 +76,38 @@ skipWhiteSpace()
     int ch;
 
     while ((ch = getNextCharacter(Input))
-    && ch != EOF && (isspace(ch) || ch == '/'))
+    && ch != EOF && (isspace(ch) || ch == ';'))
         {
-        if (ch == '\n')
-            {
-            ++LineNumber;
-            }
-        else if (ch == ';')
+        if (ch == '\n') ++LineNumber;
+        if (ch == ';')
             { 
             ch = getNextCharacter(Input);
-            if (ch == ';')
-            {
-            ch = getNextCharacter(Input);
-            if (ch == ';') /* skip to end of file */
+            if (ch == '$') /* skip to end of file */
                 {
-                ch = getNextCharacter(Input);
-                while (!feof(Input))
-                {
-                if (ch == '\n')
+                while ((ch = getNextCharacter(Input)) && ch != EOF)
                     {
-                    ++LineNumber;
+                    if (ch == '\n') ++LineNumber;
                     }
-                    ch = getNextCharacter(Input);
                 }
-                }
-            else /* skip to end of line */
+            else if (ch == '{') /* skip to close comment */
                 {
-                while (ch != EOF && ch != '\n')
-                ch = getNextCharacter(Input);
-                unread(ch);
-                }
-            }
-            else if (ch == '*')
-            {
-            int more = 1;
-            while (more)
-                {
+                int prev = ch;
                 while ((ch = getNextCharacter(Input))
-                && ch != EOF && ch != '*')
-                {
-                if (ch == '\n')
+                && ch != EOF && (prev != ';' || ch != '}'))
                     {
-                    ++LineNumber;
-                    }
-                }
-                ch = getNextCharacter(Input);
-                if (ch == '\n')
-                    {
-                    ++LineNumber;
+                    if (ch == '\n') ++LineNumber;
+                    prev = ch;
                     }
                 if (ch == EOF)
                     Fatal("SOURCE CODE ERROR\n"
-                        "line %d: unterminated comment\n",
-                        LineNumber);
-                more = ch != '/';
+                        "line %d: unterminated comment\n", LineNumber);
                 }
-            }
-            else
-            {
-                unread(ch);
-            ch = '/';
-            break;
-            }
+            else /* skip to end of line */
+                {
+                while ((ch = getNextCharacter(Input))
+                && ch != EOF && ch != '\n')
+                    continue;
+                }
             }
         }
 
