@@ -403,6 +403,8 @@ gc()
 
     /* transfer over the root list */
 
+    ppObject(stdout,Stack[0],0);
+
     for (i = 0; i < StackPtr; ++i)
         {
         debug("root list after symbol transfer was",Stack[i]);
