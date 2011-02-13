@@ -30,7 +30,7 @@ defineIdentifier(int name,int init,int env)
         name = pop();
         }
 
-     assureMemory(DEFINE_CELLS,&env,&name,&init,0);
+     assureMemory("defineIdentifier",DEFINE_CELLS,&env,&name,&init,0);
 
      return defineVariable(env,name,init);
      }
@@ -40,7 +40,7 @@ defineFunction(int name,int parameters,int body,int env)
     {
     int closure;
     
-    assureMemory(CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,0);
+    assureMemory("defineFunction",CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,0);
 
     closure = makeClosure(env,name,parameters,body,ADD_BEGIN);
 
@@ -90,7 +90,7 @@ rplus(int args,int accum)
         else if (t == REAL)
             rval(accum) += rval(arg);
         else
-            Fatal("wrong type for '+': %s\n",type(car(args)));
+            Fatal("real addition: wrong type for '+': %s\n",type(car(args)));
         args = cdr(args);
         }
 
@@ -113,11 +113,15 @@ iplus(int args,int accum)
         else if (t == INTEGER)
             ival(accum) += ival(car(args));
         else
-            Fatal("wrong type for '+': %s\n",type(car(args)));
+            {
+            pp(stdout,car(args));
+            Fatal("integer addition: wrong type for '+': %s\n",type(car(args)));
+            }
             
         args = cdr(args);
         }
 
+    //debug("iplus",accum);
     return accum;
     }
 
@@ -132,14 +136,14 @@ plus(int args)
 
     if (args == 0) return zero;
 
-    assureMemory(1,&args,0);
+    assureMemory("plus",1,&args,0);
 
     t = type(car(args));
 
     if (t == INTEGER) return iplus(args,newInteger(0));
     if (t == REAL) return rplus(args,newReal(0));
     
-    Fatal("wrong type for '+': %s\n",t);
+    Fatal("addition: wrong type for '+': %s\n",t);
 
     return 0;
     }
@@ -199,7 +203,7 @@ minus(int args)
 
     if (args == 0) return zero;
 
-    assureMemory(1,&args,0);
+    assureMemory("minus",1,&args,0);
 
     t = type(car(args));
 
@@ -326,11 +330,12 @@ println(int args)
 static int
 iff(int args)
     {
-    //pp(stdout,test); printf(" is the test");
+    //debug("if test",car(args));
 
     if (sameSymbol(car(args),trueSymbol))
         {
         //printf("if test is true\n");
+        //debug("then",cadr(args));
         return cadr(args);
         }
     else
@@ -338,7 +343,10 @@ iff(int args)
         //printf("if test is false\n");
         int otherwise = caddr(args);
         if (otherwise != 0)
+            {
+            //debug("else",cadr(args));
             return car(otherwise);
+            }
         else
             return 0;
         }
@@ -395,19 +403,10 @@ loadBuiltIns(int env)
     int b;
     int count = 0;
 
-    BuiltIns[count] = set;
+    BuiltIns[count] = begin;
     b = makeBuiltIn(env,
-        newSymbol("set!"),
-        ucons(newSymbol("$var"),
-            ucons(newSymbol("value"),0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = quote;
-    b = makeBuiltIn(env,
-        newSymbol("quote"),
-        ucons(newSymbol("$item"),0),
+        beginSymbol,
+        ucons(dollarSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -416,40 +415,6 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("define"),
         ucons(sharpSymbol,0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = lambda;
-    b = makeBuiltIn(env,
-        newSymbol("lambda"),
-        ucons(newSymbol("$params"),
-            ucons(sharpSymbol,0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = plus;
-    b = makeBuiltIn(env,
-        newSymbol("+"),
-        ucons(atSymbol,0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = minus;
-    b = makeBuiltIn(env,
-        newSymbol("-"),
-        ucons(atSymbol,0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-
-    BuiltIns[count] = begin;
-    b = makeBuiltIn(env,
-        beginSymbol,
-        ucons(dollarSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -470,6 +435,47 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = plus;
+    b = makeBuiltIn(env,
+        newSymbol("+"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = set;
+    b = makeBuiltIn(env,
+        newSymbol("set!"),
+        ucons(newSymbol("$var"),
+            ucons(newSymbol("value"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = quote;
+    b = makeBuiltIn(env,
+        newSymbol("quote"),
+        ucons(newSymbol("$item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = lambda;
+    b = makeBuiltIn(env,
+        newSymbol("lambda"),
+        ucons(newSymbol("$params"),
+            ucons(sharpSymbol,0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = minus;
+    b = makeBuiltIn(env,
+        newSymbol("-"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
     BuiltIns[count] = iff;
     b = makeBuiltIn(env,
         newSymbol("if"),

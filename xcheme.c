@@ -49,15 +49,11 @@ main(int argc,char **argv,char **envv)
 
     loadBuiltIns(env);
 
-    fprintf(stdout,"global env: ");
-    pp(stdout,env);
-    fprintf(stdout,"\n");
+    //debug("global env: ",env);
 
     env = makeObject(env,0,0,0);
 
-    fprintf(stdout,"parse tree: ");
-    pp(stdout,ptree);
-    fprintf(stdout,"\n");
+    //debug("parse tree",ptree);
 
     push(env);
     push(ptree);

@@ -14,6 +14,11 @@ ppList(FILE *fp,int items,int mode)
     while (items != 0)
         {
         ppLevel(fp,car(items),mode + 1);
+        if (transferred(items))
+            {
+            fprintf(fp," NEW(%d))",cdr(items));
+            return;
+            }
         items = cdr(items);
         if (items)
             fprintf(fp," ");
@@ -42,6 +47,11 @@ ppObject(FILE *fp,int expr,int mode)
                 fprintf(fp,"  : ");
             ppLevel(fp,car(vals),mode+1);
             fprintf(fp,"\n");
+            if (transferred(vars) || transferred(vals))
+                {
+                fprintf(fp,"xxxxxxxxxxxxxxxxxxxxx\n");
+                return;
+                }
             vars = cdr(vars);
             vals = cdr(vals);
             }
@@ -79,7 +89,7 @@ void ppCons(FILE *fp,int expr,int mode)
         ppList(fp,closure_parameters(expr),mode);
         fprintf(fp,">");
         }
-    else if (type(car(expr)) == TRANSFERRED)
+    else if (transferred(car(expr)))
         fprintf(fp,"(XXX ...)");
     else
         ppList(fp,expr,mode);
@@ -91,9 +101,14 @@ void
 ppString(FILE *fp,int expr,int mode)
     {
     if (ppQuoting) fprintf(fp,"\"");
-    while (ival(expr) != 0)
+    while (expr != 0)
         {
         fprintf(fp,"%c",ival(expr));
+        if (transferred(expr))
+            {
+            fprintf(fp,"...NEW(%d)\"",cdr(expr));
+            return;
+            }
         expr = cdr(expr);
         }
     if (ppQuoting) fprintf(fp,"\"");

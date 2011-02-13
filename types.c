@@ -18,4 +18,5 @@ char *INTEGER = "INTEGER";
 char *STRING = "STRING";
 char *SYMBOL = "SYMBOL";
 char *THUNK = "THUNK";
-char *TRANSFERRED = "TRANSFERRED";
+char *PAST = "PAST";
+char *FUTURE = "FUTURE";

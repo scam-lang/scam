@@ -11,7 +11,7 @@
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
-int MemorySize =  2 * 128 * 8192; 
+int MemorySize =  2 * 16 * 8192 + 1; 
 int StackPtr = 0;
 int Stack[1000];
 int StackSize = sizeof(Stack) / sizeof(int);
@@ -20,7 +20,6 @@ int zero;
 int one;
 int contextSymbol;
 int codeSymbol;
-int dynamicContextSymbol;
 int thisSymbol;
 int parametersSymbol;
 int thunkSymbol;
@@ -59,8 +58,8 @@ int MaxSymbols = 100;
 char **SymbolTable;
 int SymbolCount;
 static int SymbolsIncrement = 100;
+static int gccount = 0;
 
-int rootList;
 static int rootBottom;
 
 void
@@ -92,14 +91,11 @@ memoryInit(int memsize)
 
     assert(MemorySpot == 1);
 
-    rootList = 0;
-
     zero = newInteger(0);
     one = newInteger(1);
 
     contextSymbol        = newSymbol("context");
     codeSymbol           = newSymbol("code");
-    dynamicContextSymbol = newSymbol("dynamicContext");
     thisSymbol           = newSymbol("this");
     parametersSymbol     = newSymbol("parameters");
     thunkSymbol          = newSymbol("thunk");
@@ -138,7 +134,7 @@ getMemorySize()
 int
 cons(int a,int b)
     {
-    assureMemory(1,&a,&b,0);
+    assureMemory("cons",1,&a,&b,0);
 
     return ucons(a,b);
     }
@@ -169,7 +165,7 @@ newString(char *s)
     int start;
     int length = strlen(s);
 
-    assureMemory(length + 1,0);
+    assureMemory("newString",length,0);
 
     start = MemorySpot;
 
@@ -188,17 +184,7 @@ newString(char *s)
         ++s;
         ++MemorySpot;
         }
-
-    the_cars[MemorySpot].type = STRING;
-    the_cars[MemorySpot].ival = '\0';
-    the_cars[MemorySpot].count = 0;
-    the_cars[MemorySpot].line = LineNumber;
-    the_cars[MemorySpot].file = FileIndex;
-    the_cars[MemorySpot].transferred = 0;
-
-    the_cdrs[MemorySpot] = 0;
-
-    ++MemorySpot;
+    cdr(MemorySpot - 1) = 0;
 
     return start;
     }
@@ -209,7 +195,7 @@ newSymbol(char *s)
     int index = findSymbol(s);
     int result;
 
-    assureMemory(1,0);
+    assureMemory("newSymbol",1,0);
 
     result = ucons(0,0);
     type(result) = SYMBOL;
@@ -222,7 +208,7 @@ newInteger(int i)
     {
     int result;
 
-    assureMemory(1,0);
+    assureMemory("newInteger",1,0);
 
     result = ucons(0,0);
     type(result) = INTEGER;
@@ -235,7 +221,7 @@ newReal(double r)
     {
     int result;
 
-    assureMemory(1,0);
+    assureMemory("newReal",1,0);
 
     result = ucons(0,0);
     type(result) = REAL;
@@ -248,7 +234,7 @@ newPunctuation(char *t)
     {
     int result;
 
-    assureMemory(1,0);
+    assureMemory("newPuncuation",1,0);
 
     result = ucons(0,0);
     type(result) = t;
@@ -319,27 +305,28 @@ transfer(int limit)
     int spot = 1;
     while (spot < limit)
         {
+        int old;
+
         /* only need to transfer over conses */
 
-        printf("spot %d\n",spot);
+        //printf("spot %d: ",spot);
         if (new_cars[spot].type == CONS)
             {
-            int old;
-
             /* transfer over the car, if necessary */
 
             old = new_cars[spot].ival;
             if (!transferred(old))
                 {
-                debug("transferring",old);
+                //debug("transferring",old);
                 new_cars[limit] = the_cars[old];
                 new_cdrs[limit] = the_cdrs[old];
+                //printf("placing it at %d\n",limit);
                 transferred(old) = 1;
                 cdr(old) = limit;
                 ++limit;
                 }
-            else
-                debug("TRANSFERRED ",old);
+            //else
+                //debug("TRANSFERRED ",old);
 
             /* update the car to the transferred locaiion */
 
@@ -350,26 +337,52 @@ transfer(int limit)
             old = new_cdrs[spot];
             if (!transferred(old))
                 {
-                debug("transferring",old);
+                //debug("transferring",old);
                 new_cars[limit] = the_cars[old];
                 new_cdrs[limit] = the_cdrs[old];
+                //printf("placing it at %d\n",limit);
                 transferred(old) = 1;
                 cdr(old) = limit;
                 ++limit;
                 }
-            else
-                debug("TRANSFERRED ",old);
+            //else
+                //debug("TRANSFERRED ",old);
 
             /* update the car to the transferred locaiion */
 
             new_cdrs[spot] = cdr(old);
 
-            getchar();
-
+            //getchar();
             }
+        else if (new_cars[spot].type == STRING)
+            {
+            /* there is no car, only the cdr */
+
+            old = new_cdrs[spot];
+            if (!transferred(old))
+                {
+                //debug("transferring",old);
+                new_cars[limit] = the_cars[old];
+                new_cdrs[limit] = the_cdrs[old];
+                //printf("placing it at %d\n",limit);
+                transferred(old) = 1;
+                cdr(old) = limit;
+                ++limit;
+                }
+            //else
+                //debug("TRANSFERRED ",old);
+
+            /* update the car to the transferred locaiion */
+
+            new_cdrs[spot] = cdr(old);
+            }
+
+             
+        //else
+            //printf("TRANSFERRED: %s\n",type(spot));
         ++spot;
         }
-    printf("new memory spot is %d\n",spot);
+    //printf("new memory spot is %d\n",spot);
     return spot;
     }
 
@@ -380,14 +393,11 @@ gc()
     int *temp_cdrs;
     CELL *temp_cars;
 
-    ppObject(stdout,Stack[0],0);
-    for (i = 0; i < StackPtr; ++i)
-        {
-        debug("root list was",Stack[i]);
-        printf("    at location %d\n",Stack[i]);
-        }
-
-    printf("MemorySpot is %d\n",MemorySpot);
+    //for (i = 0; i < StackPtr; ++i)
+    //    {
+    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
+    //    debug("",Stack[i]);
+    //    }
 
     /* transfer over symbols */
 
@@ -403,28 +413,20 @@ gc()
 
     /* transfer over the root list */
 
-    ppObject(stdout,Stack[0],0);
-
     for (i = 0; i < StackPtr; ++i)
         {
-        debug("root list after symbol transfer was",Stack[i]);
-        printf("    at location %d\n",Stack[i]);
         if (!transferred(Stack[i]))
             {
             new_cars[spot] = the_cars[Stack[i]];
             new_cdrs[spot] = the_cdrs[Stack[i]];
             transferred(Stack[i]) = 1;
             cdr(Stack[i]) = spot;
+            ++spot;
             }
-        /* update the stack to hold the new location */
+        /* point the stack item to its new location */
         Stack[i] = cdr(Stack[i]);
-        printf("    new location %d\n",Stack[i]);
-        ++spot;
         }
 
-    //transfer(rootList);
-
-    ppObject(stdout,Stack[0],0);
     MemorySpot = transfer(spot);
 
     /* swap the new and old memory */
@@ -437,26 +439,24 @@ gc()
     the_cdrs = new_cdrs;
     new_cdrs = temp_cdrs;
 
-    for (i = 0; i < StackPtr; ++i)
-        {
-        printf("    new location %d\n",Stack[i]);
-        debug("root list now is",Stack[i]);
-        }
+    //for (i = 0; i < StackPtr; ++i)
+    //    {
+    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
+    //    debug("",Stack[i]);
+    //    }
 
-    getchar();
+    printf("gc:%d, %d cells\n",++gccount,MemorySpot);
 
-    for (i = 0; i < MemorySpot; ++i)
-        {
-        printf("%d: ",i);
-        debug("new",i);
-        }
+    //for (i = 0; i < MemorySize; ++i)
+    //    new_cars[i].type = PAST;
 
-    getchar();
+    //for (i = MemorySpot; i < MemorySize; ++i)
+    //    the_cars[i].type = FUTURE;
     }
 
 
 void
-assureMemory(int needed, int *item, ...)
+assureMemory(char *tag,int needed, int *item, ...)
     {
     va_list ap;
     int i;
@@ -469,9 +469,11 @@ assureMemory(int needed, int *item, ...)
     if (MemorySpot + needed >= MemorySize)
         {
         /* save items */
+        //printf("gc called from %s\n",tag);
         
         while (item != 0)
             {
+            //debug("pushing",*item);
             push(*item);
             assert(storePtr < storeSize);
             store[storePtr++] = item;
@@ -486,6 +488,24 @@ assureMemory(int needed, int *item, ...)
         /* restore items (reverse order) */
 
         for (i = storePtr - 1;i >= 0;--i)
+            {
             *(store[i]) = pop();
+            //debug("popping",*(store[i]));
+            }
+
+        //getchar();
         }
+    }
+
+int
+length(int items)
+    {
+    int total = 0;
+    while (items != 0)
+        {
+        items = cdr(items);
+        total += 1;
+        }
+
+    return total;
     }

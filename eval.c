@@ -12,9 +12,9 @@
 static int evalCall(int,int);
 static int evalBuiltIn(int,int);
 static int processArguments(int,int,int,int);
-static int thunkizedList(int,int);
-static int evaluatedList(int,int);
-static int unevaluatedList(int);
+static int thunkizedArgList(int,int);
+static int evaluatedArgList(int,int);
+static int unevaluatedArgList(int);
 
 int
 eval(int expr, int env)
@@ -51,7 +51,7 @@ eval(int expr, int env)
 static int
 evalCall(int call,int env)
     {
-    int closure,params,args,eargs;
+    int closure,eargs;
 
     //printf("getting closure\n");
     push(env);
@@ -61,28 +61,37 @@ evalCall(int call,int env)
     env = pop();
     //printf("done getting closure\n");
 
+    //debug("calling",closure);
     //debug("evalCall",call);
 
     assert(isClosure(closure) || isBuiltIn(closure));
-    params = closure_parameters(closure);
-    args = cdr(call);
+
+    /* args are the cdr of call */
 
     push(closure);
-    eargs = processArguments(closure_name(closure),params,args,env);
+    //debug("unevaluated args",cdr(call));
+    eargs = processArguments(closure_name(closure),
+        closure_parameters(closure),cdr(call),env);
     closure = pop();
+    //debug("evaluated args",eargs);
+    //printf("back from processArgs\n");
 
     if (isBuiltIn(closure))
         {
+        int result;
         //printf("call is a builtin\n");
-        return evalBuiltIn(eargs,closure);
+        result = evalBuiltIn(eargs,closure);
+        //debug("builtin call result",result);
+        return result;
         }
     else
         {
-        int body, xenv;
+        int params,body,xenv;
         //printf("call is user defined\n");
         
-        assureMemory(OBJECT_CELLS+THUNK_CELLS,&closure,&params,&eargs,0);
+        assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS,&closure,&eargs,0);
 
+        params = closure_parameters(closure);
         body = closure_body(closure);
         xenv = closure_context(closure);
         xenv = makeObject(xenv,closure,params,eargs);
@@ -115,9 +124,11 @@ evalListExceptLast(int items)
     int result = 0;
     while (cdr(items) != 0)
         {
+        //debug("items before",items);
         push(items);
         result = eval(thunk_code(car(items)),thunk_context(car(items)));
         items = pop();
+        //debug("items after",items);
 
         items = cdr(items);
         }
@@ -129,77 +140,137 @@ evalListExceptLast(int items)
 int
 evalList(int items)
     {
-    int result = 0;
-    while (items != 0)
-        {
-        push(items);
-        result = eval(thunk_code(car(items)),thunk_context(car(items)));
-        items = pop();
-
-        items = cdr(items);
-        }
-    return result;
+    int last = evalListExceptLast(items);
+    return eval(thunk_code(last),thunk_context(last));
     }
 
 
 static int
 processArguments(int name, int params,int args,int env)
     {
+    int first,rest,result;
+
+    //debug("p-a",params);
     if (params == 0 && args == 0)
-        return 0;
+        result = 0;
     else if (params == 0)
         {
-        Fatal("too many arguments to function %s\n",
+        return Fatal("too many arguments to function %s\n",
             SymbolTable[ival(name)]);
-        return 0;
         }
     else if (sameSymbol(car(params),sharpSymbol))
-        return cons(makeThunk(unevaluatedList(args),env),0);
+        {
+        assureMemory("processArgs:uArgs",THUNK_CELLS + 1 + length(args),&env,&args,0);
+        rest = unevaluatedArgList(args);
+        result = ucons(makeThunk(rest,env),0);
+        }
     else if (sameSymbol(car(params),dollarSymbol))
-        return cons(thunkizedList(args,env),0);
+        {
+        rest = thunkizedArgList(args,env);
+        assureMemory("processArgs:tArgs",1,&rest,0);
+        result = ucons(rest,0);
+        }
     else if (sameSymbol(car(params),atSymbol))
-        return cons(evaluatedList(args,env),0);
+        {
+        rest = evaluatedArgList(args,env);
+        assureMemory("processArgs:eArgs",1,&rest,0);
+        result = ucons(rest,0);
+        }
     else if (args == 0)
         {
-        Fatal("too few arguments to function %s\n",
+        return Fatal("too few arguments to function %s\n",
             SymbolTable[ival(name)]);
-        return 0;
         }
     else if (*SymbolTable[ival(car(params))] == '$')
         {
-        return cons(makeThunk(car(args),env),
-            processArguments(name,cdr(params),cdr(args),env));
+        push(env);
+        push(args);
+        rest = processArguments(name,cdr(params),cdr(args),env);
+        assureMemory("processArgs:tArg",THUNK_CELLS + 1,&rest,0);
+        args = pop();
+        env = pop();
+        result = ucons(makeThunk(car(args),env),rest);
         }
     else
         {
-        return cons(eval(car(args),env),
-            processArguments(name,cdr(params),cdr(args),env));
+        push(env);
+        push(args);
+        push(name);
+        push(params);
+        first = eval(car(args),env);
+        params = pop();
+        name = pop();
+        args = pop();
+        env = pop();
+
+        push(first);
+        rest = processArguments(name,cdr(params),cdr(args),env);
+        assureMemory("processArgs:eArg",1,&rest,0);
+        first = pop();
+        result = ucons(first,rest);
+        }
+    //debug("p-a result",result);
+    return result;
+    }
+
+static int
+thunkizedArgList(int args,int env)
+    {
+    int rest;
+    if (args == 0)
+        return 0;
+    else
+        {
+        push(env);
+        push(args);
+        rest = thunkizedArgList(cdr(args),env);
+        assureMemory("thunkizedArgList",THUNK_CELLS + 1,&rest,0);
+        args = pop();
+        env = pop();
+
+        return ucons(makeThunk(car(args),env),rest);
         }
     }
 
+/* 
+ * the caller of unevaluatedList is responsible for ensuring that
+ * there are length(args) cells available
+ */
+
 static int
-thunkizedList(int args,int env)
+unevaluatedArgList(args)
     {
     if (args == 0)
         return 0;
     else
-        return cons(makeThunk(car(args),env),thunkizedList(cdr(args),env));
+        return ucons(car(args),unevaluatedArgList(cdr(args)));
+
     }
 
 static int
-unevaluatedList(args)
+evaluatedArgList(args,env)
     {
+    int first;
+    int rest;
     if (args == 0)
         return 0;
     else
-        return cons(car(args),unevaluatedList(cdr(args)));
-    }
+        {
+        //debug("need to evaluate arg",car(args));
+        push(env);
+        push(args);
+        first = eval(car(args),env);
+        args = pop();
+        env = pop();
 
-static int
-evaluatedList(args,env)
-    {
-    if (args == 0)
-        return 0;
-    else
-        return cons(eval(car(args),env),evaluatedList(cdr(args),env));
+        //debug("evaluatedArgList: args",args);
+        //debug("evaluatedArgList: env",env);
+
+        push(first);
+        rest = evaluatedArgList(cdr(args),env);
+        assureMemory("evaluatedArgList",1,&rest,0);
+        //printf("back from eval\n");
+        first = pop();
+        return ucons(first,rest);
+        }
     }

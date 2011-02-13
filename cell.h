@@ -29,6 +29,7 @@ extern int FileIndex;
 
 extern int cons(int,int);
 extern int ucons(int,int);
+extern int length(int);
 
 #define cfile (symbols[FileIndex])
 #define cline (LineNumber)
@@ -84,13 +85,12 @@ extern int MaxSymbols;
 extern int findSymbol(char *);
 
 extern int rootList;
-extern void assureMemory(int,int *,...);
+extern void assureMemory(char *,int,int *,...);
 
 extern int zero;
 extern int one;
 extern int contextSymbol;
 extern int codeSymbol;
-extern int dynamicContextSymbol;
 extern int thisSymbol;
 extern int parametersSymbol;
 extern int thunkSymbol;

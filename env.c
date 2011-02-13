@@ -12,6 +12,7 @@ lookupVariableValue(int var,int env)
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
+        ppObject(stdout,env,0);
         Fatal("undefinedVariable"
             ": variable %s is undefined",
             SymbolTable[ival(var)]);
@@ -49,7 +50,7 @@ defineVariable(int env,int var,int val)
 
     assert(DEFINE_CELLS == 2);
 
-    assureMemory(2,&val,&var,&env,0);
+    assureMemory("defineVariable",2,&val,&var,&env,0);
 
     /* there are five predefined variables, skip over those */
 
@@ -74,7 +75,7 @@ makeThunk(int expr,int env)
     
     assert(THUNK_CELLS == 7);
 
-    assureMemory(7,&expr,&env,0);
+    assureMemory("makeThunk",7,&expr,&env,0);
 
     vars = ucons(contextSymbol,ucons(codeSymbol,0));
     vals = ucons(env,ucons(expr,0));
@@ -100,7 +101,7 @@ makeObject(int context,int constructor,int vars,int vals)
 
     assert(OBJECT_CELLS == 9);
 
-    assureMemory(9,&context,&constructor,&vars,&vals,0);
+    assureMemory("makeObject",9,&context,&constructor,&vars,&vals,0);
 
     vars = 
         ucons(contextSymbol,
@@ -124,7 +125,7 @@ makeClosure(int context,int name,int parameters,int body,int mode)
 
     assert(CLOSURE_CELLS == 12);
 
-    assureMemory(12,&context,&name,&parameters,&body,0);
+    assureMemory("makeClosure",12,&context,&name,&parameters,&body,0);
 
     if (mode == ADD_BEGIN)
        body = ucons(beginSymbol,body);
@@ -150,7 +151,7 @@ makeError(int tag,int context,int expr,int kind,int value,int trace)
 
     assert(ERROR_CELLS == 13);
 
-    assureMemory(13,&tag,&context,&expr,&kind,&value,&trace,0);
+    assureMemory("makeError",13,&tag,&context,&expr,&kind,&value,&trace,0);
 
     vars =
         ucons(contextSymbol,
