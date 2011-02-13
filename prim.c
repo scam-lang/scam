@@ -295,7 +295,21 @@ static int
 begin(int args)
     {
     //printf("in begin...\n");
-    return evalListExceptLast(car(args));
+    return evalThunkListExceptLast(car(args));
+    }
+
+/* (scope #) */
+
+static int
+scope(int args)
+    {
+    int result,context,env;
+    //printf("in scope...\n");
+    assureMemory("scope",OBJECT_CELLS,&args,0);
+    context = thunk_context(car(args));
+    env = makeObject(context,0,0,0);
+    result = evalListExceptLast(thunk_code(car(args)),env);
+    return result;
     }
 
 /* (print @) */
@@ -369,7 +383,7 @@ wwhile(int args)
     while (sameSymbol(testResult,trueSymbol))
         {
         push(args);
-        last = evalList(cadr(args));
+        last = evalThunkList(cadr(args));
         args = pop();
 
         push(args);
@@ -382,26 +396,78 @@ wwhile(int args)
     return last;
     }
 
-/* (set! $var value) */
+/* (set! $var value @) */
 
 static int
 set(int args)
     {
-    int var,value;
+    int var = car(args);
+    int expr = thunk_code(var);
+    int at;
     
-    var = car(args);
-    value = cadr(args);
+    //printf("in set!...");
+    if (type(expr) != SYMBOL)
+        {
+        push(args);
+        expr = eval(expr,thunk_context(var));
+        args = pop();
+        if (type(expr) != SYMBOL)
+            return Fatal("set!: variable argument resolved to %s, not SYMBOL\n",
+                type(expr));
+        }
 
-    setVariableValue(thunk_code(var),value,thunk_context(var));
+    at = caddr(args);
 
-    return value;
+    //debug("new value",cadr(args));
+    if (at == 0)
+        return setVariableValue(expr,cadr(args),thunk_context(car(args)));
+    else
+        return setVariableValue(expr,cadr(args),car(at));
     }
 
+/* (get $var @) */
+
+static int 
+get(int args)
+    {
+    int var = car(args);
+    int expr = thunk_code(var);
+    int at;
+
+    //printf("in get...");
+    if (type(expr) != SYMBOL)
+        {
+        push(args);
+        expr = eval(expr,thunk_context(var));
+        args = pop();
+        if (type(expr) != SYMBOL)
+            return Fatal("get: variable argument resolved to %s, not SYMBOL\n",
+                type(expr));
+        }
+
+    at = cadr(args);
+    //ppObject(stdout,thunk_context(car(args)),0);
+    //debug("at",at);
+
+    if (at == 0)
+        return getVariableValue(expr,thunk_context(car(args)));
+    else
+        return getVariableValue(expr,car(at));
+    }
+    
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = scope;
+    b = makeBuiltIn(env,
+        newSymbol("scope"),
+        ucons(sharpSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = begin;
     b = makeBuiltIn(env,
@@ -443,15 +509,6 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = set;
-    b = makeBuiltIn(env,
-        newSymbol("set!"),
-        ucons(newSymbol("$var"),
-            ucons(newSymbol("value"),0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
         newSymbol("quote"),
@@ -476,6 +533,7 @@ loadBuiltIns(int env)
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
+
     BuiltIns[count] = iff;
     b = makeBuiltIn(env,
         newSymbol("if"),
@@ -503,6 +561,26 @@ loadBuiltIns(int env)
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
+
+    BuiltIns[count] = get;
+    b = makeBuiltIn(env,
+        newSymbol("get"),
+        ucons(newSymbol("$var"),
+            ucons(newSymbol("@"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = set;
+    b = makeBuiltIn(env,
+        newSymbol("set!"),
+        ucons(newSymbol("$var"),
+            ucons(newSymbol("value"),
+                ucons(newSymbol("@"),0))),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
 
     assert(count <= sizeof(BuiltIns) / sizeof(PRIM));
     }

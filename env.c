@@ -7,7 +7,7 @@
 #include "util.h"
 
 int
-lookupVariableValue(int var,int env)
+getVariableValue(int var,int env)
     {
     int spot = findLocation(ival(var),env);
     if (spot == 0)

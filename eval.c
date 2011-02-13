@@ -30,7 +30,7 @@ eval(int expr, int env)
         if (type(expr) == REAL)    return expr;
         if (type(expr) == STRING)  return expr;
 
-        if (type(expr) == SYMBOL) return lookupVariableValue(expr,env);
+        if (type(expr) == SYMBOL) return getVariableValue(expr,env);
 
         //printf("eval type is %s\n",type(expr));
         assert(type(expr) == CONS);
@@ -74,12 +74,10 @@ evalCall(int call,int env)
         closure_parameters(closure),cdr(call),env);
     closure = pop();
     //debug("evaluated args",eargs);
-    //printf("back from processArgs\n");
 
     if (isBuiltIn(closure))
         {
         int result;
-        //printf("call is a builtin\n");
         result = evalBuiltIn(eargs,closure);
         //debug("builtin call result",result);
         return result;
@@ -87,7 +85,6 @@ evalCall(int call,int env)
     else
         {
         int params,body,xenv;
-        //printf("call is user defined\n");
         
         assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS,&closure,&eargs,0);
 
@@ -116,13 +113,53 @@ evalBuiltIn(int args,int builtIn)
     return prim(args);
     }
 
-/* evalListExceptLast expects a list of thunks */
+/* evalThunkListExceptLast expects a list of thunks */
 
 int
-evalListExceptLast(int items)
+evalThunkListExceptLast(int items)
+    {
+    while (cdr(items) != 0)
+        {
+        //debug("items before",items);
+        push(items);
+        eval(thunk_code(car(items)),thunk_context(car(items)));
+        items = pop();
+        //debug("items after",items);
+
+        items = cdr(items);
+        }
+    return car(items);
+    }
+
+/* evalListExceptLast expects a regular list of expressions */
+
+int
+evalListExceptLast(int items,int env)
     {
     int result = 0;
     while (cdr(items) != 0)
+        {
+        //debug("items before",items);
+        push(env);
+        push(items);
+        result = eval(car(items),env);
+        items = pop();
+        env = pop();
+        //debug("items after",items);
+
+        items = cdr(items);
+        }
+    assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,0);
+    return makeThunk(car(items),env);
+    }
+
+/* evalThunkList expects a list of thunks */
+
+int
+evalThunkList(int items)
+    {
+    int result;
+    while (items != 0)
         {
         //debug("items before",items);
         push(items);
@@ -132,17 +169,9 @@ evalListExceptLast(int items)
 
         items = cdr(items);
         }
-    return car(items);
+    return result;
     }
-
-/* evalList expects a list of thunks */
-
-int
-evalList(int items)
-    {
-    int last = evalListExceptLast(items);
-    return eval(thunk_code(last),thunk_context(last));
-    }
+    
 
 
 static int
@@ -190,6 +219,14 @@ processArguments(int name, int params,int args,int env)
         args = pop();
         env = pop();
         result = ucons(makeThunk(car(args),env),rest);
+        }
+    else if (*SymbolTable[ival(car(params))] == '#')
+        {
+        push(args);
+        rest = processArguments(name,cdr(params),cdr(args),env);
+        assureMemory("processArgs:tArg",1,&rest,0);
+        args = pop();
+        result = ucons(car(args),rest);
         }
     else
         {

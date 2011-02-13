@@ -1,5 +1,5 @@
 extern int makeEnvironment(int,int,int);
-extern int lookupVariableValue(int,int);
+extern int getVariableValue(int,int);
 extern int getGlobalEnvironment(void);
 extern int setVariableValue(int,int,int);
 extern int defineVariable(int,int,int);

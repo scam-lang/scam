@@ -9,14 +9,21 @@
    (climb (+ x 1))
    )
 
-;{
-(define i 0)
-(while (< i z)
-    (println "i is " i)
-    (set! i (+ i 1))
-    )
-;}
+;(define i 0)
+;(while (< i z)
+;    (println "i is " i)
+;    (set! i (+ i 1))
+;    )
 
-
+(define obj (scope (define z 3) this))
+'done
 ;(climb 0)
-(println "fib(" z ") is " (fib z))
+;(println "fib(" z ") is " (fib z))
+(println (get z))
+(println (get z this))
+(println (get z obj))
+(set! z 4 obj)
+(println (get z))
+(println (get z this))
+(println (get z obj))
+'done

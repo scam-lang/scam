@@ -104,9 +104,8 @@ skipWhiteSpace()
                 }
             else /* skip to end of line */
                 {
-                while ((ch = getNextCharacter(Input))
-                && ch != EOF && ch != '\n')
-                    continue;
+                while (ch != EOF && ch != '\n')
+                    ch = getNextCharacter(Input);
                 }
             }
         }
