@@ -1,14 +1,14 @@
 # these, if linux
 CC = gcc
-OUT = xcheme
+OUT = scam
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o
 PROF = -pg
 
-ALL		: xcheme
+ALL		: scam
 
-xcheme		: $(OBJS) xcheme.o
-		$(CC) -o $(OUT) $(PROF) $(OBJS) xcheme.o -lm
+scam		: $(OBJS) scam.o
+		$(CC) -o $(OUT) $(PROF) $(OBJS) scam.o -lm
 		cp $(OUT) ~/bin/
 
 parser.o	: parser.c cell.h types.h lexer.h parser.h util.h
@@ -38,8 +38,8 @@ util.o		: util.c util.h types.h cell.h
 pp.o		: pp.c pp.h 
 		$(CC) -c $(PROF) -Wall -g pp.c
 
-xcheme.o		: xcheme.c cell.h parser.h prim.h eval.h
-		$(CC) -c $(PROF) $(IREADLINE) -Wall -g xcheme.c
+scam.o		: scam.c cell.h parser.h prim.h eval.h
+		$(CC) -c $(PROF) $(IREADLINE) -Wall -g scam.c
 
 clean:
-		rm *.o xcheme
+		rm *.o scam
