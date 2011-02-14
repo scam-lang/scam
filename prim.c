@@ -454,12 +454,69 @@ get(int args)
     else
         return getVariableValue(expr,car(at));
     }
-    
+
+static int
+force(int args)
+    {
+    return eval(thunk_code(car(args)),thunk_context(car(args)));
+    }
+
+static int
+eeval(int args)
+    {
+    return eval(car(args),cadr(args));
+    }
+
+static int
+ccar(int args)
+    {
+    return car(car(args));
+    }
+
+static int
+ccdr(int args)
+    {
+    return cdr(car(args));
+    }
+
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = ccdr;
+    b = makeBuiltIn(env,
+        newSymbol("cdr"),
+        ucons(newSymbol("items"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ccar;
+    b = makeBuiltIn(env,
+        newSymbol("car"),
+        ucons(newSymbol("items"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = eeval;
+    b = makeBuiltIn(env,
+        newSymbol("eval"),
+        ucons(newSymbol("expr"),
+            ucons(newSymbol("context"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = force;
+    b = makeBuiltIn(env,
+        newSymbol("force"),
+        ucons(newSymbol("$thunk"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = scope;
     b = makeBuiltIn(env,

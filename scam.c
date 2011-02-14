@@ -23,8 +23,8 @@ extern FILE *Input;
 
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
-char *PROGRAM_NAME = "xcheme";
-char *PROGRAM_VERSION = "0.0";
+char *PROGRAM_NAME = "scam";
+char *PROGRAM_VERSION = "0.1";
 int displayPrimitives = 0;
 int displayHelp = 0;
 
