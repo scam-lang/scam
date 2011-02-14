@@ -342,7 +342,7 @@ println(int args)
 /* (if test $then $) */
 
 static int
-iff(int args)
+iif(int args)
     {
     //debug("if test",car(args));
 
@@ -458,7 +458,7 @@ get(int args)
 static int
 force(int args)
     {
-    return eval(thunk_code(car(args)),thunk_context(car(args)));
+    return car(args);
     }
 
 static int
@@ -591,7 +591,7 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = iff;
+    BuiltIns[count] = iif;
     b = makeBuiltIn(env,
         newSymbol("if"),
         ucons(newSymbol("test"),
