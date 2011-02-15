@@ -84,6 +84,9 @@ extern int SymbolCount;
 extern int MaxSymbols;
 extern int findSymbol(char *);
 
+extern char *cellString(char *,int,int);
+extern char *cellStringTr(char *,int,int);
+
 extern int rootList;
 extern void assureMemory(char *,int,int *,...);
 
@@ -116,7 +119,11 @@ extern int trueSymbol;
 extern int falseSymbol;
 extern int backquoteSymbol;
 extern int commaSymbol;
+extern int inputPortSymbol;
+extern int outputPortSymbol;
 
 extern int readIndex;
 extern int writeIndex;
 extern int appendIndex;
+extern int stdinIndex;
+extern int stdoutIndex;

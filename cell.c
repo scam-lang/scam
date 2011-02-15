@@ -45,10 +45,14 @@ int trueSymbol;
 int falseSymbol;
 int backquoteSymbol;
 int commaSymbol;
+int inputPortSymbol;
+int outputPortSymbol;
 
 int readIndex;
 int writeIndex;
 int appendIndex;
+int stdinIndex;
+int stdoutIndex;
 
 CELL *the_cars;
 CELL *new_cars;
@@ -125,10 +129,14 @@ memoryInit(int memsize)
     falseSymbol          = newSymbol("#f");
     backquoteSymbol      = newSymbol("backquote");
     commaSymbol          = newSymbol("comma");
+    inputPortSymbol      = newSymbol("inputPort");
+    outputPortSymbol     = newSymbol("outputPort");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");
     appendIndex          = findSymbol("append");
+    stdinIndex           = findSymbol("stdin");
+    stdoutIndex          = findSymbol("stdout");
 
     rootBottom = MemorySpot;
     }
@@ -250,7 +258,7 @@ newPunctuation(char *t)
     }
 
 int
-cellStrcmp(int a,int b)
+cellStrCmp(int a,int b)
     {
     while (ival(a) != 0 && ival(b) != 0)
         {
@@ -262,6 +270,77 @@ cellStrcmp(int a,int b)
     if (ival(a) != 0 || ival(b) != 0) return ival(a) - ival(b);
 
     return ival(a) - ival(b);
+    }
+
+char *
+cellString(char *buffer,int size, int s)
+    {
+    int i = 0;
+    char *target;
+    static char store[4096];
+
+    //printf("in cellString...\n");
+    if (buffer == 0)
+        {
+        target = store;
+        size = sizeof(store);
+        }
+    else
+        target = buffer;
+
+    while (i < size - 1 && cdr(s) != 0)
+        {
+        target[i] = (char) ival(s);
+        //printf("target[%d] is %c\n",i,target[i]);
+        s = cdr(s);
+        ++i;
+        }
+
+    target[i] = '\0';
+
+    return target;
+    }
+
+char *
+cellStringTr(char *buffer,int size, int s)
+    {
+    int i = 0;
+    char *target;
+    static char store[4096];
+
+    //printf("in cellStringTr...\n");
+    if (buffer == 0)
+        {
+        target = store;
+        size = sizeof(store);
+        }
+    else
+        target = buffer;
+
+    while (i < size - 2 && cdr(s) != 0)
+        {
+        if (ival(s) == '\\')
+            {
+            s = cdr(s);
+            if (ival(s) == 'n')
+                target[i] = '\n';
+            else if (ival(s) == 'r')
+                target[i] = '\r';
+            else if (ival(s) == 't')
+                target[i] = '\t';
+            else
+                target[i] = (char) ival(s);
+            }
+        else
+            target[i] = (char) ival(s);
+        //printf("target[%d] is %c\n",i,target[i]);
+        s = cdr(s);
+        ++i;
+        }
+
+    target[i] = '\0';
+
+    return target;
     }
 
 int

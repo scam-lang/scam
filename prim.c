@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 #include <assert.h>
 #include "types.h"
 #include "env.h"
@@ -9,6 +11,10 @@
 #include "util.h"
 
 PRIM BuiltIns[1000];
+FILE *OpenPorts[20];
+int MaxPorts = sizeof(OpenPorts) / sizeof(FILE *);
+int CurrentInputIndex;
+int CurrentOutputIndex;
 
 static int
 quote(int args)
@@ -505,13 +511,14 @@ static int
 print(int args)
     {
     int last = 0;
+    FILE *port = OpenPorts[CurrentOutputIndex];
 
     args = car(args);
 
     while (args != 0)
         {
         last = car(args);
-        pp(stdout,car(args));
+        pp(port,car(args));
         args = cdr(args);
         }
 
@@ -521,8 +528,9 @@ print(int args)
 static int
 println(int args)
     {
+    FILE *port = OpenPorts[CurrentOutputIndex];
     int result = print(args);
-    fprintf(stdout,"\n");
+    fprintf(port,"\n");
     return result;
     }
 
@@ -679,26 +687,460 @@ ccons(int args)
     return ucons(car(args),cadr(args));
     }
 
+/*******ports*********************************/
+
+static void
+skipWhiteSpace(FILE *fp)
+    {
+    int ch;
+    ch = fgetc(fp);
+    while (isspace(ch) && !feof(fp))
+        ch = fgetc(fp);
+    if (ch != -1)
+        ungetc(ch,fp);
+    }
+
+
+static int
+addOpenPort(FILE *fp,int portType,int target)
+    {
+    int i;
+    int maxPorts = sizeof(OpenPorts) / sizeof(FILE *);
+
+    for (i = 2; i < maxPorts; ++i)
+        {
+        //printf("port[%d] is %p\n",i,OpenPorts[i]);
+        if (OpenPorts[i] == 0)
+            break;
+        }
+
+    if (i == maxPorts)
+        {
+        return Fatal("fileOpenError","too many ports open");
+        }
+
+    OpenPorts[i] = fp;
+
+    assureMemory("addOpenPort",3,0);
+
+    return ucons(portType,ucons(newInteger(i),0));
+    }
+
+int
+setPort(int args)
+    {
+    int old;
+    int target;
+
+    assureMemory("setPort",3,&args,0);
+
+    target = car(args);
+
+    if (type(target) == SYMBOL)
+        {
+        if (ival(target) == stdinIndex)
+            {
+            old = CurrentInputIndex;
+            CurrentInputIndex = 0;
+            return ucons(inputPortSymbol,ucons(newInteger(old),0));
+            }
+        else if (ival(target) == stdoutIndex)
+            {
+            old = CurrentOutputIndex;
+            CurrentOutputIndex = 1;
+            return ucons(outputPortSymbol,ucons(newInteger(old),0));
+            }
+        }
+    else if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
+        {
+        old = CurrentInputIndex;
+        CurrentInputIndex = ival(target);
+        return ucons(inputPortSymbol,ucons(newInteger(old),0));
+        }
+    else if (type(target) == CONS && sameSymbol(car(target),outputPortSymbol))
+        {
+        old = CurrentOutputIndex;
+        CurrentOutputIndex = ival(target);
+        return ucons(outputPortSymbol,ucons(newInteger(old),0));
+        }
+
+    return Fatal("argumentTypeError",
+        "setPort given a non-port as argument: %s",
+        type(target));
+    }
+
+int
+getInputPort(int args)
+    {
+    assureMemory("getInputPort",3,0);
+    return ucons(inputPortSymbol,ucons(newInteger(CurrentInputIndex),0));
+    }
+
+int
+getOutputPort(int args)
+    {
+    assureMemory("getOutputPort",3,0);
+    return ucons(outputPortSymbol,ucons(newInteger(CurrentInputIndex),0));
+    }
+
+static int
+cclose(int args)
+    {
+    int target,index;
+
+    target = car(args);
+    index = ival(target);
+
+    if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
+        {
+        if (index == 0)
+            {
+            return Fatal("illegal attempt to close stdin");
+            }
+        if (index >= MaxPorts)
+            {
+            return Fatal("illegal attempt to a non-existent port");
+            }
+        if (OpenPorts[index] == 0)
+            {
+            return Fatal("illegal attempt to close an unopened port");
+            }
+        fclose(OpenPorts[index]);
+        OpenPorts[index] = 0;
+        if (CurrentInputIndex == index) CurrentInputIndex = 0;
+        }
+    else if (type(target) == CONS && sameSymbol(car(target),outputPortSymbol))
+        {
+        if (index == 1)
+            {
+            return Fatal("illegal attempt to close stdout");
+            }
+        if (index >= MaxPorts)
+            {
+            return Fatal("illegal attempt to a non-existent port");
+            }
+        if (OpenPorts[index] == 0)
+            {
+            return Fatal("illegal attempt to close an unopened port");
+            }
+        fclose(OpenPorts[index]);
+        OpenPorts[index] = 0;
+        if (CurrentOutputIndex == index) CurrentOutputIndex = 1;
+        }
+    else
+        return Fatal("bad type passed to close: %s", type(target));
+
+    return trueSymbol;
+    }
+
+static int
+readChar(int args)
+    {
+    int ch;
+    char buffer[3];
+    FILE *fp;
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    if (fp == 0)
+        return Fatal("attempt to read a character from a closed port");
+
+    ch = fgetc(fp);
+
+    if (feof(fp))
+        return Fatal("attempt to read a character at end of input");
+
+    if (ch == '\\')
+        {
+        ch = fgetc(fp);
+        if (ch == 'n')
+            buffer[0] = '\n';
+        else if (ch == 't')
+            buffer[0] = '\t';
+        else if (ch == 'r')
+            buffer[0] = '\r';
+        else
+            buffer[0] = ch;
+        }
+    else
+        {
+        buffer[0] = ch;
+        }
+
+    buffer[1] = '\0';
+
+    return newString(buffer);
+    }
+
+static int
+readInt(int args)
+    {
+    int i;
+    FILE *fp;
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    if (fp == 0)
+        return Fatal("attempt to read an integer from a closed port");
+
+    if (feof(fp))
+        return Fatal("attempt to read an integer at end of input");
+
+    i = 0;
+    fscanf(fp," %d",&i);
+    return newInteger(i);
+    }
+
+static int
+readReal(int args)
+    {
+    double r;
+    FILE *fp;
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    if (fp == 0)
+        return Fatal("attempt to read a real from a closed port");
+
+    if (feof(fp))
+        return Fatal("attempt to read a real at end of input");
+
+    r = 0;
+    fscanf(fp," %lf",&r);
+    return newReal(r);
+    }
+
+static int
+readString(int args)
+    {
+    int ch;
+    int index;
+    char buffer[4096];
+    int result;
+    int backslashed;
+    FILE *fp;
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    skipWhiteSpace(fp);
+
+    ch = fgetc(fp);
+    if (ch != '\"')
+        {
+        ungetc(ch,fp);
+        return Fatal("reading a string: found <%c> instead of double quote",ch);
+        }
+
+    index = 0;
+    backslashed = 0;
+    while ((ch = fgetc(fp)) && ch != EOF)
+        {
+        if (ch == '\"')
+            break;
+
+        if (ch == '\\')
+            {
+            ch = fgetc(fp);
+            if (ch == EOF)
+                return Fatal("reading a string: unexpected end of input");
+            if (ch == 'n')
+                buffer[index++] = '\n';
+            else if (ch == 't')
+                buffer[index++] = '\t';
+            else if (ch == 'r')
+                buffer[index++] = '\r';
+            else
+                buffer[index++] = ch;
+            }
+        else
+            {
+            buffer[index++] = ch;
+            }
+
+        if (index == sizeof(buffer) - 1)
+            return Fatal("reading a string: string too large");
+        }
+
+    buffer[index] = '\0';
+
+    if (ch != '\"')
+        return Fatal("reading a string: unterminated string");
+
+    //printf("string is <%s>\n", buffer);
+
+    result = newString(buffer);
+
+    return result;
+    }
+
+static int
+readToken(int args)
+    {
+    int ch;
+    int index;
+    char buffer[4096];
+    int result;
+    FILE *fp;
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    skipWhiteSpace(fp);
+
+    index = 0;
+    while ((ch = fgetc(fp)) && ch != EOF && !isspace(ch))
+        {
+        buffer[index++] = ch;
+        if (index == sizeof(buffer) - 1)
+            return Fatal("reading a token: token too large");
+        }
+
+    buffer[index] = '\0';
+
+    ungetc(ch,fp);
+
+    //printf("token is <%s>\n", buffer);
+
+    result = newString(buffer);
+
+    return result;
+    }
+
+static int
+readWhile(int args)
+    {
+    int ch;
+    int a = car(args);
+    int index;
+    char target[256];
+    char buffer[4096];
+    int result;
+    FILE *fp;
+
+    if (type(a) != STRING)
+        {
+        return Fatal("readWhile: argument should be STRING, not %s",type(a));
+        }
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    cellStringTr(target,sizeof(target),a);
+
+    index = 0;
+    while ((ch = fgetc(fp)) && ch != EOF && strchr(target,ch) != 0)
+        {
+        buffer[index++] = ch;
+        if (index == sizeof(buffer) - 1)
+            return Fatal("readWhile: token too long");
+        }
+
+    buffer[index] = '\0';
+
+    ungetc(ch,fp);
+
+    //printf("token is <%s>\n", buffer);
+
+    result = newString(buffer);
+
+    return result;
+    }
+
+static int
+readUntil(int args)
+    {
+    int ch;
+    int a = car(args);
+    int index;
+    char target[256];
+    char buffer[4096];
+    int result;
+    FILE *fp;
+
+    if (type(a) != STRING)
+        {
+        return Fatal("argumentTypeError",
+            "readWhile: argument should be STRING, not %s",
+            type(a));
+        }
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    cellStringTr(target,sizeof(target),a);
+
+    index = 0;
+    while ((ch = fgetc(fp)) && ch != EOF && strchr(target,ch) == 0)
+        {
+        buffer[index++] = ch;
+        if (index == sizeof(buffer) - 1)
+            return Fatal("IOError", "readWhile: token too long");
+        }
+
+    buffer[index] = '\0';
+
+    ungetc(ch,fp);
+
+    //printf("token is <%s>\n", buffer);
+
+    result = newString(buffer);
+
+    return result;
+    }
+
+static int
+readLine(int args)
+    {
+    int ch;
+    int index;
+    char buffer[4096];
+    int result;
+    FILE *fp;
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    index = 0;
+    while ((ch = fgetc(fp)) && ch != EOF && ch != '\n')
+        {
+        buffer[index++] = ch;
+        if (index == sizeof(buffer) - 1)
+            return Fatal("IOError","reading a line: line too long");
+        }
+
+    buffer[index] = '\0';
+
+    //printf("token is <%s>\n", buffer);
+
+    result = newString(buffer);
+
+    return result;
+    }
+
+static int
+eeof(int args)
+    {
+    FILE *fp = OpenPorts[CurrentInputIndex];
+    if (fp == 0 || feof(fp))
+        return trueSymbol;
+    else
+        return falseSymbol;
+    }
+
 static int
 oopen(int args)
     {
     int target,mode;
     int result;
 
-    target = car(argl);
-    mode = cadr(argl);
+    target = car(args);
+    mode = cadr(args);
 
     if (type(mode) == SYMBOL)
         {
         if (ival(mode) == readIndex)
             {
-            char buffer[256];
+            char buffer[512];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"r");
             if (fp == 0)
-                return Fatal("fileOpenError","file %s cannot "
-                    "be opened for reading",
-                    buffer);
-            result = addOpenPort(fp,INPUT,target);
+                return Fatal("file %s cannot be opened for reading",buffer);
+            result = addOpenPort(fp,inputPortSymbol,target);
             }
         else if (ival(mode) == writeIndex)
             {
@@ -706,34 +1148,29 @@ oopen(int args)
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"w");
             //printf("buffer is %s\n",buffer);
             if (fp == 0)
-                return Fatal("fileOpenError","file %s cannot "
-                    "be opened for writing",
-                    buffer);
+                return Fatal("file %s cannot be opened for writing",buffer);
             //printf("file opened successfully\n");
-            result = addOpenPort(fp,OUTPUT,target);
+            result = addOpenPort(fp,outputPortSymbol,target);
             }
         else if (ival(mode) == appendIndex)
             {
             char buffer[256];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"a");
             if (fp == 0)
-                return Fatal("fileOpenError","file %s cannot "
-                    "be opened for appending",
-                    buffer);
-            result = addOpenPort(fp,OUTPUT,target);
+                return Fatal("file %s cannot be opened for appending",buffer);
+            result = addOpenPort(fp,outputPortSymbol,target);
             }
         else 
             {
-            return throw("fileOpenError",
-                "unknown mode :%s"
-                " (should be :read, :write, or :append)",
-                symbols[ival(mode)]);
+            return Fatal("unknown open mode :%s, "
+                "(should be 'read, 'write, or 'append)",
+                SymbolTable[ival(mode)]);
             }
         }
     else
         {
-        return throw("fileOpenError","unknown mode type: %s"
-            "(should be :read, :write, or :append)",
+        return Fatal("unknown mode type: %s, "
+            "(should be 'read, 'write, or 'append)",
             type(mode));
         }
 
@@ -745,6 +1182,95 @@ loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = readChar;
+    b = makeBuiltIn(env,
+        newSymbol("readChar"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readInt;
+    b = makeBuiltIn(env,
+        newSymbol("readInt"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readReal;
+    b = makeBuiltIn(env,
+        newSymbol("readReal"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readString;
+    b = makeBuiltIn(env,
+        newSymbol("readString"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readToken;
+    b = makeBuiltIn(env,
+        newSymbol("readToken"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readLine;
+    b = makeBuiltIn(env,
+        newSymbol("readLine"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readWhile;
+    b = makeBuiltIn(env,
+        newSymbol("readWhile"),
+        ucons(newSymbol("string"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readUntil;
+    b = makeBuiltIn(env,
+        newSymbol("readUntil"),
+        ucons(newSymbol("string"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = oopen;
+    b = makeBuiltIn(env,
+        newSymbol("open"),
+        ucons(newSymbol("name"),
+            ucons(newSymbol("mode"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = cclose;
+    b = makeBuiltIn(env,
+        newSymbol("close"),
+        ucons(newSymbol("port"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = eeof;
+    b = makeBuiltIn(env,
+        newSymbol("eof?"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = ccons;
     b = makeBuiltIn(env,
@@ -932,6 +1458,10 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-
     assert(count <= sizeof(BuiltIns) / sizeof(PRIM));
+
+    OpenPorts[0] = stdin;
+    OpenPorts[1] = stdout;
+    CurrentInputIndex = 0;
+    CurrentOutputIndex = 1;
     }
