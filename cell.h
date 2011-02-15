@@ -116,3 +116,7 @@ extern int trueSymbol;
 extern int falseSymbol;
 extern int backquoteSymbol;
 extern int commaSymbol;
+
+extern int readIndex;
+extern int writeIndex;
+extern int appendIndex;

@@ -79,6 +79,73 @@ lambda(int args)
     }
 
 static int
+rtimes(int args,int accum)
+    {
+    while (args != 0)
+        {
+        int arg = car(args);
+        char *t = type(arg);
+        if (t == INTEGER)
+            rval(accum) *= ival(arg);
+        else if (t == REAL)
+            rval(accum) *= rval(arg);
+        else
+            Fatal("wrong type for multiplication: %s\n",type(car(args)));
+        args = cdr(args);
+        }
+
+    return accum;
+    }
+
+static int
+itimes(int args,int accum)
+    {
+    while (args != 0)
+        {
+        char *t = type(car(args));
+
+        if (t == REAL)
+            {
+            type(accum) = REAL;
+            rval(accum) = ival(accum);
+            return rtimes(args,accum);
+            }
+        else if (t == INTEGER)
+            ival(accum) *= ival(car(args));
+        else
+            {
+            Fatal("wrong type for multiplication: %s\n",type(car(args)));
+            }
+            
+        args = cdr(args);
+        }
+
+    //debug("iplus",accum);
+    return accum;
+    }
+
+/* (+ @) */
+
+static int
+times(int args)
+    {
+    char *t;
+
+    args = car(args);
+
+    if (args == 0) return zero;
+
+    assureMemory("times",1,&args,0);
+
+    t = type(car(args));
+
+    if (t == INTEGER) return itimes(args,newInteger(0));
+    if (t == REAL) return rtimes(args,newReal(0));
+    
+    return Fatal("wrong type for multiplication: %s\n",type(car(args)));
+    }
+
+static int
 rplus(int args,int accum)
     {
     while (args != 0)
@@ -90,7 +157,7 @@ rplus(int args,int accum)
         else if (t == REAL)
             rval(accum) += rval(arg);
         else
-            Fatal("real addition: wrong type for '+': %s\n",type(car(args)));
+            Fatal("wrong type for addition: %s\n",type(car(args)));
         args = cdr(args);
         }
 
@@ -114,8 +181,7 @@ iplus(int args,int accum)
             ival(accum) += ival(car(args));
         else
             {
-            pp(stdout,car(args));
-            Fatal("integer addition: wrong type for '+': %s\n",type(car(args)));
+            Fatal("wrong type for addition: %s\n",type(car(args)));
             }
             
         args = cdr(args);
@@ -143,9 +209,124 @@ plus(int args)
     if (t == INTEGER) return iplus(args,newInteger(0));
     if (t == REAL) return rplus(args,newReal(0));
     
-    Fatal("addition: wrong type for '+': %s\n",t);
+    return Fatal("wrong type for addition: %s\n",type(car(args)));
+    }
 
-    return 0;
+static int
+rdivides(int args,int accum)
+    {
+    while (args != 0)
+        {
+        int arg = car(args);
+        char *t = type(arg);
+        if (t == INTEGER)
+            rval(accum) /= ival(arg);
+        else if (t == REAL)
+            rval(accum) /= rval(arg);
+        else
+            Fatal("wrong type for division: %s\n",type(car(args)));
+        args = cdr(args);
+        }
+
+    return accum;
+    }
+
+static int
+idivides(int args,int accum)
+    {
+    while (args != 0)
+        {
+        char *t = type(car(args));
+
+        if (t == REAL)
+            {
+            type(accum) = REAL;
+            rval(accum) = ival(accum);
+            return rdivides(args,accum);
+            }
+        else if (t == INTEGER)
+            ival(accum) /= ival(car(args));
+        else
+            Fatal("wrong type for division: %s\n",type(car(args)));
+            
+        args = cdr(args);
+        }
+
+    return accum;
+    }
+
+/* (/ @) */
+
+static int
+divides(int args)
+    {
+    char *t;
+    int accum;
+
+    args = car(args);
+
+    if (args == 0) return zero;
+
+    assureMemory("divides",1,&args,0);
+
+    t = type(car(args));
+
+    if (t == INTEGER && cdr(args) == 0)
+        {
+        return newInteger(1 / ival(car(args)));
+        }
+    else if (t == INTEGER)
+        {
+        accum = newInteger(ival(car(args)));
+        return idivides(cdr(args),accum);
+        }
+    else if (t == REAL && cdr(args) == 0)
+        {
+        return newReal(1 / rval(car(args)));
+        }
+    else if (t == REAL)
+        {
+        accum = newReal(rval(car(args)));
+        return rdivides(cdr(args),accum);
+        }
+    
+    return Fatal("wrong type for division: %s\n",t);
+    }
+
+static int
+mod(int args)
+    {
+    char *t;
+    int accum;
+    
+    args = car(args);
+
+    if (args == 0) return zero;
+    if (cdr(args) == 0) return zero;
+
+    t = type(car(args));
+
+    if (t != INTEGER)
+        return Fatal("wrong type for remainder: %s\n",type(car(args)));
+
+    assureMemory("remainder",1,&args,0);
+
+    accum = newInteger(ival(car(args)));
+    args = cdr(args);
+
+    while (args != 0)
+        {
+        t = type(car(args));
+
+        if (t == INTEGER)
+            ival(accum) %= ival(car(args));
+        else
+            Fatal("wrong type for remainder: %s\n",type(car(args)));
+            
+        args = cdr(args);
+        }
+
+    return accum;
     }
 
 static int
@@ -160,7 +341,7 @@ rminus(int args,int accum)
         else if (t == REAL)
             rval(accum) -= rval(arg);
         else
-            Fatal("wrong type for '-': %s\n",type(car(args)));
+            Fatal("wrong type for subtraction: %s\n",type(car(args)));
         args = cdr(args);
         }
 
@@ -183,7 +364,7 @@ iminus(int args,int accum)
         else if (t == INTEGER)
             ival(accum) -= ival(car(args));
         else
-            Fatal("wrong type for '-': %s\n",type(car(args)));
+            Fatal("wrong type for subtraction: %s\n",type(car(args)));
             
         args = cdr(args);
         }
@@ -207,20 +388,26 @@ minus(int args)
 
     t = type(car(args));
 
-    if (t == INTEGER)
+    if (t == INTEGER && cdr(args) == 0)
+        {
+        return newInteger(0 - ival(car(args)));
+        }
+    else if (t == INTEGER)
         {
         accum = newInteger(ival(car(args)));
         return iminus(cdr(args),accum);
         }
-    if (t == REAL)
+    else if (t == REAL && cdr(args) == 0)
+        {
+        return newReal(0 - rval(car(args)));
+        }
+    else if (t == REAL)
         {
         accum = newReal(rval(car(args)));
         return rminus(cdr(args),accum);
         }
     
-    Fatal("wrong type for '-': %s\n",t);
-
-    return 0;
+    return Fatal("wrong type for subtraction: %s\n",t);
     }
 
 static int
@@ -467,11 +654,15 @@ eeval(int args)
     return eval(car(args),cadr(args));
     }
 
+/* (car item) */
+
 static int
 ccar(int args)
     {
     return car(car(args));
     }
+
+/* (cdr item) */
 
 static int
 ccdr(int args)
@@ -479,11 +670,90 @@ ccdr(int args)
     return cdr(car(args));
     }
 
+/* (cons a b) */
+
+static int
+ccons(int args)
+    {
+    assureMemory("cons",1,&args,0);
+    return ucons(car(args),cadr(args));
+    }
+
+static int
+oopen(int args)
+    {
+    int target,mode;
+    int result;
+
+    target = car(argl);
+    mode = cadr(argl);
+
+    if (type(mode) == SYMBOL)
+        {
+        if (ival(mode) == readIndex)
+            {
+            char buffer[256];
+            FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"r");
+            if (fp == 0)
+                return Fatal("fileOpenError","file %s cannot "
+                    "be opened for reading",
+                    buffer);
+            result = addOpenPort(fp,INPUT,target);
+            }
+        else if (ival(mode) == writeIndex)
+            {
+            char buffer[256];
+            FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"w");
+            //printf("buffer is %s\n",buffer);
+            if (fp == 0)
+                return Fatal("fileOpenError","file %s cannot "
+                    "be opened for writing",
+                    buffer);
+            //printf("file opened successfully\n");
+            result = addOpenPort(fp,OUTPUT,target);
+            }
+        else if (ival(mode) == appendIndex)
+            {
+            char buffer[256];
+            FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"a");
+            if (fp == 0)
+                return Fatal("fileOpenError","file %s cannot "
+                    "be opened for appending",
+                    buffer);
+            result = addOpenPort(fp,OUTPUT,target);
+            }
+        else 
+            {
+            return throw("fileOpenError",
+                "unknown mode :%s"
+                " (should be :read, :write, or :append)",
+                symbols[ival(mode)]);
+            }
+        }
+    else
+        {
+        return throw("fileOpenError","unknown mode type: %s"
+            "(should be :read, :write, or :append)",
+            type(mode));
+        }
+
+    return result;
+    }
+
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = ccons;
+    b = makeBuiltIn(env,
+        newSymbol("cons"),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = ccdr;
     b = makeBuiltIn(env,
@@ -566,6 +836,38 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = minus;
+    b = makeBuiltIn(env,
+        newSymbol("-"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = times;
+    b = makeBuiltIn(env,
+        newSymbol("*"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = divides;
+    b = makeBuiltIn(env,
+        newSymbol("/"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = mod;
+    b = makeBuiltIn(env,
+        newSymbol("%"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
         newSymbol("quote"),
@@ -579,14 +881,6 @@ loadBuiltIns(int env)
         newSymbol("lambda"),
         ucons(newSymbol("$params"),
             ucons(sharpSymbol,0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = minus;
-    b = makeBuiltIn(env,
-        newSymbol("-"),
-        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

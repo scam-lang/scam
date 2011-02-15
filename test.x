@@ -1,3 +1,7 @@
+(define (inspect $x)
+    (println (get code $x) " is " (eval (get code $x) (get context $x)))
+    )
+
 (println "hello")
 (define z 20)
 (define (square x) (+ x x))
@@ -16,8 +20,7 @@
     )
 
 (define obj (scope (define z 3) this))
-'done
-(climb 0)
+;(climb 0)
 ;(println "fib(" z ") is " (fib z))
 (println (get z))
 (println (get z this))
@@ -26,4 +29,6 @@
 (println (get z))
 (println (get z this))
 (println (get z obj))
+(inspect (% 5 3 2))
+(inspect (cons 2 4))
 'done

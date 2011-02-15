@@ -46,6 +46,10 @@ int falseSymbol;
 int backquoteSymbol;
 int commaSymbol;
 
+int readIndex;
+int writeIndex;
+int appendIndex;
+
 CELL *the_cars;
 CELL *new_cars;
 int *the_cdrs;
@@ -121,6 +125,10 @@ memoryInit(int memsize)
     falseSymbol          = newSymbol("#f");
     backquoteSymbol      = newSymbol("backquote");
     commaSymbol          = newSymbol("comma");
+
+    readIndex            = findSymbol("read");
+    writeIndex           = findSymbol("write");
+    appendIndex          = findSymbol("append");
 
     rootBottom = MemorySpot;
     }

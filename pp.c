@@ -21,7 +21,16 @@ ppList(FILE *fp,int items,int mode)
             }
         items = cdr(items);
         if (items)
-            fprintf(fp," ");
+            {
+            if (type(items) == CONS)
+                fprintf(fp," ");
+            else
+                {
+                fprintf(stdout," . ");
+                ppLevel(fp,items,mode + 1);
+                break;
+                }
+            }
         }
     fprintf(fp,")");
     }
