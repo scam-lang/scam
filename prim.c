@@ -417,6 +417,80 @@ minus(int args)
     }
 
 static int
+orLoop(int first,int remaining,int env)
+    {
+    push(env);
+    push(remaining);
+    first = eval(first,env);
+    remaining = pop();
+    env = pop();
+
+    if (sameSymbol(first,trueSymbol)) return trueSymbol;
+    if (!sameSymbol(first,falseSymbol)) return Fatal("or: not a boolean\n");
+
+    if (remaining == 0) return falseSymbol;
+
+    return orLoop(car(remaining),cdr(remaining),env);
+    }
+
+/* (or #) */
+
+static int
+or(int args)
+    {
+    int result;
+    int context = thunk_context(car(args));
+    int exprs = thunk_code(car(args));
+
+    if (exprs == 0) return falseSymbol;
+
+    result = orLoop(car(exprs),cdr(exprs),context);
+
+    return result;
+    }
+
+static int
+andLoop(int first,int remaining,int env)
+    {
+    push(env);
+    push(remaining);
+    first = eval(first,env);
+    remaining = pop();
+    env = pop();
+
+    if (sameSymbol(first,falseSymbol)) return falseSymbol;
+    if (!sameSymbol(first,trueSymbol)) return Fatal("and: not a boolean\n");
+
+    if (remaining == 0) return trueSymbol;
+
+    return andLoop(car(remaining),cdr(remaining),env);
+    }
+
+/* (and #) */
+
+static int
+and(int args)
+    {
+    int result;
+    int context = thunk_context(car(args));
+    int exprs = thunk_code(car(args));
+
+    if (exprs == 0) return trueSymbol;
+
+    result = andLoop(car(exprs),cdr(exprs),context);
+
+    return result;
+    }
+
+static int
+not(int args)
+    {
+    if (sameSymbol(car(args),trueSymbol)) return falseSymbol;
+    if (sameSymbol(car(args),falseSymbol)) return trueSymbol;
+    return Fatal("not: non-boolean\n");
+    }
+
+static int
 lessThanLoop(int first,int remaining)
     {
     int next;
@@ -714,6 +788,8 @@ addOpenPort(FILE *fp,int portType,int target)
             break;
         }
 
+    printf("first available port is %d\n",i);
+
     if (i == maxPorts)
         {
         return Fatal("fileOpenError","too many ports open");
@@ -726,7 +802,7 @@ addOpenPort(FILE *fp,int portType,int target)
     return ucons(portType,ucons(newInteger(i),0));
     }
 
-int
+static int
 setPort(int args)
     {
     int old;
@@ -750,17 +826,20 @@ setPort(int args)
             CurrentOutputIndex = 1;
             return ucons(outputPortSymbol,ucons(newInteger(old),0));
             }
+        else 
+            return Fatal("%s is not a valid argument to setPort\n",
+                SymbolTable[ival(target)]);
         }
     else if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
         {
         old = CurrentInputIndex;
-        CurrentInputIndex = ival(target);
+        CurrentInputIndex = ival(cadr(target));
         return ucons(inputPortSymbol,ucons(newInteger(old),0));
         }
     else if (type(target) == CONS && sameSymbol(car(target),outputPortSymbol))
         {
         old = CurrentOutputIndex;
-        CurrentOutputIndex = ival(target);
+        CurrentOutputIndex = ival(cadr(target));
         return ucons(outputPortSymbol,ucons(newInteger(old),0));
         }
 
@@ -769,18 +848,18 @@ setPort(int args)
         type(target));
     }
 
-int
+static int
 getInputPort(int args)
     {
     assureMemory("getInputPort",3,0);
     return ucons(inputPortSymbol,ucons(newInteger(CurrentInputIndex),0));
     }
 
-int
+static int
 getOutputPort(int args)
     {
     assureMemory("getOutputPort",3,0);
-    return ucons(outputPortSymbol,ucons(newInteger(CurrentInputIndex),0));
+    return ucons(outputPortSymbol,ucons(newInteger(CurrentOutputIndex),0));
     }
 
 static int
@@ -789,21 +868,24 @@ cclose(int args)
     int target,index;
 
     target = car(args);
-    index = ival(target);
+    debug("port is",target);
 
     if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
         {
+        index = ival(cadr(target));
         if (index == 0)
             {
-            return Fatal("illegal attempt to close stdin");
+            return Fatal("attempt to close stdin");
             }
         if (index >= MaxPorts)
             {
-            return Fatal("illegal attempt to a non-existent port");
+            return Fatal("attempt to close a non-existent port: %d\n",
+                index);
             }
         if (OpenPorts[index] == 0)
             {
-            return Fatal("illegal attempt to close an unopened port");
+            return Fatal("attempt to close an unopened port: %d\n",
+                index);
             }
         fclose(OpenPorts[index]);
         OpenPorts[index] = 0;
@@ -811,17 +893,19 @@ cclose(int args)
         }
     else if (type(target) == CONS && sameSymbol(car(target),outputPortSymbol))
         {
+        index = ival(cadr(target));
         if (index == 1)
             {
-            return Fatal("illegal attempt to close stdout");
+            return Fatal("attempt to close stdout");
             }
         if (index >= MaxPorts)
             {
-            return Fatal("illegal attempt to a non-existent port");
+            return Fatal("attempt to close a non-existent port: %d\n",
+                index);
             }
         if (OpenPorts[index] == 0)
             {
-            return Fatal("illegal attempt to close an unopened port");
+            return Fatal("attempt to close an unopened port");
             }
         fclose(OpenPorts[index]);
         OpenPorts[index] = 0;
@@ -845,10 +929,13 @@ readChar(int args)
     if (fp == 0)
         return Fatal("attempt to read a character from a closed port");
 
-    ch = fgetc(fp);
-
     if (feof(fp))
         return Fatal("attempt to read a character at end of input");
+
+    ch = fgetc(fp);
+
+    if (feof(fp)) 
+        return eofSymbol;
 
     if (ch == '\\')
         {
@@ -922,6 +1009,12 @@ readString(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
+    if (fp == 0)
+        return Fatal("attempt to read a string from a closed port");
+
+    if (feof(fp))
+        return Fatal("attempt to read a string at end of input");
+
     skipWhiteSpace(fp);
 
     ch = fgetc(fp);
@@ -984,6 +1077,12 @@ readToken(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
+    if (fp == 0)
+        return Fatal("attempt to read a token from a closed port");
+
+    if (feof(fp))
+        return Fatal("attempt to read a token at end of input");
+
     skipWhiteSpace(fp);
 
     index = 0;
@@ -1022,6 +1121,12 @@ readWhile(int args)
         }
 
     fp = OpenPorts[CurrentInputIndex];
+
+    if (fp == 0)
+        return Fatal("attempt to read characters from a closed port");
+
+    if (feof(fp))
+        return Fatal("attempt to read characters at end of input");
 
     cellStringTr(target,sizeof(target),a);
 
@@ -1064,6 +1169,12 @@ readUntil(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
+    if (fp == 0)
+        return Fatal("attempt to read characters from a closed port");
+
+    if (feof(fp))
+        return Fatal("attempt to read characters at end of input");
+
     cellStringTr(target,sizeof(target),a);
 
     index = 0;
@@ -1095,6 +1206,12 @@ readLine(int args)
     FILE *fp;
 
     fp = OpenPorts[CurrentInputIndex];
+
+    if (fp == 0)
+        return Fatal("attempt to read a line from a closed port");
+
+    if (feof(fp))
+        return Fatal("attempt to read a line at end of input");
 
     index = 0;
     while ((ch = fgetc(fp)) && ch != EOF && ch != '\n')
@@ -1174,6 +1291,7 @@ oopen(int args)
             type(mode));
         }
 
+    debug("new port",result);
     return result;
     }
 
@@ -1252,6 +1370,30 @@ loadBuiltIns(int env)
         newSymbol("open"),
         ucons(newSymbol("name"),
             ucons(newSymbol("mode"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = setPort;
+    b = makeBuiltIn(env,
+        newSymbol("setPort"),
+        ucons(newSymbol("port"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = getOutputPort;
+    b = makeBuiltIn(env,
+        newSymbol("getOutputPort"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = getInputPort;
+    b = makeBuiltIn(env,
+        newSymbol("getInputPort"),
+        0,
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1430,6 +1572,29 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = and;
+    b = makeBuiltIn(env,
+        newSymbol("and"),
+        ucons(sharpSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = or;
+    b = makeBuiltIn(env,
+        newSymbol("or"),
+        ucons(sharpSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = not;
+    b = makeBuiltIn(env,
+        newSymbol("not"),
+        ucons(newSymbol("value"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = lessThan;
     b = makeBuiltIn(env,

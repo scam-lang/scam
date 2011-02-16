@@ -121,6 +121,7 @@ extern int backquoteSymbol;
 extern int commaSymbol;
 extern int inputPortSymbol;
 extern int outputPortSymbol;
+extern int eofSymbol;
 
 extern int readIndex;
 extern int writeIndex;

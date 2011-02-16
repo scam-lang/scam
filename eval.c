@@ -35,6 +35,10 @@ eval(int expr, int env)
         //printf("eval type is %s\n",type(expr));
         assert(type(expr) == CONS);
 
+        if (sameSymbol(car(expr),closureSymbol)) return expr;
+        if (sameSymbol(car(expr),objectSymbol)) return expr;
+        if (sameSymbol(car(expr),thunkSymbol)) return expr;
+
         /* no need to assure memory here */
 
         t = evalCall(expr,env);

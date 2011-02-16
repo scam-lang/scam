@@ -12,7 +12,7 @@ getVariableValue(int var,int env)
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        ppObject(stdout,env,0);
+        //ppObject(stdout,env,0);
         Fatal("undefinedVariable"
             ": variable %s is undefined",
             SymbolTable[ival(var)]);

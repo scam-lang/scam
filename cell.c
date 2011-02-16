@@ -47,6 +47,7 @@ int backquoteSymbol;
 int commaSymbol;
 int inputPortSymbol;
 int outputPortSymbol;
+int eofSymbol;
 
 int readIndex;
 int writeIndex;
@@ -131,6 +132,7 @@ memoryInit(int memsize)
     commaSymbol          = newSymbol("comma");
     inputPortSymbol      = newSymbol("inputPort");
     outputPortSymbol     = newSymbol("outputPort");
+    eofSymbol            = newSymbol("EOF");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");
@@ -288,7 +290,7 @@ cellString(char *buffer,int size, int s)
     else
         target = buffer;
 
-    while (i < size - 1 && cdr(s) != 0)
+    while (i < size - 1 && s != 0)
         {
         target[i] = (char) ival(s);
         //printf("target[%d] is %c\n",i,target[i]);
@@ -317,7 +319,7 @@ cellStringTr(char *buffer,int size, int s)
     else
         target = buffer;
 
-    while (i < size - 2 && cdr(s) != 0)
+    while (i < size - 2 && s != 0)
         {
         if (ival(s) == '\\')
             {
