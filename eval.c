@@ -21,7 +21,7 @@ eval(int expr, int env)
     {
     while (1)
         {
-        int t;
+        int t,tag;
 
         //debug("eval",expr);
 
@@ -29,15 +29,35 @@ eval(int expr, int env)
         if (type(expr) == INTEGER) return expr;
         if (type(expr) == REAL)    return expr;
         if (type(expr) == STRING)  return expr;
-
-        if (type(expr) == SYMBOL) return getVariableValue(expr,env);
+        if (type(expr) == SYMBOL)
+            {
+            int index = ival(expr);
+            if (index == ival(trueSymbol))
+                return trueSymbol;
+            else if (index == ival(falseSymbol))
+                return falseSymbol;
+            else if (index == ival(nilSymbol))
+                return 0;
+            else
+                return getVariableValue(expr,env);
+            }
 
         //printf("eval type is %s\n",type(expr));
         assert(type(expr) == CONS);
 
-        if (sameSymbol(car(expr),closureSymbol)) return expr;
-        if (sameSymbol(car(expr),objectSymbol)) return expr;
-        if (sameSymbol(car(expr),thunkSymbol)) return expr;
+        tag  = car(expr);
+        if (type(tag) == SYMBOL)
+            {
+            int index = ival(tag);
+            if (index == ival(closureSymbol))
+                return expr;
+            else if (index == ival(objectSymbol))
+                return expr;
+            else if (index == ival(thunkSymbol))
+                return expr;
+            else if (index == ival(errorSymbol))
+                return expr;
+            }
 
         /* no need to assure memory here */
 
@@ -208,6 +228,15 @@ processArguments(int name, int params,int args,int env)
         rest = evaluatedArgList(args,env);
         assureMemory("processArgs:eArgs",1,&rest,0);
         result = ucons(rest,0);
+        }
+    else if (sameSymbol(car(params),ampersandSymbol))
+        {
+        push(env);
+        rest = processArguments(name,cdr(params),args,env);
+        env = pop();
+
+        assureMemory("processArgs:ampersand",1,&env,&rest,0);
+        result = ucons(env,rest);
         }
     else if (args == 0)
         {

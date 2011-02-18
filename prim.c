@@ -17,6 +17,15 @@ int CurrentInputIndex;
 int CurrentOutputIndex;
 
 static int
+scamBoolean(int item)
+    {
+    if (item == 0)
+        return falseSymbol;
+    else
+        return trueSymbol;
+    }
+
+static int
 quote(int args)
     {
     return thunk_code(car(args));
@@ -543,7 +552,7 @@ lessThanLoop(int first,int remaining)
     }
 
 static int
-lessThan(int args)
+isLessThan(int args)
     {
     int result;
     if (args == 0) return trueSymbol;
@@ -554,6 +563,32 @@ lessThan(int args)
     //pp(stdout,result); printf(" is the result\n");
 
     return result;
+    }
+
+/* (eq? a b) */
+
+static int
+isEq(int args)
+    {
+    int a = car(args);
+    int b = cadr(args);
+
+    if (type(a) != type(b)) return falseSymbol;
+
+    if (type(a) == INTEGER) return scamBoolean(ival(a) == ival(b));
+    if (type(a) == REAL) return scamBoolean(ival(a) == ival(b));
+    if (type(a) == SYMBOL) return scamBoolean(ival(a) == ival(b));
+
+    return scamBoolean(a == b);
+    }
+
+/* (type $) */
+
+static int
+ttype(int args)
+    {
+    //printf("in begin...\n");
+    return newSymbol(type(car(args)));
     }
 
 /* (begin $) */
@@ -635,6 +670,39 @@ iif(int args)
         }
     }
 
+/* else */
+
+/* (cond #) */
+
+static int
+cond(int args)
+    {
+    int cases = thunk_code(car(args));
+    int env = thunk_context(car(args));
+
+    while (cases != 0)
+        {
+        int result;
+        int condition = caar(cases);
+
+        if (sameSymbol(condition,elseSymbol))
+            return  evalListExceptLast(cdar(cases),env);
+
+        push(env);
+        push(cases);
+        result = eval(condition,env);
+        cases = pop();
+        env = pop();
+
+        if (sameSymbol(result,trueSymbol))
+            return  evalListExceptLast(cdar(cases),env);
+
+        cases = cdr(cases);
+        }
+
+    return falseSymbol;
+    }
+
 /* (while $test $) */
 
 static int
@@ -665,63 +733,68 @@ wwhile(int args)
     return last;
     }
 
-/* (set! $var value @) */
+/* (set-car! spot value) */
+
+static int
+setCar(int args)
+    {
+    if (type(car(args)) != CONS)
+        return Fatal("attempt to set the car of type %s\n",car(args));
+
+    caar(args) = cadr(args);
+    return cadr(args);
+    }
+
+/* (set-cdr! spot value) */
+
+static int
+setCdr(int args)
+    {
+    if (type(car(args)) != CONS)
+        return Fatal("attempt to set the car of type %s\n",car(args));
+
+    cdar(args) = cadr(args);
+    return cadr(args);
+    }
+
+/* (set! id value & @) */
 
 static int
 set(int args)
     {
-    int var = car(args);
-    int expr = thunk_code(var);
-    int at;
+    int id = car(args);
+    int result;
     
     //printf("in set!...");
-    if (type(expr) != SYMBOL)
-        {
-        push(args);
-        expr = eval(expr,thunk_context(var));
-        args = pop();
-        if (type(expr) != SYMBOL)
-            return Fatal("set!: variable argument resolved to %s, not SYMBOL\n",
-                type(expr));
-        }
+    if (type(id) != SYMBOL)
+        return Fatal("set!: identifier resolved to %s, not SYMBOL\n",
+            type(id));
 
-    at = caddr(args);
-
-    //debug("new value",cadr(args));
-    if (at == 0)
-        return setVariableValue(expr,cadr(args),thunk_context(car(args)));
+    if (cadddr(args) == 0)
+        result = setVariableValue(id,cadr(args),caddr(args));
     else
-        return setVariableValue(expr,cadr(args),car(at));
+        result = setVariableValue(id,cadr(args),car(cadddr(args)));
+
+    //debug("set! returning",result);
+    return result;
     }
 
-/* (get $var @) */
+/* (get id & @) */
 
 static int 
 get(int args)
     {
-    int var = car(args);
-    int expr = thunk_code(var);
-    int at;
+    int id = car(args);
 
     //printf("in get...");
-    if (type(expr) != SYMBOL)
-        {
-        push(args);
-        expr = eval(expr,thunk_context(var));
-        args = pop();
-        if (type(expr) != SYMBOL)
-            return Fatal("get: variable argument resolved to %s, not SYMBOL\n",
-                type(expr));
-        }
+    if (type(id) != SYMBOL)
+        return Fatal("get: variable argument resolved to %s, not SYMBOL\n",
+            type(id));
 
-    at = cadr(args);
-    //ppObject(stdout,thunk_context(car(args)),0);
-    //debug("at",at);
-
-    if (at == 0)
-        return getVariableValue(expr,thunk_context(car(args)));
+    if (caddr(args) == 0)
+        return getVariableValue(id,cadr(args));
     else
-        return getVariableValue(expr,car(at));
+        return getVariableValue(id,car(caddr(args)));
     }
 
 static int
@@ -736,11 +809,50 @@ eeval(int args)
     return eval(car(args),cadr(args));
     }
 
+/* (list? item) */
+
+static int
+isList(int args)
+    {
+    int items = car(args);
+    while (type(items) == CONS)
+        items = cdr(items);
+
+    return scamBoolean(items == 0);
+    }
+
+/* (pair? item) */
+
+static int
+isPair(int args)
+    {
+    return scamBoolean(type(car(args)) == CONS);
+    }
+
+/* (null? item) */
+
+static int
+isNull(int args)
+    {
+    return scamBoolean(car(args) == 0);
+    }
+
+/* (list @) */
+
+static int
+list(int args)
+    {
+    return car(args);
+    }
+
 /* (car item) */
 
 static int
 ccar(int args)
     {
+    if (type(car(args)) != CONS)
+        return Fatal("attempt to take car of type %s\n",type(car(args)));
+
     return car(car(args));
     }
 
@@ -1231,13 +1343,10 @@ readLine(int args)
     }
 
 static int
-eeof(int args)
+isEof(int args)
     {
     FILE *fp = OpenPorts[CurrentInputIndex];
-    if (fp == 0 || feof(fp))
-        return trueSymbol;
-    else
-        return falseSymbol;
+    return scamBoolean(fp == 0 || feof(fp));
     }
 
 static int
@@ -1406,7 +1515,7 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = eeof;
+    BuiltIns[count] = isEof;
     b = makeBuiltIn(env,
         newSymbol("eof?"),
         0,
@@ -1435,6 +1544,46 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("car"),
         ucons(newSymbol("items"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ttype;
+    b = makeBuiltIn(env,
+        newSymbol("type"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isNull;
+    b = makeBuiltIn(env,
+        newSymbol("null?"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isPair;
+    b = makeBuiltIn(env,
+        newSymbol("pair?"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isList;
+    b = makeBuiltIn(env,
+        newSymbol("list?"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = list;
+    b = makeBuiltIn(env,
+        newSymbol("list"),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1553,6 +1702,14 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = cond;
+    b = makeBuiltIn(env,
+        newSymbol("cond"),
+        ucons(sharpSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = iif;
     b = makeBuiltIn(env,
         newSymbol("if"),
@@ -1596,7 +1753,7 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = lessThan;
+    BuiltIns[count] = isLessThan;
     b = makeBuiltIn(env,
         newSymbol("<"),
         ucons(atSymbol,0),
@@ -1604,11 +1761,21 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = isEq;
+    b = makeBuiltIn(env,
+        newSymbol("eq?"),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = get;
     b = makeBuiltIn(env,
         newSymbol("get"),
-        ucons(newSymbol("$var"),
-            ucons(newSymbol("@"),0)),
+        ucons(newSymbol("id"),
+            ucons(ampersandSymbol,
+                ucons(atSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1616,9 +1783,28 @@ loadBuiltIns(int env)
     BuiltIns[count] = set;
     b = makeBuiltIn(env,
         newSymbol("set!"),
-        ucons(newSymbol("$var"),
+        ucons(newSymbol("id"),
             ucons(newSymbol("value"),
-                ucons(newSymbol("@"),0))),
+                ucons(ampersandSymbol,
+                    ucons(atSymbol,0)))),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = setCar;
+    b = makeBuiltIn(env,
+        newSymbol("set-car!"),
+        ucons(newSymbol("spot"),
+            ucons(newSymbol("value"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = setCdr;
+    b = makeBuiltIn(env,
+        newSymbol("set-cdr!"),
+        ucons(newSymbol("spot"),
+            ucons(newSymbol("value"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

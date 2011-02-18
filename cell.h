@@ -112,6 +112,7 @@ extern int lambdaSymbol;
 extern int dollarSymbol;
 extern int atSymbol;
 extern int sharpSymbol;
+extern int ampersandSymbol;
 extern int uninitializedSymbol;
 extern int errorSymbol;
 extern int beginSymbol;
@@ -122,6 +123,8 @@ extern int commaSymbol;
 extern int inputPortSymbol;
 extern int outputPortSymbol;
 extern int eofSymbol;
+extern int elseSymbol;
+extern int nilSymbol;
 
 extern int readIndex;
 extern int writeIndex;

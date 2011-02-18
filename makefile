@@ -20,7 +20,7 @@ cell.o		: cell.c cell.h types.h
 env.o		: env.c cell.h types.h env.h
 		$(CC) -c $(PROF) -Wall -g env.c
 
-prim.o		: prim.c prim.h
+prim.o		: prim.c prim.h types.h cell.h
 		$(CC) -c $(PROF) -Wall -g prim.c
 
 eval.o		: eval.c cell.h types.h cell.h parser.h env.h eval.h

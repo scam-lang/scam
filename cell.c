@@ -41,6 +41,7 @@ int uninitializedSymbol;
 int errorSymbol;
 int beginSymbol;
 int sharpSymbol;
+int ampersandSymbol;
 int trueSymbol;
 int falseSymbol;
 int backquoteSymbol;
@@ -48,6 +49,8 @@ int commaSymbol;
 int inputPortSymbol;
 int outputPortSymbol;
 int eofSymbol;
+int elseSymbol;
+int nilSymbol;
 
 int readIndex;
 int writeIndex;
@@ -123,6 +126,7 @@ memoryInit(int memsize)
     dollarSymbol         = newSymbol("$");
     atSymbol             = newSymbol("@");
     sharpSymbol          = newSymbol("#");
+    ampersandSymbol      = newSymbol("&");
     uninitializedSymbol  = newSymbol(":UNINITIALIZED:");
     errorSymbol          = newSymbol("error");
     beginSymbol          = newSymbol("begin");
@@ -133,6 +137,8 @@ memoryInit(int memsize)
     inputPortSymbol      = newSymbol("inputPort");
     outputPortSymbol     = newSymbol("outputPort");
     eofSymbol            = newSymbol("EOF");
+    elseSymbol           = newSymbol("else");
+    nilSymbol            = newSymbol("nil");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");
