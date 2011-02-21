@@ -803,6 +803,22 @@ force(int args)
     return car(args);
     }
 
+/* (inspect $item) */
+
+static int
+inspect(int args)
+    {
+    int result;
+    pp(stdout,thunk_code(car(args)));
+    fprintf(stdout," is ");
+    result = eval(thunk_code(car(args)),thunk_context(car(args)));
+    pp(stdout,result);
+    fprintf(stdout,"\n");
+    return result;
+    }
+
+/* (eval expr context) */
+
 static int
 eeval(int args)
     {
@@ -871,6 +887,34 @@ ccons(int args)
     {
     assureMemory("cons",1,&args,0);
     return ucons(car(args),cadr(args));
+    }
+
+/* (gensym id) */
+
+static int
+gensym(int args)
+    {
+    char buffer[512];
+    static int count = 0;
+
+    if (car(args) == 0)
+        snprintf(buffer,sizeof(buffer),"%dsym",count++);
+    else
+        snprintf(buffer,sizeof(buffer),
+            "%d%s",count++,SymbolTable[ival(caar(args))]);
+    return newSymbol(buffer);
+    }
+
+/* (gensym? id) */
+
+static int
+isGensym(int args)
+    {
+    int id = car(args);
+
+    if (type(id) != SYMBOL) return falseSymbol;
+
+    return scamBoolean(isdigit(*SymbolTable[ival(id)]));
     }
 
 /*******ports*********************************/
@@ -1523,6 +1567,22 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = gensym;
+    b = makeBuiltIn(env,
+        newSymbol("gensym"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isGensym;
+    b = makeBuiltIn(env,
+        newSymbol("gensym?"),
+        ucons(newSymbol("id"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = ccons;
     b = makeBuiltIn(env,
         newSymbol("cons"),
@@ -1593,6 +1653,14 @@ loadBuiltIns(int env)
         newSymbol("eval"),
         ucons(newSymbol("expr"),
             ucons(newSymbol("context"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = inspect;
+    b = makeBuiltIn(env,
+        newSymbol("inspect"),
+        ucons(newSymbol("$expr"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

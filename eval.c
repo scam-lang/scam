@@ -57,6 +57,8 @@ eval(int expr, int env)
                 return expr;
             else if (index == ival(errorSymbol))
                 return expr;
+            else if (index == ival(builtInSymbol))
+                return expr;
             }
 
         /* no need to assure memory here */
