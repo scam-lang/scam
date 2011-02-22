@@ -113,6 +113,7 @@ extern int dollarSymbol;
 extern int atSymbol;
 extern int sharpSymbol;
 extern int ampersandSymbol;
+extern int hatSymbol;
 extern int uninitializedSymbol;
 extern int errorSymbol;
 extern int beginSymbol;

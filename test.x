@@ -1,6 +1,7 @@
 (define (inspect $x)
     (println (get 'code $x) " is " (eval (get 'code $x) (get 'context $x)))
     )
+
 (cond
     ('#f (println "oops"))
     ('#f (println "oops2"))
@@ -24,8 +25,8 @@
     (set! (quote i) (+ i 1))
     )
 
-(define (calling &)
-    &
+(define (calling ^)
+    ^
     )
 (inspect (calling))
 

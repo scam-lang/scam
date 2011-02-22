@@ -825,6 +825,17 @@ eeval(int args)
     return eval(car(args),cadr(args));
     }
 
+/* (apply f args) */
+
+static int
+apply(int args)
+    {
+    assureMemory("apply:",1,&args,0);
+
+    return evalCall(cons(car(args),cadr(args)),0,NO_EVALUATION);
+    }
+
+
 /* (list? item) */
 
 static int
@@ -1657,6 +1668,16 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = apply;
+    b = makeBuiltIn(env,
+        newSymbol("apply"),
+        ucons(newSymbol("f"),
+            ucons(newSymbol("args"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+
     BuiltIns[count] = inspect;
     b = makeBuiltIn(env,
         newSymbol("inspect"),
@@ -1842,7 +1863,7 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("get"),
         ucons(newSymbol("id"),
-            ucons(ampersandSymbol,
+            ucons(hatSymbol,
                 ucons(atSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
@@ -1853,7 +1874,7 @@ loadBuiltIns(int env)
         newSymbol("set!"),
         ucons(newSymbol("id"),
             ucons(newSymbol("value"),
-                ucons(ampersandSymbol,
+                ucons(hatSymbol,
                     ucons(atSymbol,0)))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);

@@ -9,9 +9,8 @@
 #include "pp.h"
 #include "util.h"
 
-static int evalCall(int,int);
 static int evalBuiltIn(int,int);
-static int processArguments(int,int,int,int);
+static int processArguments(int,int,int,int,int);
 static int thunkizedArgList(int,int);
 static int evaluatedArgList(int,int);
 static int unevaluatedArgList(int);
@@ -63,7 +62,7 @@ eval(int expr, int env)
 
         /* no need to assure memory here */
 
-        t = evalCall(expr,env);
+        t = evalCall(expr,env,NORMAL);
 
         if (!isThunk(t)) return t;
 
@@ -74,17 +73,22 @@ eval(int expr, int env)
     return 0;
     }
         
-static int
-evalCall(int call,int env)
+int
+evalCall(int call,int env, int mode)
     {
     int closure,eargs;
 
     //printf("getting closure\n");
-    push(env);
-    push(call);
-    closure = eval(car(call),env);
-    call = pop();
-    env = pop();
+    if (mode == NORMAL)
+        {
+        push(env);
+        push(call);
+        closure = eval(car(call),env);
+        call = pop();
+        env = pop();
+        }
+    else
+        closure = car(call);
     //printf("done getting closure\n");
 
     //debug("calling",closure);
@@ -94,10 +98,11 @@ evalCall(int call,int env)
 
     /* args are the cdr of call */
 
+
     push(closure);
     //debug("unevaluated args",cdr(call));
     eargs = processArguments(closure_name(closure),
-        closure_parameters(closure),cdr(call),env);
+        closure_parameters(closure),cdr(call),env,mode);
     closure = pop();
     //debug("evaluated args",eargs);
 
@@ -201,9 +206,9 @@ evalThunkList(int items)
 
 
 static int
-processArguments(int name, int params,int args,int env)
+processArguments(int name, int params,int args,int env,int mode)
     {
-    int first,rest,result;
+    int ch,first,rest,result;
 
     //debug("p-a",params);
     if (params == 0 && args == 0)
@@ -227,17 +232,26 @@ processArguments(int name, int params,int args,int env)
         }
     else if (sameSymbol(car(params),atSymbol))
         {
-        rest = evaluatedArgList(args,env);
+        if (mode == NORMAL)
+            rest = evaluatedArgList(args,env);
+        else
+            rest = unevaluatedArgList(args);
         assureMemory("processArgs:eArgs",1,&rest,0);
         result = ucons(rest,0);
         }
     else if (sameSymbol(car(params),ampersandSymbol))
         {
+        assureMemory("processArgs:amp",1 + length(args),&args,0);
+        rest = unevaluatedArgList(args);
+        result = ucons(rest,0);
+        }
+    else if (sameSymbol(car(params),hatSymbol))
+        {
         push(env);
-        rest = processArguments(name,cdr(params),args,env);
+        rest = processArguments(name,cdr(params),args,env,mode);
         env = pop();
 
-        assureMemory("processArgs:ampersand",1,&env,&rest,0);
+        assureMemory("processArgs:hat",1,&env,&rest,0);
         result = ucons(env,rest);
         }
     else if (args == 0)
@@ -245,38 +259,43 @@ processArguments(int name, int params,int args,int env)
         return Fatal("too few arguments to function %s\n",
             SymbolTable[ival(name)]);
         }
-    else if (*SymbolTable[ival(car(params))] == '$')
+    else if ((ch = *SymbolTable[ival(car(params))]) == '$' || ch == '#')
         {
         push(env);
         push(args);
-        rest = processArguments(name,cdr(params),cdr(args),env);
+        rest = processArguments(name,cdr(params),cdr(args),env,mode);
         assureMemory("processArgs:tArg",THUNK_CELLS + 1,&rest,0);
         args = pop();
         env = pop();
         result = ucons(makeThunk(car(args),env),rest);
         }
-    else if (*SymbolTable[ival(car(params))] == '#')
+    else if (ch == '&')
         {
         push(args);
-        rest = processArguments(name,cdr(params),cdr(args),env);
+        rest = processArguments(name,cdr(params),cdr(args),env,mode);
         assureMemory("processArgs:tArg",1,&rest,0);
         args = pop();
         result = ucons(car(args),rest);
         }
     else
         {
-        push(env);
-        push(args);
-        push(name);
-        push(params);
-        first = eval(car(args),env);
-        params = pop();
-        name = pop();
-        args = pop();
-        env = pop();
+        if (mode == NORMAL)
+            {
+            push(env);
+            push(args);
+            push(name);
+            push(params);
+            first = eval(car(args),env);
+            params = pop();
+            name = pop();
+            args = pop();
+            env = pop();
+            }
+        else
+            first = car(args);
 
         push(first);
-        rest = processArguments(name,cdr(params),cdr(args),env);
+        rest = processArguments(name,cdr(params),cdr(args),env,mode);
         assureMemory("processArgs:eArg",1,&rest,0);
         first = pop();
         result = ucons(first,rest);

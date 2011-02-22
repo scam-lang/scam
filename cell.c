@@ -42,6 +42,7 @@ int errorSymbol;
 int beginSymbol;
 int sharpSymbol;
 int ampersandSymbol;
+int hatSymbol;
 int trueSymbol;
 int falseSymbol;
 int backquoteSymbol;
@@ -127,6 +128,7 @@ memoryInit(int memsize)
     atSymbol             = newSymbol("@");
     sharpSymbol          = newSymbol("#");
     ampersandSymbol      = newSymbol("&");
+    hatSymbol            = newSymbol("^");
     uninitializedSymbol  = newSymbol(":UNINITIALIZED:");
     errorSymbol          = newSymbol("error");
     beginSymbol          = newSymbol("begin");
