@@ -75,6 +75,7 @@ extern int StackPtr;
 
 extern int newString(char *);
 extern int newSymbol(char *);
+extern int newSymbolFromIndex(int);
 extern int newInteger(int);
 extern int newReal(double);
 extern int newPunctuation(char *);
@@ -128,6 +129,9 @@ extern int outputPortSymbol;
 extern int eofSymbol;
 extern int elseSymbol;
 extern int nilSymbol;
+extern int fileSymbol;
+extern int lineSymbol;
+extern int messageSymbol;
 
 extern int readIndex;
 extern int writeIndex;

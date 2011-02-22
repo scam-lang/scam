@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdarg.h>
 #include <assert.h>
 #include "cell.h"
 #include "types.h"
@@ -172,50 +173,62 @@ makeBuiltIn(int env,int name,int parameters,int body)
     }
 
 int
-makeError(int tag,int context,int expr,int kind,int value,int trace)
+makeError(int tag,int fileIndex,int lineNumber,int msg,int trace)
     {
     int o;
 
-    assert(ERROR_CELLS == OBJECT_CELLS + 8 + 1);
+    assert(ERROR_CELLS == OBJECT_CELLS + 8 + 2);
 
     assureMemory("makeError",ERROR_CELLS,
-        &tag,&context,&expr,&kind,&value,&trace,0);
+        &tag,&msg,&trace,0);
 
     o = makeObject(tag);
 
     object_variable_hook(o) =
-        ucons(contextSymbol,
-            ucons(codeSymbol,
-                ucons(typeSymbol,
-                    ucons(valueSymbol,
-                        ucons(traceSymbol,0)))));
+        ucons(fileSymbol,
+            ucons(lineSymbol,
+                ucons(messageSymbol,
+                    ucons(traceSymbol,0))));
 
     object_value_hook(o) =
-        ucons(context,
-            ucons(expr,
-                ucons(kind,
-                    ucons(value,
-                        ucons(trace, 0)))));
+        ucons(newSymbolFromIndex(fileIndex),
+            ucons(newInteger(lineNumber),
+                ucons(msg,
+                    ucons(trace,0))));
 
     return o;
     }
 
 int
-makeThrow(int sym,int val,int env)
+convertThrow(int tag,int e)
     {
-    return makeError(throwSymbol,env,0,sym,val,0);
+    object_label(e) = tag;
+
+    return e;
     }
 
 int
-makeErrorFromError(int tag,int e)
+makeThrow(int fileIndex,int lineNumber,int msg,int trace)
     {
-    int m = makeError(tag,error_context(e),error_code(e),
-                error_type(e),error_value(e),error_trace(e));
+    return makeError(throwSymbol,fileIndex,lineNumber,msg,trace);
+    }
 
-    line(m) = line(e);
-    file(m) = file(e);
+int
+throw(int fileIndex,int lineNumber,char *fmt, ...)
+    {
+    va_list ap;
+    int s;
+    char buffer[512];
 
-    return m;
+    //printf("encountered a fatal error...\n");
+
+    va_start(ap, fmt);
+    vsnprintf(buffer,sizeof(buffer), fmt, ap);
+    va_end(ap);
+
+    s = newString(buffer);
+
+    return makeThrow(fileIndex,lineNumber,s,0);
     }
 
 int

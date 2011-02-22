@@ -8,10 +8,12 @@ extern int makeObject(int);
 extern int makeEnvironment(int,int,int,int);
 extern int makeThunk(int,int);
 extern int makeClosure(int,int,int,int,int);
-extern int makeError(int,int,int,int,int,int);
-extern int makeErrorFromError(int,int);
-extern int makeThrow(int,int,int);
+extern int makeError(int,int,int,int,int);
+extern int converThrow(int,int);
+extern int makeThrow(int,int,int,int);
 extern int makeBuiltIn(int,int,int,int);
+
+extern int throw(int,int,char *,...);
 
 #define NO_BEGIN 0
 #define ADD_BEGIN 1
@@ -50,14 +52,13 @@ extern int makeBuiltIn(int,int,int,int);
 #define CLOSURE_CELLS (OBJECT_CELLS + 8 + 1)  //one more for begin
 #define CLOSURE_PREDEFINED (OBJECT_PREDEFINED + 4)
 
-#define error_context(x)       (cadr(object_values(x)))
-#define error_code(x)          (caddr(object_values(x)))
-#define error_type(x)          (cadddr(object_values(x)))
-#define error_value(x)         (caddddr(object_values(x)))
-#define error_trace(x)         (cadddddr(object_values(x)))
+#define error_line(x)          (cadr(object_values(x)))
+#define error_file(x)          (caddr(object_values(x)))
+#define error_message(x)       (cadddr(object_values(x)))
+#define error_trace(x)         (caddddr(object_values(x)))
 
-#define ERROR_CELLS (OBJECT_CELLS + 10)
-#define ERROR_PREDEFINED (OBJECT_PREDEFINED + 5)
+#define ERROR_CELLS (OBJECT_CELLS + 8 + 2) //two more for file and line
+#define ERROR_PREDEFINED (OBJECT_PREDEFINED + 4)
 
 #define isCons(x) (type(x) == CONS)
 #define isTagged(x) (isCons(x) && type(car(x)) == SYMBOL)
@@ -65,3 +66,4 @@ extern int makeBuiltIn(int,int,int,int);
 #define isThunk(x) (isObject(x) && ival(object_label(x)) == ival(thunkSymbol))
 #define isBuiltIn(x) (isObject(x) && ival(object_label(x)) == ival(builtInSymbol))
 #define isClosure(x) (isObject(x) && ival(object_label(x)) == ival(closureSymbol))
+#define isThrow(x) (isObject(x) && ival(object_label(x)) == ival(throwSymbol))

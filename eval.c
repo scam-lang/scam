@@ -92,6 +92,9 @@ evalCall(int call,int env, int mode)
     eargs = processArguments(closure_name(closure),
         closure_parameters(closure),cdr(call),env,mode);
     closure = pop();
+
+    if (isThrow(eargs)) return eargs;
+
     //debug("evaluated args",eargs);
 
     if (isBuiltIn(closure))
@@ -203,7 +206,8 @@ processArguments(int name, int params,int args,int env,int mode)
         result = 0;
     else if (params == 0)
         {
-        return Fatal("too many arguments to function %s\n",
+        return throw(file(args),line(args),
+            "too many arguments to function %s",
             SymbolTable[ival(name)]);
         }
     else if (sameSymbol(car(params),sharpSymbol))
@@ -244,7 +248,8 @@ processArguments(int name, int params,int args,int env,int mode)
         }
     else if (args == 0)
         {
-        return Fatal("too few arguments to function %s\n",
+        return throw(file(params),line(params),
+            "too few arguments to function %s",
             SymbolTable[ival(name)]);
         }
     else if ((ch = *SymbolTable[ival(car(params))]) == '$' || ch == '#')

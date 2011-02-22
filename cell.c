@@ -54,6 +54,9 @@ int outputPortSymbol;
 int eofSymbol;
 int elseSymbol;
 int nilSymbol;
+int fileSymbol;
+int lineSymbol;
+int messageSymbol;
 
 int readIndex;
 int writeIndex;
@@ -65,9 +68,6 @@ CELL *the_cars;
 CELL *new_cars;
 int *the_cdrs;
 int *new_cdrs;
-
-int LineNumber;
-int FileIndex;
 
 int MaxSymbols = 100;
 char **SymbolTable;
@@ -145,6 +145,9 @@ memoryInit(int memsize)
     eofSymbol            = newSymbol("EOF");
     elseSymbol           = newSymbol("else");
     nilSymbol            = newSymbol("nil");
+    fileSymbol           = newSymbol("file");
+    lineSymbol           = newSymbol("line");
+    messageSymbol        = newSymbol("message");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");
@@ -226,6 +229,19 @@ newSymbol(char *s)
     int result;
 
     assureMemory("newSymbol",1,0);
+
+    result = ucons(0,0);
+    type(result) = SYMBOL;
+    ival(result) = index;
+    return result;
+    }
+
+int
+newSymbolFromIndex(int index)
+    {
+    int result;
+
+    assureMemory("newSymbolFromIndex",1,0);
 
     result = ucons(0,0);
     type(result) = SYMBOL;
