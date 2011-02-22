@@ -15,6 +15,8 @@ extern int makeBuiltIn(int,int,int,int);
 
 extern int throw(int,int,char *,...);
 
+#define rethrow(x) { if (isThrow(x)) return (x); }
+
 #define NO_BEGIN 0
 #define ADD_BEGIN 1
 

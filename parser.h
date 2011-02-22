@@ -2,8 +2,8 @@ typedef struct parsertag
     {
     char *fileName;
     int pending;
-    int fileIndex;
-    int lineNumber;
+    int file;
+    int line;
     FILE *input;
     FILE *output;
     } PARSER;

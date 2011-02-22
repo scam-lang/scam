@@ -37,7 +37,12 @@ lex(PARSER *p)
     { 
     int ch; 
 
+    LineNumber = p->line;
+    FileIndex = p->file;
+
     ch = skipWhiteSpace(p); 
+
+    p->line = LineNumber;
 
     switch(ch) 
         { 
@@ -266,6 +271,7 @@ lexString(PARSER *p)
     //printf("line %d: indent of new string \"%s\" is %d\n",
         //line(result),buffer,indent(result));
 
+    p->line = LineNumber;
     return result;
     }
 

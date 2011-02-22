@@ -8,6 +8,9 @@
 #include "util.h"
 #include "pp.h"
 
+int LineNumber;
+int FileIndex;
+
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;

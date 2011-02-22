@@ -67,8 +67,8 @@ newParser(char *fileName)
     {
     PARSER *p = (PARSER *) malloc(sizeof(PARSER));
     p->pending = -1;
-    p->lineNumber = 1;
-    p->fileIndex = findSymbol(fileName);
+    p->line = 1;
+    p->file = findSymbol(fileName);
     p->input = OpenFile(fileName,"r");
     p->output = stdout;
 

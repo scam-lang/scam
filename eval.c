@@ -75,6 +75,8 @@ evalCall(int call,int env, int mode)
         closure = eval(car(call),env);
         call = pop();
         env = pop();
+
+        rethrow(closure);
         }
     else
         closure = car(call);
@@ -83,7 +85,9 @@ evalCall(int call,int env, int mode)
     //debug("evalCall",call);
     //debug("calling",closure);
 
-    assert(isClosure(closure) || isBuiltIn(closure));
+    if (!isClosure(closure) && !isBuiltin(closure))
+        return throw(file(call),line(call),
+            "attempted to call %s as a function", type(closure));
 
     /* args are the cdr of call */
 
@@ -93,7 +97,7 @@ evalCall(int call,int env, int mode)
         closure_parameters(closure),cdr(call),env,mode);
     closure = pop();
 
-    if (isThrow(eargs)) return eargs;
+    rethrow(eargs);
 
     //debug("evaluated args",eargs);
 
@@ -142,11 +146,14 @@ evalThunkListExceptLast(int items)
     {
     while (cdr(items) != 0)
         {
+        int result;
         //debug("items before",items);
         push(items);
-        eval(thunk_code(car(items)),thunk_context(car(items)));
+        result = eval(thunk_code(car(items)),thunk_context(car(items)));
         items = pop();
         //debug("items after",items);
+
+        rethrow(result);
 
         items = cdr(items);
         }
@@ -169,6 +176,8 @@ evalListExceptLast(int items,int env)
         env = pop();
         //debug("items after",items);
 
+        rethrow(result);
+
         items = cdr(items);
         }
     assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,0);
@@ -188,6 +197,8 @@ evalThunkList(int items)
         result = eval(thunk_code(car(items)),thunk_context(car(items)));
         items = pop();
         //debug("items after",items);
+
+        rethrow(result);
 
         items = cdr(items);
         }
@@ -225,7 +236,10 @@ processArguments(int name, int params,int args,int env,int mode)
     else if (sameSymbol(car(params),atSymbol))
         {
         if (mode == NORMAL)
+            {
             rest = evaluatedArgList(args,env);
+            rethrow(rest);
+            }
         else
             rest = unevaluatedArgList(args);
         assureMemory("processArgs:eArgs",1,&rest,0);
@@ -242,6 +256,8 @@ processArguments(int name, int params,int args,int env,int mode)
         push(env);
         rest = processArguments(name,cdr(params),args,env,mode);
         env = pop();
+
+        rethrow(rest);
 
         assureMemory("processArgs:hat",1,&env,&rest,0);
         result = ucons(env,rest);
@@ -260,6 +276,9 @@ processArguments(int name, int params,int args,int env,int mode)
         assureMemory("processArgs:tArg",THUNK_CELLS + 1,&rest,0);
         args = pop();
         env = pop();
+
+        rethrow(rest);
+
         result = ucons(makeThunk(car(args),env),rest);
         }
     else if (ch == '&')
@@ -268,6 +287,9 @@ processArguments(int name, int params,int args,int env,int mode)
         rest = processArguments(name,cdr(params),cdr(args),env,mode);
         assureMemory("processArgs:tArg",1,&rest,0);
         args = pop();
+
+        rethrow(rest);
+
         result = ucons(car(args),rest);
         }
     else
@@ -283,6 +305,8 @@ processArguments(int name, int params,int args,int env,int mode)
             name = pop();
             args = pop();
             env = pop();
+
+            rethrow(first);
             }
         else
             first = car(args);
@@ -291,6 +315,9 @@ processArguments(int name, int params,int args,int env,int mode)
         rest = processArguments(name,cdr(params),cdr(args),env,mode);
         assureMemory("processArgs:eArg",1,&rest,0);
         first = pop();
+
+        rethrow(rest);
+
         result = ucons(first,rest);
         }
     //debug("p-a result",result);
@@ -347,6 +374,8 @@ evaluatedArgList(args,env)
         args = pop();
         env = pop();
 
+        rethrow(first);
+
         //debug("evaluatedArgList: args",args);
         //debug("evaluatedArgList: env",env);
 
@@ -355,6 +384,9 @@ evaluatedArgList(args,env)
         assureMemory("evaluatedArgList",1,&rest,0);
         //printf("back from eval\n");
         first = pop();
+
+        rethrow(rest);
+
         return ucons(first,rest);
         }
     }
