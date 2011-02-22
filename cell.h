@@ -98,6 +98,7 @@ extern int thisSymbol;
 extern int parametersSymbol;
 extern int thunkSymbol;
 extern int nameSymbol;
+extern int envSymbol;
 extern int closureSymbol;
 extern int builtInSymbol;
 extern int constructorSymbol;

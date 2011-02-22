@@ -1,15 +1,15 @@
-extern int makeEnvironment(int,int,int);
 extern int getVariableValue(int,int);
 extern int getGlobalEnvironment(void);
 extern int setVariableValue(int,int,int);
 extern int defineVariable(int,int,int);
 extern int findLocation(int,int);
 
+extern int makeObject(int);
+extern int makeEnvironment(int,int,int,int);
 extern int makeThunk(int,int);
 extern int makeClosure(int,int,int,int,int);
-extern int makeObject(int,int,int,int);
 extern int makeError(int,int,int,int,int,int);
-extern int makeError_from_error(int,int);
+extern int makeErrorFromError(int,int);
 extern int makeThrow(int,int,int);
 extern int makeBuiltIn(int,int,int,int);
 
@@ -19,45 +19,49 @@ extern int makeBuiltIn(int,int,int,int);
 #define DEFINE_CELLS 2
 #define EXTEND_CELLS 20
 
-#define closure_variables(x)   (cadr(x))
-#define closure_values(x)      (caddr(x))
-#define closure_context(x)     (car(closure_values(x)))
-#define closure_name(x)        (cadr(closure_values(x)))
-#define closure_parameters(x)  (caddr(closure_values(x)))
-#define closure_body(x)        (cadddr(closure_values(x)))
-
-#define CLOSURE_CELLS 12
-
-#define thunk_variables(x)     (cadr(x))
-#define thunk_values(x)        (caddr(x))
-#define thunk_context(x)       (car(thunk_values(x)))
-#define thunk_code(x)          (cadr(thunk_values(x)))
-
-#define THUNK_CELLS 7
-
 #define object_variables(x)    (cadr(x))
 #define object_values(x)       (caddr(x))
-#define object_context(x)      (car(object_values(x)))
-#define object_constructor(x)  (cadr(object_values(x)))
-#define object_this(x)         (caddr(object_values(x)))
+#define object_type(x)         (car(object_values(x)))
 
-#define OBJECT_CELLS 9
+#define object_variable_hook(x)(cdr(cadr(x)))
+#define object_value_hook(x)   (cdr(caddr(x)))
 
-#define error_variables(x)     (cadr(x))
-#define error_values(x)        (caddr(x))
-#define error_context(x)       (car(error_values(x)))
-#define error_code(x)          (cadr(error_values(x)))
-#define error_type(x)          (caddr(error_values(x)))
-#define error_value(x)         (cadddr(error_values(x)))
-#define error_trace(x)         (caddddr(error_values(x)))
+#define OBJECT_CELLS 5
+#define OBJECT_PREDEFINED 1
 
-#define ERROR_CELLS 13
+#define env_context(x)         (cadr(object_values(x)))
+#define env_constructor(x)     (caddr(object_values(x)))
+#define env_this(x)            (cadddr(object_values(x)))
 
-#define isClosure(x)  ((type(x) == CONS && sameSymbol(car(x),closureSymbol)))
-#define isBuiltIn(x)  ((type(x) == CONS && sameSymbol(car(x),builtInSymbol)))
-#define isObject(x)   ((type(x) == CONS && sameSymbol(car(x),objectSymbol)))
-#define isThunk(x)    ((type(x) == CONS && sameSymbol(car(x),thunkSymbol)))
-#define isError(x)    ((type(x) == CONS && sameSymbol(car(x),errorSymbol)))
+#define ENV_CELLS (OBJECT_CELLS + 6)
+#define ENV_PREDEFINED (OBJECT_PREDEFINED + 3)
 
-#define ENV_PREDEFINED 3
+#define thunk_context(x)       (cadr(object_values(x)))
+#define thunk_code(x)          (caddr(object_values(x)))
 
+#define THUNK_CELLS (OBJECT_CELLS + 4)
+#define THUNK_PREDEFINED (OBJECT_PREDEFINED + 2)
+
+#define closure_context(x)     (cadr(object_values(x)))
+#define closure_name(x)        (caddr(object_values(x)))
+#define closure_parameters(x)  (cadddr(object_values(x)))
+#define closure_body(x)        (caddddr(object_values(x)))
+
+#define CLOSURE_CELLS (OBJECT_CELLS + 8 + 1)  //one more for begin
+#define CLOSURE_PREDEFINED (OBJECT_PREDEFINED + 4)
+
+#define error_context(x)       (cadr(object_values(x)))
+#define error_code(x)          (caddr(object_values(x)))
+#define error_type(x)          (cadddr(object_values(x)))
+#define error_value(x)         (caddddr(object_values(x)))
+#define error_trace(x)         (cadddddr(object_values(x)))
+
+#define ERROR_CELLS (OBJECT_CELLS + 10)
+#define ERROR_PREDEFINED (OBJECT_PREDEFINED + 5)
+
+#define isCons(x) (type(x) == CONS)
+#define isTagged(x) (isCons(x) && type(car(x)) == SYMBOL)
+#define isObject(x) (isTagged(x) && ival(car(x)) == ival(objectSymbol))
+#define isThunk(x) (isObject(x) && ival(object_type(x)) == ival(thunkSymbol))
+#define isBuiltIn(x) (isObject(x) && ival(object_type(x)) == ival(builtInSymbol))
+#define isClosure(x) (isObject(x) && ival(object_type(x)) == ival(closureSymbol))

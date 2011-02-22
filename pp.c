@@ -41,32 +41,53 @@ ppObject(FILE *fp,int expr,int mode)
     int vars = object_variables(expr);
     int vals = object_values(expr);
 
-    fprintf(fp,"<");
-    ppLevel(fp,car(expr),mode);
-    fprintf(fp," %d>",expr);
-    if (mode < 1)
+    if (sameSymbol(object_type(expr),thunkSymbol))
+        fprintf(fp,"<thunk %d>",expr);
+    else if (sameSymbol(object_type(expr),errorSymbol))
+        fprintf(fp,"<error %d>",expr);
+    else if (sameSymbol(object_type(expr),builtInSymbol))
         {
-        fprintf(fp,"\n");
-        while (vars != 0)
+        fprintf(fp,"<builtIn ");
+        ppLevel(fp,closure_name(expr),mode+1);
+        ppList(fp,closure_parameters(expr),mode);
+        fprintf(fp,">");
+        }
+    else if (sameSymbol(object_type(expr),closureSymbol))
+        {
+        fprintf(fp,"<function ");
+        ppLevel(fp,closure_name(expr),mode+1);
+        ppList(fp,closure_parameters(expr),mode);
+        fprintf(fp,">");
+        }
+    else
+        {
+        fprintf(fp,"<");
+        ppLevel(fp,car(expr),mode);
+        fprintf(fp," %d>",expr);
+        if (mode < 1)
             {
-            fprintf(fp,"%20s",SymbolTable[ival(car(vars))]);
-            if (transferred(car(vars)))
-                fprintf(fp,"* : ");
-            else
-                fprintf(fp,"  : ");
-            ppLevel(fp,car(vals),mode+1);
             fprintf(fp,"\n");
-            if (transferred(vars) || transferred(vals))
+            while (vars != 0)
                 {
-                fprintf(fp,"xxxxxxxxxxxxxxxxxxxxx\n");
-                return;
+                fprintf(fp,"%20s",SymbolTable[ival(car(vars))]);
+                if (transferred(car(vars)))
+                    fprintf(fp,"* : ");
+                else
+                    fprintf(fp,"  : ");
+                ppLevel(fp,car(vals),mode+1);
+                fprintf(fp,"\n");
+                if (transferred(vars) || transferred(vals))
+                    {
+                    fprintf(fp,"xxxxxxxxxxxxxxxxxxxxx\n");
+                    return;
+                    }
+                vars = cdr(vars);
+                vals = cdr(vals);
                 }
-            vars = cdr(vars);
-            vals = cdr(vals);
             }
         }
     }
-    
+        
 void ppCons(FILE *fp,int expr,int mode)
     {
     int old = ppQuoting;
@@ -74,27 +95,9 @@ void ppCons(FILE *fp,int expr,int mode)
     ppQuoting = 1;
     if (sameSymbol(car(expr),objectSymbol))
         ppObject(fp,expr,mode);
-    else if (sameSymbol(car(expr),thunkSymbol))
-        fprintf(fp,"<thunk %d>",expr);
-    else if (sameSymbol(car(expr),errorSymbol))
-        fprintf(fp,"<error %d>",expr);
     else if (sameSymbol(car(expr),lambdaSymbol))
         {
         fprintf(fp,"<lambda ");
-        ppList(fp,closure_parameters(expr),mode);
-        fprintf(fp,">");
-        }
-    else if (sameSymbol(car(expr),builtInSymbol))
-        {
-        fprintf(fp,"<builtIn ");
-        ppLevel(fp,closure_name(expr),mode+1);
-        ppList(fp,closure_parameters(expr),mode);
-        fprintf(fp,">");
-        }
-    else if (sameSymbol(car(expr),closureSymbol))
-        {
-        fprintf(fp,"<function ");
-        ppLevel(fp,closure_name(expr),mode+1);
         ppList(fp,closure_parameters(expr),mode);
         fprintf(fp,">");
         }

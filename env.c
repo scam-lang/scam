@@ -52,7 +52,7 @@ defineVariable(int env,int var,int val)
 
     assureMemory("defineVariable",2,&val,&var,&env,0);
 
-    /* there are five predefined variables, skip over those */
+    /* there are predefined variables, skip over those */
 
     vars = cadr(env);
     vals = caddr(env);
@@ -69,51 +69,64 @@ defineVariable(int env,int var,int val)
     }
 
 int
-makeThunk(int expr,int env)
+makeObject(int type) /* not gc-safe, caller needs to ensure OBJECT_CELLS */
     {
+    int o;
     int vars,vals;
-    
-    assert(THUNK_CELLS == 7);
 
-    assureMemory("makeThunk",7,&expr,&env,0);
+    assert(OBJECT_CELLS == 5);
 
-    vars = ucons(contextSymbol,ucons(codeSymbol,0));
-    vals = ucons(env,ucons(expr,0));
+    vars = ucons(typeSymbol,0);
+    vals = ucons(type,0);
 
+    o = ucons(objectSymbol,ucons(vars,ucons(vals,0)));
 
-    return ucons(thunkSymbol,ucons(vars,ucons(vals,0)));
+    return o;
     }
 
 int
-makeBuiltIn(int env,int name,int parameters,int body)
-    {
-    int b = makeClosure(env,name,parameters,body,NO_BEGIN);
-
-    car(b) = builtInSymbol;
-
-    return b;
-    }
-
-int
-makeObject(int context,int constructor,int vars,int vals)
+makeEnvironment(int context,int constructor,int vars,int vals)
     {
     int o;
 
-    assert(OBJECT_CELLS == 9);
+    assert(ENV_CELLS == OBJECT_CELLS + 6);
 
-    assureMemory("makeObject",9,&context,&constructor,&vars,&vals,0);
+    assureMemory("makeEnvironment",ENV_CELLS,
+        &context,&constructor,&vars,&vals,0);
 
-    vars = 
+    o = makeObject(envSymbol);
+
+    object_variable_hook(o) =
         ucons(contextSymbol,
             ucons(constructorSymbol,
                 ucons(thisSymbol,vars)));
-    vals =
+
+    object_value_hook(o) =
         ucons(context,
             ucons(constructor,
-                ucons(0,vals)));
+                ucons(o,vals)));
 
-    o = ucons(objectSymbol,ucons(vars,ucons(vals,0)));
-    object_this(o) = o;
+    return o;
+    }
+
+int
+makeThunk(int expr,int env)
+    {
+    int o;
+
+    assert(THUNK_CELLS == OBJECT_CELLS + 4);
+
+    assureMemory("makeThunk",THUNK_CELLS,&expr,&env,0);
+
+    o = makeObject(thunkSymbol);
+
+    object_variable_hook(o) =
+        ucons(contextSymbol,
+            ucons(codeSymbol,0));
+
+    object_value_hook(o) =
+        ucons(env,
+            ucons(expr,0));
 
     return o;
     }
@@ -121,52 +134,70 @@ makeObject(int context,int constructor,int vars,int vals)
 int
 makeClosure(int context,int name,int parameters,int body,int mode)
     {
-    int vars,vals;
+    int o;
 
-    assert(CLOSURE_CELLS == 12);
+    assert(CLOSURE_CELLS == OBJECT_CELLS + 8 + 1);
 
-    assureMemory("makeClosure",12,&context,&name,&parameters,&body,0);
+    assureMemory("makeClosure",CLOSURE_CELLS,
+        &context,&name,&parameters,&body,0);
+
+    o = makeObject(closureSymbol);
 
     if (mode == ADD_BEGIN)
        body = ucons(beginSymbol,body);
 
-    vars = 
+    object_variable_hook(o) =
         ucons(contextSymbol,
             ucons(nameSymbol,
                 ucons(parametersSymbol,
                     ucons(codeSymbol,0))));
-    vals =
+
+    object_value_hook(o) =
         ucons(context,
             ucons(name,
                 ucons(parameters,
                     ucons(body,0))));
 
-    return ucons(closureSymbol,ucons(vars,ucons(vals,0)));
+    return o;
+    }
+
+int
+makeBuiltIn(int env,int name,int parameters,int body)
+    {
+    int b = makeClosure(env,name,parameters,body,NO_BEGIN);
+
+    object_type(b) = builtInSymbol;
+
+    return b;
     }
 
 int
 makeError(int tag,int context,int expr,int kind,int value,int trace)
     {
-    int vars,vals;
+    int o;
 
-    assert(ERROR_CELLS == 13);
+    assert(ERROR_CELLS == OBJECT_CELLS + 8 + 1);
 
-    assureMemory("makeError",13,&tag,&context,&expr,&kind,&value,&trace,0);
+    assureMemory("makeError",ERROR_CELLS,
+        &tag,&context,&expr,&kind,&value,&trace,0);
 
-    vars =
+    o = makeObject(tag);
+
+    object_variable_hook(o) =
         ucons(contextSymbol,
             ucons(codeSymbol,
                 ucons(typeSymbol,
                     ucons(valueSymbol,
                         ucons(traceSymbol,0)))));
-    vals =
+
+    object_value_hook(o) =
         ucons(context,
             ucons(expr,
                 ucons(kind,
                     ucons(value,
                         ucons(trace, 0)))));
 
-    return ucons(tag,ucons(vars,ucons(vals,0)));
+    return o;
     }
 
 int
@@ -201,7 +232,7 @@ findLocation(int index,int env)
             vars = cdr(vars);
             vals = cdr(vals);
             }
-        env = object_context(env);
+        env = env_context(env);
         //printf("not in this environment, how about...");
         //pp(stdout,env);
         }

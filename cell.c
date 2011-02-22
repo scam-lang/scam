@@ -24,6 +24,7 @@ int thisSymbol;
 int parametersSymbol;
 int thunkSymbol;
 int nameSymbol;
+int envSymbol;
 int closureSymbol;
 int builtInSymbol;
 int constructorSymbol;
@@ -113,6 +114,7 @@ memoryInit(int memsize)
     parametersSymbol     = newSymbol("parameters");
     thunkSymbol          = newSymbol("thunk");
     nameSymbol           = newSymbol("name");
+    envSymbol            = newSymbol("environment");
     closureSymbol        = newSymbol("closure");
     builtInSymbol        = newSymbol("builtIn");
     constructorSymbol    = newSymbol("constructor");

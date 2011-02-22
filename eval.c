@@ -45,20 +45,9 @@ eval(int expr, int env)
         assert(type(expr) == CONS);
 
         tag  = car(expr);
-        if (type(tag) == SYMBOL)
-            {
-            int index = ival(tag);
-            if (index == ival(closureSymbol))
-                return expr;
-            else if (index == ival(objectSymbol))
-                return expr;
-            else if (index == ival(thunkSymbol))
-                return expr;
-            else if (index == ival(errorSymbol))
-                return expr;
-            else if (index == ival(builtInSymbol))
-                return expr;
-            }
+
+        if (type(tag) == SYMBOL && ival(tag) == ival(objectSymbol))
+            return expr;
 
         /* no need to assure memory here */
 
@@ -98,7 +87,6 @@ evalCall(int call,int env, int mode)
 
     /* args are the cdr of call */
 
-
     push(closure);
     //debug("unevaluated args",cdr(call));
     eargs = processArguments(closure_name(closure),
@@ -122,7 +110,7 @@ evalCall(int call,int env, int mode)
         params = closure_parameters(closure);
         body = closure_body(closure);
         xenv = closure_context(closure);
-        xenv = makeObject(xenv,closure,params,eargs);
+        xenv = makeEnvironment(xenv,closure,params,eargs);
         return makeThunk(body,xenv);
         }
     }

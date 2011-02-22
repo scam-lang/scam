@@ -607,9 +607,9 @@ scope(int args)
     {
     int result,context,env;
     //printf("in scope...\n");
-    assureMemory("scope",OBJECT_CELLS,&args,0);
+    assureMemory("scope",ENV_CELLS,&args,0);
     context = thunk_context(car(args));
-    env = makeObject(context,0,0,0);
+    env = makeEnvironment(context,0,0,0);
     result = evalListExceptLast(thunk_code(car(args)),env);
     return result;
     }
