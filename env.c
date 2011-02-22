@@ -76,7 +76,7 @@ makeObject(int type) /* not gc-safe, caller needs to ensure OBJECT_CELLS */
 
     assert(OBJECT_CELLS == 5);
 
-    vars = ucons(typeSymbol,0);
+    vars = ucons(labelSymbol,0);
     vals = ucons(type,0);
 
     o = ucons(objectSymbol,ucons(vars,ucons(vals,0)));
@@ -166,7 +166,7 @@ makeBuiltIn(int env,int name,int parameters,int body)
     {
     int b = makeClosure(env,name,parameters,body,NO_BEGIN);
 
-    object_type(b) = builtInSymbol;
+    object_label(b) = builtInSymbol;
 
     return b;
     }

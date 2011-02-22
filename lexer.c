@@ -16,6 +16,7 @@
 
 #include "cell.h"
 #include "types.h"
+#include "parser.h"
 #include "lexer.h"
 #include "util.h"
 
@@ -23,22 +24,20 @@
 
 #define FILENAMESIZE 256
 
-FILE *Input;
-
 int pushBack;
 int pushedBack = 0;
 
-static int skipWhiteSpace(void);
-static int lexNumber(void);
-static int lexSymbol(int);
-static int lexString(void);
+static int skipWhiteSpace(PARSER *);
+static int lexNumber(PARSER *);
+static int lexSymbol(PARSER *,int);
+static int lexString(PARSER *);
 
 int
-lex() 
+lex(PARSER *p) 
     { 
     int ch; 
 
-    ch = skipWhiteSpace(); 
+    ch = skipWhiteSpace(p); 
 
     switch(ch) 
         { 
@@ -59,32 +58,32 @@ lex()
                 {
                 int result;
                 unread(ch);
-                result = lexNumber(); 
+                result = lexNumber(p); 
                 return result;
                 }
             else if (ch == '\"') 
-                return lexString(); 
+                return lexString(p); 
             else
-                return lexSymbol(ch);
+                return lexSymbol(p,ch);
         } 
     Fatal("line %d: unexpected character (%c)\n", LineNumber,ch);
     } 
 
 static int
-skipWhiteSpace()
+skipWhiteSpace(PARSER *p)
     {
     int ch;
 
-    while ((ch = getNextCharacter(Input))
+    while ((ch = getNextCharacter(p->input))
     && ch != EOF && (isspace(ch) || ch == ';'))
         {
         if (ch == '\n') ++LineNumber;
         if (ch == ';')
             { 
-            ch = getNextCharacter(Input);
+            ch = getNextCharacter(p->input);
             if (ch == '$') /* skip to end of file */
                 {
-                while ((ch = getNextCharacter(Input)) && ch != EOF)
+                while ((ch = getNextCharacter(p->input)) && ch != EOF)
                     {
                     if (ch == '\n') ++LineNumber;
                     }
@@ -92,7 +91,7 @@ skipWhiteSpace()
             else if (ch == '{') /* skip to close comment */
                 {
                 int prev = ch;
-                while ((ch = getNextCharacter(Input))
+                while ((ch = getNextCharacter(p->input))
                 && ch != EOF && (prev != ';' || ch != '}'))
                     {
                     if (ch == '\n') ++LineNumber;
@@ -105,7 +104,7 @@ skipWhiteSpace()
             else /* skip to end of line */
                 {
                 while (ch != EOF && ch != '\n')
-                    ch = getNextCharacter(Input);
+                    ch = getNextCharacter(p->input);
                 }
             }
         }
@@ -114,7 +113,7 @@ skipWhiteSpace()
     }
 
 static int
-lexNumber()
+lexNumber(PARSER *p)
     {
     int ch;
     char s[512] = "";
@@ -131,7 +130,7 @@ lexNumber()
     digits = 0;
 
     count = 0;
-    ch = getNextCharacter(Input);
+    ch = getNextCharacter(p->input);
     while (isdigit(ch) || (first && ch == '-') || (!decimal && ch == '.')
         || (!exponent && (ch == 'E' || ch == 'e')))
         {
@@ -153,7 +152,7 @@ lexNumber()
         if (count >= sizeof(s) - 1)
             Fatal("SOURCE CODE ERROR\nline %d\n"
                 "number is too large\n",LineNumber);
-        ch = getNextCharacter(Input);
+        ch = getNextCharacter(p->input);
         }
 
     s[count] = '\0';
@@ -166,9 +165,9 @@ lexNumber()
     //printf("number is %s\n", s);
 
     if (strcmp(s,"-") == 0)
-        result = lexSymbol(s[0]);
+        result = lexSymbol(p,s[0]);
     else if (strcmp(s,".") == 0)
-        result = lexSymbol(s[0]);
+        result = lexSymbol(p,s[0]);
     else if (floater)
         result = newReal(atof(s));
     else
@@ -178,7 +177,7 @@ lexNumber()
     }
 
 static int
-lexSymbol(int ch)
+lexSymbol(PARSER *p,int ch)
     {
     int index;
     char buffer[512];
@@ -187,7 +186,7 @@ lexSymbol(int ch)
     buffer[0] = ch;
     index = 1;
 
-    while ((ch = getNextCharacter(Input)) && ch != EOF
+    while ((ch = getNextCharacter(p->input)) && ch != EOF
     && !isspace(ch) && strchr("();,'",ch) == 0)
         {
         //printf("symbol: %c\n", ch);
@@ -208,7 +207,7 @@ lexSymbol(int ch)
     }
 
 static int
-lexString()
+lexString(PARSER *p)
     {
     int ch;
     int index;
@@ -219,14 +218,14 @@ lexString()
     index = 0;
 
     backslashed = 0;
-    while ((ch = getNextCharacter(Input)) && ch != EOF)
+    while ((ch = getNextCharacter(p->input)) && ch != EOF)
         {
         if (ch == '\"')
             break;
 
         if (ch == '\\')
             {
-            ch = getNextCharacter(Input);
+            ch = getNextCharacter(p->input);
             if (ch == EOF)
                 Fatal("SOURCE CODE ERROR\nline %d\n"
                     "unexpected end of file (last char was a backslash)\n",

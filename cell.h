@@ -104,6 +104,7 @@ extern int builtInSymbol;
 extern int constructorSymbol;
 extern int objectSymbol;
 extern int typeSymbol;
+extern int labelSymbol;
 extern int valueSymbol;
 extern int traceSymbol;
 extern int throwSymbol;

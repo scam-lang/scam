@@ -34,6 +34,7 @@ main(int argc,char **argv,char **envv)
     int argIndex;
     int ptree,env;
     int result;
+    PARSER *p;
 
     argIndex = ProcessOptions(argc, argv);
 
@@ -42,8 +43,8 @@ main(int argc,char **argv,char **envv)
 
     memoryInit(0);
 
-    parserInit(argv[argIndex]);
-    ptree = parse();
+    p = newParser(argv[argIndex]);
+    ptree = parse(p);
 
     env = makeEnvironment(0,0,0,0);
 

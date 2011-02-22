@@ -41,18 +41,18 @@ ppObject(FILE *fp,int expr,int mode)
     int vars = object_variables(expr);
     int vals = object_values(expr);
 
-    if (sameSymbol(object_type(expr),thunkSymbol))
+    if (sameSymbol(object_label(expr),thunkSymbol))
         fprintf(fp,"<thunk %d>",expr);
-    else if (sameSymbol(object_type(expr),errorSymbol))
+    else if (sameSymbol(object_label(expr),errorSymbol))
         fprintf(fp,"<error %d>",expr);
-    else if (sameSymbol(object_type(expr),builtInSymbol))
+    else if (sameSymbol(object_label(expr),builtInSymbol))
         {
         fprintf(fp,"<builtIn ");
         ppLevel(fp,closure_name(expr),mode+1);
         ppList(fp,closure_parameters(expr),mode);
         fprintf(fp,">");
         }
-    else if (sameSymbol(object_type(expr),closureSymbol))
+    else if (sameSymbol(object_label(expr),closureSymbol))
         {
         fprintf(fp,"<function ");
         ppLevel(fp,closure_name(expr),mode+1);
@@ -157,6 +157,6 @@ void
 debug(char *s,int i)
     {
     printf("%s: ",s);
-    ppLevel(stdout,i,1);
+    ppLevel(stdout,i,0);
     printf("\n");
     }

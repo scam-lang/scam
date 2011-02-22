@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
 #include "types.h"
 #include "env.h"
 #include "cell.h"
+#include "parser.h"
 #include "prim.h"
 #include "eval.h"
 #include "pp.h"
@@ -582,13 +584,22 @@ isEq(int args)
     return scamBoolean(a == b);
     }
 
-/* (type $) */
+/* (type item) */
 
 static int
 ttype(int args)
     {
-    //printf("in begin...\n");
-    return newSymbol(type(car(args)));
+    int item = car(args);
+    //printf("in type...\n");
+    if (isCons(item))
+        {
+        if (type(car(item)) == SYMBOL)
+            return car(item);
+        else
+            return newSymbol(type(item));
+        }
+    else
+        return newSymbol(type(car(args)));
     }
 
 /* (begin $) */
@@ -817,6 +828,31 @@ inspect(int args)
     return result;
     }
 
+/* (include fileName) */
+
+static int
+include(int args)
+    {
+    int fileName = thunk_code(car(args));
+    int env = thunk_context(car(args));
+    int ptree;
+    char buffer[512];
+    PARSER *p;
+
+    cellString(buffer,sizeof(buffer),fileName);
+
+    push(env);
+
+    p = newParser(buffer);
+    ptree = parse(p);
+    fclose(p->input);
+    free(p);
+
+    env = pop();
+
+    return eval(ptree,env);
+    }
+
 /* (eval expr context) */
 
 static int
@@ -905,6 +941,7 @@ ccons(int args)
 static int
 gensym(int args)
     {
+    int result;
     char buffer[512];
     static int count = 0;
 
@@ -913,7 +950,10 @@ gensym(int args)
     else
         snprintf(buffer,sizeof(buffer),
             "%d%s",count++,SymbolTable[ival(caar(args))]);
-    return newSymbol(buffer);
+
+    result = newSymbol(buffer);
+    //debug("gensym",result);
+    return result;
     }
 
 /* (gensym? id) */
@@ -1655,6 +1695,14 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("list"),
         ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = include;
+    b = makeBuiltIn(env,
+        newSymbol("include"),
+        ucons(newSymbol("$fileName"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

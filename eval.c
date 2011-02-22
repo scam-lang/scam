@@ -80,8 +80,8 @@ evalCall(int call,int env, int mode)
         closure = car(call);
     //printf("done getting closure\n");
 
-    //debug("calling",closure);
     //debug("evalCall",call);
+    //debug("calling",closure);
 
     assert(isClosure(closure) || isBuiltIn(closure));
 

@@ -30,6 +30,7 @@ int builtInSymbol;
 int constructorSymbol;
 int objectSymbol;
 int typeSymbol;
+int labelSymbol;
 int valueSymbol;
 int traceSymbol;
 int throwSymbol;
@@ -120,6 +121,7 @@ memoryInit(int memsize)
     constructorSymbol    = newSymbol("constructor");
     objectSymbol         = newSymbol("object");
     typeSymbol           = newSymbol("type");
+    labelSymbol          = newSymbol("label");
     valueSymbol          = newSymbol("value");
     traceSymbol          = newSymbol("trace");
     throwSymbol          = newSymbol("throw");

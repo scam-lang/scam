@@ -7,8 +7,8 @@
 #include <assert.h>
 #include "cell.h"
 #include "types.h"
-#include "lexer.h"
 #include "parser.h"
+#include "lexer.h"
 #include "util.h"
 
 /* operator types */
@@ -22,33 +22,22 @@ int Pending = -1;
 
 /* recursive descent parsing function */
 
-static int exprSeq(void);
-static int expr(void);
+static int exprSeq(PARSER *);
+static int expr(PARSER *);
 
 /* pending functions */
 
-static int isExprSeqPending(void);
-static int isExprPending(void);
+static int isExprSeqPending(PARSER *);
+static int isExprPending(PARSER *);
 
 /* parser support */
 
-static int check(char *);
-static int match(char *);
-
-void
-parserInit(char *fn)
-    {
-    LineNumber = 1;
-
-    Input = OpenFile(fn,"r");
-    FileIndex = findSymbol(fn);
-
-    Output = stdout;
-    }
+static int check(PARSER *,char *);
+static int match(PARSER *,char *);
 
 /*
  
-//xcheme Grammar
+//scam grammar
 //
 //   TERMINALS are in (mostly) uppercase
 //   nonTerminals are in (mostly) lowercase
@@ -73,27 +62,39 @@ parserInit(char *fn)
 
 /* this is the function that interaces the parser with other modules */
 
+PARSER *
+newParser(char *fileName)
+    {
+    PARSER *p = (PARSER *) malloc(sizeof(PARSER));
+    p->pending = -1;
+    p->lineNumber = 1;
+    p->fileIndex = findSymbol(fileName);
+    p->input = OpenFile(fileName,"r");
+    p->output = stdout;
+
+    return p;
+    }
+
 int
-parse()
+parse(PARSER *p)
     {
     int result;
-    Pending = -1;
 
-    result = exprSeq();
-    match(END_OF_INPUT);
+    result = exprSeq(p);
+    match(p,END_OF_INPUT);
 
     return cons(beginSymbol,result);
     }
 
 static int
-exprSeq()
+exprSeq(PARSER *p)
     {
     int e,b;
 
-    e = expr();
+    e = expr(p);
 
-    if (isExprSeqPending())
-        b = exprSeq();
+    if (isExprSeqPending(p))
+        b = exprSeq(p);
     else
         b = 0;
 
@@ -101,42 +102,42 @@ exprSeq()
     }
 
 static int
-expr()
+expr(PARSER *p)
     {
-    int p,q;
+    int r;
     int result;
 
-    if (check(INTEGER))
-        result = match(INTEGER);
-    else if (check(REAL))
-        result = match(REAL);
-    else if (check(STRING))
-        result = match(STRING);
-    else if (check(SYMBOL))
-        result = match(SYMBOL);
-    else if (check(QUOTE))
+    if (check(p,INTEGER))
+        result = match(p,INTEGER);
+    else if (check(p,REAL))
+        result = match(p,REAL);
+    else if (check(p,STRING))
+        result = match(p,STRING);
+    else if (check(p,SYMBOL))
+        result = match(p,SYMBOL);
+    else if (check(p,QUOTE))
         {
-        p = match(QUOTE);
-        q = expr();
-        result = cons(quoteSymbol,cons(q,0));
+        match(p,QUOTE);
+        r = expr(p);
+        result = cons(quoteSymbol,cons(r,0));
         }
-    else if (check(BACKQUOTE))
+    else if (check(p,BACKQUOTE))
         {
-        p = match(BACKQUOTE);
-        q = expr();
-        result = cons(backquoteSymbol,cons(q,0));
+        match(p,BACKQUOTE);
+        r = expr(p);
+        result = cons(backquoteSymbol,cons(r,0));
         }
-    else if (check(COMMA))
+    else if (check(p,COMMA))
         {
-        p = match(COMMA);
-        q = expr();
-        result = cons(commaSymbol,cons(q,0));
+        match(p,COMMA);
+        r = expr(p);
+        result = cons(commaSymbol,cons(r,0));
         }
-    else if (check(OPEN_PARENTHESIS))
+    else if (check(p,OPEN_PARENTHESIS))
         {
-        match(OPEN_PARENTHESIS);
-        result = exprSeq();
-        match(CLOSE_PARENTHESIS);
+        match(p,OPEN_PARENTHESIS);
+        result = exprSeq(p);
+        match(p,CLOSE_PARENTHESIS);
         }
     else
         Fatal("syntax error on line %d\n",LineNumber);
@@ -147,47 +148,48 @@ expr()
 /***** pending utilities ************************************************/
 
 static int
-isExprSeqPending()
+isExprSeqPending(PARSER *p)
     {
-    return isExprPending();
+    return isExprPending(p);
     }
 
 static int
-isExprPending()
+isExprPending(PARSER *p)
     {
-    return check(INTEGER) || check(REAL) || check(STRING) || check(OPEN_PARENTHESIS)
-        || check(SYMBOL) || check(QUOTE) || check(BACKQUOTE) || check(COMMA);
+    return check(p,INTEGER) || check(p,REAL) || check(p,STRING)
+        || check(p,OPEN_PARENTHESIS) || check(p,SYMBOL)
+        || check(p,QUOTE) || check(p,BACKQUOTE) || check(p,COMMA);
     }
 
 /***** parser utilities ************************************************/
 
 static int
-match(char *t)
+match(PARSER *p,char *t)
     {
     int old;
 
-    if (!check(t))
+    if (!check(p,t))
         {
-        Fatal("expecting %s, found %s instead",t,type(Pending));
+        Fatal("expecting %s, found %s instead",t,type(p->pending));
         }
 
-    old = Pending;
-    Pending = -1;
+    old = p->pending;
+    p->pending = -1;
     return old;
     }
 
 static int
-check(char *t)
+check(PARSER *p,char *t)
     {
-    if (Pending == -1)
+    if (p->pending == -1)
         {
         //printf("about to lex...\n");
-        Pending = lex();
+        p->pending = lex(p);
         //printf("token is %s\n",type(Pending));
         }
 
     //printf("type(Pending) is %s\n",type(Pending));
     //if (type(Pending) == ID) ppf("Pending is ",Pending,"\n");
 
-    return type(Pending) == t;
+    return type(p->pending) == t;
     }

@@ -21,7 +21,7 @@ extern int makeBuiltIn(int,int,int,int);
 
 #define object_variables(x)    (cadr(x))
 #define object_values(x)       (caddr(x))
-#define object_type(x)         (car(object_values(x)))
+#define object_label(x)        (car(object_values(x)))
 
 #define object_variable_hook(x)(cdr(cadr(x)))
 #define object_value_hook(x)   (cdr(caddr(x)))
@@ -62,6 +62,6 @@ extern int makeBuiltIn(int,int,int,int);
 #define isCons(x) (type(x) == CONS)
 #define isTagged(x) (isCons(x) && type(car(x)) == SYMBOL)
 #define isObject(x) (isTagged(x) && ival(car(x)) == ival(objectSymbol))
-#define isThunk(x) (isObject(x) && ival(object_type(x)) == ival(thunkSymbol))
-#define isBuiltIn(x) (isObject(x) && ival(object_type(x)) == ival(builtInSymbol))
-#define isClosure(x) (isObject(x) && ival(object_type(x)) == ival(closureSymbol))
+#define isThunk(x) (isObject(x) && ival(object_label(x)) == ival(thunkSymbol))
+#define isBuiltIn(x) (isObject(x) && ival(object_label(x)) == ival(builtInSymbol))
+#define isClosure(x) (isObject(x) && ival(object_label(x)) == ival(closureSymbol))
