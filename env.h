@@ -13,7 +13,8 @@ extern int converThrow(int,int);
 extern int makeThrow(int,int,int,int);
 extern int makeBuiltIn(int,int,int,int);
 
-extern int throw(int,int,char *,...);
+extern int throw(char *,...);
+extern int throwAgain(int,int,int);
 
 #define rethrow(x) { if (isThrow(x)) return (x); }
 

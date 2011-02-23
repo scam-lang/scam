@@ -45,6 +45,8 @@ defineIdentifier(int name,int init,int env)
         init = eval(init,env);
         env = pop();
         name = pop();
+
+        rethrow(init);
         }
 
      assureMemory("defineIdentifier",DEFINE_CELLS,&env,&name,&init,0);
@@ -80,7 +82,7 @@ define(int args)
         return defineIdentifier(first,car(rest),
             thunk_context(car(args)));
     else
-        return Fatal("cannot define a %s\n",type(first));
+        return throw("can only define SYMBOLS, not type %s",type(first));
     }
 
 /* (lambda $params #) */
@@ -107,7 +109,8 @@ rtimes(int args,int accum)
         else if (t == REAL)
             rval(accum) *= rval(arg);
         else
-            Fatal("wrong type for multiplication: %s\n",type(car(args)));
+            return throw(
+                "wrong type for multiplication: %s",type(car(args)));
         args = cdr(args);
         }
 
@@ -130,9 +133,8 @@ itimes(int args,int accum)
         else if (t == INTEGER)
             ival(accum) *= ival(car(args));
         else
-            {
-            Fatal("wrong type for multiplication: %s\n",type(car(args)));
-            }
+            return throw(
+                "wrong type for multiplication: %s",type(car(args)));
             
         args = cdr(args);
         }
@@ -159,7 +161,7 @@ times(int args)
     if (t == INTEGER) return itimes(args,newInteger(0));
     if (t == REAL) return rtimes(args,newReal(0));
     
-    return Fatal("wrong type for multiplication: %s\n",type(car(args)));
+    return throw("wrong type for multiplication: %s",type(car(args)));
     }
 
 static int
@@ -174,7 +176,8 @@ rplus(int args,int accum)
         else if (t == REAL)
             rval(accum) += rval(arg);
         else
-            Fatal("wrong type for addition: %s\n",type(car(args)));
+            return throw(
+                "wrong type for addition: %s",type(car(args)));
         args = cdr(args);
         }
 
@@ -197,9 +200,8 @@ iplus(int args,int accum)
         else if (t == INTEGER)
             ival(accum) += ival(car(args));
         else
-            {
-            Fatal("wrong type for addition: %s\n",type(car(args)));
-            }
+            return throw(
+                "wrong type for addition: %s",type(car(args)));
             
         args = cdr(args);
         }
@@ -226,7 +228,7 @@ plus(int args)
     if (t == INTEGER) return iplus(args,newInteger(0));
     if (t == REAL) return rplus(args,newReal(0));
     
-    return Fatal("wrong type for addition: %s\n",type(car(args)));
+    return throw("wrong type for addition: %s",type(car(args)));
     }
 
 static int
@@ -241,7 +243,8 @@ rdivides(int args,int accum)
         else if (t == REAL)
             rval(accum) /= rval(arg);
         else
-            Fatal("wrong type for division: %s\n",type(car(args)));
+            return throw(
+                "wrong type for division: %s",type(car(args)));
         args = cdr(args);
         }
 
@@ -264,7 +267,8 @@ idivides(int args,int accum)
         else if (t == INTEGER)
             ival(accum) /= ival(car(args));
         else
-            Fatal("wrong type for division: %s\n",type(car(args)));
+            return throw(
+                "wrong type for division: %s",type(car(args)));
             
         args = cdr(args);
         }
@@ -307,7 +311,7 @@ divides(int args)
         return rdivides(cdr(args),accum);
         }
     
-    return Fatal("wrong type for division: %s\n",t);
+    return throw("wrong type for division: %s",t);
     }
 
 static int
@@ -324,7 +328,7 @@ mod(int args)
     t = type(car(args));
 
     if (t != INTEGER)
-        return Fatal("wrong type for remainder: %s\n",type(car(args)));
+        return throw("wrong type for remainder: %s",type(car(args)));
 
     assureMemory("remainder",1,&args,0);
 
@@ -338,7 +342,8 @@ mod(int args)
         if (t == INTEGER)
             ival(accum) %= ival(car(args));
         else
-            Fatal("wrong type for remainder: %s\n",type(car(args)));
+            return throw(
+                "wrong type for remainder: %s",type(car(args)));
             
         args = cdr(args);
         }
@@ -358,7 +363,8 @@ rminus(int args,int accum)
         else if (t == REAL)
             rval(accum) -= rval(arg);
         else
-            Fatal("wrong type for subtraction: %s\n",type(car(args)));
+            return throw(
+                "wrong type for subtraction: %s",type(car(args)));
         args = cdr(args);
         }
 
@@ -381,7 +387,8 @@ iminus(int args,int accum)
         else if (t == INTEGER)
             ival(accum) -= ival(car(args));
         else
-            Fatal("wrong type for subtraction: %s\n",type(car(args)));
+            return throw(
+                "wrong type for subtraction: %s",type(car(args)));
             
         args = cdr(args);
         }
@@ -424,7 +431,7 @@ minus(int args)
         return rminus(cdr(args),accum);
         }
     
-    return Fatal("wrong type for subtraction: %s\n",t);
+    return throw("wrong type for subtraction: %s",t);
     }
 
 static int
@@ -436,8 +443,10 @@ orLoop(int first,int remaining,int env)
     remaining = pop();
     env = pop();
 
+    rethrow(first);
+
     if (sameSymbol(first,trueSymbol)) return trueSymbol;
-    if (!sameSymbol(first,falseSymbol)) return Fatal("or: not a boolean\n");
+    if (!sameSymbol(first,falseSymbol)) return throw("or: not a boolean");
 
     if (remaining == 0) return falseSymbol;
 
@@ -469,8 +478,10 @@ andLoop(int first,int remaining,int env)
     remaining = pop();
     env = pop();
 
+    rethrow(first);
+
     if (sameSymbol(first,falseSymbol)) return falseSymbol;
-    if (!sameSymbol(first,trueSymbol)) return Fatal("and: not a boolean\n");
+    if (!sameSymbol(first,trueSymbol)) return throw("and: not a boolean");
 
     if (remaining == 0) return trueSymbol;
 
@@ -498,7 +509,7 @@ not(int args)
     {
     if (sameSymbol(car(args),trueSymbol)) return falseSymbol;
     if (sameSymbol(car(args),falseSymbol)) return trueSymbol;
-    return Fatal("not: non-boolean\n");
+    return throw("not: non-boolean");
     }
 
 static int
@@ -548,8 +559,7 @@ lessThanLoop(int first,int remaining)
         }
     else
         {
-        Fatal("wrong types for '<': %s and %s\n",firstType,nextType);
-        return 0;
+        return throw("wrong types for '<': %s and %s",firstType,nextType);
         }
     }
 
@@ -705,6 +715,8 @@ cond(int args)
         cases = pop();
         env = pop();
 
+        rethrow(result);
+
         if (sameSymbol(result,trueSymbol))
             return  evalListExceptLast(cdar(cases),env);
 
@@ -728,15 +740,21 @@ wwhile(int args)
     testResult = eval(thunk_code(car(args)),thunk_context(car(args)));
     args = pop();
 
+    rethrow(testResult);
+
     while (sameSymbol(testResult,trueSymbol))
         {
         push(args);
         last = evalThunkList(cadr(args));
         args = pop();
 
+        rethrow(last);
+
         push(args);
         testResult = eval(thunk_code(car(args)),thunk_context(car(args)));
         args = pop();
+
+        rethrow(testResult);
 
         //debug("test result",testResult);
         }
@@ -750,7 +768,8 @@ static int
 setCar(int args)
     {
     if (type(car(args)) != CONS)
-        return Fatal("attempt to set the car of type %s\n",car(args));
+        return throw(
+            "attempt to set the car of type %s",type(car(args)));
 
     caar(args) = cadr(args);
     return cadr(args);
@@ -762,7 +781,8 @@ static int
 setCdr(int args)
     {
     if (type(car(args)) != CONS)
-        return Fatal("attempt to set the car of type %s\n",car(args));
+        return throw(
+            "attempt to set the car of type %s",type(car(args)));
 
     cdar(args) = cadr(args);
     return cadr(args);
@@ -778,8 +798,8 @@ set(int args)
     
     //printf("in set!...");
     if (type(id) != SYMBOL)
-        return Fatal("set!: identifier resolved to %s, not SYMBOL\n",
-            type(id));
+        return throw(
+            "set! identifier resolved to type %s, not SYMBOL",type(id));
 
     if (cadddr(args) == 0)
         result = setVariableValue(id,cadr(args),caddr(args));
@@ -799,8 +819,8 @@ get(int args)
 
     //printf("in get...");
     if (type(id) != SYMBOL)
-        return Fatal("get: variable argument resolved to %s, not SYMBOL\n",
-            type(id));
+        return throw(
+            "get variable argument resolved to type %s, not SYMBOL",type(id));
 
     if (caddr(args) == 0)
         return getVariableValue(id,cadr(args));
@@ -820,9 +840,9 @@ static int
 inspect(int args)
     {
     int result;
+    result = eval(thunk_code(car(args)),thunk_context(car(args)));
     pp(stdout,thunk_code(car(args)));
     fprintf(stdout," is ");
-    result = eval(thunk_code(car(args)),thunk_context(car(args)));
     pp(stdout,result);
     fprintf(stdout,"\n");
     return result;
@@ -849,6 +869,8 @@ include(int args)
     free(p);
 
     env = pop();
+
+    rethrow(ptree);
 
     return eval(ptree,env);
     }
@@ -914,7 +936,8 @@ static int
 ccar(int args)
     {
     if (type(car(args)) != CONS)
-        return Fatal("attempt to take car of type %s\n",type(car(args)));
+        return throw(
+            "attempt to take car of type %s",type(car(args)));
 
     return car(car(args));
     }
@@ -983,7 +1006,7 @@ skipWhiteSpace(FILE *fp)
 
 
 static int
-addOpenPort(FILE *fp,int portType,int target)
+addOpenPort(FILE *fp,int portType)
     {
     int i;
     int maxPorts = sizeof(OpenPorts) / sizeof(FILE *);
@@ -995,11 +1018,11 @@ addOpenPort(FILE *fp,int portType,int target)
             break;
         }
 
-    printf("first available port is %d\n",i);
+    //printf("first available port is %d\n",i);
 
     if (i == maxPorts)
         {
-        return Fatal("fileOpenError","too many ports open");
+        return throw("too many ports open at once");
         }
 
     OpenPorts[i] = fp;
@@ -1034,7 +1057,8 @@ setPort(int args)
             return ucons(outputPortSymbol,ucons(newInteger(old),0));
             }
         else 
-            return Fatal("%s is not a valid argument to setPort\n",
+            return throw(
+                "%s is not a valid argument to setPort",
                 SymbolTable[ival(target)]);
         }
     else if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
@@ -1050,9 +1074,8 @@ setPort(int args)
         return ucons(outputPortSymbol,ucons(newInteger(old),0));
         }
 
-    return Fatal("argumentTypeError",
-        "setPort given a non-port as argument: %s",
-        type(target));
+    return throw(
+        "setPort given a non-port as argument: %s",type(target));
     }
 
 static int
@@ -1082,17 +1105,17 @@ cclose(int args)
         index = ival(cadr(target));
         if (index == 0)
             {
-            return Fatal("attempt to close stdin");
+            return throw("attempt to close stdin");
             }
         if (index >= MaxPorts)
             {
-            return Fatal("attempt to close a non-existent port: %d\n",
-                index);
+            return throw(
+                "attempt to close a non-existent port: %d",index);
             }
         if (OpenPorts[index] == 0)
             {
-            return Fatal("attempt to close an unopened port: %d\n",
-                index);
+            return throw(
+                "attempt to close an unopened port: %d",index);
             }
         fclose(OpenPorts[index]);
         OpenPorts[index] = 0;
@@ -1103,23 +1126,25 @@ cclose(int args)
         index = ival(cadr(target));
         if (index == 1)
             {
-            return Fatal("attempt to close stdout");
+            return throw("attempt to close stdout");
             }
         if (index >= MaxPorts)
             {
-            return Fatal("attempt to close a non-existent port: %d\n",
-                index);
+            return throw(
+                "attempt to close a non-existent port: %d",index);
             }
         if (OpenPorts[index] == 0)
             {
-            return Fatal("attempt to close an unopened port");
+            return throw(
+                "attempt to close an unopened port: %d",index);
             }
         fclose(OpenPorts[index]);
         OpenPorts[index] = 0;
         if (CurrentOutputIndex == index) CurrentOutputIndex = 1;
         }
     else
-        return Fatal("bad type passed to close: %s", type(target));
+        return throw(
+            "bad type passed to close: %s", type(target));
 
     return trueSymbol;
     }
@@ -1134,10 +1159,10 @@ readChar(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read a character from a closed port");
+        return throw("attempt to read a character from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read a character at end of input");
+        return throw("attempt to read a character at end of input");
 
     ch = fgetc(fp);
 
@@ -1175,10 +1200,10 @@ readInt(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read an integer from a closed port");
+        return throw("attempt to read an integer from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read an integer at end of input");
+        return throw("attempt to read an integer at end of input");
 
     i = 0;
     fscanf(fp," %d",&i);
@@ -1194,10 +1219,10 @@ readReal(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read a real from a closed port");
+        return throw("attempt to read a real from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read a real at end of input");
+        return throw("attempt to read a real at end of input");
 
     r = 0;
     fscanf(fp," %lf",&r);
@@ -1217,10 +1242,10 @@ readString(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read a string from a closed port");
+        return throw("attempt to read a string from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read a string at end of input");
+        return throw("attempt to read a string at end of input");
 
     skipWhiteSpace(fp);
 
@@ -1228,7 +1253,8 @@ readString(int args)
     if (ch != '\"')
         {
         ungetc(ch,fp);
-        return Fatal("reading a string: found <%c> instead of double quote",ch);
+        return throw(
+            "found <%c> instead of double quote at the start of a string",ch);
         }
 
     index = 0;
@@ -1242,7 +1268,7 @@ readString(int args)
             {
             ch = fgetc(fp);
             if (ch == EOF)
-                return Fatal("reading a string: unexpected end of input");
+                return throw("attempt to read a string at end of input");
             if (ch == 'n')
                 buffer[index++] = '\n';
             else if (ch == 't')
@@ -1258,13 +1284,13 @@ readString(int args)
             }
 
         if (index == sizeof(buffer) - 1)
-            return Fatal("reading a string: string too large");
+            return throw("attempt to read a very long string failed");
         }
 
     buffer[index] = '\0';
 
     if (ch != '\"')
-        return Fatal("reading a string: unterminated string");
+        return throw("attempt to read an unterminated string");
 
     //printf("string is <%s>\n", buffer);
 
@@ -1285,10 +1311,10 @@ readToken(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read a token from a closed port");
+        return throw("attempt to read a token from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read a token at end of input");
+        return throw("attempt to read a token at end of input");
 
     skipWhiteSpace(fp);
 
@@ -1297,7 +1323,7 @@ readToken(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return Fatal("reading a token: token too large");
+            return throw("attempt to read a very long token failed");
         }
 
     buffer[index] = '\0';
@@ -1324,16 +1350,17 @@ readWhile(int args)
 
     if (type(a) != STRING)
         {
-        return Fatal("readWhile: argument should be STRING, not %s",type(a));
+        return throw(
+            "readWhile argument should be STRING, not type %s",type(a));
         }
 
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read characters from a closed port");
+        return throw("attempt to read characters from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read characters at end of input");
+        return throw("attempt to read characters at end of input");
 
     cellStringTr(target,sizeof(target),a);
 
@@ -1342,7 +1369,7 @@ readWhile(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return Fatal("readWhile: token too long");
+            return throw("attempt to read a very long token failed");
         }
 
     buffer[index] = '\0';
@@ -1369,18 +1396,17 @@ readUntil(int args)
 
     if (type(a) != STRING)
         {
-        return Fatal("argumentTypeError",
-            "readWhile: argument should be STRING, not %s",
-            type(a));
+        return throw(
+            "readWhile argument should be STRING, not type %s",type(a));
         }
 
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read characters from a closed port");
+        return throw("attempt to read characters from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read characters at end of input");
+        return throw("attempt to read characters at end of input");
 
     cellStringTr(target,sizeof(target),a);
 
@@ -1389,7 +1415,7 @@ readUntil(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return Fatal("IOError", "readWhile: token too long");
+            return throw("attempt to read a very long token failed");
         }
 
     buffer[index] = '\0';
@@ -1415,17 +1441,17 @@ readLine(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return Fatal("attempt to read a line from a closed port");
+        return throw("attempt to read a line from a closed port");
 
     if (feof(fp))
-        return Fatal("attempt to read a line at end of input");
+        return throw("attempt to read a line at end of input");
 
     index = 0;
     while ((ch = fgetc(fp)) && ch != EOF && ch != '\n')
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return Fatal("IOError","reading a line: line too long");
+            return throw("attempt to read a very long line failed");
         }
 
     buffer[index] = '\0';
@@ -1460,8 +1486,8 @@ oopen(int args)
             char buffer[512];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"r");
             if (fp == 0)
-                return Fatal("file %s cannot be opened for reading",buffer);
-            result = addOpenPort(fp,inputPortSymbol,target);
+                return throw("file %s cannot be opened for reading",buffer);
+            result = addOpenPort(fp,inputPortSymbol);
             }
         else if (ival(mode) == writeIndex)
             {
@@ -1469,28 +1495,28 @@ oopen(int args)
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"w");
             //printf("buffer is %s\n",buffer);
             if (fp == 0)
-                return Fatal("file %s cannot be opened for writing",buffer);
+                return throw("file %s cannot be opened for writing",buffer);
             //printf("file opened successfully\n");
-            result = addOpenPort(fp,outputPortSymbol,target);
+            result = addOpenPort(fp,outputPortSymbol);
             }
         else if (ival(mode) == appendIndex)
             {
             char buffer[256];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"a");
             if (fp == 0)
-                return Fatal("file %s cannot be opened for appending",buffer);
-            result = addOpenPort(fp,outputPortSymbol,target);
+                return throw("file %s cannot be opened for appending",buffer);
+            result = addOpenPort(fp,outputPortSymbol);
             }
         else 
             {
-            return Fatal("unknown open mode :%s, "
+            return throw("unknown open mode :%s, "
                 "(should be 'read, 'write, or 'append)",
                 SymbolTable[ival(mode)]);
             }
         }
     else
         {
-        return Fatal("unknown mode type: %s, "
+        return throw("unknown mode type: %s, "
             "(should be 'read, 'write, or 'append)",
             type(mode));
         }

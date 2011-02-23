@@ -86,8 +86,7 @@ evalCall(int call,int env, int mode)
     //debug("calling",closure);
 
     if (!isClosure(closure))
-        return throw(file(call),line(call),
-            "attempted to call %s as a function", type(closure));
+        return throw("attempted to call %s as a function", type(closure));
 
     /* args are the cdr of call */
 
@@ -153,7 +152,8 @@ evalThunkListExceptLast(int items)
         items = pop();
         //debug("items after",items);
 
-        rethrow(result);
+        if (isThrow(result))
+            return throwAgain(file(car(items)),line(car(items)),result);
 
         items = cdr(items);
         }
@@ -176,7 +176,8 @@ evalListExceptLast(int items,int env)
         env = pop();
         //debug("items after",items);
 
-        rethrow(result);
+        if (isThrow(result))
+            return throwAgain(file(car(items)),line(car(items)),result);
 
         items = cdr(items);
         }
@@ -198,7 +199,8 @@ evalThunkList(int items)
         items = pop();
         //debug("items after",items);
 
-        rethrow(result);
+        if (isThrow(result))
+            return throwAgain(file(car(items)),line(car(items)),result);
 
         items = cdr(items);
         }
@@ -217,8 +219,7 @@ processArguments(int name, int params,int args,int env,int mode)
         result = 0;
     else if (params == 0)
         {
-        return throw(file(args),line(args),
-            "too many arguments to function %s",
+        return throw("too many arguments to function %s",
             SymbolTable[ival(name)]);
         }
     else if (sameSymbol(car(params),sharpSymbol))
@@ -264,8 +265,7 @@ processArguments(int name, int params,int args,int env,int mode)
         }
     else if (args == 0)
         {
-        return throw(file(params),line(params),
-            "too few arguments to function %s",
+        return throw("too few arguments to function %s",
             SymbolTable[ival(name)]);
         }
     else if ((ch = *SymbolTable[ival(car(params))]) == '$' || ch == '#')

@@ -14,14 +14,12 @@ getVariableValue(int var,int env)
     if (spot == 0)
         {
         //ppObject(stdout,env,0);
-        return throw(file(var),line(var),
-            "variable %s is undefined",
+        return throw("variable %s is undefined",
             SymbolTable[ival(var)]);
         }
     if (sameSymbol(car(spot),uninitializedSymbol))
         {
-        return throw(file(var),line(var),
-            "variable %s is uninitialized",
+        return throw("variable %s is uninitialized",
             SymbolTable[ival(var)]);
         }
     return car(spot);
@@ -33,8 +31,7 @@ setVariableValue(int var,int val,int env)
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        return throw(file(var),line(var),
-            "variable %s is undefined",SymbolTable[ival(var)]);
+        return throw("variable %s is undefined",SymbolTable[ival(var)]);
         }
     car(spot) = val;
     return val;
@@ -191,8 +188,8 @@ makeError(int tag,int fileIndex,int lineNumber,int msg,int trace)
                     ucons(traceSymbol,0))));
 
     object_value_hook(o) =
-        ucons(newSymbolFromIndex(fileIndex),
-            ucons(newInteger(lineNumber),
+        ucons(lineNumber == 0 ? 0 : newSymbolFromIndex(fileIndex),
+            ucons(lineNumber == 0 ? 0 : newInteger(lineNumber),
                 ucons(msg,
                     ucons(trace,0))));
 
@@ -214,7 +211,7 @@ makeThrow(int fileIndex,int lineNumber,int msg,int trace)
     }
 
 int
-throw(int fileIndex,int lineNumber,char *fmt, ...)
+throw(char *fmt, ...)
     {
     va_list ap;
     int s;
@@ -228,7 +225,7 @@ throw(int fileIndex,int lineNumber,char *fmt, ...)
 
     s = newString(buffer);
 
-    return makeThrow(fileIndex,lineNumber,s,0);
+    return makeThrow(0,0,s,0);
     }
 
 int
