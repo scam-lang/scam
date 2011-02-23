@@ -170,11 +170,11 @@ makeBuiltIn(int env,int name,int parameters,int body)
     }
 
 int
-makeError(int tag,int fileIndex,int lineNumber,int msg,int trace)
+makeError(int tag,int expr,int msg,int trace)
     {
     int o;
 
-    assert(ERROR_CELLS == OBJECT_CELLS + 8 + 2);
+    assert(ERROR_CELLS == OBJECT_CELLS + 6);
 
     assureMemory("makeError",ERROR_CELLS,
         &tag,&msg,&trace,0);
@@ -182,16 +182,14 @@ makeError(int tag,int fileIndex,int lineNumber,int msg,int trace)
     o = makeObject(tag);
 
     object_variable_hook(o) =
-        ucons(fileSymbol,
-            ucons(lineSymbol,
-                ucons(messageSymbol,
-                    ucons(traceSymbol,0))));
+        ucons(codeSymbol,
+            ucons(messageSymbol,
+                ucons(traceSymbol,0)));
 
     object_value_hook(o) =
-        ucons(lineNumber == 0 ? 0 : newSymbolFromIndex(fileIndex),
-            ucons(lineNumber == 0 ? 0 : newInteger(lineNumber),
-                ucons(msg,
-                    ucons(trace,0))));
+        ucons(expr,
+            ucons(msg,
+                ucons(trace,0)));
 
     return o;
     }
@@ -205,9 +203,9 @@ convertThrow(int tag,int e)
     }
 
 int
-makeThrow(int fileIndex,int lineNumber,int msg,int trace)
+makeThrow(int expr,int msg,int trace)
     {
-    return makeError(throwSymbol,fileIndex,lineNumber,msg,trace);
+    return makeError(throwSymbol,expr,msg,trace);
     }
 
 int
@@ -225,7 +223,17 @@ throw(char *fmt, ...)
 
     s = newString(buffer);
 
-    return makeThrow(0,0,s,0);
+    return makeThrow(0,s,0);
+    }
+
+int
+throwAgain(int expr,int exception)
+    {
+    debug("adding trace expression",expr);
+    printf("adding trace file %s, line %d\n",
+        SymbolTable[file(expr)],line(expr));
+
+    return makeThrow(expr,0,exception);
     }
 
 int

@@ -8,13 +8,13 @@ extern int makeObject(int);
 extern int makeEnvironment(int,int,int,int);
 extern int makeThunk(int,int);
 extern int makeClosure(int,int,int,int,int);
-extern int makeError(int,int,int,int,int);
+extern int makeError(int,int,int,int);
 extern int converThrow(int,int);
-extern int makeThrow(int,int,int,int);
+extern int makeThrow(int,int,int);
 extern int makeBuiltIn(int,int,int,int);
 
 extern int throw(char *,...);
-extern int throwAgain(int,int,int);
+extern int throwAgain(int,int);
 
 #define rethrow(x) { if (isThrow(x)) return (x); }
 
@@ -55,13 +55,12 @@ extern int throwAgain(int,int,int);
 #define CLOSURE_CELLS (OBJECT_CELLS + 8 + 1)  //one more for begin
 #define CLOSURE_PREDEFINED (OBJECT_PREDEFINED + 4)
 
-#define error_line(x)          (cadr(object_values(x)))
-#define error_file(x)          (caddr(object_values(x)))
+#define error_code(x)          (cadr(object_values(x)))
 #define error_message(x)       (cadddr(object_values(x)))
 #define error_trace(x)         (caddddr(object_values(x)))
 
-#define ERROR_CELLS (OBJECT_CELLS + 8 + 2) //two more for file and line
-#define ERROR_PREDEFINED (OBJECT_PREDEFINED + 4)
+#define ERROR_CELLS (OBJECT_CELLS + 6)
+#define ERROR_PREDEFINED (OBJECT_PREDEFINED + 3)
 
 #define isCons(x) (type(x) == CONS)
 #define isTagged(x) (isCons(x) && type(car(x)) == SYMBOL)

@@ -153,7 +153,7 @@ evalThunkListExceptLast(int items)
         //debug("items after",items);
 
         if (isThrow(result))
-            return throwAgain(file(car(items)),line(car(items)),result);
+            return throwAgain(car(items),result);
 
         items = cdr(items);
         }
@@ -177,7 +177,7 @@ evalListExceptLast(int items,int env)
         //debug("items after",items);
 
         if (isThrow(result))
-            return throwAgain(file(car(items)),line(car(items)),result);
+            return throwAgain(car(items),result);
 
         items = cdr(items);
         }
@@ -193,14 +193,14 @@ evalThunkList(int items)
     int result;
     while (items != 0)
         {
-        //debug("items before",items);
+        debug("evaluating ",thunk_code(car(items)));
         push(items);
         result = eval(thunk_code(car(items)),thunk_context(car(items)));
         items = pop();
         //debug("items after",items);
 
         if (isThrow(result))
-            return throwAgain(file(car(items)),line(car(items)),result);
+            return throwAgain(car(items),result);
 
         items = cdr(items);
         }

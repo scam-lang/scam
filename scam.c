@@ -64,8 +64,22 @@ main(int argc,char **argv,char **envv)
     pop();
     pop();
 
-    pp(stdout,result);
-    printf("\n");
+    if (isThrow(result))
+        {
+        printf("throw!\n");
+        while (error_trace(result) != 0)
+            {
+            printf("file %s, line %d\n",
+                SymbolTable[ival(error_file(result))],ival(error_line(result)));
+            result = error_trace(result);
+            }
+        printf("%s\n",cellString(0,0,error_message(result)));
+        }
+    else
+        {
+        pp(stdout,result);
+        printf("\n");
+        }
 
     return 0;
     }
