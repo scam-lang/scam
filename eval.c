@@ -85,7 +85,7 @@ evalCall(int call,int env, int mode)
     //debug("evalCall",call);
     //debug("calling",closure);
 
-    if (!isClosure(closure) && !isBuiltin(closure))
+    if (!isClosure(closure))
         return throw(file(call),line(call),
             "attempted to call %s as a function", type(closure));
 
@@ -101,7 +101,7 @@ evalCall(int call,int env, int mode)
 
     //debug("evaluated args",eargs);
 
-    if (isBuiltIn(closure))
+    if (sameSymbol(object_label(closure),builtInSymbol))
         {
         int result;
         result = evalBuiltIn(eargs,closure);

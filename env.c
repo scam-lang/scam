@@ -14,14 +14,14 @@ getVariableValue(int var,int env)
     if (spot == 0)
         {
         //ppObject(stdout,env,0);
-        Fatal("undefinedVariable"
-            ": variable %s is undefined",
+        return throw(file(var),line(var),
+            "variable %s is undefined",
             SymbolTable[ival(var)]);
         }
     if (sameSymbol(car(spot),uninitializedSymbol))
         {
-        Fatal("uninitializedVariable"
-            ": variable %s is uninitialized",
+        return throw(file(var),line(var),
+            "variable %s is uninitialized",
             SymbolTable[ival(var)]);
         }
     return car(spot);
@@ -33,8 +33,8 @@ setVariableValue(int var,int val,int env)
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        Fatal("undefinedVariable"
-            ": variable %s is undefined",SymbolTable[ival(var)]);
+        return throw(file(var),line(var),
+            "variable %s is undefined",SymbolTable[ival(var)]);
         }
     car(spot) = val;
     return val;

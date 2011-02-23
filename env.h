@@ -66,6 +66,7 @@ extern int throw(int,int,char *,...);
 #define isTagged(x) (isCons(x) && type(car(x)) == SYMBOL)
 #define isObject(x) (isTagged(x) && ival(car(x)) == ival(objectSymbol))
 #define isThunk(x) (isObject(x) && ival(object_label(x)) == ival(thunkSymbol))
-#define isBuiltIn(x) (isObject(x) && ival(object_label(x)) == ival(builtInSymbol))
-#define isClosure(x) (isObject(x) && ival(object_label(x)) == ival(closureSymbol))
+#define isClosure(x) (isObject(x) && \
+    ((ival(object_label(x)) == ival(closureSymbol)) \
+    || (ival(object_label(x)) == ival(builtInSymbol))))
 #define isThrow(x) (isObject(x) && ival(object_label(x)) == ival(throwSymbol))
