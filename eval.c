@@ -38,7 +38,11 @@ eval(int expr, int env)
             else if (index == ival(nilSymbol))
                 return 0;
             else
-                return getVariableValue(expr,env);
+                {
+                int result = getVariableValue(expr,env);
+                if isThrow(result) return throwAgain(expr,result);
+                return result;
+                }
             }
 
         //printf("eval type is %s\n",type(expr));
@@ -53,6 +57,7 @@ eval(int expr, int env)
 
         t = evalCall(expr,env,NORMAL);
 
+        if (isThrow(t)) return throwAgain(expr,t);
         if (!isThunk(t)) return t;
 
         expr = thunk_code(t);
@@ -153,7 +158,7 @@ evalThunkListExceptLast(int items)
         //debug("items after",items);
 
         if (isThrow(result))
-            return throwAgain(car(items),result);
+            return throwAgain(thunk_code(car(items)),result);
 
         items = cdr(items);
         }
@@ -193,16 +198,17 @@ evalThunkList(int items)
     int result;
     while (items != 0)
         {
-        debug("evaluating ",thunk_code(car(items)));
+        //debug("evaluating ",thunk_code(car(items)));
         push(items);
         result = eval(thunk_code(car(items)),thunk_context(car(items)));
         items = pop();
         //debug("items after",items);
 
-        if (isThrow(result))
-            return throwAgain(car(items),result);
 
         items = cdr(items);
+
+        if (items != 0 && isThrow(result))
+            return throwAgain(thunk_code(car(items)),result);
         }
     return result;
     }

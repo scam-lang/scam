@@ -229,9 +229,9 @@ throw(char *fmt, ...)
 int
 throwAgain(int expr,int exception)
     {
-    debug("adding trace expression",expr);
-    printf("adding trace file %s, line %d\n",
-        SymbolTable[file(expr)],line(expr));
+    //debug("adding trace expression",expr);
+    //printf("adding trace file %s, line %d\n",
+        //SymbolTable[file(expr)],line(expr));
 
     return makeThrow(expr,0,exception);
     }

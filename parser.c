@@ -135,9 +135,14 @@ expr(PARSER *p)
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
+        int f,l;
         match(p,OPEN_PARENTHESIS);
+        f = p->file;
+        l = p->line;
         result = exprSeq(p);
         match(p,CLOSE_PARENTHESIS);
+        file(result) = f;
+        line(result) = l;
         }
     else
         Fatal("syntax error on line %d\n",LineNumber);

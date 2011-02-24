@@ -66,14 +66,16 @@ main(int argc,char **argv,char **envv)
 
     if (isThrow(result))
         {
-        printf("throw!\n");
+        printf("EXCEPTION TRACE\n");
         while (error_trace(result) != 0)
             {
-            printf("file %s, line %d\n",
-                SymbolTable[ival(error_file(result))],ival(error_line(result)));
+            printf("%s,line %d: ",
+                SymbolTable[file(error_code(result))],line(error_code(result)));
+            pp(stdout,error_code(result));
+            printf("\n");
             result = error_trace(result);
             }
-        printf("%s\n",cellString(0,0,error_message(result)));
+        printf("exception: %s\n",cellString(0,0,error_message(result)));
         }
     else
         {
