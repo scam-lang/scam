@@ -27,13 +27,13 @@ scamBoolean(int item)
         return trueSymbol;
     }
 
+/* (quote #item) */
+
 static int
 quote(int args)
     {
-    return thunk_code(car(args));
+    return car(args);
     }
-
-/* (define #) */
 
 static int
 defineIdentifier(int name,int init,int env)
@@ -66,55 +66,53 @@ defineFunction(int name,int parameters,int body,int env)
     return defineVariable(env,name,closure);
     }
 
-/* (define #) */
+/* (define ^ #) */
 
 static int
 define(int args)
     {
-    int actualArgs = thunk_code(car(args));
+    int actualArgs = cadr(args);
     int first = car(actualArgs);
     int rest = cdr(actualArgs);
 
     if (type(first) == CONS)
-        return defineFunction(car(first),cdr(first),rest,
-            thunk_context(car(args)));
+        return defineFunction(car(first),cdr(first),rest,car(args));
     else if (type(first) == SYMBOL)
-        return defineIdentifier(first,car(rest),
-            thunk_context(car(args)));
+        return defineIdentifier(first,car(rest),car(args));
     else
         return throw("can only define SYMBOLS, not type %s",type(first));
     }
 
-/* (lambda $params #) */
+/* (lambda ^ #params #) */
 
 static int
 lambda(int args)
     {
     int name = anonymousSymbol;
-    int params = thunk_code(car(args));
-    int body = thunk_code(cadr(args));
+    int params = cadr(args);
+    int body = caddr(args);
 
-    return  makeClosure(thunk_context(car(args)),name,params,body,ADD_BEGIN);
+    return  makeClosure(car(args),name,params,body,ADD_BEGIN);
     }
 
-/* (or a $b) */
+/* (or ^ a #b) */
 
 static int
 or(int args)
     {
-    if (car(args) == trueSymbol) return trueSymbol;
+    if (cadr(args) == trueSymbol) return trueSymbol;
 
-    return cadr(args);
+    return makeThunk(car(args),caddr(args));
     }
 
-/* (and a $b) */
+/* (and ^ a #b) */
 
 static int
 and(int args)
     {
-    if (car(args) == falseSymbol) return falseSymbol;
+    if (cadr(args) == falseSymbol) return falseSymbol;
 
-    return cadr(args);
+    return makeThunk(car(args),caddr(args));
     }
 
 static int
@@ -446,27 +444,25 @@ ttype(int args)
         return newSymbol(type(car(args)));
     }
 
-/* (begin $) */
+/* (begin ^ #) */
 
 static int
 begin(int args)
     {
     //printf("in begin...\n");
-    return evalThunkListExceptLast(car(args));
+    return evalListExceptLast(cadr(args),car(args));
     }
 
-/* (scope #) */
+/* (scope ^ #) */
 
 static int
 scope(int args)
     {
-    int result,context,env;
+    int env;
     //printf("in scope...\n");
     assureMemory("scope",ENV_CELLS,&args,0);
-    context = thunk_context(car(args));
-    env = makeEnvironment(context,0,0,0);
-    result = evalListExceptLast(thunk_code(car(args)),env);
-    return result;
+    env = makeEnvironment(car(args),0,0,0);
+    return evalListExceptLast(cadr(args),env);
     }
 
 /* (print @) */
@@ -498,42 +494,40 @@ println(int args)
     return result;
     }
 
-/* (if test $then $) */
+/* (if ^ test #then #) */
 
 static int
 iif(int args)
     {
     //debug("if test",car(args));
 
-    if (sameSymbol(car(args),trueSymbol))
+    if (sameSymbol(cadr(args),trueSymbol))
         {
         //printf("if test is true\n");
         //debug("then",cadr(args));
-        return cadr(args);
+        return makeThunk(caddr(args),car(args));
         }
     else
         {
         //printf("if test is false\n");
-        int otherwise = caddr(args);
+        int otherwise = cadddr(args);
         if (otherwise != 0)
             {
             //debug("else",cadr(args));
-            return car(otherwise);
+            return makeThunk(car(otherwise),car(args));
             }
         else
             return 0;
         }
     }
 
-/* else */
-
-/* (cond #) */
+/* (cond ^ #) */
 
 static int
 cond(int args)
     {
-    int cases = thunk_code(car(args));
-    int env = thunk_context(car(args));
+    int cases = cadr(args);
+    int env = car(args);
 
     while (cases != 0)
         {
@@ -560,7 +554,7 @@ cond(int args)
     return falseSymbol;
     }
 
-/* (while $test $) */
+/* (while ^ #test #) */
 
 static int
 wwhile(int args)
@@ -571,7 +565,7 @@ wwhile(int args)
     //printf("in while...\n");
 
     push(args);
-    testResult = eval(thunk_code(car(args)),thunk_context(car(args)));
+    testResult = eval(cadr(args),car(args));
     args = pop();
 
     rethrow(testResult);
@@ -579,13 +573,13 @@ wwhile(int args)
     while (sameSymbol(testResult,trueSymbol))
         {
         push(args);
-        last = evalThunkList(cadr(args));
+        last = evalList(caddr(args),car(args));
         args = pop();
 
         rethrow(last);
 
         push(args);
-        testResult = eval(thunk_code(car(args)),thunk_context(car(args)));
+        testResult = eval(cadr(args),car(args));
         args = pop();
 
         rethrow(testResult);
@@ -665,30 +659,37 @@ get(int args)
 static int
 force(int args)
     {
+    if (!isThunk(car(args)))
+        return throw("cannot force type %s",type(car(args)));
+
     return car(args);
     }
 
-/* (inspect $item) */
+/* (inspect ^ #item) */
 
 static int
 inspect(int args)
     {
     int result;
-    result = eval(thunk_code(car(args)),thunk_context(car(args)));
-    pp(stdout,thunk_code(car(args)));
+
+    push(args);
+    result = eval(cadr(args),car(args));
+    args = pop();
+
+    pp(stdout,cadr(args));
     fprintf(stdout," is ");
     pp(stdout,result);
     fprintf(stdout,"\n");
     return result;
     }
 
-/* (include fileName) */
+/* (include ^ #fileName) */
 
 static int
 include(int args)
     {
-    int fileName = thunk_code(car(args));
-    int env = thunk_context(car(args));
+    int fileName = cadr(args);
+    int env = car(args);
     int ptree;
     char buffer[512];
     PARSER *p;
@@ -706,7 +707,7 @@ include(int args)
 
     rethrow(ptree);
 
-    return eval(ptree,env);
+    return makeThunk(ptree,env);
     }
 
 /* (eval expr context) */
@@ -1562,7 +1563,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = include;
     b = makeBuiltIn(env,
         newSymbol("include"),
-        ucons(newSymbol("$fileName"),0),
+        ucons(hatSymbol,
+            ucons(newSymbol("#fileName"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1589,7 +1591,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = inspect;
     b = makeBuiltIn(env,
         newSymbol("inspect"),
-        ucons(newSymbol("$expr"),0),
+        ucons(hatSymbol,
+            ucons(newSymbol("#expr"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1597,7 +1600,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = force;
     b = makeBuiltIn(env,
         newSymbol("force"),
-        ucons(newSymbol("$thunk"),0),
+        ucons(newSymbol("#thunk"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1605,7 +1608,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = scope;
     b = makeBuiltIn(env,
         newSymbol("scope"),
-        ucons(sharpSymbol,0),
+        ucons(hatSymbol,
+            ucons(sharpSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1613,7 +1617,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = begin;
     b = makeBuiltIn(env,
         beginSymbol,
-        ucons(dollarSymbol,0),
+        ucons(hatSymbol,
+            ucons(sharpSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1621,7 +1626,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = define;
     b = makeBuiltIn(env,
         newSymbol("define"),
-        ucons(sharpSymbol,0),
+        ucons(hatSymbol,
+            ucons(sharpSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1690,7 +1696,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
         newSymbol("quote"),
-        ucons(newSymbol("$item"),0),
+        ucons(newSymbol("#item"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1698,8 +1704,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = lambda;
     b = makeBuiltIn(env,
         newSymbol("lambda"),
-        ucons(newSymbol("$params"),
-            ucons(sharpSymbol,0)),
+        ucons(hatSymbol,
+            ucons(newSymbol("#params"),
+                ucons(sharpSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1707,7 +1714,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = cond;
     b = makeBuiltIn(env,
         newSymbol("cond"),
-        ucons(sharpSymbol,0),
+        ucons(hatSymbol,
+            ucons(sharpSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1715,9 +1723,10 @@ loadBuiltIns(int env)
     BuiltIns[count] = iif;
     b = makeBuiltIn(env,
         newSymbol("if"),
-        ucons(newSymbol("test"),
-            ucons(newSymbol("$then"),
-                ucons(dollarSymbol,0))),
+        ucons(hatSymbol,
+            ucons(newSymbol("test"),
+                ucons(newSymbol("#then"),
+                    ucons(sharpSymbol,0)))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1725,8 +1734,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = wwhile;
     b = makeBuiltIn(env,
         newSymbol("while"),
-        ucons(newSymbol("$test"),
-            ucons(dollarSymbol,0)),
+        ucons(hatSymbol,
+            ucons(newSymbol("#test"),
+                ucons(sharpSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1734,8 +1744,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = and;
     b = makeBuiltIn(env,
         newSymbol("and"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("$b"),0)),
+        ucons(hatSymbol,
+            ucons(newSymbol("a"),
+                ucons(newSymbol("#b"),0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1743,8 +1754,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = or;
     b = makeBuiltIn(env,
         newSymbol("or"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("$b"),0)),
+        ucons(hatSymbol,
+            ucons(newSymbol("a"),
+                ucons(newSymbol("#b"),0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

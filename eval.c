@@ -11,7 +11,6 @@
 
 static int evalBuiltIn(int,int);
 static int processArguments(int,int,int,int,int);
-static int thunkizedArgList(int,int);
 static int evaluatedArgList(int,int);
 static int unevaluatedArgList(int);
 
@@ -143,26 +142,29 @@ evalBuiltIn(int args,int builtIn)
     return prim(args);
     }
 
-/* evalThunkListExceptLast expects a list of thunks */
+/* evalListExceptLast expects a regular list of expressions */
 
 int
-evalThunkListExceptLast(int items)
+evalList(int items,int env)
     {
-    while (cdr(items) != 0)
+    int result = 0;
+    while (items != 0)
         {
-        int result;
         //debug("items before",items);
+        push(env);
         push(items);
-        result = eval(thunk_code(car(items)),thunk_context(car(items)));
+        result = eval(car(items),env);
         items = pop();
+        env = pop();
         //debug("items after",items);
 
         if (isThrow(result))
-            return throwAgain(thunk_code(car(items)),result);
+            return throwAgain(car(items),result);
 
         items = cdr(items);
         }
-    return car(items);
+
+    return result;
     }
 
 /* evalListExceptLast expects a regular list of expressions */
@@ -190,35 +192,10 @@ evalListExceptLast(int items,int env)
     return makeThunk(car(items),env);
     }
 
-/* evalThunkList expects a list of thunks */
-
-int
-evalThunkList(int items)
-    {
-    int result;
-    while (items != 0)
-        {
-        //debug("evaluating ",thunk_code(car(items)));
-        push(items);
-        result = eval(thunk_code(car(items)),thunk_context(car(items)));
-        items = pop();
-        //debug("items after",items);
-
-
-        items = cdr(items);
-
-        if (items != 0 && isThrow(result))
-            return throwAgain(thunk_code(car(items)),result);
-        }
-    return result;
-    }
-    
-
-
 static int
 processArguments(int name, int params,int args,int env,int mode)
     {
-    int ch,first,rest,result;
+    int first,rest,result;
 
     //debug("p-a",params);
     if (params == 0 && args == 0)
@@ -227,18 +204,6 @@ processArguments(int name, int params,int args,int env,int mode)
         {
         return throw("too many arguments to function %s",
             SymbolTable[ival(name)]);
-        }
-    else if (sameSymbol(car(params),sharpSymbol))
-        {
-        assureMemory("processArgs:uArgs",THUNK_CELLS + 1 + length(args),&env,&args,0);
-        rest = unevaluatedArgList(args);
-        result = ucons(makeThunk(rest,env),0);
-        }
-    else if (sameSymbol(car(params),dollarSymbol))
-        {
-        rest = thunkizedArgList(args,env);
-        assureMemory("processArgs:tArgs",1,&rest,0);
-        result = ucons(rest,0);
         }
     else if (sameSymbol(car(params),atSymbol))
         {
@@ -252,7 +217,7 @@ processArguments(int name, int params,int args,int env,int mode)
         assureMemory("processArgs:eArgs",1,&rest,0);
         result = ucons(rest,0);
         }
-    else if (sameSymbol(car(params),ampersandSymbol))
+    else if (sameSymbol(car(params),sharpSymbol))
         {
         assureMemory("processArgs:amp",1 + length(args),&args,0);
         rest = unevaluatedArgList(args);
@@ -274,20 +239,7 @@ processArguments(int name, int params,int args,int env,int mode)
         return throw("too few arguments to function %s",
             SymbolTable[ival(name)]);
         }
-    else if ((ch = *SymbolTable[ival(car(params))]) == '$' || ch == '#')
-        {
-        push(env);
-        push(args);
-        rest = processArguments(name,cdr(params),cdr(args),env,mode);
-        assureMemory("processArgs:tArg",THUNK_CELLS + 1,&rest,0);
-        args = pop();
-        env = pop();
-
-        rethrow(rest);
-
-        result = ucons(makeThunk(car(args),env),rest);
-        }
-    else if (ch == '&')
+    else if (*SymbolTable[ival(car(params))] == '#')
         {
         push(args);
         rest = processArguments(name,cdr(params),cdr(args),env,mode);
@@ -328,25 +280,6 @@ processArguments(int name, int params,int args,int env,int mode)
         }
     //debug("p-a result",result);
     return result;
-    }
-
-static int
-thunkizedArgList(int args,int env)
-    {
-    int rest;
-    if (args == 0)
-        return 0;
-    else
-        {
-        push(env);
-        push(args);
-        rest = thunkizedArgList(cdr(args),env);
-        assureMemory("thunkizedArgList",THUNK_CELLS + 1,&rest,0);
-        args = pop();
-        env = pop();
-
-        return ucons(makeThunk(car(args),env),rest);
-        }
     }
 
 /* 
