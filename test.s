@@ -22,8 +22,8 @@
     (set! (quote i) (+ i 1))
     )
 
-(define (calling ^)
-    ^
+(define (calling #)
+    #
     )
 (inspect (calling))
 
@@ -41,4 +41,5 @@
 (println (get 'z obj))
 (inspect (% 5 3))
 (inspect (cons 2 4))
+(inspect (and #t #t))
 'done

@@ -27,7 +27,7 @@ scamBoolean(int item)
         return trueSymbol;
     }
 
-/* (quote #item) */
+/* (quote $item) */
 
 static int
 quote(int args)
@@ -66,7 +66,7 @@ defineFunction(int name,int parameters,int body,int env)
     return defineVariable(env,name,closure);
     }
 
-/* (define ^ #) */
+/* (define ^ $) */
 
 static int
 define(int args)
@@ -83,7 +83,7 @@ define(int args)
         return throw("can only define SYMBOLS, not type %s",type(first));
     }
 
-/* (lambda ^ #params #) */
+/* (lambda ^ $params $) */
 
 static int
 lambda(int args)
@@ -95,24 +95,24 @@ lambda(int args)
     return  makeClosure(car(args),name,params,body,ADD_BEGIN);
     }
 
-/* (or ^ a #b) */
+/* (or ^ a $b) */
 
 static int
 or(int args)
     {
     if (cadr(args) == trueSymbol) return trueSymbol;
 
-    return makeThunk(car(args),caddr(args));
+    return makeThunk(caddr(args),car(args));
     }
 
-/* (and ^ a #b) */
+/* (and ^ a $b) */
 
 static int
 and(int args)
     {
     if (cadr(args) == falseSymbol) return falseSymbol;
 
-    return makeThunk(car(args),caddr(args));
+    return makeThunk(caddr(args),car(args));
     }
 
 static int
@@ -444,7 +444,7 @@ ttype(int args)
         return newSymbol(type(car(args)));
     }
 
-/* (begin ^ #) */
+/* (begin ^ $) */
 
 static int
 begin(int args)
@@ -453,7 +453,7 @@ begin(int args)
     return evalListExceptLast(cadr(args),car(args));
     }
 
-/* (scope ^ #) */
+/* (scope ^ $) */
 
 static int
 scope(int args)
@@ -494,7 +494,7 @@ println(int args)
     return result;
     }
 
-/* (if ^ test #then #) */
+/* (if ^ test $then $) */
 
 static int
 iif(int args)
@@ -521,7 +521,7 @@ iif(int args)
         }
     }
 
-/* (cond ^ #) */
+/* (cond ^ $) */
 
 static int
 cond(int args)
@@ -554,7 +554,7 @@ cond(int args)
     return falseSymbol;
     }
 
-/* (while ^ #test #) */
+/* (while ^ $test $) */
 
 static int
 wwhile(int args)
@@ -665,7 +665,7 @@ force(int args)
     return car(args);
     }
 
-/* (inspect ^ #item) */
+/* (inspect ^ $item) */
 
 static int
 inspect(int args)
@@ -683,7 +683,7 @@ inspect(int args)
     return result;
     }
 
-/* (include ^ #fileName) */
+/* (include ^ $fileName) */
 
 static int
 include(int args)
@@ -1563,8 +1563,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = include;
     b = makeBuiltIn(env,
         newSymbol("include"),
-        ucons(hatSymbol,
-            ucons(newSymbol("#fileName"),0)),
+        ucons(sharpSymbol,
+            ucons(newSymbol("$fileName"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1591,8 +1591,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = inspect;
     b = makeBuiltIn(env,
         newSymbol("inspect"),
-        ucons(hatSymbol,
-            ucons(newSymbol("#expr"),0)),
+        ucons(sharpSymbol,
+            ucons(newSymbol("$expr"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1600,7 +1600,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = force;
     b = makeBuiltIn(env,
         newSymbol("force"),
-        ucons(newSymbol("#thunk"),0),
+        ucons(newSymbol("$thunk"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1608,8 +1608,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = scope;
     b = makeBuiltIn(env,
         newSymbol("scope"),
-        ucons(hatSymbol,
-            ucons(sharpSymbol,0)),
+        ucons(sharpSymbol,
+            ucons(dollarSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1617,8 +1617,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = begin;
     b = makeBuiltIn(env,
         beginSymbol,
-        ucons(hatSymbol,
-            ucons(sharpSymbol,0)),
+        ucons(sharpSymbol,
+            ucons(dollarSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1626,8 +1626,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = define;
     b = makeBuiltIn(env,
         newSymbol("define"),
-        ucons(hatSymbol,
-            ucons(sharpSymbol,0)),
+        ucons(sharpSymbol,
+            ucons(dollarSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1696,7 +1696,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
         newSymbol("quote"),
-        ucons(newSymbol("#item"),0),
+        ucons(newSymbol("$item"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1704,9 +1704,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = lambda;
     b = makeBuiltIn(env,
         newSymbol("lambda"),
-        ucons(hatSymbol,
-            ucons(newSymbol("#params"),
-                ucons(sharpSymbol,0))),
+        ucons(sharpSymbol,
+            ucons(newSymbol("$params"),
+                ucons(dollarSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1714,8 +1714,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = cond;
     b = makeBuiltIn(env,
         newSymbol("cond"),
-        ucons(hatSymbol,
-            ucons(sharpSymbol,0)),
+        ucons(sharpSymbol,
+            ucons(dollarSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1723,10 +1723,10 @@ loadBuiltIns(int env)
     BuiltIns[count] = iif;
     b = makeBuiltIn(env,
         newSymbol("if"),
-        ucons(hatSymbol,
+        ucons(sharpSymbol,
             ucons(newSymbol("test"),
-                ucons(newSymbol("#then"),
-                    ucons(sharpSymbol,0)))),
+                ucons(newSymbol("$then"),
+                    ucons(dollarSymbol,0)))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1734,9 +1734,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = wwhile;
     b = makeBuiltIn(env,
         newSymbol("while"),
-        ucons(hatSymbol,
-            ucons(newSymbol("#test"),
-                ucons(sharpSymbol,0))),
+        ucons(sharpSymbol,
+            ucons(newSymbol("$test"),
+                ucons(dollarSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1744,9 +1744,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = and;
     b = makeBuiltIn(env,
         newSymbol("and"),
-        ucons(hatSymbol,
+        ucons(sharpSymbol,
             ucons(newSymbol("a"),
-                ucons(newSymbol("#b"),0))),
+                ucons(newSymbol("$b"),0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1754,9 +1754,9 @@ loadBuiltIns(int env)
     BuiltIns[count] = or;
     b = makeBuiltIn(env,
         newSymbol("or"),
-        ucons(hatSymbol,
+        ucons(sharpSymbol,
             ucons(newSymbol("a"),
-                ucons(newSymbol("#b"),0))),
+                ucons(newSymbol("$b"),0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1845,7 +1845,7 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("get"),
         ucons(newSymbol("id"),
-            ucons(hatSymbol,
+            ucons(sharpSymbol,
                 ucons(atSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
@@ -1856,7 +1856,7 @@ loadBuiltIns(int env)
         newSymbol("set!"),
         ucons(newSymbol("id"),
             ucons(newSymbol("value"),
-                ucons(hatSymbol,
+                ucons(sharpSymbol,
                     ucons(atSymbol,0)))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);

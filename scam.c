@@ -24,7 +24,7 @@ extern FILE *Input;
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
 char *PROGRAM_NAME = "scam";
-char *PROGRAM_VERSION = "0.1";
+char *PROGRAM_VERSION = "0.2";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
@@ -84,11 +84,11 @@ main(int argc,char **argv,char **envv)
             }
         printf("exception: %s\n",cellString(0,0,error_message(result)));
         }
-    else
-        {
-        pp(stdout,result);
-        printf("\n");
-        }
+    //else
+    //    {
+    //    pp(stdout,result);
+    //    printf("\n");
+    //    }
 
     return 0;
     }

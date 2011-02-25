@@ -217,13 +217,13 @@ processArguments(int name, int params,int args,int env,int mode)
         assureMemory("processArgs:eArgs",1,&rest,0);
         result = ucons(rest,0);
         }
-    else if (sameSymbol(car(params),sharpSymbol))
+    else if (sameSymbol(car(params),dollarSymbol))
         {
         assureMemory("processArgs:amp",1 + length(args),&args,0);
         rest = unevaluatedArgList(args);
         result = ucons(rest,0);
         }
-    else if (sameSymbol(car(params),hatSymbol))
+    else if (sameSymbol(car(params),sharpSymbol))
         {
         push(env);
         rest = processArguments(name,cdr(params),args,env,mode);
@@ -239,7 +239,7 @@ processArguments(int name, int params,int args,int env,int mode)
         return throw("too few arguments to function %s",
             SymbolTable[ival(name)]);
         }
-    else if (*SymbolTable[ival(car(params))] == '#')
+    else if (*SymbolTable[ival(car(params))] == '$')
         {
         push(args);
         rest = processArguments(name,cdr(params),cdr(args),env,mode);
