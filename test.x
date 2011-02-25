@@ -1,7 +1,3 @@
-(define (inspect $x)
-    (println (get 'code $x) " is " (eval (get 'code $x) (get 'context $x)))
-    )
-
 (cond
     ('#f (println "oops"))
     ('#f (println "oops2"))
@@ -32,7 +28,7 @@
 
 (define obj (scope (define z 3) this))
 ;(climb 0)
-;(println "fib(" z ") is " (fib z))
+(println "fib(" z ") is " (fib z))
 (println "---")
 (println (get 'z))
 (println "---")
@@ -42,6 +38,6 @@
 (println (get 'z))
 (println (get 'z this))
 (println (get 'z obj))
-(inspect (% 5 3 2))
+(inspect (% 5 3))
 (inspect (cons 2 4))
 'done

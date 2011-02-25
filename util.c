@@ -125,6 +125,12 @@ ProcessOptions(int argc, char **argv)
                 argUsed = 1;
                 }
                 break;
+            case 't':
+                {
+                extern int TraceBack;
+                TraceBack = 1;
+                }
+                break;
             case 'v':
                 printf("%s version %s\n", PROGRAM_NAME, PROGRAM_VERSION);
                 exit(0);

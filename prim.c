@@ -97,411 +97,24 @@ lambda(int args)
     return  makeClosure(thunk_context(car(args)),name,params,body,ADD_BEGIN);
     }
 
-static int
-rtimes(int args,int accum)
-    {
-    while (args != 0)
-        {
-        int arg = car(args);
-        char *t = type(arg);
-        if (t == INTEGER)
-            rval(accum) *= ival(arg);
-        else if (t == REAL)
-            rval(accum) *= rval(arg);
-        else
-            return throw(
-                "wrong type for multiplication: %s",type(car(args)));
-        args = cdr(args);
-        }
-
-    return accum;
-    }
-
-static int
-itimes(int args,int accum)
-    {
-    while (args != 0)
-        {
-        char *t = type(car(args));
-
-        if (t == REAL)
-            {
-            type(accum) = REAL;
-            rval(accum) = ival(accum);
-            return rtimes(args,accum);
-            }
-        else if (t == INTEGER)
-            ival(accum) *= ival(car(args));
-        else
-            return throw(
-                "wrong type for multiplication: %s",type(car(args)));
-            
-        args = cdr(args);
-        }
-
-    //debug("iplus",accum);
-    return accum;
-    }
-
-/* (+ @) */
-
-static int
-times(int args)
-    {
-    char *t;
-
-    args = car(args);
-
-    if (args == 0) return zero;
-
-    assureMemory("times",1,&args,0);
-
-    t = type(car(args));
-
-    if (t == INTEGER) return itimes(args,newInteger(0));
-    if (t == REAL) return rtimes(args,newReal(0));
-    
-    return throw("wrong type for multiplication: %s",type(car(args)));
-    }
-
-static int
-rplus(int args,int accum)
-    {
-    while (args != 0)
-        {
-        int arg = car(args);
-        char *t = type(arg);
-        if (t == INTEGER)
-            rval(accum) += ival(arg);
-        else if (t == REAL)
-            rval(accum) += rval(arg);
-        else
-            return throw(
-                "wrong type for addition: %s",type(car(args)));
-        args = cdr(args);
-        }
-
-    return accum;
-    }
-
-static int
-iplus(int args,int accum)
-    {
-    while (args != 0)
-        {
-        char *t = type(car(args));
-
-        if (t == REAL)
-            {
-            type(accum) = REAL;
-            rval(accum) = ival(accum);
-            return rplus(args,accum);
-            }
-        else if (t == INTEGER)
-            ival(accum) += ival(car(args));
-        else
-            return throw(
-                "wrong type for addition: %s",type(car(args)));
-            
-        args = cdr(args);
-        }
-
-    //debug("iplus",accum);
-    return accum;
-    }
-
-/* (+ @) */
-
-static int
-plus(int args)
-    {
-    char *t;
-
-    args = car(args);
-
-    if (args == 0) return zero;
-
-    assureMemory("plus",1,&args,0);
-
-    t = type(car(args));
-
-    if (t == INTEGER) return iplus(args,newInteger(0));
-    if (t == REAL) return rplus(args,newReal(0));
-    
-    return throw("wrong type for addition: %s",type(car(args)));
-    }
-
-static int
-rdivides(int args,int accum)
-    {
-    while (args != 0)
-        {
-        int arg = car(args);
-        char *t = type(arg);
-        if (t == INTEGER)
-            rval(accum) /= ival(arg);
-        else if (t == REAL)
-            rval(accum) /= rval(arg);
-        else
-            return throw(
-                "wrong type for division: %s",type(car(args)));
-        args = cdr(args);
-        }
-
-    return accum;
-    }
-
-static int
-idivides(int args,int accum)
-    {
-    while (args != 0)
-        {
-        char *t = type(car(args));
-
-        if (t == REAL)
-            {
-            type(accum) = REAL;
-            rval(accum) = ival(accum);
-            return rdivides(args,accum);
-            }
-        else if (t == INTEGER)
-            ival(accum) /= ival(car(args));
-        else
-            return throw(
-                "wrong type for division: %s",type(car(args)));
-            
-        args = cdr(args);
-        }
-
-    return accum;
-    }
-
-/* (/ @) */
-
-static int
-divides(int args)
-    {
-    char *t;
-    int accum;
-
-    args = car(args);
-
-    if (args == 0) return zero;
-
-    assureMemory("divides",1,&args,0);
-
-    t = type(car(args));
-
-    if (t == INTEGER && cdr(args) == 0)
-        {
-        return newInteger(1 / ival(car(args)));
-        }
-    else if (t == INTEGER)
-        {
-        accum = newInteger(ival(car(args)));
-        return idivides(cdr(args),accum);
-        }
-    else if (t == REAL && cdr(args) == 0)
-        {
-        return newReal(1 / rval(car(args)));
-        }
-    else if (t == REAL)
-        {
-        accum = newReal(rval(car(args)));
-        return rdivides(cdr(args),accum);
-        }
-    
-    return throw("wrong type for division: %s",t);
-    }
-
-static int
-mod(int args)
-    {
-    char *t;
-    int accum;
-    
-    args = car(args);
-
-    if (args == 0) return zero;
-    if (cdr(args) == 0) return zero;
-
-    t = type(car(args));
-
-    if (t != INTEGER)
-        return throw("wrong type for remainder: %s",type(car(args)));
-
-    assureMemory("remainder",1,&args,0);
-
-    accum = newInteger(ival(car(args)));
-    args = cdr(args);
-
-    while (args != 0)
-        {
-        t = type(car(args));
-
-        if (t == INTEGER)
-            ival(accum) %= ival(car(args));
-        else
-            return throw(
-                "wrong type for remainder: %s",type(car(args)));
-            
-        args = cdr(args);
-        }
-
-    return accum;
-    }
-
-static int
-rminus(int args,int accum)
-    {
-    while (args != 0)
-        {
-        int arg = car(args);
-        char *t = type(arg);
-        if (t == INTEGER)
-            rval(accum) -= ival(arg);
-        else if (t == REAL)
-            rval(accum) -= rval(arg);
-        else
-            return throw(
-                "wrong type for subtraction: %s",type(car(args)));
-        args = cdr(args);
-        }
-
-    return accum;
-    }
-
-static int
-iminus(int args,int accum)
-    {
-    while (args != 0)
-        {
-        char *t = type(car(args));
-
-        if (t == REAL)
-            {
-            type(accum) = REAL;
-            rval(accum) = ival(accum);
-            return rminus(args,accum);
-            }
-        else if (t == INTEGER)
-            ival(accum) -= ival(car(args));
-        else
-            return throw(
-                "wrong type for subtraction: %s",type(car(args)));
-            
-        args = cdr(args);
-        }
-
-    return accum;
-    }
-
-/* (- @) */
-
-static int
-minus(int args)
-    {
-    char *t;
-    int accum;
-
-    args = car(args);
-
-    if (args == 0) return zero;
-
-    assureMemory("minus",1,&args,0);
-
-    t = type(car(args));
-
-    if (t == INTEGER && cdr(args) == 0)
-        {
-        return newInteger(0 - ival(car(args)));
-        }
-    else if (t == INTEGER)
-        {
-        accum = newInteger(ival(car(args)));
-        return iminus(cdr(args),accum);
-        }
-    else if (t == REAL && cdr(args) == 0)
-        {
-        return newReal(0 - rval(car(args)));
-        }
-    else if (t == REAL)
-        {
-        accum = newReal(rval(car(args)));
-        return rminus(cdr(args),accum);
-        }
-    
-    return throw("wrong type for subtraction: %s",t);
-    }
-
-static int
-orLoop(int first,int remaining,int env)
-    {
-    push(env);
-    push(remaining);
-    first = eval(first,env);
-    remaining = pop();
-    env = pop();
-
-    rethrow(first);
-
-    if (sameSymbol(first,trueSymbol)) return trueSymbol;
-    if (!sameSymbol(first,falseSymbol)) return throw("or: not a boolean");
-
-    if (remaining == 0) return falseSymbol;
-
-    return orLoop(car(remaining),cdr(remaining),env);
-    }
-
-/* (or #) */
+/* (or a $b) */
 
 static int
 or(int args)
     {
-    int result;
-    int context = thunk_context(car(args));
-    int exprs = thunk_code(car(args));
+    if (car(args) == trueSymbol) return trueSymbol;
 
-    if (exprs == 0) return falseSymbol;
-
-    result = orLoop(car(exprs),cdr(exprs),context);
-
-    return result;
+    return cadr(args);
     }
 
-static int
-andLoop(int first,int remaining,int env)
-    {
-    push(env);
-    push(remaining);
-    first = eval(first,env);
-    remaining = pop();
-    env = pop();
-
-    rethrow(first);
-
-    if (sameSymbol(first,falseSymbol)) return falseSymbol;
-    if (!sameSymbol(first,trueSymbol)) return throw("and: not a boolean");
-
-    if (remaining == 0) return trueSymbol;
-
-    return andLoop(car(remaining),cdr(remaining),env);
-    }
-
-/* (and #) */
+/* (and a $b) */
 
 static int
 and(int args)
     {
-    int result;
-    int context = thunk_context(car(args));
-    int exprs = thunk_code(car(args));
+    if (car(args) == falseSymbol) return falseSymbol;
 
-    if (exprs == 0) return trueSymbol;
-
-    result = andLoop(car(exprs),cdr(exprs),context);
-
-    return result;
+    return cadr(args);
     }
 
 static int
@@ -512,69 +125,154 @@ not(int args)
     return throw("not: non-boolean");
     }
 
-static int
-lessThanLoop(int first,int remaining)
-    {
-    int next;
-    char *firstType;
-    char *nextType;
-
-    //debug("first",first);
-
-    if (remaining == 0) return trueSymbol;
-
-    next = car(remaining);
-    firstType = type(first);
-    nextType = type(next);
-
-    //debug("next",next);
-
-    if (firstType == INTEGER && nextType == INTEGER)
-        {
-        if (ival(first) < ival(next))
-            return lessThanLoop(next,cdr(remaining));
-        else
-            return falseSymbol;
-        }
-    else if (firstType == INTEGER && nextType == REAL)
-        {
-        if (ival(first) < rval(next))
-            return lessThanLoop(next,cdr(remaining));
-        else
-            return falseSymbol;
-        }
-    else if (firstType == REAL && nextType == INTEGER)
-        {
-        if (rval(first) < ival(next))
-            return lessThanLoop(next,cdr(remaining));
-        else
-            return falseSymbol;
-        }
-    else if (firstType == REAL && nextType == REAL)
-        {
-        if (rval(first) < rval(next))
-            return lessThanLoop(next,cdr(remaining));
-        else
-            return falseSymbol;
-        }
-    else
-        {
-        return throw("wrong types for '<': %s and %s",firstType,nextType);
-        }
-    }
+/* (< a b) */
 
 static int
 isLessThan(int args)
     {
-    int result;
-    if (args == 0) return trueSymbol;
+    int a,b;
+    char *aType,*bType;
 
-    //debug("lessThan args",args);
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
 
-    result = lessThanLoop(caar(args),cdar(args));
-    //pp(stdout,result); printf(" is the result\n");
+    if (aType == INTEGER && bType == INTEGER)
+        return scamBoolean(ival(a) < ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return scamBoolean(ival(a) < rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return scamBoolean(rval(a) < ival(b));
+    else if (aType == REAL && bType == REAL)
+        return scamBoolean(rval(a) < rval(b));
+    else
+        return throw("wrong types for '<': %s and %s",aType,bType);
+    }
 
-    return result;
+/* (<= a b) */
+
+static int
+isLessThanOrEqualTo(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return scamBoolean(ival(a) <= ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return scamBoolean(ival(a) <= rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return scamBoolean(rval(a) <= ival(b));
+    else if (aType == REAL && bType == REAL)
+        return scamBoolean(rval(a) <= rval(b));
+    else
+        return throw("wrong types for '<=': %s and %s",aType,bType);
+    }
+
+/* (= a b) */
+
+static int
+isNumericEqualTo(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return scamBoolean(ival(a) == ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return scamBoolean(ival(a) == rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return scamBoolean(rval(a) == ival(b));
+    else if (aType == REAL && bType == REAL)
+        return scamBoolean(rval(a) == rval(b));
+    else
+        return throw("wrong types for '=': %s and %s",aType,bType);
+    }
+
+/* (!= a b) */
+
+static int
+isNotNumericEqualTo(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return scamBoolean(ival(a) != ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return scamBoolean(ival(a) != rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return scamBoolean(rval(a) != ival(b));
+    else if (aType == REAL && bType == REAL)
+        return scamBoolean(rval(a) != rval(b));
+    else
+        return throw("wrong types for '!=': %s and %s",aType,bType);
+    }
+
+/* (> a b) */
+
+static int
+isGreaterThan(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return scamBoolean(ival(a) > ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return scamBoolean(ival(a) > rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return scamBoolean(rval(a) > ival(b));
+    else if (aType == REAL && bType == REAL)
+        return scamBoolean(rval(a) > rval(b));
+    else
+        return throw("wrong types for '>': %s and %s",aType,bType);
+    }
+
+/* (>= a b) */
+
+static int
+isGreaterThanOrEqualTo(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return scamBoolean(ival(a) >= ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return scamBoolean(ival(a) >= rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return scamBoolean(rval(a) >= ival(b));
+    else if (aType == REAL && bType == REAL)
+        return scamBoolean(rval(a) >= rval(b));
+    else
+        return throw("wrong types for '>=': %s and %s",aType,bType);
     }
 
 /* (eq? a b) */
@@ -592,6 +290,142 @@ isEq(int args)
     if (type(a) == SYMBOL) return scamBoolean(ival(a) == ival(b));
 
     return scamBoolean(a == b);
+    }
+
+/* (neq? a b) */
+
+static int
+isNotEq(int args)
+    {
+    int a = car(args);
+    int b = cadr(args);
+
+    if (type(a) != type(b)) return trueSymbol;
+
+    if (type(a) == INTEGER) return scamBoolean(ival(a) != ival(b));
+    if (type(a) == REAL) return scamBoolean(ival(a) != ival(b));
+    if (type(a) == SYMBOL) return scamBoolean(ival(a) != ival(b));
+
+    return scamBoolean(a != b);
+    }
+
+/* (+ a b) */
+
+static int
+plus(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return newInteger(ival(a) + ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return newReal(ival(a) + rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return newReal(rval(a) + ival(b));
+    else if (aType == REAL && bType == REAL)
+        return newReal(rval(a) + rval(b));
+    else
+        return throw("wrong types for '+': %s and %s",aType,bType);
+    }
+
+/* (- a b) */
+
+static int
+minus(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return newInteger(ival(a) - ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return newReal(ival(a) - rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return newReal(rval(a) - ival(b));
+    else if (aType == REAL && bType == REAL)
+        return newReal(rval(a) - rval(b));
+    else
+        return throw("wrong types for '-': %s and %s",aType,bType);
+    }
+
+/* (* a b) */
+
+static int
+times(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return newInteger(ival(a) * ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return newReal(ival(a) * rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return newReal(rval(a) * ival(b));
+    else if (aType == REAL && bType == REAL)
+        return newReal(rval(a) * rval(b));
+    else
+        return throw("wrong types for '*': %s and %s",aType,bType);
+    }
+
+/* (/ a b) */
+
+static int
+divides(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return newInteger(ival(a) / ival(b));
+    else if (aType == INTEGER && bType == REAL)
+        return newReal(ival(a) / rval(b));
+    else if (aType == REAL && bType == INTEGER)
+        return newReal(rval(a) / ival(b));
+    else if (aType == REAL && bType == REAL)
+        return newReal(rval(a) / rval(b));
+    else
+        return throw("wrong types for '/': %s and %s",aType,bType);
+    }
+
+/* (% a b) */
+
+static int
+mod(int args)
+    {
+    int a,b;
+    char *aType,*bType;
+
+    a = car(args);
+    b = cadr(args);
+    aType = type(a);
+    bType = type(b);
+
+    if (aType == INTEGER && bType == INTEGER)
+        return newInteger(ival(a) % ival(b));
+    else
+        return throw("wrong types for '%': %s and %s",aType,bType);
     }
 
 /* (type item) */
@@ -1811,7 +1645,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = plus;
     b = makeBuiltIn(env,
         newSymbol("+"),
-        ucons(atSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1819,7 +1654,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = minus;
     b = makeBuiltIn(env,
         newSymbol("-"),
-        ucons(atSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1827,7 +1663,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = times;
     b = makeBuiltIn(env,
         newSymbol("*"),
-        ucons(atSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1835,7 +1672,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = divides;
     b = makeBuiltIn(env,
         newSymbol("/"),
-        ucons(atSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1843,7 +1681,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = mod;
     b = makeBuiltIn(env,
         newSymbol("%"),
-        ucons(atSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1895,7 +1734,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = and;
     b = makeBuiltIn(env,
         newSymbol("and"),
-        ucons(sharpSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("$b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1903,7 +1743,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = or;
     b = makeBuiltIn(env,
         newSymbol("or"),
-        ucons(sharpSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("$b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1919,7 +1760,35 @@ loadBuiltIns(int env)
     BuiltIns[count] = isLessThan;
     b = makeBuiltIn(env,
         newSymbol("<"),
-        ucons(atSymbol,0),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isLessThanOrEqualTo;
+    b = makeBuiltIn(env,
+        newSymbol("<="),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isGreaterThan;
+    b = makeBuiltIn(env,
+        newSymbol(">"),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isGreaterThanOrEqualTo;
+    b = makeBuiltIn(env,
+        newSymbol(">="),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1927,6 +1796,33 @@ loadBuiltIns(int env)
     BuiltIns[count] = isEq;
     b = makeBuiltIn(env,
         newSymbol("eq?"),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isNotEq;
+    b = makeBuiltIn(env,
+        newSymbol("neq?"),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isNumericEqualTo;
+    b = makeBuiltIn(env,
+        newSymbol("="),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = isNotNumericEqualTo;
+    b = makeBuiltIn(env,
+        newSymbol("!="),
         ucons(newSymbol("a"),
             ucons(newSymbol("b"),0)),
         newInteger(count));

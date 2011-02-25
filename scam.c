@@ -27,6 +27,7 @@ char *PROGRAM_NAME = "scam";
 char *PROGRAM_VERSION = "0.1";
 int displayPrimitives = 0;
 int displayHelp = 0;
+int TraceBack = 0;
 
 int 
 main(int argc,char **argv,char **envv)
@@ -66,14 +67,20 @@ main(int argc,char **argv,char **envv)
 
     if (isThrow(result))
         {
-        printf("EXCEPTION TRACE\n");
+        int last;
+        if (TraceBack) printf("EXCEPTION TRACE\n");
         while (error_trace(result) != 0)
             {
-            printf("%s,line %d: ",
-                SymbolTable[file(error_code(result))],line(error_code(result)));
-            pp(stdout,error_code(result));
-            printf("\n");
+            last = result;
             result = error_trace(result);
+            if (TraceBack || error_trace(result) == 0)
+                {
+                printf("%s,line %d: ",
+                    SymbolTable[file(error_code(last))],
+                    line(error_code(last)));
+                pp(stdout,error_code(last));
+                printf("\n");
+                }
             }
         printf("exception: %s\n",cellString(0,0,error_message(result)));
         }
