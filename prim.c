@@ -3,6 +3,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
+#include <unistd.h>
+#include <time.h>
 #include "types.h"
 #include "env.h"
 #include "cell.h"
@@ -95,7 +97,7 @@ lambda(int args)
     return  makeClosure(car(args),name,params,body,ADD_BEGIN);
     }
 
-/* (or ^ a $b) */
+/* (or # a $b) */
 
 static int
 or(int args)
@@ -105,12 +107,13 @@ or(int args)
     return makeThunk(caddr(args),car(args));
     }
 
-/* (and ^ a $b) */
+/* (and # a $b) */
 
 static int
 and(int args)
     {
     if (cadr(args) == falseSymbol) return falseSymbol;
+    //debug("and",caddr(args));
 
     return makeThunk(caddr(args),car(args));
     }
@@ -1360,11 +1363,57 @@ oopen(int args)
     return result;
     }
 
+static int
+ttime(int args)
+    {
+    return newInteger((int) time(0));
+    }
+
+static int
+ssystem(int args)
+    {
+    char buffer[512];
+    cellString(buffer,sizeof(buffer),car(args));
+    return newInteger(system(buffer));
+    }
+
+static int
+eexec(int args)
+    {
+    char buffer[512];
+    cellString(buffer,sizeof(buffer),car(args));
+    return newInteger(execl("/bin/sh","sh","-c",buffer,(char *) 0));
+    }
+
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = ssystem;
+    b = makeBuiltIn(env,
+        newSymbol("system"),
+        ucons(newSymbol("str"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = eexec;
+    b = makeBuiltIn(env,
+        newSymbol("exec"),
+        ucons(newSymbol("str"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ttime;
+    b = makeBuiltIn(env,
+        newSymbol("time"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = readChar;
     b = makeBuiltIn(env,

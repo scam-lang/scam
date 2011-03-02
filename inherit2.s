@@ -21,14 +21,10 @@
                 )
             this
             )
-        ;(inspect this)
-        ;(inspect (get 'context GP))
-        ;GP
         )
     )
 
 (define (P)
-    (define parent (GP))
     (define (a)
         (println "parent a")
         )
@@ -40,7 +36,6 @@
     )
 
 (define (C)
-    (define parent (P))
     (define (a)
         (println "child a")
         )
@@ -102,6 +97,6 @@
 (define child c)
 (println "make sure child object's static scope is enforced...")
 (print   "    this should succeed:   ")
-(inspect (get 'zzz (new GP)))
+(inspect (get 'zzz (GP)))
 (println "    this should fail:      (get 'zzz child)")
 (get 'zzz child)

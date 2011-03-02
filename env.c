@@ -43,12 +43,12 @@ defineVariable(int env,int var,int val)
     int i;
     int vars,vals;
 
-    //printf("defining variable %s\n",symbols[ival(var)]);
-    //ppf("env: ",env,"\n");
+    //printf("defining variable %s\n",SymbolTable[ival(var)]);
+    //debug("env",env);
 
     assert(DEFINE_CELLS == 2);
 
-    assureMemory("defineVariable",2,&val,&var,&env,0);
+    assureMemory("defineVariable",DEFINE_CELLS,&env,&var,&val,0);
 
     /* there are predefined variables, skip over those */
 

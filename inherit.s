@@ -9,6 +9,7 @@
     (scope
         (define zzz 3)
         (define (GP)
+            (define parent nil)
             (define (a)
                 (println "grandparent a")
                 )
@@ -27,7 +28,6 @@
         ;GP
         )
     )
-
 (define (P)
     (define parent (GP))
     (define (a)
@@ -50,7 +50,7 @@
 
 ; now test
 
-(define c (new C))
+(define c (new (C)))
 
 (println "child has function a, parent has functions a and b, ")
 (println "grandparent has functions a, b, and c")
@@ -103,6 +103,6 @@
 (define child c)
 (println "make sure child object's static scope is enforced...")
 (print   "    this should succeed:   ")
-(inspect (get 'zzz (new GP)))
+(inspect (get 'zzz (new (GP))))
 (println "    this should fail:      (get 'zzz child)")
 (get 'zzz child)
