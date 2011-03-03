@@ -51,18 +51,27 @@
     original
     )
 
-(define (mixin object parent @)
-    (define (mixin object parents reificaiton static)
-        (cond
-            ((null? parents)
-                (set! 'context static object))
-            (else
-                (set! 'context object
-                    (mixin (resetColosures reification (car parents))
-                           (cdr parents) reification static)))
-            )
+(define (inherit object parents reification static)
+    (cond
+        ((null? parents)
+            (set! 'context static object))
+        (else
+            (set! 'context 
+                (inherit (resetClosures reification (car parents))
+                       (cdr parents) reification static)
+                object))
         )
-    (define
+    object
+    )
+
+(define (mixin object @)
+    (inherit object @ object (get 'context object))
+    )
+
+(define (new object)
+    (define (chain x) (if (null? x) nil (cons x (chain (get 'parent x)))))
+    (inherit object (cdr (chain object)) object (get 'context object))
+    )
 
 (define (resetClosures static obj)
     (define (update current rest)
@@ -71,6 +80,7 @@
         )
     (define values (locals obj))
     (if (neq? values nil) (update (car values) (cdr values)))
+    obj
     )
 
 (define (super child)
