@@ -48,7 +48,7 @@ defineIdentifier(int name,int init,int env)
         env = pop();
         name = pop();
 
-        rethrow(init);
+        rethrow(init,0);
         }
 
      assureMemory("defineIdentifier",DEFINE_CELLS,&env,&name,&init,0);
@@ -546,7 +546,7 @@ cond(int args)
         cases = pop();
         env = pop();
 
-        rethrow(result);
+        rethrow(result,0);
 
         if (sameSymbol(result,trueSymbol))
             return  evalListExceptLast(cdar(cases),env);
@@ -571,7 +571,7 @@ wwhile(int args)
     testResult = eval(cadr(args),car(args));
     args = pop();
 
-    rethrow(testResult);
+    rethrow(testResult,0);
 
     while (sameSymbol(testResult,trueSymbol))
         {
@@ -579,13 +579,13 @@ wwhile(int args)
         last = evalList(caddr(args),car(args));
         args = pop();
 
-        rethrow(last);
+        rethrow(last,0);
 
         push(args);
         testResult = eval(cadr(args),car(args));
         args = pop();
 
-        rethrow(testResult);
+        rethrow(testResult,0);
 
         //debug("test result",testResult);
         }
@@ -708,7 +708,7 @@ include(int args)
 
     env = pop();
 
-    rethrow(ptree);
+    rethrow(ptree,0);
 
     return makeThunk(ptree,env);
     }

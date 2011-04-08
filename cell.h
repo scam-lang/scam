@@ -29,6 +29,7 @@ extern int FileIndex;
 
 extern int cons(int,int);
 extern int ucons(int,int);
+extern int append(int,int);
 extern int length(int);
 
 #define cfile (symbols[FileIndex])
@@ -118,6 +119,7 @@ extern int sharpSymbol;
 extern int uninitializedSymbol;
 extern int errorSymbol;
 extern int beginSymbol;
+extern int scopeSymbol;
 extern int trueSymbol;
 extern int falseSymbol;
 extern int backquoteSymbol;
@@ -130,6 +132,7 @@ extern int nilSymbol;
 extern int fileSymbol;
 extern int lineSymbol;
 extern int messageSymbol;
+extern int spacerSymbol;
 
 extern int readIndex;
 extern int writeIndex;

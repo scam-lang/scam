@@ -1,5 +1,5 @@
 /*  
- *  the xcheme lexical analyzer 
+ *  the scam lexical analyzer 
  *
  *  written by John C. Lusth
  *
@@ -37,12 +37,7 @@ lex(PARSER *p)
     { 
     int ch; 
 
-    LineNumber = p->line;
-    FileIndex = p->file;
-
     ch = skipWhiteSpace(p); 
-
-    p->line = LineNumber;
 
     switch(ch) 
         { 
@@ -71,7 +66,7 @@ lex(PARSER *p)
             else
                 return lexSymbol(p,ch);
         } 
-    Fatal("line %d: unexpected character (%c)\n", LineNumber,ch);
+    Fatal("line %d: unexpected character (%c)\n", p->line,ch);
     } 
 
 static int
@@ -82,7 +77,7 @@ skipWhiteSpace(PARSER *p)
     while ((ch = getNextCharacter(p->input))
     && ch != EOF && (isspace(ch) || ch == ';'))
         {
-        if (ch == '\n') ++LineNumber;
+        if (ch == '\n') ++(p->line);
         if (ch == ';')
             { 
             ch = getNextCharacter(p->input);
@@ -90,7 +85,7 @@ skipWhiteSpace(PARSER *p)
                 {
                 while ((ch = getNextCharacter(p->input)) && ch != EOF)
                     {
-                    if (ch == '\n') ++LineNumber;
+                    if (ch == '\n') ++(p->line);
                     }
                 }
             else if (ch == '{') /* skip to close comment */
@@ -99,12 +94,12 @@ skipWhiteSpace(PARSER *p)
                 while ((ch = getNextCharacter(p->input))
                 && ch != EOF && (prev != ';' || ch != '}'))
                     {
-                    if (ch == '\n') ++LineNumber;
+                    if (ch == '\n') ++(p->line);
                     prev = ch;
                     }
                 if (ch == EOF)
                     Fatal("SOURCE CODE ERROR\n"
-                        "line %d: unterminated comment\n", LineNumber);
+                        "line %d: unterminated comment\n", p->line);
                 }
             else /* skip to end of line */
                 {
@@ -156,7 +151,7 @@ lexNumber(PARSER *p)
         s[count++] = ch;
         if (count >= sizeof(s) - 1)
             Fatal("SOURCE CODE ERROR\nline %d\n"
-                "number is too large\n",LineNumber);
+                "number is too large\n",p->line);
         ch = getNextCharacter(p->input);
         }
 
@@ -198,7 +193,7 @@ lexSymbol(PARSER *p,int ch)
             buffer[index++] = ch;
         if (index == sizeof(buffer))
             Fatal("SOURCE CODE ERROR\nline %d\n"
-                "token too large\n",LineNumber);
+                "token too large\n",p->line);
         }
 
     unread(ch);
@@ -234,7 +229,7 @@ lexString(PARSER *p)
             if (ch == EOF)
                 Fatal("SOURCE CODE ERROR\nline %d\n"
                     "unexpected end of file (last char was a backslash)\n",
-                    LineNumber);
+                    p->line);
             if (ch == 'n')
                 buffer[index++] = '\n';
             else if (ch == 't')
@@ -246,7 +241,7 @@ lexString(PARSER *p)
             }
         else if (ch == '\n')
             {
-            ++LineNumber;
+            ++(p->line);
             buffer[index++] = '\n';
             }
         else
@@ -254,7 +249,7 @@ lexString(PARSER *p)
 
         if (index == sizeof(buffer) - 1)
             Fatal("SOURCE CODE ERROR\nline %d\n"
-                "string too large\n",LineNumber);
+                "string too large\n",p->line);
         }
 
     buffer[index] = '\0';
@@ -262,7 +257,7 @@ lexString(PARSER *p)
     if (ch != '\"')
         {
         Fatal("SOURCE CODE ERROR\nline %d\nunterminated string: \"",
-            LineNumber);
+            p->line);
         }
 
     //printf("string is <%s>\n", buffer);
@@ -271,7 +266,6 @@ lexString(PARSER *p)
     //printf("line %d: indent of new string \"%s\" is %d\n",
         //line(result),buffer,indent(result));
 
-    p->line = LineNumber;
     return result;
     }
 

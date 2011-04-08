@@ -45,6 +45,7 @@ int atSymbol;
 int uninitializedSymbol;
 int errorSymbol;
 int beginSymbol;
+int scopeSymbol;
 int sharpSymbol;
 int trueSymbol;
 int falseSymbol;
@@ -58,6 +59,7 @@ int nilSymbol;
 int fileSymbol;
 int lineSymbol;
 int messageSymbol;
+int spacerSymbol;
 
 int readIndex;
 int writeIndex;
@@ -135,6 +137,7 @@ memoryInit(int memsize)
     uninitializedSymbol  = newSymbol(":UNINITIALIZED:");
     errorSymbol          = newSymbol("error");
     beginSymbol          = newSymbol("begin");
+    scopeSymbol          = newSymbol("scope");
     trueSymbol           = newSymbol("#t");
     falseSymbol          = newSymbol("#f");
     backquoteSymbol      = newSymbol("backquote");
@@ -147,6 +150,7 @@ memoryInit(int memsize)
     fileSymbol           = newSymbol("file");
     lineSymbol           = newSymbol("line");
     messageSymbol        = newSymbol("message");
+    spacerSymbol         = newSymbol(" SPACER");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");
@@ -190,6 +194,18 @@ ucons(int a,int b)
     return MemorySpot - 1;
     }
 
+/* append is destructive! */
+
+int
+append(int list1,int list2)
+    {
+    while (cdr(list1) != 0)
+        list1 = cdr(list1);
+
+    cdr(list1) = list2;
+
+    return list1;
+    }
 
 int
 newString(char *s)

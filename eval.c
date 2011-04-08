@@ -80,7 +80,7 @@ evalCall(int call,int env, int mode)
         call = pop();
         env = pop();
 
-        rethrow(closure);
+        rethrow(closure,0);
         }
     else
         closure = car(call);
@@ -100,7 +100,7 @@ evalCall(int call,int env, int mode)
         closure_parameters(closure),cdr(call),env,mode);
     closure = pop();
 
-    rethrow(eargs);
+    rethrow(eargs,0);
 
     //debug("evaluated args",eargs);
 
@@ -210,7 +210,7 @@ processArguments(int name, int params,int args,int env,int mode)
         if (mode == NORMAL)
             {
             rest = evaluatedArgList(args,env);
-            rethrow(rest);
+            rethrow(rest,0);
             }
         else
             rest = unevaluatedArgList(args);
@@ -229,7 +229,7 @@ processArguments(int name, int params,int args,int env,int mode)
         rest = processArguments(name,cdr(params),args,env,mode);
         env = pop();
 
-        rethrow(rest);
+        rethrow(rest,0);
 
         assureMemory("processArgs:hat",1,&env,&rest,0);
         result = ucons(env,rest);
@@ -246,7 +246,7 @@ processArguments(int name, int params,int args,int env,int mode)
         assureMemory("processArgs:tArg",1,&rest,0);
         args = pop();
 
-        rethrow(rest);
+        rethrow(rest,0);
 
         result = ucons(car(args),rest);
         }
@@ -264,7 +264,7 @@ processArguments(int name, int params,int args,int env,int mode)
             args = pop();
             env = pop();
 
-            rethrow(first);
+            rethrow(first,0);
             }
         else
             first = car(args);
@@ -274,7 +274,7 @@ processArguments(int name, int params,int args,int env,int mode)
         assureMemory("processArgs:eArg",1,&rest,0);
         first = pop();
 
-        rethrow(rest);
+        rethrow(rest,0);
 
         result = ucons(first,rest);
         }
@@ -313,7 +313,7 @@ evaluatedArgList(args,env)
         args = pop();
         env = pop();
 
-        rethrow(first);
+        rethrow(first,0);
 
         //debug("evaluatedArgList: args",args);
         //debug("evaluatedArgList: env",env);
@@ -324,7 +324,7 @@ evaluatedArgList(args,env)
         //printf("back from eval\n");
         first = pop();
 
-        rethrow(rest);
+        rethrow(rest,0);
 
         return ucons(first,rest);
         }
