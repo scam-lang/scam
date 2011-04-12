@@ -45,11 +45,12 @@ extern int throwAgain(int,int);
 #define OBJECT_PREDEFINED 1
 
 #define env_context(x)         (cadr(object_values(x)))
-#define env_constructor(x)     (caddr(object_values(x)))
-#define env_this(x)            (cadddr(object_values(x)))
+#define env_level(x)           (caddr(object_values(x)))
+#define env_constructor(x)     (cadddr(object_values(x)))
+#define env_this(x)            (caddddr(object_values(x)))
 
-#define ENV_CELLS (OBJECT_CELLS + 6)
-#define ENV_PREDEFINED (OBJECT_PREDEFINED + 3)
+#define ENV_CELLS (OBJECT_CELLS + 8 + 1)   // one more for the level
+#define ENV_PREDEFINED (OBJECT_PREDEFINED + 4)
 
 #define thunk_context(x)       (cadr(object_values(x)))
 #define thunk_code(x)          (caddr(object_values(x)))
@@ -65,8 +66,8 @@ extern int throwAgain(int,int);
 #define CLOSURE_CELLS (OBJECT_CELLS + 8 + 1)  //one more for begin
 #define CLOSURE_PREDEFINED (OBJECT_PREDEFINED + 4)
 
-#define error_type(x)          (cadr(object_values(x)))
-#define error_message(x)       (caddr(object_values(x)))
+#define error_code(x)          (cadr(object_values(x)))
+#define error_value(x)        (caddr(object_values(x)))
 #define error_trace(x)         (cadddr(object_values(x)))
 
 #define ERROR_CELLS (OBJECT_CELLS + 6)
@@ -82,4 +83,5 @@ extern int throwAgain(int,int);
     ((ival(object_label(x)) == ival(closureSymbol)) \
     || (ival(object_label(x)) == ival(builtInSymbol))))
 #define isThrow(x) (isObject(x) && ival(object_label(x)) == ival(throwSymbol))
-#define isReturn(x) (isObject(x) && ival(error_type(x)) == ival(returnSymbol))
+#define isReturn(x) (isThrow(x) && ival(error_code(x)) == ival(returnSymbol))
+#define isReturnCall(x) (isTagged(x) && ival(car(x)) == ival(returnSymbol))

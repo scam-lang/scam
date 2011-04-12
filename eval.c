@@ -22,6 +22,7 @@ eval(int expr, int env)
         int t,tag;
 
         debug("eval",expr);
+        //debug(" env",env);
 
         if (expr == 0) return 0;
         if (type(expr) == INTEGER) return expr;
@@ -39,7 +40,8 @@ eval(int expr, int env)
             else
                 {
                 int result = getVariableValue(expr,env);
-                if isThrow(result) return throwAgain(expr,result);
+                rethrow(result,0);
+                //if isThrow(result) return throwAgain(expr,result);
                 return result;
                 }
             }
@@ -54,32 +56,12 @@ eval(int expr, int env)
 
         /* no need to assure memory here */
 
+        push(env);
         t = evalCall(expr,env,NORMAL);
+        env = pop();
 
-        if (isThrow(t))
-            {
-            printf("it's a throw!\n");
-            if (isReturn(t))
-                {
-                int v = error_message(t);
-                printf("it's a return!\n");
-                debug("return value",v);
-                if (thunk_context(v) == env)
-                    {
-                    printf("env matches, returning thunk\n");
-                    return t;
-                    return v;
-                    }
-                else
-                    {
-                    printf("env does not match, returning return\n");
-                    return t;
-                    }
-                }
-            else
-                return t;
-                //return throwAgain(expr,t);
-            }
+        rethrow(t,0);
+        //return throwAgain(expr,t);
 
         if (!isThunk(t)) return t;
 
@@ -169,39 +151,7 @@ evalBuiltIn(int args,int builtIn)
 /* evalList expects a regular list of expressions */
 
 int
-evalList(int items,int env)
-    {
-    int result = 0;
-    while (items != 0)
-        {
-        //debug("items before",items);
-        push(env);
-        push(items);
-        result = eval(car(items),env);
-        items = pop();
-        env = pop();
-        //debug("items after",items);
-
-        if (isThrow(result))
-            {
-            if (isReturn(result) && env == thunk_context(error_message(result)))
-                return error_message(result);
-            else
-                return result;
-            }
-        //if (isThrow(result))
-        //    return throwAgain(car(items),result);
-
-        items = cdr(items);
-        }
-
-    return result;
-    }
-
-/* evalListExceptLast expects a regular list of expressions */
-
-int
-evalListExceptLast(int items,int env)
+evalList(int items,int env,int mode)
     {
     int result = 0;
     while (cdr(items) != 0)
@@ -216,8 +166,8 @@ evalListExceptLast(int items,int env)
 
         if (isThrow(result))
             {
-            if (isReturn(result) && env == thunk_context(error_message(result)))
-                return error_message(result);
+            if (isReturn(result) && env == thunk_context(error_value(result)))
+                return error_value(result);
             else
                 return result;
             }
@@ -226,8 +176,23 @@ evalListExceptLast(int items,int env)
 
         items = cdr(items);
         }
-    assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,0);
-    return makeThunk(car(items),env);
+
+    if (mode == ALLBUTLAST)
+        {
+        assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,0);
+        if (isReturnCall(car(items)))
+            {
+            //printf("it's a return!\n");
+            return makeThunk(cadr(car(items)),env);
+            }
+        else
+            {
+            //printf("it's not a return.\n");
+            return makeThunk(car(items),env);
+            }
+        }
+    else
+        return eval(car(items),env);
     }
 
 static int
@@ -269,7 +234,7 @@ processArguments(int name, int params,int args,int env,int mode)
 
         rethrow(rest,0);
 
-        assureMemory("processArgs:hat",1,&env,&rest,0);
+        assureMemory("processArgs:sharp",1,&env,&rest,0);
         result = ucons(env,rest);
         }
     else if (args == 0)

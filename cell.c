@@ -63,6 +63,7 @@ int spacerSymbol;
 int defineSymbol;
 int exceptionSymbol;
 int returnSymbol;
+int levelSymbol;
 
 int readIndex;
 int writeIndex;
@@ -157,6 +158,7 @@ memoryInit(int memsize)
     defineSymbol         = newSymbol("define");
     exceptionSymbol      = newSymbol("EXCEPTION");
     returnSymbol         = newSymbol("return");
+    levelSymbol          = newSymbol("level");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");
@@ -205,12 +207,13 @@ ucons(int a,int b)
 int
 append(int list1,int list2)
     {
+    int start = list1;
     while (cdr(list1) != 0)
         list1 = cdr(list1);
 
     cdr(list1) = list2;
 
-    return list1;
+    return start;
     }
 
 int

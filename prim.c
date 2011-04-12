@@ -68,7 +68,7 @@ defineFunction(int name,int parameters,int body,int env)
     return defineVariable(env,name,closure);
     }
 
-/* (define ^ $) */
+/* (define # $) */
 
 static int
 define(int args)
@@ -85,7 +85,7 @@ define(int args)
         return throw(exceptionSymbol,"can only define SYMBOLS, not type %s",type(first));
     }
 
-/* (lambda ^ $params $) */
+/* (lambda # $params $) */
 
 static int
 lambda(int args)
@@ -447,16 +447,16 @@ ttype(int args)
         return newSymbol(type(car(args)));
     }
 
-/* (begin ^ $) */
+/* (begin # $) */
 
 static int
 begin(int args)
     {
     //printf("in begin...\n");
-    return evalListExceptLast(cadr(args),car(args));
+    return evalList(cadr(args),car(args),ALLBUTLAST);
     }
 
-/* (throw ^ $item) */
+/* (throw # $item) */
 
 static int
 rreturn(int args)
@@ -466,7 +466,7 @@ rreturn(int args)
     return makeThrow(returnSymbol,makeThunk(cadr(args),car(args)),0);
     }
 
-/* (scope ^ $) */
+/* (scope # $) */
 
 static int
 scope(int args)
@@ -475,7 +475,7 @@ scope(int args)
     //printf("in scope...\n");
     assureMemory("scope",ENV_CELLS,&args,0);
     env = makeEnvironment(car(args),0,0,0);
-    return evalListExceptLast(cadr(args),env);
+    return evalList(cadr(args),env,ALLBUTLAST);
     }
 
 /* (print @) */
@@ -507,7 +507,7 @@ println(int args)
     return result;
     }
 
-/* (if ^ test $then $) */
+/* (if # test $then $) */
 
 static int
 iif(int args)
@@ -534,7 +534,7 @@ iif(int args)
         }
     }
 
-/* (cond ^ $) */
+/* (cond # $) */
 
 static int
 cond(int args)
@@ -548,7 +548,7 @@ cond(int args)
         int condition = caar(cases);
 
         if (sameSymbol(condition,elseSymbol))
-            return  evalListExceptLast(cdar(cases),env);
+            return  evalList(cdar(cases),env,ALLBUTLAST);
 
         push(env);
         push(cases);
@@ -559,7 +559,7 @@ cond(int args)
         rethrow(result,0);
 
         if (sameSymbol(result,trueSymbol))
-            return  evalListExceptLast(cdar(cases),env);
+            return  evalList(cdar(cases),env,ALLBUTLAST);
 
         cases = cdr(cases);
         }
@@ -567,7 +567,7 @@ cond(int args)
     return falseSymbol;
     }
 
-/* (while ^ $test $) */
+/* (while # $test $) */
 
 static int
 wwhile(int args)
@@ -586,7 +586,7 @@ wwhile(int args)
     while (sameSymbol(testResult,trueSymbol))
         {
         push(args);
-        last = evalList(caddr(args),car(args));
+        last = evalList(caddr(args),car(args),ALL);
         args = pop();
 
         rethrow(last,0);
@@ -678,7 +678,7 @@ force(int args)
     return car(args);
     }
 
-/* (inspect ^ $item) */
+/* (inspect # $item) */
 
 static int
 inspect(int args)
@@ -696,7 +696,7 @@ inspect(int args)
     return result;
     }
 
-/* (include ^ $fileName) */
+/* (include # $fileName) */
 
 static int
 include(int args)

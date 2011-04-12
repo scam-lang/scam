@@ -136,6 +136,7 @@ extern int spacerSymbol;
 extern int defineSymbol;
 extern int exceptionSymbol;
 extern int returnSymbol;
+extern int levelSymbol;
 
 extern int readIndex;
 extern int writeIndex;

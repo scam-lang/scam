@@ -87,7 +87,7 @@ makeEnvironment(int context,int constructor,int vars,int vals)
     {
     int o;
 
-    assert(ENV_CELLS == OBJECT_CELLS + 6);
+    assert(ENV_CELLS == OBJECT_CELLS + 8 + 1);
 
     assureMemory("makeEnvironment",ENV_CELLS,
         &context,&constructor,&vars,&vals,0);
@@ -96,13 +96,15 @@ makeEnvironment(int context,int constructor,int vars,int vals)
 
     object_variable_hook(o) =
         ucons(contextSymbol,
-            ucons(constructorSymbol,
-                ucons(thisSymbol,vars)));
+            ucons(levelSymbol,
+                ucons(constructorSymbol,
+                    ucons(thisSymbol,vars))));
 
     object_value_hook(o) =
         ucons(context,
-            ucons(constructor,
-                ucons(o,vals)));
+            ucons(newInteger(context == 0 ? 0 : ival(env_level(context))+1),
+                ucons(constructor,
+                    ucons(o,vals))));
 
     return o;
     }
@@ -170,25 +172,25 @@ makeBuiltIn(int env,int name,int parameters,int body)
     }
 
 int
-makeError(int tag,int expr,int msg,int trace)
+makeError(int tag,int code,int value,int trace)
     {
     int o;
 
     assert(ERROR_CELLS == OBJECT_CELLS + 6);
 
     assureMemory("makeError",ERROR_CELLS,
-        &tag,&msg,&trace,0);
+        &tag,&code,&value,&trace,0);
 
     o = makeObject(tag);
 
     object_variable_hook(o) =
         ucons(codeSymbol,
-            ucons(messageSymbol,
+            ucons(valueSymbol,
                 ucons(traceSymbol,0)));
 
     object_value_hook(o) =
-        ucons(expr,
-            ucons(msg,
+        ucons(code,
+            ucons(value,
                 ucons(trace,0)));
 
     return o;
@@ -203,16 +205,16 @@ convertThrow(int tag,int e)
     }
 
 int
-makeThrow(int expr,int msg,int trace)
+makeThrow(int code,int value,int trace)
     {
-    return makeError(throwSymbol,expr,msg,trace);
+    return makeError(throwSymbol,code,value,trace);
     }
 
 int
 throw(int symbol,char *fmt, ...)
     {
     va_list ap;
-    int s;
+    int s,result;
     char buffer[512];
 
     //printf("encountered a fatal error...\n");
@@ -223,7 +225,9 @@ throw(int symbol,char *fmt, ...)
 
     s = newString(buffer);
 
-    return makeThrow(symbol,s,0);
+    result = makeThrow(symbol,s,0);
+    debug("throwing",result);
+    return result;
     }
 
 int
