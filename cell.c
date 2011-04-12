@@ -60,6 +60,9 @@ int fileSymbol;
 int lineSymbol;
 int messageSymbol;
 int spacerSymbol;
+int defineSymbol;
+int exceptionSymbol;
+int returnSymbol;
 
 int readIndex;
 int writeIndex;
@@ -151,6 +154,9 @@ memoryInit(int memsize)
     lineSymbol           = newSymbol("line");
     messageSymbol        = newSymbol("message");
     spacerSymbol         = newSymbol(" SPACER");
+    defineSymbol         = newSymbol("define");
+    exceptionSymbol      = newSymbol("EXCEPTION");
+    returnSymbol         = newSymbol("return");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");

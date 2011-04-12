@@ -14,12 +14,12 @@ getVariableValue(int var,int env)
     if (spot == 0)
         {
         //ppObject(stdout,env,0);
-        return throw("variable %s is undefined",
+        return throw(exceptionSymbol,"variable %s is undefined",
             SymbolTable[ival(var)]);
         }
     if (sameSymbol(car(spot),uninitializedSymbol))
         {
-        return throw("variable %s is uninitialized",
+        return throw(exceptionSymbol,"variable %s is uninitialized",
             SymbolTable[ival(var)]);
         }
     return car(spot);
@@ -31,7 +31,7 @@ setVariableValue(int var,int val,int env)
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        return throw("variable %s is undefined",SymbolTable[ival(var)]);
+        return throw(exceptionSymbol,"variable %s is undefined",SymbolTable[ival(var)]);
         }
     car(spot) = val;
     return val;
@@ -209,7 +209,7 @@ makeThrow(int expr,int msg,int trace)
     }
 
 int
-throw(char *fmt, ...)
+throw(int symbol,char *fmt, ...)
     {
     va_list ap;
     int s;
@@ -223,7 +223,7 @@ throw(char *fmt, ...)
 
     s = newString(buffer);
 
-    return makeThrow(0,s,0);
+    return makeThrow(symbol,s,0);
     }
 
 int

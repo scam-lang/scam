@@ -21,7 +21,7 @@ eval(int expr, int env)
         {
         int t,tag;
 
-        //debug("eval",expr);
+        debug("eval",expr);
 
         if (expr == 0) return 0;
         if (type(expr) == INTEGER) return expr;
@@ -56,7 +56,20 @@ eval(int expr, int env)
 
         t = evalCall(expr,env,NORMAL);
 
-        if (isThrow(t)) return throwAgain(expr,t);
+        if (isThrow(t))
+            {
+            if (isReturn(t))
+                {
+                int v = error_message(t);
+                if (thunk_context(v) == env)
+                    return v;
+                else
+                    return t;
+                }
+            else
+                return throwAgain(expr,t);
+            }
+
         if (!isThunk(t)) return t;
 
         expr = thunk_code(t);
@@ -90,7 +103,7 @@ evalCall(int call,int env, int mode)
     //debug("calling",closure);
 
     if (!isClosure(closure))
-        return throw("attempted to call %s as a function", type(closure));
+        return throw(exceptionSymbol,"attempted to call %s as a function", type(closure));
 
     /* args are the cdr of call */
 
@@ -142,7 +155,7 @@ evalBuiltIn(int args,int builtIn)
     return prim(args);
     }
 
-/* evalListExceptLast expects a regular list of expressions */
+/* evalList expects a regular list of expressions */
 
 int
 evalList(int items,int env)
@@ -202,7 +215,7 @@ processArguments(int name, int params,int args,int env,int mode)
         result = 0;
     else if (params == 0)
         {
-        return throw("too many arguments to function %s",
+        return throw(exceptionSymbol,"too many arguments to function %s",
             SymbolTable[ival(name)]);
         }
     else if (sameSymbol(car(params),atSymbol))
@@ -236,7 +249,7 @@ processArguments(int name, int params,int args,int env,int mode)
         }
     else if (args == 0)
         {
-        return throw("too few arguments to function %s",
+        return throw(exceptionSymbol,"too few arguments to function %s",
             SymbolTable[ival(name)]);
         }
     else if (*SymbolTable[ival(car(params))] == '$')

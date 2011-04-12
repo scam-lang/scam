@@ -133,6 +133,9 @@ extern int fileSymbol;
 extern int lineSymbol;
 extern int messageSymbol;
 extern int spacerSymbol;
+extern int defineSymbol;
+extern int exceptionSymbol;
+extern int returnSymbol;
 
 extern int readIndex;
 extern int writeIndex;

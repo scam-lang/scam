@@ -147,6 +147,8 @@ ppLevel(FILE *fp,int expr,int mode)
         fprintf(fp,"%s",SymbolTable[ival(expr)]);
     else if (type(expr) == CONS)
         ppCons(fp,expr,mode);
+    else if (expr == -1)
+        printf("xcall!");
     else
         Fatal("pretty printing: type %s unknown\n",type(expr));
 

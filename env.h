@@ -13,15 +13,15 @@ extern int converThrow(int,int);
 extern int makeThrow(int,int,int);
 extern int makeBuiltIn(int,int,int,int);
 
-extern int throw(char *,...);
+extern int throw(int,char *,...);
 extern int throwAgain(int,int);
 
-#define rethrow(x,n)              \
+#define rethrow(x,_n)              \
     {                             \
     if (isThrow(x))               \
         {                         \
         int i;                    \
-        for (i = 0; i < (n); ++i) \
+        for (i = 0; i < (_n); ++i) \
             pop();                \
         return x;                 \
         }                         \
@@ -72,6 +72,8 @@ extern int throwAgain(int,int);
 #define ERROR_CELLS (OBJECT_CELLS + 6)
 #define ERROR_PREDEFINED (OBJECT_PREDEFINED + 3)
 
+#define THROW_CELLS ERROR_CELLS
+
 #define isCons(x) (type(x) == CONS)
 #define isTagged(x) (isCons(x) && type(car(x)) == SYMBOL)
 #define isObject(x) (isTagged(x) && ival(car(x)) == ival(objectSymbol))
@@ -80,3 +82,4 @@ extern int throwAgain(int,int);
     ((ival(object_label(x)) == ival(closureSymbol)) \
     || (ival(object_label(x)) == ival(builtInSymbol))))
 #define isThrow(x) (isObject(x) && ival(object_label(x)) == ival(throwSymbol))
+#define isReturn(x) (isObject(x) && ival(object_label(x)) == ival(returnSymbol))

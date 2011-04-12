@@ -82,7 +82,7 @@ define(int args)
     else if (type(first) == SYMBOL)
         return defineIdentifier(first,car(rest),car(args));
     else
-        return throw("can only define SYMBOLS, not type %s",type(first));
+        return throw(exceptionSymbol,"can only define SYMBOLS, not type %s",type(first));
     }
 
 /* (lambda ^ $params $) */
@@ -123,7 +123,7 @@ not(int args)
     {
     if (sameSymbol(car(args),trueSymbol)) return falseSymbol;
     if (sameSymbol(car(args),falseSymbol)) return trueSymbol;
-    return throw("not: non-boolean");
+    return throw(exceptionSymbol,"not: non-boolean");
     }
 
 /* (< a b) */
@@ -148,7 +148,7 @@ isLessThan(int args)
     else if (aType == REAL && bType == REAL)
         return scamBoolean(rval(a) < rval(b));
     else
-        return throw("wrong types for '<': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '<': %s and %s",aType,bType);
     }
 
 /* (<= a b) */
@@ -173,7 +173,7 @@ isLessThanOrEqualTo(int args)
     else if (aType == REAL && bType == REAL)
         return scamBoolean(rval(a) <= rval(b));
     else
-        return throw("wrong types for '<=': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '<=': %s and %s",aType,bType);
     }
 
 /* (= a b) */
@@ -198,7 +198,7 @@ isNumericEqualTo(int args)
     else if (aType == REAL && bType == REAL)
         return scamBoolean(rval(a) == rval(b));
     else
-        return throw("wrong types for '=': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '=': %s and %s",aType,bType);
     }
 
 /* (!= a b) */
@@ -223,7 +223,7 @@ isNotNumericEqualTo(int args)
     else if (aType == REAL && bType == REAL)
         return scamBoolean(rval(a) != rval(b));
     else
-        return throw("wrong types for '!=': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '!=': %s and %s",aType,bType);
     }
 
 /* (> a b) */
@@ -248,7 +248,7 @@ isGreaterThan(int args)
     else if (aType == REAL && bType == REAL)
         return scamBoolean(rval(a) > rval(b));
     else
-        return throw("wrong types for '>': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '>': %s and %s",aType,bType);
     }
 
 /* (>= a b) */
@@ -273,7 +273,7 @@ isGreaterThanOrEqualTo(int args)
     else if (aType == REAL && bType == REAL)
         return scamBoolean(rval(a) >= rval(b));
     else
-        return throw("wrong types for '>=': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '>=': %s and %s",aType,bType);
     }
 
 /* (eq? a b) */
@@ -332,7 +332,7 @@ plus(int args)
     else if (aType == REAL && bType == REAL)
         return newReal(rval(a) + rval(b));
     else
-        return throw("wrong types for '+': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '+': %s and %s",aType,bType);
     }
 
 /* (- a b) */
@@ -357,7 +357,7 @@ minus(int args)
     else if (aType == REAL && bType == REAL)
         return newReal(rval(a) - rval(b));
     else
-        return throw("wrong types for '-': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '-': %s and %s",aType,bType);
     }
 
 /* (* a b) */
@@ -382,7 +382,7 @@ times(int args)
     else if (aType == REAL && bType == REAL)
         return newReal(rval(a) * rval(b));
     else
-        return throw("wrong types for '*': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '*': %s and %s",aType,bType);
     }
 
 /* (/ a b) */
@@ -407,7 +407,7 @@ divides(int args)
     else if (aType == REAL && bType == REAL)
         return newReal(rval(a) / rval(b));
     else
-        return throw("wrong types for '/': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '/': %s and %s",aType,bType);
     }
 
 /* (% a b) */
@@ -426,7 +426,7 @@ mod(int args)
     if (aType == INTEGER && bType == INTEGER)
         return newInteger(ival(a) % ival(b));
     else
-        return throw("wrong types for '%': %s and %s",aType,bType);
+        return throw(exceptionSymbol,"wrong types for '%': %s and %s",aType,bType);
     }
 
 /* (type item) */
@@ -454,6 +454,16 @@ begin(int args)
     {
     //printf("in begin...\n");
     return evalListExceptLast(cadr(args),car(args));
+    }
+
+/* (throw ^ $item) */
+
+static int
+rreturn(int args)
+    {
+    //printf("in return...\n");
+    assureMemory("return",THUNK_CELLS + THROW_CELLS,&args,0);
+    return makeThrow(returnSymbol,makeThunk(cadr(args),car(args)),0);
     }
 
 /* (scope ^ $) */
@@ -599,7 +609,7 @@ static int
 setCar(int args)
     {
     if (type(car(args)) != CONS)
-        return throw(
+        return throw(exceptionSymbol,
             "attempt to set the car of type %s",type(car(args)));
 
     caar(args) = cadr(args);
@@ -612,7 +622,7 @@ static int
 setCdr(int args)
     {
     if (type(car(args)) != CONS)
-        return throw(
+        return throw(exceptionSymbol,
             "attempt to set the car of type %s",type(car(args)));
 
     cdar(args) = cadr(args);
@@ -629,7 +639,7 @@ set(int args)
     
     //printf("in set!...");
     if (type(id) != SYMBOL)
-        return throw(
+        return throw(exceptionSymbol,
             "set! identifier resolved to type %s, not SYMBOL",type(id));
 
     if (cadddr(args) == 0)
@@ -650,7 +660,7 @@ get(int args)
 
     //printf("in get...");
     if (type(id) != SYMBOL)
-        return throw(
+        return throw(exceptionSymbol,
             "get variable argument resolved to type %s, not SYMBOL",type(id));
 
     if (caddr(args) == 0)
@@ -663,7 +673,7 @@ static int
 force(int args)
     {
     if (!isThunk(car(args)))
-        return throw("cannot force type %s",type(car(args)));
+        return throw(exceptionSymbol,"cannot force type %s",type(car(args)));
 
     return car(args);
     }
@@ -774,7 +784,7 @@ static int
 ccar(int args)
     {
     if (type(car(args)) != CONS)
-        return throw(
+        return throw(exceptionSymbol,
             "attempt to take car of type %s",type(car(args)));
 
     return car(car(args));
@@ -860,7 +870,7 @@ addOpenPort(FILE *fp,int portType)
 
     if (i == maxPorts)
         {
-        return throw("too many ports open at once");
+        return throw(exceptionSymbol,"too many ports open at once");
         }
 
     OpenPorts[i] = fp;
@@ -895,7 +905,7 @@ setPort(int args)
             return ucons(outputPortSymbol,ucons(newInteger(old),0));
             }
         else 
-            return throw(
+            return throw(exceptionSymbol,
                 "%s is not a valid argument to setPort",
                 SymbolTable[ival(target)]);
         }
@@ -912,7 +922,7 @@ setPort(int args)
         return ucons(outputPortSymbol,ucons(newInteger(old),0));
         }
 
-    return throw(
+    return throw(exceptionSymbol,
         "setPort given a non-port as argument: %s",type(target));
     }
 
@@ -943,16 +953,16 @@ cclose(int args)
         index = ival(cadr(target));
         if (index == 0)
             {
-            return throw("attempt to close stdin");
+            return throw(exceptionSymbol,"attempt to close stdin");
             }
         if (index >= MaxPorts)
             {
-            return throw(
+            return throw(exceptionSymbol,
                 "attempt to close a non-existent port: %d",index);
             }
         if (OpenPorts[index] == 0)
             {
-            return throw(
+            return throw(exceptionSymbol,
                 "attempt to close an unopened port: %d",index);
             }
         fclose(OpenPorts[index]);
@@ -964,16 +974,16 @@ cclose(int args)
         index = ival(cadr(target));
         if (index == 1)
             {
-            return throw("attempt to close stdout");
+            return throw(exceptionSymbol,"attempt to close stdout");
             }
         if (index >= MaxPorts)
             {
-            return throw(
+            return throw(exceptionSymbol,
                 "attempt to close a non-existent port: %d",index);
             }
         if (OpenPorts[index] == 0)
             {
-            return throw(
+            return throw(exceptionSymbol,
                 "attempt to close an unopened port: %d",index);
             }
         fclose(OpenPorts[index]);
@@ -981,7 +991,7 @@ cclose(int args)
         if (CurrentOutputIndex == index) CurrentOutputIndex = 1;
         }
     else
-        return throw(
+        return throw(exceptionSymbol,
             "bad type passed to close: %s", type(target));
 
     return trueSymbol;
@@ -997,10 +1007,10 @@ readChar(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read a character from a closed port");
+        return throw(exceptionSymbol,"attempt to read a character from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read a character at end of input");
+        return throw(exceptionSymbol,"attempt to read a character at end of input");
 
     ch = fgetc(fp);
 
@@ -1038,10 +1048,10 @@ readInt(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read an integer from a closed port");
+        return throw(exceptionSymbol,"attempt to read an integer from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read an integer at end of input");
+        return throw(exceptionSymbol,"attempt to read an integer at end of input");
 
     i = 0;
     fscanf(fp," %d",&i);
@@ -1057,10 +1067,10 @@ readReal(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read a real from a closed port");
+        return throw(exceptionSymbol,"attempt to read a real from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read a real at end of input");
+        return throw(exceptionSymbol,"attempt to read a real at end of input");
 
     r = 0;
     fscanf(fp," %lf",&r);
@@ -1080,10 +1090,10 @@ readString(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read a string from a closed port");
+        return throw(exceptionSymbol,"attempt to read a string from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read a string at end of input");
+        return throw(exceptionSymbol,"attempt to read a string at end of input");
 
     skipWhiteSpace(fp);
 
@@ -1091,7 +1101,7 @@ readString(int args)
     if (ch != '\"')
         {
         ungetc(ch,fp);
-        return throw(
+        return throw(exceptionSymbol,
             "found <%c> instead of double quote at the start of a string",ch);
         }
 
@@ -1106,7 +1116,7 @@ readString(int args)
             {
             ch = fgetc(fp);
             if (ch == EOF)
-                return throw("attempt to read a string at end of input");
+                return throw(exceptionSymbol,"attempt to read a string at end of input");
             if (ch == 'n')
                 buffer[index++] = '\n';
             else if (ch == 't')
@@ -1122,13 +1132,13 @@ readString(int args)
             }
 
         if (index == sizeof(buffer) - 1)
-            return throw("attempt to read a very long string failed");
+            return throw(exceptionSymbol,"attempt to read a very long string failed");
         }
 
     buffer[index] = '\0';
 
     if (ch != '\"')
-        return throw("attempt to read an unterminated string");
+        return throw(exceptionSymbol,"attempt to read an unterminated string");
 
     //printf("string is <%s>\n", buffer);
 
@@ -1149,10 +1159,10 @@ readToken(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read a token from a closed port");
+        return throw(exceptionSymbol,"attempt to read a token from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read a token at end of input");
+        return throw(exceptionSymbol,"attempt to read a token at end of input");
 
     skipWhiteSpace(fp);
 
@@ -1161,7 +1171,7 @@ readToken(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw("attempt to read a very long token failed");
+            return throw(exceptionSymbol,"attempt to read a very long token failed");
         }
 
     buffer[index] = '\0';
@@ -1188,17 +1198,17 @@ readWhile(int args)
 
     if (type(a) != STRING)
         {
-        return throw(
+        return throw(exceptionSymbol,
             "readWhile argument should be STRING, not type %s",type(a));
         }
 
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read characters from a closed port");
+        return throw(exceptionSymbol,"attempt to read characters from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read characters at end of input");
+        return throw(exceptionSymbol,"attempt to read characters at end of input");
 
     cellStringTr(target,sizeof(target),a);
 
@@ -1207,7 +1217,7 @@ readWhile(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw("attempt to read a very long token failed");
+            return throw(exceptionSymbol,"attempt to read a very long token failed");
         }
 
     buffer[index] = '\0';
@@ -1234,17 +1244,17 @@ readUntil(int args)
 
     if (type(a) != STRING)
         {
-        return throw(
+        return throw(exceptionSymbol,
             "readWhile argument should be STRING, not type %s",type(a));
         }
 
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read characters from a closed port");
+        return throw(exceptionSymbol,"attempt to read characters from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read characters at end of input");
+        return throw(exceptionSymbol,"attempt to read characters at end of input");
 
     cellStringTr(target,sizeof(target),a);
 
@@ -1253,7 +1263,7 @@ readUntil(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw("attempt to read a very long token failed");
+            return throw(exceptionSymbol,"attempt to read a very long token failed");
         }
 
     buffer[index] = '\0';
@@ -1279,17 +1289,17 @@ readLine(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw("attempt to read a line from a closed port");
+        return throw(exceptionSymbol,"attempt to read a line from a closed port");
 
     if (feof(fp))
-        return throw("attempt to read a line at end of input");
+        return throw(exceptionSymbol,"attempt to read a line at end of input");
 
     index = 0;
     while ((ch = fgetc(fp)) && ch != EOF && ch != '\n')
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw("attempt to read a very long line failed");
+            return throw(exceptionSymbol,"attempt to read a very long line failed");
         }
 
     buffer[index] = '\0';
@@ -1324,7 +1334,7 @@ oopen(int args)
             char buffer[512];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"r");
             if (fp == 0)
-                return throw("file %s cannot be opened for reading",buffer);
+                return throw(exceptionSymbol,"file %s cannot be opened for reading",buffer);
             result = addOpenPort(fp,inputPortSymbol);
             }
         else if (ival(mode) == writeIndex)
@@ -1333,7 +1343,7 @@ oopen(int args)
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"w");
             //printf("buffer is %s\n",buffer);
             if (fp == 0)
-                return throw("file %s cannot be opened for writing",buffer);
+                return throw(exceptionSymbol,"file %s cannot be opened for writing",buffer);
             //printf("file opened successfully\n");
             result = addOpenPort(fp,outputPortSymbol);
             }
@@ -1342,19 +1352,19 @@ oopen(int args)
             char buffer[256];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"a");
             if (fp == 0)
-                return throw("file %s cannot be opened for appending",buffer);
+                return throw(exceptionSymbol,"file %s cannot be opened for appending",buffer);
             result = addOpenPort(fp,outputPortSymbol);
             }
         else 
             {
-            return throw("unknown open mode :%s, "
+            return throw(exceptionSymbol,"unknown open mode :%s, "
                 "(should be 'read, 'write, or 'append)",
                 SymbolTable[ival(mode)]);
             }
         }
     else
         {
-        return throw("unknown mode type: %s, "
+        return throw(exceptionSymbol,"unknown mode type: %s, "
             "(should be 'read, 'write, or 'append)",
             type(mode));
         }
@@ -1671,6 +1681,16 @@ loadBuiltIns(int env)
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
+
+    BuiltIns[count] = rreturn;
+    b = makeBuiltIn(env,
+        returnSymbol,
+        ucons(sharpSymbol,
+            ucons(newSymbol("$item"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
 
     BuiltIns[count] = define;
     b = makeBuiltIn(env,
