@@ -58,16 +58,27 @@ eval(int expr, int env)
 
         if (isThrow(t))
             {
+            printf("it's a throw!\n");
             if (isReturn(t))
                 {
                 int v = error_message(t);
+                printf("it's a return!\n");
+                debug("return value",v);
                 if (thunk_context(v) == env)
-                    return v;
-                else
+                    {
+                    printf("env matches, returning thunk\n");
                     return t;
+                    return v;
+                    }
+                else
+                    {
+                    printf("env does not match, returning return\n");
+                    return t;
+                    }
                 }
             else
-                return throwAgain(expr,t);
+                return t;
+                //return throwAgain(expr,t);
             }
 
         if (!isThunk(t)) return t;
@@ -172,7 +183,14 @@ evalList(int items,int env)
         //debug("items after",items);
 
         if (isThrow(result))
-            return throwAgain(car(items),result);
+            {
+            if (isReturn(result) && env == thunk_context(error_message(result)))
+                return error_message(result);
+            else
+                return result;
+            }
+        //if (isThrow(result))
+        //    return throwAgain(car(items),result);
 
         items = cdr(items);
         }
@@ -197,7 +215,14 @@ evalListExceptLast(int items,int env)
         //debug("items after",items);
 
         if (isThrow(result))
-            return throwAgain(car(items),result);
+            {
+            if (isReturn(result) && env == thunk_context(error_message(result)))
+                return error_message(result);
+            else
+                return result;
+            }
+        //if (isThrow(result))
+        //    return throwAgain(car(items),result);
 
         items = cdr(items);
         }

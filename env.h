@@ -65,7 +65,7 @@ extern int throwAgain(int,int);
 #define CLOSURE_CELLS (OBJECT_CELLS + 8 + 1)  //one more for begin
 #define CLOSURE_PREDEFINED (OBJECT_PREDEFINED + 4)
 
-#define error_code(x)          (cadr(object_values(x)))
+#define error_type(x)          (cadr(object_values(x)))
 #define error_message(x)       (caddr(object_values(x)))
 #define error_trace(x)         (cadddr(object_values(x)))
 
@@ -82,4 +82,4 @@ extern int throwAgain(int,int);
     ((ival(object_label(x)) == ival(closureSymbol)) \
     || (ival(object_label(x)) == ival(builtInSymbol))))
 #define isThrow(x) (isObject(x) && ival(object_label(x)) == ival(throwSymbol))
-#define isReturn(x) (isObject(x) && ival(object_label(x)) == ival(returnSymbol))
+#define isReturn(x) (isObject(x) && ival(error_type(x)) == ival(returnSymbol))

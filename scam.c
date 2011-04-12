@@ -76,9 +76,9 @@ main(int argc,char **argv,char **envv)
             if (TraceBack || error_trace(result) == 0)
                 {
                 printf("%s,line %d: ",
-                    SymbolTable[file(error_code(last))],
-                    line(error_code(last)));
-                pp(stdout,error_code(last));
+                    SymbolTable[file(error_type(last))],
+                    line(error_type(last)));
+                pp(stdout,error_type(last));
                 printf("\n");
                 }
             }

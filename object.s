@@ -83,6 +83,25 @@
     obj
     )
 
+(define (inherit child parents reification static)
+    (cond
+        ((null? parents)
+            (set! 'context static child))
+        (else
+            (set! 'context 
+                (inherit (resetClosures reification (car parents))
+                       (cdr parents) reification static)
+                child)))
+    child)
+
+(define (new child)
+    (define (chain x) (if (null? x) nil (cons x (chain (get 'parent x)))))
+    (inherit child (chain (get 'parent child)) child (get 'context child)))
+
+(define (mixin object @)
+    (inherit object @ object (get 'context object)))
+
+
 (define (super child)
     (get 'context child)
     )
