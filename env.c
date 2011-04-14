@@ -14,12 +14,12 @@ getVariableValue(int var,int env)
     if (spot == 0)
         {
         //ppObject(stdout,env,0);
-        return throw(exceptionSymbol,"variable %s is undefined",
+        return throw(undefinedVariableSymbol,"variable %s is undefined",
             SymbolTable[ival(var)]);
         }
     if (sameSymbol(car(spot),uninitializedSymbol))
         {
-        return throw(exceptionSymbol,"variable %s is uninitialized",
+        return throw(uninitializedVariableSymbol,"variable %s is uninitialized",
             SymbolTable[ival(var)]);
         }
     return car(spot);
@@ -226,7 +226,7 @@ throw(int symbol,char *fmt, ...)
     s = newString(buffer);
 
     result = makeThrow(symbol,s,0);
-    debug("throwing",result);
+    //debug("throwing",result);
     return result;
     }
 

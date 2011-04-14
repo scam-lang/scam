@@ -21,7 +21,7 @@ eval(int expr, int env)
         {
         int t,tag;
 
-        debug("eval",expr);
+        //debug("eval",expr);
         //debug(" env",env);
 
         if (expr == 0) return 0;

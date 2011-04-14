@@ -49,6 +49,8 @@ int scopeSymbol;
 int sharpSymbol;
 int trueSymbol;
 int falseSymbol;
+int trueWordSymbol;
+int falseWordSymbol;
 int backquoteSymbol;
 int commaSymbol;
 int inputPortSymbol;
@@ -56,6 +58,7 @@ int outputPortSymbol;
 int eofSymbol;
 int elseSymbol;
 int nilSymbol;
+int nullSymbol;
 int fileSymbol;
 int lineSymbol;
 int messageSymbol;
@@ -64,6 +67,11 @@ int defineSymbol;
 int exceptionSymbol;
 int returnSymbol;
 int levelSymbol;
+int eqSymbol;
+int dotSymbol;
+int assignSymbol;
+int undefinedVariableSymbol;
+int uninitializedVariableSymbol;
 
 int readIndex;
 int writeIndex;
@@ -144,6 +152,8 @@ memoryInit(int memsize)
     scopeSymbol          = newSymbol("scope");
     trueSymbol           = newSymbol("#t");
     falseSymbol          = newSymbol("#f");
+    trueWordSymbol       = newSymbol("true");
+    falseWordSymbol      = newSymbol("false");
     backquoteSymbol      = newSymbol("backquote");
     commaSymbol          = newSymbol("comma");
     inputPortSymbol      = newSymbol("inputPort");
@@ -151,6 +161,7 @@ memoryInit(int memsize)
     eofSymbol            = newSymbol("EOF");
     elseSymbol           = newSymbol("else");
     nilSymbol            = newSymbol("nil");
+    nullSymbol           = newSymbol("null");
     fileSymbol           = newSymbol("file");
     lineSymbol           = newSymbol("line");
     messageSymbol        = newSymbol("message");
@@ -159,6 +170,11 @@ memoryInit(int memsize)
     exceptionSymbol      = newSymbol("EXCEPTION");
     returnSymbol         = newSymbol("return");
     levelSymbol          = newSymbol("level");
+    eqSymbol             = newSymbol("=");
+    dotSymbol            = newSymbol(".");
+    assignSymbol         = newSymbol("assign");
+    undefinedVariableSymbol = newSymbol("undefinedVariable");
+    uninitializedVariableSymbol = newSymbol("uninitializedVariable");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");

@@ -629,7 +629,7 @@ setCdr(int args)
     return cadr(args);
     }
 
-/* (set! id value & @) */
+/* (set! id value # @) */
 
 static int
 set(int args)
@@ -650,6 +650,40 @@ set(int args)
     //debug("set! returning",result);
     return result;
     }
+
+/* (assign $id value # @) */
+
+static int
+assign(int args)
+    {
+    int id = car(args);
+    int env;
+    int result;
+    
+    //printf("in assign...");
+    if (type(id) == SYMBOL)
+        return set(args);
+
+    if (type(id) != CONS && sameSymbol(car(id),dotSymbol))
+        return throw(exceptionSymbol,
+            "first argument to assign was not a symbol or a dot operation");
+
+    env = cadr(id);
+    id = caddr(id);
+
+    push(id);
+    push(args);
+    env = eval(env,caddr(args));
+    args = pop();
+    id = pop();
+
+    rethrow(env,0);
+
+    result = setVariableValue(id,cadr(args),env);
+
+    return result;
+    }
+
 
 /* (get id & @) */
 
@@ -699,7 +733,7 @@ inspect(int args)
 /* (include # $fileName) */
 
 static int
-include(int args)
+iinclude(int args)
     {
     int fileName = cadr(args);
     int env = car(args);
@@ -719,6 +753,8 @@ include(int args)
     env = pop();
 
     rethrow(ptree,0);
+
+    //debug("include",env);
 
     return makeThunk(ptree,env);
     }
@@ -1619,7 +1655,7 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = include;
+    BuiltIns[count] = iinclude;
     b = makeBuiltIn(env,
         newSymbol("include"),
         ucons(sharpSymbol,
@@ -1833,7 +1869,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = not;
     b = makeBuiltIn(env,
         newSymbol("not"),
-        ucons(newSymbol("value"),0),
+        ucons(valueSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1883,6 +1919,15 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = isEq;
+    b = makeBuiltIn(env,
+        newSymbol("=="),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = isNotEq;
     b = makeBuiltIn(env,
         newSymbol("neq?"),
@@ -1924,18 +1969,30 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("set!"),
         ucons(newSymbol("id"),
-            ucons(newSymbol("value"),
+            ucons(valueSymbol,
                 ucons(sharpSymbol,
                     ucons(atSymbol,0)))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = assign;
+    b = makeBuiltIn(env,
+        newSymbol("assign"),
+        ucons(newSymbol("$id"),
+            ucons(valueSymbol,
+                ucons(sharpSymbol,
+                    ucons(atSymbol,0)))),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+
     BuiltIns[count] = setCar;
     b = makeBuiltIn(env,
         newSymbol("set-car!"),
         ucons(newSymbol("spot"),
-            ucons(newSymbol("value"),0)),
+            ucons(valueSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -1944,7 +2001,7 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("set-cdr!"),
         ucons(newSymbol("spot"),
-            ucons(newSymbol("value"),0)),
+            ucons(valueSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
