@@ -201,31 +201,6 @@ isNumericEqualTo(int args)
         return throw(exceptionSymbol,"wrong types for '=': %s and %s",aType,bType);
     }
 
-/* (!= a b) */
-
-static int
-isNotNumericEqualTo(int args)
-    {
-    int a,b;
-    char *aType,*bType;
-
-    a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
-
-    if (aType == INTEGER && bType == INTEGER)
-        return scamBoolean(ival(a) != ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return scamBoolean(ival(a) != rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return scamBoolean(rval(a) != ival(b));
-    else if (aType == REAL && bType == REAL)
-        return scamBoolean(rval(a) != rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '!=': %s and %s",aType,bType);
-    }
-
 /* (> a b) */
 
 static int
@@ -1431,11 +1406,49 @@ eexec(int args)
     return newInteger(execl("/bin/sh","sh","-c",buffer,(char *) 0));
     }
 
+static int
+bindings(int args)
+    {
+    int items,spot;
+    int vars = object_variables(car(args));
+    int vals = object_values(car(args));
+
+    assureMemory("bindings",4 * length(vars),0);
+
+    items = 0;
+    while (vars != 0)
+        {
+        int pack = ucons(ucons(car(vars),ucons(car(vals),0)),0);
+        if (items == 0)
+            {
+            items = pack;
+            spot = items;
+            }
+        else
+            {
+            cdr(spot) = pack;
+            spot = cdr(spot);
+            }
+        vars = cdr(vars);
+        vals = cdr(vals);
+        }
+
+    return items;
+    }
+
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = bindings;
+    b = makeBuiltIn(env,
+        newSymbol("bindings"),
+        ucons(newSymbol("object"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = ssystem;
     b = makeBuiltIn(env,
@@ -1946,7 +1959,7 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = isNotNumericEqualTo;
+    BuiltIns[count] = isNotEq;
     b = makeBuiltIn(env,
         newSymbol("!="),
         ucons(newSymbol("a"),
