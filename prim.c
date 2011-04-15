@@ -85,6 +85,14 @@ define(int args)
         return throw(exceptionSymbol,"can only define SYMBOLS, not type %s",type(first));
     }
 
+/* (addSymbol name init env) */
+
+static int
+addSymbol(int args)
+    {
+    return defineIdentifier(car(args),cadr(args),caddr(args));
+    }
+
 /* (lambda # $params $) */
 
 static int
@@ -487,7 +495,7 @@ println(int args)
 static int
 iif(int args)
     {
-    //debug("if test",car(args));
+    //debug("if test",cadr(args));
 
     if (sameSymbol(cadr(args),trueSymbol))
         {
@@ -1436,11 +1444,195 @@ bindings(int args)
     return items;
     }
 
+/* (array @) */
+
+static int
+array(int args)
+    {
+    int i,size,amount,spot,start = 0,attach = 0;
+    args = car(args);
+    size = length(args);
+    amount = size;
+    assureMemory("array",size,&args,0);
+    for (i = 0; i < size; ++i)
+        {
+        spot = cons(car(args),0);
+        type(spot) = ARRAY;
+        count(spot) = amount--;
+        if (i == 0)
+            start = spot;
+        else
+            cdr(attach) = spot;
+        attach = spot;
+        args = cdr(args);
+        }
+    printf("size of array is %d\n",count(start));
+    return start;
+    }
+
+/* (allocate size) */
+
+static int
+allocate(int args)
+    {
+    int i,spot,start = 0,attach = 0;
+    int size = ival(car(args));
+    int amount = size;
+    assureMemory("allocate",size,0);
+    for (i = 0; i < size; ++i)
+        {
+        spot = cons(0,0);
+        type(spot) = ARRAY;
+        count(spot) = amount--;
+        if (i == 0)
+            start = spot;
+        else
+            cdr(attach) = spot;
+        attach = spot;
+        }
+    return start;
+    }
+
+/* (length item) */
+
+static int
+llength(int args)
+    {
+    int item = car(args);
+
+    if (type(item) == ARRAY)
+        return newInteger(count(item));
+    else if (type(item) == CONS)
+        {
+        int size = 0;
+        while (type(item) == CONS)
+            {
+            ++size;
+            item = cdr(item);
+            }
+        return newInteger(size);
+        }
+    else
+        return throw(exceptionSymbol,"cannot take the length of type %s",
+            type(item));
+    }
+
+/* (get array index) */
+
+static int
+getElement(int args)
+    {
+    int limit;
+    int supply = car(args);
+    int index = ival(cadr(args));
+    char *kind = type(supply);
+
+    if (index < 0)
+        return throw(exceptionSymbol,
+            "negative indices (%d) are not allowed",index);
+
+    if (kind == ARRAY)
+        limit = count(supply);
+    else if (kind == STRING || kind == CONS)
+        limit = length(supply);
+    else
+        return throw(exceptionSymbol,"cannont index into type %s",kind);
+
+    if (index >= limit)
+        return throw(exceptionSymbol,"index (%d) is too large",index);
+
+    if (type(supply) == ARRAY)
+        return car(supply + index);
+    else
+        {
+        while (index > 0)
+            supply = cdr(supply);
+        return car(supply);
+        }
+    }
+
+
+static int
+symbol(int args)
+    {
+    char buffer[1024];
+    cellString(buffer,sizeof(buffer),car(args));
+    return newSymbol(buffer);
+    }
+
+/* (catch # $expr) */
+
+static int
+catch(int args)
+    {
+    int env = car(args);
+
+    result = eval(cadr(args),car(args));
+
+    if (isThrow(result))
+        error
+
+    push(env
+    char buffer[1024];
+    cellString(buffer,sizeof(buffer),car(args));
+    return newSymbol(buffer);
+    }
+
+
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = catch;
+    b = makeBuiltIn(env,
+        newSymbol("catch"),
+        ucons(newSymbol("expr"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = symbol;
+    b = makeBuiltIn(env,
+        newSymbol("symbol"),
+        ucons(newSymbol("str"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = getElement;
+    b = makeBuiltIn(env,
+        newSymbol("getElement"),
+        ucons(newSymbol("item"),
+            ucons(newSymbol("index"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = llength;
+    b = makeBuiltIn(env,
+        newSymbol("length"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = allocate;
+    b = makeBuiltIn(env,
+        newSymbol("allocate"),
+        ucons(newSymbol("size"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = array;
+    b = makeBuiltIn(env,
+        newSymbol("array"),
+        ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = bindings;
     b = makeBuiltIn(env,
@@ -1740,12 +1932,21 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-
     BuiltIns[count] = define;
     b = makeBuiltIn(env,
         newSymbol("define"),
         ucons(sharpSymbol,
             ucons(dollarSymbol,0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = addSymbol;
+    b = makeBuiltIn(env,
+        newSymbol("addSymbol"),
+        ucons(newSymbol("name"),
+            ucons(newSymbol("init"),
+                ucons(newSymbol("env"),0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

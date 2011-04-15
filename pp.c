@@ -8,9 +8,9 @@
 int ppQuoting = 0;
 
 void
-ppList(FILE *fp,int items,int mode)
+ppList(FILE *fp,char *open,int items,char *close,int mode)
     {
-    fprintf(fp,"(");
+    fprintf(fp,"%s",open);
     while (items != 0)
         {
         ppLevel(fp,car(items),mode + 1);
@@ -32,7 +32,26 @@ ppList(FILE *fp,int items,int mode)
                 }
             }
         }
-    fprintf(fp,")");
+    fprintf(fp,"%s",close);
+    }
+
+void
+ppArray(FILE *fp,char *open,int items,char *close,int mode)
+    {
+    fprintf(fp,"%s",open);
+    while (items != 0)
+        {
+        ppLevel(fp,car(items),mode + 1);
+        if (transferred(items))
+            {
+            fprintf(fp," NEW(%d))",cdr(items));
+            return;
+            }
+        if (cdr(items) != 0)
+            fprintf(fp,",");
+        items = cdr(items);
+        }
+    fprintf(fp,"%s",close);
     }
 
 void
@@ -49,14 +68,14 @@ ppObject(FILE *fp,int expr,int mode)
         {
         fprintf(fp,"<builtIn ");
         ppLevel(fp,closure_name(expr),mode+1);
-        ppList(fp,closure_parameters(expr),mode);
+        ppList(fp,"(",closure_parameters(expr),")",mode);
         fprintf(fp,">");
         }
     else if (sameSymbol(object_label(expr),closureSymbol))
         {
         fprintf(fp,"<function ");
         ppLevel(fp,closure_name(expr),mode+1);
-        ppList(fp,closure_parameters(expr),mode);
+        ppList(fp,"(",closure_parameters(expr),")",mode);
         fprintf(fp,">");
         }
     else
@@ -98,13 +117,13 @@ void ppCons(FILE *fp,int expr,int mode)
     else if (sameSymbol(car(expr),lambdaSymbol))
         {
         fprintf(fp,"<lambda ");
-        ppList(fp,closure_parameters(expr),mode);
+        ppList(fp,"(",closure_parameters(expr),")",mode);
         fprintf(fp,">");
         }
     else if (transferred(car(expr)))
         fprintf(fp,"(XXX ...)");
     else
-        ppList(fp,expr,mode);
+        ppList(fp,"(",expr,")",mode);
 
     ppQuoting = old;
     }
@@ -147,6 +166,8 @@ ppLevel(FILE *fp,int expr,int mode)
         fprintf(fp,"%s",SymbolTable[ival(expr)]);
     else if (type(expr) == CONS)
         ppCons(fp,expr,mode);
+    else if (type(expr) == ARRAY)
+        ppArray(fp,"[",expr,"]",mode);
     else if (expr == -1)
         printf("xcall!");
     else
