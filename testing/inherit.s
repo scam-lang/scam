@@ -5,9 +5,8 @@
 
 (define (resetClosures static obj)
     (define (update current rest)
-        (if (closure? current)
-            (set! 'context static current)
-            )
+        (if (closure? current) (set! 'context static current))
+        (if (neq? rest nil) (update (car rest) (cdr rest)))
         )
     (define values (locals obj))
     ;(println "locals are " values)

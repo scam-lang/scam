@@ -18,8 +18,6 @@
     this
     )
 
-(define xish (new (x)))
-
 (inspect ((get 'getCommon (new (x)))))
 (inspect ((get 'getCommon (new (x)))))
 (inspect ((get 'getCommon (new (z)))))
