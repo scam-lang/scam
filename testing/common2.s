@@ -1,3 +1,3 @@
-var common = { var count = 0; this; };
+(define common (scope (define count 0) this))
 
-println(bindings(common));
+(println (bindings common))

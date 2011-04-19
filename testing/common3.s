@@ -1,24 +1,25 @@
-include("inherit.s");
+(include "inherit.s")
 
-function +=($v,value,#) { set!($v,eval($v,#) + value,#); }
+(define (+= # $v value)
+    (set! $v (+ (eval $v #) value) #)
+    )
 
-var common = 0;
+(define common 0)
 
-function z()
-    {
-    var parent = null;
-    var uncommon = 0;
-    common += 1;
-    uncommon += 1;
-    this;
-    }
+(define (z)
+    (define parent nil)
+    (define uncommon 0)
+    (+= common 1)
+    (+= uncommon 1)
+    this
+    )
 
-function x()
-    {
-    var parent = z();
-    this;
-    }
+(define (x)
+    (define parent (z))
+    this
+    )
 
-inspect(new(x()) . common);
-inspect(new(x()) . uncommon);
-inspect(new(x()) . common);
+(inspect (get 'common (new (x))))
+(inspect (get 'common (new (x))))
+(inspect (get 'uncommon (new (x))))
+(inspect (get 'uncommon (new (x))))

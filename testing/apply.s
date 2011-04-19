@@ -1,27 +1,24 @@
-function f(@)
-    {
-    if (@ == :null)
-        {
-	0;
-	}
-    else
-        {
-	@ . 0 + apply(f,tail(@));
-	}
-    }
+(define (f @)
+    (if (== @ nil)
+        0
+        (+ (getElement @ 0) (apply f (cdr @)))
+        )
+    )
 
-function g($)
-    {
-    var total = 0, size = length($);
+(define (g # $)
+    (define total 0)
+    (define size (length $))
 
-    while (size > 0)
-        {
-	total = total + force($ . (size - 1));
-	size = size - 1;
-	}
+    (while (> size 0)
+        ;(inspect (- size 1))
+        ;(inspect $)
+        ;(inspect (getElement $ 0))
+        ;(inspect (getElement $ (- size 1)))
+        (set! 'total (+ total (eval (getElement $ (- size 1)) #)))
+        (set! 'size (- size 1))
+        )
 
-    return total;
-    }
-
-print("sum (via f): ",f(1,2,3,4),"\n");
-print("sum (via g): ",g(1,2,3,4),"\n");
+    total
+    )
+(print "sum (via f): " (f 1 2 3 4) "\n")
+(print "sum (via g): " (g 1 2 3 4) "\n")

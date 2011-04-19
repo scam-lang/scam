@@ -1,28 +1,26 @@
-include("inherit.s");
+(include "inherit.s")
 
-function helper() { println("oops!"); }
+(define (helper) (println "oops!"))
 
-var common = 10;
+(define common 10)
 
-function z()
-    {
-    var parent = null;
-    function getCommon() { helper(); common; }
-    common =  common + 1;
-    this;
-    }
+(define (z)
+    (define parent nil)
+    (define (getCommon) (helper) common)
+    (set! 'common (+ common 1))
+    this
+    )
 
-function x()
-    {
-    var parent = z();
-    var common = 1;
-    function helper() { println("help!"); }
-    this;
-    }
+(define (x)
+    (define parent (z))
+    (define common 1)
+    (define (helper) (println "help!"))
+    this
+    )
 
-var xish = new(x());
+(define xish (new (x)))
 
-inspect(new(x()) . getCommon());
-inspect(new(x()) . getCommon());
-inspect(new(z()) . getCommon());
-inspect(new(z()) . getCommon());
+(inspect ((get 'getCommon (new (x)))))
+(inspect ((get 'getCommon (new (x)))))
+(inspect ((get 'getCommon (new (z)))))
+(inspect ((get 'getCommon (new (z)))))

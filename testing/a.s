@@ -1,13 +1,11 @@
-function sqr(x)
-    {
-    return x * x;
-    }
+(define (sqr x)
+    (return (* x x))
+    )
 
-function a+b(a, b)
-    {
-    return sqr(a + b);
-    }
+(define (a+b a b)
+    (return (sqr (+ a b)))
+    )
 
-var z = 10;
+(define z  10)
 
-print("zeta of ", z, " and ", z, " is ", z a+b z, "\n");
+(print "zeta of "  z  " and "  z  " is "  (a+b z z) "\n")

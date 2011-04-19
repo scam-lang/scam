@@ -1,29 +1,41 @@
-function cddddr(x) { cdr(cdr(cdr(cdr(x)))); }
+(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
 
-function class(x) { x . label; }
+(define (class x) (get 'label x))
 
-function closure?(x)
-    {
-    pair?(x) && car(x) == :object && class(x) == :closure;
-    }
+(define (closure? x)
+    (and (and (pair? x) (eq? (car x) 'object)) (eq? (class x) 'closure))
+    )
 
-function object?(x)
-    {
-    pair?(x) && car(x) == :object;
-    }
+(define (object? x)
+    (and (pair? x) (eq? (car x) 'object))
+    )
 
-function local?(id,env)
-    {
-    member?(id,car(cdr(env)));
-    }
+(define (local? id env)
+    (member? id (car (cdr env)))
+    )
 
-function defined?(id,env)
-    {
-    var result = catch(get(id,env));
-    return type(result) != :ERROR;
-    }
+(define (defined? id env)
+    (define result (catch (get id env)))
+    (!= (type result) 'ERROR)
+    )
 
-function locals(env)
-    {
-    cddddr(car(cdr(cdr(env))));
-    }
+(define (locals env)
+    (cddddr (car (cdr (cdr env))))
+    )
+
+(define (. obj $field) (get $field obj))
+
+(define (member? x items)
+    (cond
+        ((null? items)
+            #f
+            )
+        ((eq? x (car items))
+            #t
+            )
+        (else
+            (member? x (cdr items))
+            )
+        )
+    )
+

@@ -1,6 +1,5 @@
-var i = 0;
+(define i 0)
 
-if (i == 0)
-    {
-    println("zero");
-    }
+(if (== i 0)
+    (println "zero")
+    )
