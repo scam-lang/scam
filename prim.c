@@ -1565,17 +1565,16 @@ symbol(int args)
 static int
 catch(int args)
     {
-    int env = car(args);
+    int result;
 
     result = eval(cadr(args),car(args));
 
     if (isThrow(result))
-        error
+        {
+        object_label(result) = errorSymbol;
+        }
 
-    push(env
-    char buffer[1024];
-    cellString(buffer,sizeof(buffer),car(args));
-    return newSymbol(buffer);
+    return result;
     }
 
 

@@ -18,8 +18,18 @@ extern char *REAL;// = "REAL";
 extern char *STRING;// = "STRING";
 extern char *SYMBOL;// = "SYMBOL";
 extern char *CONS;// = "THUNK";
+extern char *ARRAY;// = "ARRAY";
 extern char *PAST;// = "PAST";
 extern char *FUTURE;// = "FUTURE";
+
+/* scam types for an imperative front-end */
+
+extern char *OPEN_BRACE;//= "OPEN_BRACE";
+extern char *CLOSE_BRACE;//= "CLOSE_BRACE";
+extern char *OPEN_BRACKET;//= "OPEN_BRACKET";
+extern char *CLOSE_BRACKET;//= "CLOSE_BRACKET";
+extern char *SEMI;//= "SEMICOLON";
+
 
 /* error codes */
 
