@@ -1,0 +1,99 @@
+include("basics");
+
+function f(a,b,c)
+    {
+    var x;
+
+    if (true)
+        {
+        var x = 3;
+        var y = 4;
+
+        print(x);
+        print(y);
+        while (x > y)
+            {
+            x = x - 1;
+            y = y + 1;
+            }
+        }
+    else if (false)
+        {
+        :ok;
+        }
+    else if (true)
+        {
+        :ok;
+        }
+    else
+        {
+        print("huh?");
+        }
+    return :oops;
+    }
+
+function mv(m,v)
+    {
+    function q()
+        {
+        x;
+        }
+    function h() { 3 * 3; }
+    map(function (r) {r dot-product v; },m);
+    }
+
+function thunk($x) { $x; }
+
+pp(f);
+pp(mv);
+pp(this . SwayArgs);
+println();
+ppObject(thunk(hello + goodbye));
+println();
+------------------------------------------
+function f(a,b,c)
+    {
+    var x;
+    if (true)
+        {
+        var x = 3;
+        var y = 4;
+        print(x);
+        print(y);
+        while (x > y)
+            {
+            x = x - 1;
+            y = y + 1;
+            }
+        }
+    else if (false)
+        {
+        :ok;
+        }
+    else if (true)
+        {
+        :ok;
+        }
+    else
+        {
+        print("huh?");
+        }
+    return :oops;
+    }
+function mv(m,v)
+    {
+    function q()
+        {
+        x;
+        }
+    function h()
+        {
+        3 * 3;
+        }
+    map(function (r) { r dot-product v; },m);
+    }
+["pp.s"]
+<THUNK 7272>:
+    context: <OBJECT 984>
+    code: hello + goodbye
+

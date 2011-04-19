@@ -1,0 +1,28 @@
+include("basics");
+include("matrix");
+
+function expand($mat)
+    {
+        var i = 0;
+    var m = force($mat);
+        var mat2 = allocateM(2 * length(m));
+        while(i < length(m))
+        {
+                mat2[i] = m[i];
+                i += 1;
+        }
+        $mat = mat2;
+    }
+
+function f(x)
+{
+        var j;
+        var mat = allocateM(10);
+        inspect(length(mat));
+        expand(mat);
+        inspect(length(mat));
+}
+f(5);
+------------------------------------------
+length(mat) is 10
+length(mat) is 20

@@ -1,0 +1,5 @@
+if test -e $1.run; then
+    ../swayish `cat $1.run` $1
+else
+    ../swayish $1
+fi

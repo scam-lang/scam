@@ -1,0 +1,6 @@
+var x;
+
+print(x + 1);
+------------------------------------------
+EVALUATION ERROR: :uninitializedVariable
+uninit.s,line 3: variable x is uninitialized

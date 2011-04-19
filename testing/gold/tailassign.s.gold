@@ -1,0 +1,50 @@
+include("basics");
+var a = list(1,2,3,4,5);
+var b = a;
+println("a is ",a);
+a = tail(a);
+println("after set a to its tail, a is ",a);
+inspect(length(a));
+inspect(type(a));
+println("b was set to the original a");
+inspect(b);
+inspect(length(b));
+inspect(type(b));
+tail(tail(a)) tail= array(11,12,13,14);
+
+while (a != :null)
+    {
+    inspect(a);
+    a = tail(a);
+    }
+println();
+while (b != :null)
+    {
+    inspect(b);
+    b = tail(b);
+    }
+------------------------------------------
+a is (1,2,3,4,5)
+after set a to its tail, a is (2,3,4,5)
+length(a) is 4
+type(a) is :LIST
+b was set to the original a
+b is (1,2,3,4,5)
+length(b) is 5
+type(b) is :LIST
+a is (2,3,4 # [11,12,13,14])
+a is (3,4 # [11,12,13,14])
+a is (4 # [11,12,13,14])
+a is [11,12,13,14]
+a is [12,13,14]
+a is [13,14]
+a is [14]
+
+b is (1,2,3,4 # [11,12,13,14])
+b is (2,3,4 # [11,12,13,14])
+b is (3,4 # [11,12,13,14])
+b is (4 # [11,12,13,14])
+b is [11,12,13,14]
+b is [12,13,14]
+b is [13,14]
+b is [14]

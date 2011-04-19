@@ -1,0 +1,28 @@
+var z = 3;
+
+function x()
+    {
+    var a = :z, b = "hello";
+
+    this;
+    }
+
+function getObject()
+    {
+    return xobj;
+    }
+
+function id(x) { return x; }
+
+var xobj = x();
+
+print("z is ", z, " (should be 3)\n");
+print("xobj's a is ", xobj . a, " (should be z)\n");
+
+id(xobj . a) = 5;
+xobj . a = 4;
+getObject() . a = 5;
+getObject() . a = symbol("q");
+
+print("z now is ", z, " (should be 5)\n");
+print("xobj's a now is ", xobj . a, " (should be q)\n");

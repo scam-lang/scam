@@ -1,0 +1,4 @@
+1(3);
+------------------------------------------
+EVALUATION ERROR: :nonFunction
+catch.s,line 1: type INTEGER was illegally called like a function

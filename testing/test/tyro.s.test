@@ -1,0 +1,16 @@
+include("style");
+
+function f()
+    {
+    z = 5;
+    while (x == 3)
+        {
+        x = 4
+        f(x);
+        }
+    y == x;
+    }
+------------------------------------------
+EVALUATION ERROR: :styleViolation
+tyro.s,line 8: 
+next line continues this line, perhaps a missing semicolon?

@@ -1,0 +1,5 @@
+var common = { var count = 0; this; };
+
+println(bindings(common));
+------------------------------------------
+((context,<OBJECT 966>),(dynamicContext,null),(callDepth,0),(constructor,null),(this,<OBJECT 2824>),(count,0))

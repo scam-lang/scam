@@ -1,0 +1,32 @@
+    function h(w)
+        {
+        w / 2.0;
+        }
+
+    function g(w)
+        {
+        w * w;
+        }
+
+    function ratio(w,dw,h)
+        {
+        var dh = h(w + dw) - h(w);
+        dh / dw;
+        }
+
+inspect(ratio(40,0.01,h));
+inspect(ratio(40,0.0001,h));
+inspect(ratio(20,0.0001,h));
+
+inspect(ratio(100,1,g));
+inspect(ratio(100,0.1,g));
+inspect(ratio(100,0.01,g));
+inspect(ratio(100,0.001,g));
+------------------------------------------
+ratio(40,0.0100000000,h) is 0.5000000000
+ratio(40,0.0001000000,h) is 0.5000000000
+ratio(20,0.0001000000,h) is 0.5000000000
+ratio(100,1,g) is 201
+ratio(100,0.1000000000,g) is 200.10000000
+ratio(100,0.0100000000,g) is 200.01000000
+ratio(100,0.0010000000,g) is 200.00100000

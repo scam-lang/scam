@@ -1,0 +1,25 @@
+include("basics");
+
+var common = 0;
+
+function z()
+    {
+    var uncommon = 0;
+    common += 1;
+    uncommon += 1;
+    this;
+    }
+
+function x()
+    {
+    proxy(z());
+    this;
+    }
+
+inspect(x() . common);
+inspect(x() . uncommon);
+inspect(x() . common);
+------------------------------------------
+x() . common is 1
+x() . uncommon is 1
+x() . common is 3

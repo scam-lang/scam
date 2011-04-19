@@ -1,0 +1,1 @@
+scp linux.csce.uark.edu:csway/tests/*.s .

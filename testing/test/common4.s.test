@@ -1,0 +1,35 @@
+include("basics");
+
+function helper() { println("oops!"); }
+var z =
+{
+var common = 0;
+function helper() { println("oops!"); }
+
+function z()
+    {
+    var uncommon = 0;
+    function getCommon() { helper(); common; }
+    common += 1;
+    uncommon += 1;
+    this;
+    }
+};
+
+function x()
+    {
+    var common = 4;
+    function helper() { println("help!"); }
+    proxy(z());
+    this;
+    }
+
+inspect(x() . getCommon());
+inspect(x() . uncommon);
+inspect(x() . getCommon());
+------------------------------------------
+help!
+x() . getCommon() is 4
+x() . uncommon is 1
+help!
+x() . getCommon() is 4

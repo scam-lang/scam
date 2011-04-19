@@ -1,0 +1,12 @@
+for s in $*
+    do
+	echo $1
+	cat $1 | expand > gold/$1.gold
+	echo "------------------------------------------" >> gold/$1.gold
+	if test -e $1.run; then
+	    sway `cat $1.run` $1 2>&1 | cat >> gold/$1.gold;
+	else
+	    sway $1 2>&1 | cat >> gold/$1.gold
+	fi
+	shift
+    done

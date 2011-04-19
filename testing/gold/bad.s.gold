@@ -1,0 +1,5 @@
+var a = x x;
+------------------------------------------
+SYNTAX ERROR: :syntaxError
+bad.s,line 1: an expression was expected, found SEMICOLON instead
+error occurred prior to: [END OF LINE]

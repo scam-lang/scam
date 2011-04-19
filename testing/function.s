@@ -1,0 +1,55 @@
+function parameterListMaker($)
+    {
+    var vars = :null;
+
+    while ($ != :null)
+        {
+        vars = vars + list($ . 0 . code);
+        $ = tail($);
+        }
+
+    vars;
+    }
+
+function named-lambda($name,params,$body)
+    {
+    var $p = thunk(0,$name . context);
+
+    $p . code = params;
+
+    __function__($name,$p,$body);
+    }
+
+function loadAndgo($name,params,values,$body)
+    {
+    var f = named-lambda($name,params,$body);
+
+    apply(f,values);
+    }
+
+loadAndgo(countdown,parameterListMaker(a),list(4))
+    {
+    inspect(a);
+    if (a > 0)
+        {
+        countdown(a - 1);
+        }
+    }
+
+loadAndgo(countdown,list(:a),list(4))
+    {
+    inspect(a);
+    if (a > 0)
+        {
+        countdown(a - 1);
+        }
+    }
+
+(named-lambda(countdown,list(:a),
+    {
+    inspect(a);
+    if (a > 0)
+        {
+        countdown(a - 1);
+        }
+    }))(4);
