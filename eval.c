@@ -96,7 +96,8 @@ evalCall(int call,int env, int mode)
     //debug("calling",closure);
 
     if (!isClosure(closure))
-        return throw(exceptionSymbol,"attempted to call %s as a function", type(closure));
+        return throw(nonFunctionSymbol,
+            "attempted to call %s as a function", type(closure));
 
     /* args are the cdr of call */
 

@@ -1,20 +1,16 @@
-include("reflection.s");
+(include "reflection.s")
 
-var methods = array(symbol("++"),:+,:+=);
-inspect(length(methods));
-inspect(methods);
+(define methods (array (symbol "-") '+ (symbol "++")))
+(inspect (length methods))
+(inspect methods)
 
-var i = 0;
+(define i 0)
 
-while (i < length(methods))
-    {
-    if (defined?(getElement(methods,i),this))
-        {
-        println(methods . i, " is defined!");
-        }
-    else
-        {
-        println(methods . i, " is not defined");
-        }
-    i = i + 1;
-    }
+(while (< i (length methods))
+    (define item (getElement methods i))
+    (if (defined? item this)
+        (println item " is defined!")
+        (println item " is not defined.")
+        )
+    (set! 'i (+ i 1))
+    )

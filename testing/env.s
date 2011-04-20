@@ -1,9 +1,9 @@
-var spot = SwayEnv;
+(include "scam.s")
 
-while (spot != :null)
-    {
-    var s = head(spot);
-    println(prefix(s,stringUntil(s,"=")));
-    spot = tail(spot);
-    }
+(define spot ScamEnv)
 
+(while (!= spot nil)
+    (define s (car spot))
+    (println (prefix s (stringUntil s "=")))
+    (set! 'spot (cdr spot))
+    )

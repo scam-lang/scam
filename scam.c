@@ -1,5 +1,5 @@
 /*
- * Xcheme Interpreter
+ * SCAM Interpreter
  *
  * written by John C. Lusth
  *
@@ -29,6 +29,11 @@ int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
 
+char *LibraryName = "SCAM_LIB";
+char *LibraryPointer = "/usr/local/lib/scam/";
+char *ArgumentsName = "ScamArgs";
+char *EnvironmentName = "ScamEnv";
+
 int 
 main(int argc,char **argv,char **envv)
     {
@@ -54,6 +59,8 @@ main(int argc,char **argv,char **envv)
     //debug("global env: ",env);
 
     env = makeEnvironment(env,0,0,0);
+
+    installArgsEnv(argc,argv,envv,env);
 
     //debug("parse tree",ptree);
 

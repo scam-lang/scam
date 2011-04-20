@@ -83,5 +83,6 @@ extern int throwAgain(int,int);
     ((ival(object_label(x)) == ival(closureSymbol)) \
     || (ival(object_label(x)) == ival(builtInSymbol))))
 #define isThrow(x) (isObject(x) && ival(object_label(x)) == ival(throwSymbol))
+#define isError(x) (isObject(x) && ival(object_label(x)) == ival(errorSymbol))
 #define isReturn(x) (isThrow(x) && ival(error_code(x)) == ival(returnSymbol))
 #define isReturnCall(x) (isTagged(x) && ival(car(x)) == ival(returnSymbol))

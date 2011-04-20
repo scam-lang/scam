@@ -14,6 +14,11 @@
 #include "pp.h"
 #include "util.h"
 
+extern char *LibraryName;
+extern char *LibraryPointer;
+extern char *ArgumentsName;
+extern char *EnvironmentName;
+
 PRIM BuiltIns[1000];
 FILE *OpenPorts[20];
 int MaxPorts = sizeof(OpenPorts) / sizeof(FILE *);
@@ -40,7 +45,8 @@ quote(int args)
 static int
 defineIdentifier(int name,int init,int env)
     {
-    if (init != 0)
+    //debug("init",init);
+    if (init != 0 && !sameSymbol(init,uninitializedSymbol))
         {
         push(name);
         push(env);
@@ -817,7 +823,9 @@ list(int args)
 static int
 ccar(int args)
     {
-    if (type(car(args)) != CONS)
+    char *t = type(car(args));
+
+    if (t != CONS && t != STRING && t != ARRAY)
         return throw(exceptionSymbol,
             "attempt to take car of type %s",type(car(args)));
 
@@ -1481,7 +1489,7 @@ array(int args)
         attach = spot;
         args = cdr(args);
         }
-    printf("size of array is %d\n",count(start));
+    //printf("size of array is %d\n",count(start));
     return start;
     }
 
@@ -1589,7 +1597,9 @@ catch(int args)
     {
     int result;
 
+    //printf("in catch...\n");
     result = eval(cadr(args),car(args));
+    //debug("caught",result);
 
     if (isThrow(result))
         {
@@ -1599,17 +1609,303 @@ catch(int args)
     return result;
     }
 
+/* (throw code @) */
 
+static int
+tthrow(int args)
+    {
+    int item;
+
+    assureMemory("throw",THROW_CELLS,&args,0);
+
+    item = car(args);
+
+    if (cadr(args) == 0 && isError(item))
+        return makeThrow(error_code(item),error_value(item),error_trace(item));
+    else if (cadr(args) != 0)
+        return makeThrow(item,car(cadr(args)),0);
+    else
+        return throw(exceptionSymbol,"wrong number of arguments to throw");
+    }
+
+/* string manipulations */
+
+/* (prefix str size) */
+
+static int
+prefix(int args)
+    {
+    int i,count;
+    int a = car(args);
+    int b = cadr(args);
+    int result;
+    char *buffer;
+
+    if (type(a) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "prefix: first argument should be STRING, not %s",
+            type(a));
+        }
+
+    if (type(b) != INTEGER)
+        {
+        return throw(exceptionSymbol,
+            "prefix: second argument should be INTEGER, not %s",
+            type(b));
+        }
+
+
+    buffer = (char *) New(ival(b) + 1);
+
+    count = 0;
+    for (i = 0; ival(a) != '\0' && i < ival(b); ++i)
+        {
+        buffer[i] = ival(a);
+        a = cdr(a);
+        ++count;
+        }
+
+    buffer[count] = '\0';
+
+    result = newString(buffer);
+    free(buffer);
+
+    return result;
+    }
+
+static int
+suffix(int args)
+    {
+    int a = car(args);
+    int b = cadr(args);
+
+    if (type(a) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "suffix: first argument should be STRING, not %s",
+            type(a));
+        }
+
+    if (type(b) != INTEGER)
+        {
+        return throw(exceptionSymbol,
+            "suffix: second argument should be INTEGER, not %s",
+            type(b));
+        }
+
+
+    if (count(a) < ival(b)) return newString("");
+
+    return a + ival(b);
+    }
+
+static int
+stringWhile(int args)
+    {
+    int ch;
+    int a = car(args);
+    int b = cadr(args);
+    int count;
+    char target[256];
+
+    if (type(a) != STRING || type(b) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "stringWhile: both arguments should be STRING, not %s and %s",
+            type(a),type(b));
+        }
+
+    cellStringTr(target,sizeof(target),b);
+
+    count = 0;
+    while ((ch = ival(a)) && ch != '\0' && strchr(target,ch) != 0)
+        {
+        a = cdr(a);
+        ++count;
+        }
+
+    return newInteger(count);
+    }
+
+static int
+stringUntil(int args)
+    {
+    int ch;
+    int a = car(args);
+    int b = cadr(args);
+    int count;
+    char target[256];
+
+    if (type(a) != STRING || type(b) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "stringUntil: both arguments should be STRING, not %s and %s",
+            type(a),type(b));
+        }
+
+    cellStringTr(target,sizeof(target),b);
+
+    count = 0;
+    while ((ch = ival(a)) && ch != '\0' && strchr(target,ch) == 0)
+        {
+        ++count;
+        a = cdr(a);
+        }
+
+    return newInteger(count);
+    }
+
+static int
+substring(int args)
+    {
+    int needle = car(args);
+    int haystack = cadr(args);
+
+    if (type(needle) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "substring: first argument is type %s (should be %s)",
+            type(needle),STRING);
+        }
+
+    if (type(haystack) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "substring: second argument is %s (should be %s)",
+            type(haystack),STRING);
+        }
+
+    while (haystack != 0)
+        {
+        int n = needle;
+        int h = haystack;
+        while (ival(n) != 0)
+            {
+            if (ival(n) != ival(h))
+                break;
+            n = cdr(n);
+            h = cdr(h);
+            }
+        if (ival(n) == 0) return haystack;
+        haystack = cdr(haystack);
+        }
+
+    return 0;
+    }
+
+static int
+trim(int args)
+    {
+    int a = car(args);
+    int start,length;
+
+    if (type(a) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "trim: argument is type %s (should be %s)",
+            type(a),STRING);
+        }
+
+    assureMemory("trim",count(a) + 1,&a,0);
+
+    start = MemorySpot;
+
+    while (isspace(ival(a)))
+        a = cdr(a);
+
+    assert(ival(a + count(a)) == 0);
+
+    length = count(a) - 1;
+    while (isspace(ival(a + length)))
+        --length;
+
+    while (length >= 0)
+        {
+        ucons(ival(a),MemorySpot+1);
+        a = cdr(a);
+        --length;
+        }
+
+    ucons(0,0);
+    assert(MemorySpot < MemorySize - 1);
+
+    return start;
+    }
+        
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
 
+    BuiltIns[count] = prefix;
+    b = makeBuiltIn(env,
+        newSymbol("prefix"),
+        ucons(newSymbol("str"),
+            ucons(newSymbol("size"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = suffix;
+    b = makeBuiltIn(env,
+        newSymbol("suffix"),
+        ucons(newSymbol("str"),
+            ucons(newSymbol("size"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = stringUntil;
+    b = makeBuiltIn(env,
+        newSymbol("stringUntil"),
+        ucons(newSymbol("expr"),
+            ucons(newSymbol("chars"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = stringWhile;
+    b = makeBuiltIn(env,
+        newSymbol("stringWhile"),
+        ucons(newSymbol("str"),
+            ucons(newSymbol("chars"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = substring;
+    b = makeBuiltIn(env,
+        newSymbol("substring"),
+        ucons(newSymbol("needle"),
+            ucons(newSymbol("haystack"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = trim;
+    b = makeBuiltIn(env,
+        newSymbol("trim"),
+        ucons(newSymbol("str"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = catch;
     b = makeBuiltIn(env,
         newSymbol("catch"),
-        ucons(newSymbol("expr"),0),
+        ucons(sharpSymbol,
+            ucons(newSymbol("$expr"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = tthrow;
+    b = makeBuiltIn(env,
+        newSymbol("throw"),
+        ucons(newSymbol("code"),
+            ucons(atSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2256,4 +2552,71 @@ loadBuiltIns(int env)
     OpenPorts[1] = stdout;
     CurrentInputIndex = 0;
     CurrentOutputIndex = 1;
+    }
+
+void
+installArgsEnv(int argc, char **argv, char **envv, int env)
+    {
+    int index;
+    int start;
+
+    //printf("installing command line arguments and execution environment\n");
+
+    if (argc > 0)
+        {
+        start = MemorySpot;
+        MemorySpot += argc;
+        index = 0;
+
+        while (index < argc)
+            {
+            type(start+index) = ARRAY;
+            count(start+index) = argc - index;
+            car(start+index) = newString(argv[index]);
+            if (index == argc - 1)
+                cdr(start+index) = 0;
+            else
+                cdr(start+index) = start+index + 1;
+            ++index;
+            }
+
+        defineVariable(env,newSymbol(ArgumentsName),start);
+        }
+    else
+        {
+        defineVariable(env,newSymbol(ArgumentsName),0);
+        }
+
+    argc = 0;
+    while (envv[argc] != 0)
+        {
+        if (strstr(envv[argc],LibraryName) == envv[argc])
+            {
+            LibraryPointer = strdup(strchr(envv[argc],'=') + 1);
+            }
+        ++argc;
+        }
+
+    if (argc > 0)
+        {
+        start = MemorySpot;
+        MemorySpot += argc;
+        index = 0;
+
+        while (index < argc)
+            {
+            type(start+index) = ARRAY;
+            count(start+index) = argc - index;
+            car(start+index) = newString(envv[index]);
+            if (index == argc - 1)
+                cdr(start+index) = 0;
+            else
+                cdr(start+index) = start+index + 1;
+            ++index;
+            }
+
+        defineVariable(env,newSymbol(EnvironmentName),start);
+        }
+    else
+        defineVariable(env,newSymbol(EnvironmentName),0);
     }

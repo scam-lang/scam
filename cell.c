@@ -66,6 +66,7 @@ int messageSymbol;
 int spacerSymbol;
 int defineSymbol;
 int exceptionSymbol;
+int nonFunctionSymbol;
 int returnSymbol;
 int levelSymbol;
 int eqSymbol;
@@ -170,6 +171,7 @@ memoryInit(int memsize)
     spacerSymbol         = newSymbol(" SPACER");
     defineSymbol         = newSymbol("define");
     exceptionSymbol      = newSymbol("EXCEPTION");
+    nonFunctionSymbol    = newSymbol("nonFunction");
     returnSymbol         = newSymbol("return");
     levelSymbol          = newSymbol("level");
     eqSymbol             = newSymbol("=");

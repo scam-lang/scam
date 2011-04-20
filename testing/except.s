@@ -1,34 +1,24 @@
-function try($a,$b)
-    {
-    var result = catch(force($a));
-    if (type(result) == :ERROR)
-	{
-        force($b);
-	}
-    else
-	{
-        result;
-	}
-    }
+(include "scam.s")
 
-function fact(n)
-    {
-    if (n == 0)
-	{
-	try ()
-	    {
-	    zzz;
-	    }
-	else
-	    {
-	    println("[ERROR]");
-	    1;
-	    }
-        }
-    else
-	{
-        return n * fact(n - 1);
-	}
-    }
+(define (try # $a $b)
+    (define result (catch (eval $a #)))
+    (if (== (type result) 'error)
+        (eval $b #)
+        result
+        )
+    )
 
-print("fact(5) is ", fact(5), "\n");
+(define (fact n)
+    (if (== n 0)
+        (try
+            zzz
+            (begin
+                (println "[ERROR]")
+                1
+                )
+            )
+        (* n (fact (- n 1)))
+        )
+    )
+
+(print "fact(5) is "  (fact 5) "\n")
