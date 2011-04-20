@@ -1,4 +1,4 @@
-/* xcheme punctuation */
+/* scam punctuation */
 
 extern char *CLOSE_PARENTHESIS;// = "CLOSE_PARENTHESIS";
 extern char *OPEN_PARENTHESIS;// = "OPEN_PARENTHESIS";
@@ -7,11 +7,11 @@ extern char *BACKQUOTE;//= "QUOTE";
 extern char *COMMA;// = "COMMA";
 extern char *END_OF_INPUT;// = "END_OF_INPUT";
 
-/* xcheme keywords */
+/* scam keywords */
 
 extern char *BAD_NUMBER;// = "BAD_NUMBER";
 
-/* xcheme internal types */
+/* scam internal types */
 
 extern char *INTEGER;// = "INTEGER";
 extern char *REAL;// = "REAL";
@@ -29,7 +29,6 @@ extern char *CLOSE_BRACE;//= "CLOSE_BRACE";
 extern char *OPEN_BRACKET;//= "OPEN_BRACKET";
 extern char *CLOSE_BRACKET;//= "CLOSE_BRACKET";
 extern char *SEMI;//= "SEMICOLON";
-
 
 /* error codes */
 

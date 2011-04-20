@@ -37,6 +37,7 @@ int labelSymbol;
 int valueSymbol;
 int traceSymbol;
 int throwSymbol;
+int errorSymbol;
 int quoteSymbol;
 int anonymousSymbol;
 int lambdaSymbol;
@@ -140,6 +141,7 @@ memoryInit(int memsize)
     valueSymbol          = newSymbol("value");
     traceSymbol          = newSymbol("trace");
     throwSymbol          = newSymbol("throw");
+    errorSymbol          = newSymbol("error");
     quoteSymbol          = newSymbol("quote");
     anonymousSymbol      = newSymbol("anonymous");
     lambdaSymbol         = newSymbol("lambda");

@@ -67,6 +67,11 @@ main(int argc,char **argv,char **envv)
 
     if (isThrow(result))
         {
+        //int last;
+        //debug("thrown",result);
+        debug("EXCEPTION",error_code(result));
+        debug("         ",error_value(result));
+        /*
         int last;
         if (TraceBack) printf("EXCEPTION TRACE\n");
         while (error_trace(result) != 0)
@@ -83,6 +88,7 @@ main(int argc,char **argv,char **envv)
                 }
             }
         printf("exception: %s\n",cellString(0,0,error_code(result)));
+        */
         }
     //else
     //    {

@@ -750,6 +750,21 @@ eeval(int args)
     return eval(car(args),cadr(args));
     }
 
+/* (evalList items context) */
+
+static int
+eevalList(int args)
+    {
+    int result;
+    int items = car(args);
+    while (items != 0)
+        {
+        result = eval(car(items),cadr(args));
+        items = cdr(items);
+        }
+    return result;
+    }
+
 /* (apply f args) */
 
 static int
@@ -1542,11 +1557,18 @@ getElement(int args)
         return throw(exceptionSymbol,"index (%d) is too large",index);
 
     if (type(supply) == ARRAY)
+        {
+        //printf("getting an element of an array\n");
         return car(supply + index);
+        }
     else
         {
+        //printf("getting an element of a list or string\n");
         while (index > 0)
+            {
             supply = cdr(supply);
+            --index;
+            }
         return car(supply);
         }
     }
@@ -1871,6 +1893,15 @@ loadBuiltIns(int env)
     BuiltIns[count] = eeval;
     b = makeBuiltIn(env,
         newSymbol("eval"),
+        ucons(newSymbol("expr"),
+            ucons(newSymbol("context"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = eevalList;
+    b = makeBuiltIn(env,
+        newSymbol("evalList"),
         ucons(newSymbol("expr"),
             ucons(newSymbol("context"),0)),
         newInteger(count));

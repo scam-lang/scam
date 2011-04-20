@@ -110,6 +110,7 @@ extern int labelSymbol;
 extern int valueSymbol;
 extern int traceSymbol;
 extern int throwSymbol;
+extern int errorSymbol;
 extern int quoteSymbol;
 extern int anonymousSymbol;
 extern int lambdaSymbol;
