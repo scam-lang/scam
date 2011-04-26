@@ -1,27 +1,20 @@
-include("fact.s");
+(println "starting fib.s")
 
-function fib(n)
-    {
-    if (n < 2)
-	{
-	n;
-	}
-    else
-	{
-	fib(n - 1) + fib(n - 2);
-	}
-    }
-var x = 0;
-var result;
-var t = time();
+(include "fact.s")
 
-x = 26;
-result = fib(x);
-display("fib(");
-display(x);
-display(") is ");
-display(result);
-display("\n");
-display(time() - t);
-display(" seconds");
-display("\n");
+(println "done including fact.s")
+
+(define (fib n)
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        )
+    )
+(define x 0)
+(define result nil)
+(define t (time))
+
+(set! 'x 26)
+(set! 'result (fib x))
+(println "fib: fib(" x ") is " result)
+(println (- (time) t) " seconds")

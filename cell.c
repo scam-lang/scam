@@ -14,7 +14,7 @@ int FileIndex;
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
-int MemorySize =  2 * 16 * 8192 + 1; 
+int MemorySize =  2 * 2 * 2 * 2 * 4 * 16 * 32 * 64; 
 int StackPtr = 0;
 int Stack[1000];
 int StackSize = sizeof(Stack) / sizeof(int);

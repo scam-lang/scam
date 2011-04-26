@@ -1,10 +1,12 @@
-include("fib.s");
+(println "starting fact.s")
 
-function fact(n)
-    {
-    if (n < 2,n,n * fact(n - 1));
-    }
+(include "fib.s")
 
-println("fib(5) is ",fib(5));
-println("fact(5) is ",fact(5));
+(define (fact n)
+    (if (< n 2) 1 (* n (fact (- n 1))))
+    )
 
+(inspect this)
+
+(println "fact: fib(5) is " (fib 5))
+(println "fact: fact(5) is " (fact 5))

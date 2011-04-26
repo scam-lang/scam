@@ -423,17 +423,7 @@ mod(int args)
 static int
 ttype(int args)
     {
-    int item = car(args);
-    //printf("in type...\n");
-    if (isCons(item))
-        {
-        if (type(car(item)) == SYMBOL)
-            return car(item);
-        else
-            return newSymbol(type(item));
-        }
-    else
-        return newSymbol(type(car(args)));
+    return newSymbol(type(car(args)));
     }
 
 /* (begin # $) */
@@ -727,10 +717,27 @@ iinclude(int args)
     int fileName = cadr(args);
     int env = car(args);
     int ptree;
+    int s;
     char buffer[512];
+    char buffer2[1024];
     PARSER *p;
 
     cellString(buffer,sizeof(buffer),fileName);
+
+    //check to see if file has already been included
+    //if so, return false
+
+    sprintf(buffer2,"__included_%s",buffer);
+
+    s = newSymbol(buffer2);
+
+    if (isLocal(s,env)) return falseSymbol;
+
+    //printf("file %s not already included\n",buffer);
+
+    assureMemory("include",DEFINE_CELLS,&env,&s,0);
+    defineVariable(env,s,trueSymbol);
+    //printf("%s defined in env %d\n",buffer2,env);
 
     push(env);
 
@@ -743,7 +750,7 @@ iinclude(int args)
 
     rethrow(ptree,0);
 
-    //debug("include",env);
+    //debug("include",ptree);
 
     return makeThunk(ptree,env);
     }

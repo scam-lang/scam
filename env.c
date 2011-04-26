@@ -259,5 +259,21 @@ findLocation(int index,int env)
         //pp(stdout,env);
         }
 
-   return 0;
-   }
+    return 0;
+    }
+
+int
+isLocal(int var,int env)
+    {
+    int vars = object_variables(env);
+    int vals = object_values(env);
+    while (vars != 0)
+        {
+        //printf("looking at %s\n",SymbolTable[ival(car(vars))]);
+        if (ival(car(vars)) == ival(var)) return 1;
+        vars = cdr(vars);
+        vals = cdr(vals);
+        }
+
+    return 0;
+    }

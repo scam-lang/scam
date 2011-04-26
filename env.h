@@ -3,6 +3,7 @@ extern int getGlobalEnvironment(void);
 extern int setVariableValue(int,int,int);
 extern int defineVariable(int,int,int);
 extern int findLocation(int,int);
+extern int isLocal(int,int);
 
 extern int makeObject(int);
 extern int makeEnvironment(int,int,int,int);

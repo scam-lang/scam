@@ -38,8 +38,9 @@ int
 main(int argc,char **argv,char **envv)
     {
     int argIndex;
-    int ptree,env;
+    int ptree,env,s;
     int result;
+    char buffer[512];
     PARSER *p;
 
     argIndex = ProcessOptions(argc, argv);
@@ -62,10 +63,18 @@ main(int argc,char **argv,char **envv)
 
     installArgsEnv(argc,argv,envv,env);
 
+    env = makeEnvironment(env,0,0,0);
+
     //debug("parse tree",ptree);
 
     push(env);
     push(ptree);
+
+    // indicate that this file has already been processed
+
+    snprintf(buffer,sizeof(buffer),"__included_%s",argv[argIndex]);
+    s = newSymbol(buffer);
+    defineVariable(env,s,trueSymbol);
 
     result = eval(ptree,env);
 
