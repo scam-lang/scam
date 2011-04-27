@@ -19,6 +19,8 @@ extern char *LibraryPointer;
 extern char *ArgumentsName;
 extern char *EnvironmentName;
 
+extern void gc(void);
+
 PRIM BuiltIns[1000];
 FILE *OpenPorts[20];
 int MaxPorts = sizeof(OpenPorts) / sizeof(FILE *);
@@ -32,6 +34,15 @@ scamBoolean(int item)
         return falseSymbol;
     else
         return trueSymbol;
+    }
+
+/* (gc) */
+
+static int
+ggc()
+    {
+    gc();
+    return 0;
     }
 
 /* (quote $item) */
@@ -1547,7 +1558,7 @@ llength(int args)
             type(item));
     }
 
-/* (get array index) */
+/* (getElement array index) */
 
 static int
 getElement(int args)
@@ -1584,6 +1595,50 @@ getElement(int args)
             supply = cdr(supply);
             --index;
             }
+        return car(supply);
+        }
+    }
+
+/* (setElement! array index value) */
+
+static int
+setElement(int args)
+    {
+    int limit;
+    int supply = car(args);
+    int index = ival(cadr(args));
+    int value = caddr(args);
+    char *kind = type(supply);
+
+    if (index < 0)
+        return throw(exceptionSymbol,
+            "negative indices (%d) are not allowed",index);
+
+    if (kind == ARRAY)
+        limit = count(supply);
+    else if (kind == STRING || kind == CONS)
+        limit = length(supply);
+    else
+        return throw(exceptionSymbol,"cannont index into type %s",kind);
+
+    if (index >= limit)
+        return throw(exceptionSymbol,"index (%d) is too large",index);
+
+    if (type(supply) == ARRAY)
+        {
+        //printf("getting an element of an array\n");
+        car(supply + index) = value;
+        return car(supply + index);
+        }
+    else
+        {
+        //printf("getting an element of a list or string\n");
+        while (index > 0)
+            {
+            supply = cdr(supply);
+            --index;
+            }
+        car(supply) = value;
         return car(supply);
         }
     }
@@ -1846,6 +1901,14 @@ loadBuiltIns(int env)
     int b;
     int count = 0;
 
+    BuiltIns[count] = ggc;
+    b = makeBuiltIn(env,
+        newSymbol("gc"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = prefix;
     b = makeBuiltIn(env,
         newSymbol("prefix"),
@@ -1930,6 +1993,16 @@ loadBuiltIns(int env)
         newSymbol("getElement"),
         ucons(newSymbol("item"),
             ucons(newSymbol("index"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = setElement;
+    b = makeBuiltIn(env,
+        newSymbol("setElement!"),
+        ucons(newSymbol("item"),
+            ucons(newSymbol("index"),
+                ucons(newSymbol("value"),0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

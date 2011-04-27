@@ -1,12 +1,11 @@
-function f(x)
-    {
-    var y = x * x;
+(define (f x)
+    (define y (* x x))
 
-    gc();
+    (gc)
 
-    println("f is ", f);
-    println("x is ", x);
-    println("y is ", y);
-    }
+    (inspect f)
+    (inspect x)
+    (inspect y)
+    )
 
-f(3);
+(f 3)

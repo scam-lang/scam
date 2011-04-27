@@ -1,100 +1,88 @@
-include("basics");
+(include "scam.s")
 
-function heap(items,op)
-    {
-    var size = length(items);
+(define (heap items op)
+    (define size (length items))
 
-    function leftChild(x) { 2 * x + 1; }
-    function rightChild(x) { 2 * x + 2; }
-    function deleteMin()
-	{
-	var temp = items[0];
-	items[0] = items[size - 1];
-	items[size - 1] = temp;
-	size = size - 1;
-	heapify(0);
-	temp;
-	}
-    function heapify(root)
-	{
-	var extreme;
-	var newRoot;
+    (define (leftChild x) (+ (* 2 x) 1))
+    (define (rightChild x) (+ (* 2 x) 2))
+    (define (deleteExtreme)
+        (define temp (getElement items 0))
+        (setElement! items 0 (getElement items (- size 1)))
+        (setElement! items (- size 1) temp)
+        (set! 'size (- size 1))
+        (heapify 0)
+        temp
+        )
 
-	if (leaf?(root)) { return :ok; }
-	
-	extreme = findExtremalChild(root);
+    (define (heapify root)
+        (define extreme nil)
+        (define newRoot nil)
 
-	if (extreme == items[root]) { return :ok; }
+        (if (leaf? root) (return 'ok))
+        
+        (set! 'extreme (findExtremalChild root))
 
-	if (extreme == items[leftChild(root)])
-	    {
-	    newRoot = leftChild(root);
-	    }
-	else
-	    {
-	    newRoot = rightChild(root);
-	    }
-	items[newRoot] = items[root];
-	items[root] = extreme;
-	heapify(newRoot);
-	}
-    function findExtremalChild(root)
-	{
-	var extreme;
+        (if (== extreme (getElement items root)) (return 'ok))
 
-	extreme = extremal(op,items[root],items[leftChild(root)]);
+        (if (== extreme (getElement items (leftChild root)))
+            (set! 'newRoot (leftChild root))
+            (set! 'newRoot (rightChild root))
+            )
 
-	if (rightChild(root) >= size)
-	    {
-	    extreme;
-	    }
-	else
-	    {
-	    extremal(op,extreme,items[rightChild(root)]);
-	    }
-	}
-    function build-heap()
-	{
-	var i;
+        (setElement! items newRoot (getElement items root))
+        (setElement! items root extreme)
+        (heapify newRoot)
+        )
 
-	for (i = size - 1, i >= 0, i = i - 1)
-	    {
-	    heapify(i);
-	    }
-	}
+    (define (findExtremalChild root)
+        (define extreme nil)
+        (set! 'extreme 
+            (extremal op
+                (getElement items root)
+                (getElement items (leftChild root))))
 
-    function leaf?(x)
-	{
-	leftChild(x) >= size;
-	}
+        (if (>= (rightChild root) size)
+            extreme
+            (extremal op extreme (getElement items (rightChild root)))
+            )
+        )
 
-    build-heap();
-    this;
-    }
+    (define (build-heap)
+        (define i nil)
+        (for (set! 'i (- size 1)) (>= i 0) (set! 'i (- i 1))
+            (println "heapifying element " i)
+            (heapify i)
+            (println "element " i " has been heapified")
+            )
+        )
 
-function heap-sort(items,op)
-    {
-    var i;
-    var h;
+    (define (leaf? x) (>= (leftChild x) size))
 
-    h = heap(items,op);
+    (println "about to build-heap...")
+    (build-heap)
+    this
+    )
 
-    while (h . size > 0)
-        {
-	print(h . deleteMin());
-	if (h . size > 0,print(" "));
-	}
-    }
+(define (heap-sort items op)
+    (define i nil)
+    (define h nil)
 
-function extremal(op,a,b)
-    {
-    if (a op b,a,b);
-    }
+    (set! 'h (heap items op))
 
-var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
+    (while (> (get 'size h) 0)
+        (print ((get 'deleteExtreme h)))
+        (if (> (get 'size h) 0) (print " "))
+        )
+    (println "\n")
+    )
 
-heap-sort(a,>);
-println("\n");
+(define (extremal op a b)
+    (if (op a b) a b)
+    )
 
-inspect(a);
-inspect(extremal . parameters);
+(define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
+
+(heap-sort a >)
+
+(inspect a)
+(inspect (get 'parameters extremal))

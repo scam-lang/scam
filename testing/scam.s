@@ -2,18 +2,18 @@
 (define (tail x) (cdr x))
 (define (join x,y) (cons x y))
 
-(define (for # init $test $increment $body)
+(define (for # init $test $increment $)
     (while (eval $test #)
-        (eval $body #)
+        (evalList $ #)
         (eval $increment #)
         )
     )
 
-(define (for-each # $indexVar items $body)
+(define (for-each # $indexVar items $)
     (define result false)
     (while (!= items nil)
         (set! $indexVar (car items) #)
-        (set! 'result (eval $body #))
+        (set! 'result (evalList $ #))
         (set! 'items (cdr items))
         )
     result

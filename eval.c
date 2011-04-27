@@ -17,33 +17,36 @@ static int unevaluatedArgList(int);
 int
 eval(int expr, int env)
     {
+    int result;
+    int level = ival(env_level(env));
+
+    //debug("initial eval",expr);
+    //printf("env level is %d\n",level);
+
     while (1)
         {
-        int t,tag;
+        int tag;
 
         //debug("eval",expr);
+        //printf("env level is %d\n",ival(env_level(env)));
         //debug(" env",env);
 
-        if (expr == 0) return 0;
-        if (type(expr) == INTEGER) return expr;
-        if (type(expr) == REAL)    return expr;
-        if (type(expr) == STRING)  return expr;
+        if (expr == 0) { result = 0; break; }
+        if (type(expr) == INTEGER) { result = expr; break; }
+        if (type(expr) == REAL)    { result = expr; break; }
+        if (type(expr) == STRING)  { result = expr; break; }
         if (type(expr) == SYMBOL)
             {
             int index = ival(expr);
             if (index == ival(trueSymbol))
-                return trueSymbol;
+                result = trueSymbol;
             else if (index == ival(falseSymbol))
-                return falseSymbol;
+                result = falseSymbol;
             else if (index == ival(nilSymbol))
-                return 0;
+                result = 0;
             else
-                {
-                int result = getVariableValue(expr,env);
-                rethrow(result,0);
-                //if isThrow(result) return throwAgain(expr,result);
-                return result;
-                }
+                result = getVariableValue(expr,env);
+            break;
             }
 
         //printf("eval type is %s\n",type(expr));
@@ -52,24 +55,41 @@ eval(int expr, int env)
         tag  = car(expr);
 
         if (type(tag) == SYMBOL && ival(tag) == ival(objectSymbol))
-            return expr;
+            {
+            result = expr;
+            break;
+            }
 
         /* no need to assure memory here */
 
         push(env);
-        t = evalCall(expr,env,NORMAL);
+        result = evalCall(expr,env,NORMAL);
         env = pop();
 
-        rethrow(t,0);
-        //return throwAgain(expr,t);
+        if (isReturn(result))
+            {
+            int s = error_value(result);
+            //printf("it's a return!\n");
+            //debug("return expression",thunk_code(s));
+            //printf("return level: %d\n",ival(env_level(thunk_context(s))));
+            //printf("current level: %d\n",ival(env_level(env)));
+            if (level < ival(env_level(thunk_context(s))))
+                {
+                result = s;
+                //debug("result is now",result);
+                }
+            }
 
-        if (!isThunk(t)) return t;
+        if (isThrow(result)) break;
 
-        expr = thunk_code(t);
-        env = thunk_context(t);
+        if (!isThunk(result)) break;
+
+        expr = thunk_code(result);
+        env = thunk_context(result);
         }
 
-    return 0;
+    //debug("final result",result);
+    return result;
     }
         
 int
@@ -77,7 +97,6 @@ evalCall(int call,int env, int mode)
     {
     int closure,eargs;
 
-    //printf("getting closure\n");
     if (mode == NORMAL)
         {
         push(env);
@@ -122,12 +141,15 @@ evalCall(int call,int env, int mode)
         {
         int params,body,xenv;
         
-        assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS,&closure,&eargs,0);
+        assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS + 1,&closure,&eargs,0);
 
         params = closure_parameters(closure);
         body = closure_body(closure);
         xenv = closure_context(closure);
         xenv = makeEnvironment(xenv,closure,params,eargs);
+        env_level(xenv) = newInteger(ival(env_level(env)) + 1);
+
+        //debug("calling",car(call));
         return makeThunk(body,xenv);
         }
     }
@@ -167,10 +189,11 @@ evalList(int items,int env,int mode)
 
         if (isThrow(result))
             {
-            if (isReturn(result) && env == thunk_context(error_value(result)))
-                return error_value(result);
-            else
-                return result;
+            //if (isReturn(result) && ival(env_level(env) < thunk_context(error_value(result)))
+            //    return error_value(result);
+            //else
+            //    return result;
+            return result;
             }
         //if (isThrow(result))
         //    return throwAgain(car(items),result);
@@ -181,16 +204,7 @@ evalList(int items,int env,int mode)
     if (mode == ALLBUTLAST)
         {
         assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,0);
-        if (isReturnCall(car(items)))
-            {
-            //printf("it's a return!\n");
-            return makeThunk(cadr(car(items)),env);
-            }
-        else
-            {
-            //printf("it's not a return.\n");
-            return makeThunk(car(items),env);
-            }
+        return makeThunk(car(items),env);
         }
     else
         return eval(car(items),env);

@@ -53,7 +53,7 @@ static int match(PARSER *,char *);
                | REAL
                | STRING
                | ID
-               | OPAREN program CPAREN
+               | OPAREN opt-expr CPAREN
                | QUOTE expr
                | COMMA expr
                ;
@@ -139,10 +139,16 @@ expr(PARSER *p)
         match(p,OPEN_PARENTHESIS);
         f = p->file;
         l = p->line;
-        result = exprSeq(p);
+        if (isExprSeqPending(p))
+            result = exprSeq(p);
+        else
+            result = 0;
         match(p,CLOSE_PARENTHESIS);
-        file(result) = f;
-        line(result) = l;
+        if (result != 0)
+            {
+            file(result) = f;
+            line(result) = l;
+            }
         }
     else
         Fatal("syntax error on line %d\n",LineNumber);

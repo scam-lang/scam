@@ -102,7 +102,7 @@ makeEnvironment(int context,int constructor,int vars,int vals)
 
     object_value_hook(o) =
         ucons(context,
-            ucons(newInteger(context == 0 ? 0 : ival(env_level(context))+1),
+            ucons(context == 0? newInteger(0) : env_level(context),
                 ucons(constructor,
                     ucons(o,vals))));
 
