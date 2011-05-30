@@ -1,5 +1,7 @@
-var common = { var count = 0; this; };
+(define common (scope (define count 0) this))
 
-println(bindings(common));
+(println (bindings common))
 ------------------------------------------
-((context,<OBJECT 1085>),(dynamicContext,null),(callDepth,0),(constructor,null),(this,<OBJECT 3654>),(count,0))
+SYNTAX ERROR: :syntaxError
+common2.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+error occurred prior to: )[END OF LINE]

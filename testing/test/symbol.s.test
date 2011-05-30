@@ -36,5 +36,7 @@ obj's a is hello (should be hello)
 obj's a now is 3.2000000000 (should be 3.2)
 separate calls to symbol("a") compare equal
 a was wow
+type is SYMBOL
 a is 5
+type is SYMBOL
 a now is 6

@@ -24,19 +24,19 @@ println("forcing thunk, x is SYMBOL...");
 inspect(force(thunk));
 ------------------------------------------
 created a thunk...
-thunk is <THUNK 4153>
+thunk is <THUNK 4222>
 changing a thunk...
 sqr is <function sqr(x)>
 thunk . code = head(sqr . parameters) is x
-<THUNK 4153>:
-    context: <OBJECT 1085>
+<THUNK 4222>:
+    context: <OBJECT 1103>
     code: x
 forcing thunk, x is ID, x is declared globally with value 10...
 force(thunk) is 10
 changing a thunk...
 thunk . code = symbol("x") is :x
-<THUNK 4153>:
-    context: <OBJECT 1085>
+<THUNK 4222>:
+    context: <OBJECT 1103>
     code: :x
 forcing thunk, x is SYMBOL...
 force(thunk) is :x

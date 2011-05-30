@@ -1,8 +1,9 @@
-function sqr(x)
-    {
-    return x * x;
-    }
+(define (sqr x)
+    (return (* x x))
+    )
 
-print("square(4) is ", sqr(4), "\n");
+(print "(square 4) is " (sqr 4) "\n")
 ------------------------------------------
-square(4) is 16
+SYNTAX ERROR: :syntaxError
+call.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+error occurred prior to: [END OF LINE]

@@ -20,5 +20,6 @@ var x = 10;
 print("f(",x,") is ", f(x), "\n");
 print("g(",x,") is ", g(x), "\n");
 ------------------------------------------
+EVALUATION ERROR: :undefinedVariable
+f.s,line 21: variable g is undefined
 f(10) is 3628800
-g(10) is 3628800

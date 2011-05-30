@@ -1,25 +1,29 @@
-include("basics");
+(include "inherit.s")
 
-var common = 0;
+(define (+= # $v value)
+    (set! $v (+ (eval $v #) value) #)
+    )
 
-function z()
-    {
-    var uncommon = 0;
-    common += 1;
-    uncommon += 1;
-    this;
-    }
+(define common 0)
 
-function x()
-    {
-    proxy(z());
-    this;
-    }
+(define (z)
+    (define parent nil)
+    (define uncommon 0)
+    (+= common 1)
+    (+= uncommon 1)
+    this
+    )
 
-inspect(x() . common);
-inspect(x() . uncommon);
-inspect(x() . common);
+(define (x)
+    (define parent (z))
+    this
+    )
+
+(inspect (get 'common (new (x))))
+(inspect (get 'common (new (x))))
+(inspect (get 'uncommon (new (x))))
+(inspect (get 'uncommon (new (x))))
 ------------------------------------------
-x() . common is 1
-x() . uncommon is 1
-x() . common is 3
+SYNTAX ERROR: :syntaxError
+common3.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+error occurred prior to: )[END OF LINE]

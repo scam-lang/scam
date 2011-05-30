@@ -15,7 +15,7 @@ var x = 0;
 var result;
 var t = time();
 
-x = 22;
+x = 26;
 
 opt(fib . code,:<,<);
 opt(fib . code,:-,-);
@@ -33,5 +33,5 @@ display(time() - t);
 display(" seconds");
 display("\n");
 ------------------------------------------
-fib(22) is 17711
-1 seconds
+fib(26) is 121393
+11 seconds

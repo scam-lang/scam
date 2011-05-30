@@ -1,18 +1,18 @@
-function g(n)
-    {
-    var total = 1;
+(define (g n)
+    (define total 1)
 
-    while (n > 1)
-        {
-        total = total * n;
-        n = n - 1;
-        }
+    (while (> n 1)
+        (set! 'total (* total n))
+        (set! 'n (- n 1))
+        )
     
-    total;
-    }
+    total
+    )
 
-var x = 10;
+(define x 10)
 
-print("g(",x,") is ", g(x), "\n");
+(print "g(" x ") is " (g x) "\n")
 ------------------------------------------
-g(10) is 3628800
+SYNTAX ERROR: :syntaxError
+g.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+error occurred prior to: [END OF LINE]

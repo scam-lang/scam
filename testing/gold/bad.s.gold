@@ -1,5 +1,7 @@
-var a = x x;
+(define i 0)
+
+(if (== i 0)
+    (println "zero")
+    )
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-bad.s,line 1: an expression was expected, found SEMICOLON instead
-error occurred prior to: [END OF LINE]
+zero

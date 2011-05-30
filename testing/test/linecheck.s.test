@@ -183,6 +183,10 @@ linecheck . mode = :none;
 println("done");
 f(0);
 ------------------------------------------
+logging file linecheck.s, line 169
+logging file linecheck.s, line 171
+logging file linecheck.s, line 175
+logging file linecheck.s, line 178
 done
 even
 cleaning up...

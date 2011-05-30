@@ -1,35 +1,28 @@
-include("basics");
+(include "inherit.s")
 
-function helper() { println("oops!"); }
-var z =
-{
-var common = 0;
-function helper() { println("oops!"); }
+(define (helper) (println "oops!"))
 
-function z()
-    {
-    var uncommon = 0;
-    function getCommon() { helper(); common; }
-    common += 1;
-    uncommon += 1;
-    this;
-    }
-};
+(define common 10)
 
-function x()
-    {
-    var common = 4;
-    function helper() { println("help!"); }
-    proxy(z());
-    this;
-    }
+(define (z)
+    (define parent nil)
+    (define (getCommon) (helper) common)
+    (set! 'common (+ common 1))
+    this
+    )
 
-inspect(x() . getCommon());
-inspect(x() . uncommon);
-inspect(x() . getCommon());
+(define (x)
+    (define parent (z))
+    (define common 1)
+    (define (helper) (println "help!"))
+    this
+    )
+
+(inspect ((get 'getCommon (new (x)))))
+(inspect ((get 'getCommon (new (x)))))
+(inspect ((get 'getCommon (new (z)))))
+(inspect ((get 'getCommon (new (z)))))
 ------------------------------------------
-help!
-x() . getCommon() is 4
-x() . uncommon is 1
-help!
-x() . getCommon() is 4
+SYNTAX ERROR: :syntaxError
+common4.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+error occurred prior to: )[END OF LINE]

@@ -11,6 +11,9 @@ apply.s
 a.s
 ------------------------------------------
 ------------------------------------------
+bad.s
+------------------------------------------
+------------------------------------------
 block.s
 ------------------------------------------
 ------------------------------------------
@@ -52,115 +55,697 @@ ch10.s
 ------------------------------------------
 common2.s
 ------------------------------------------
-5c5
+1c1
+< var common = { var count = 0; this; };
+---
+> (define common (scope (define count 0) this))
+3c3
+< println(bindings(common));
+---
+> (println (bindings common))
+5c5,7
 < ((context,<OBJECT 966>),(dynamicContext,null),(callDepth,0),(constructor,null),(this,<OBJECT 2824>),(count,0))
 ---
-> ((context,<OBJECT 1085>),(dynamicContext,null),(callDepth,0),(constructor,null),(this,<OBJECT 3654>),(count,0))
+> SYNTAX ERROR: :syntaxError
+> common2.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 common3.s
 ------------------------------------------
+1c1
+< include("basics");
+---
+> (include "inherit.s")
+3c3,5
+< var common = 0;
+---
+> (define (+= # $v value)
+>     (set! $v (+ (eval $v #) value) #)
+>     )
+5,11c7
+< function z()
+<     {
+<     var uncommon = 0;
+<     common += 1;
+<     uncommon += 1;
+<     this;
+<     }
+---
+> (define common 0)
+13,17c9,15
+< function x()
+<     {
+<     proxy(z());
+<     this;
+<     }
+---
+> (define (z)
+>     (define parent nil)
+>     (define uncommon 0)
+>     (+= common 1)
+>     (+= uncommon 1)
+>     this
+>     )
+19,21c17,25
+< inspect(x() . common);
+< inspect(x() . uncommon);
+< inspect(x() . common);
+---
+> (define (x)
+>     (define parent (z))
+>     this
+>     )
+> 
+> (inspect (get 'common (new (x))))
+> (inspect (get 'common (new (x))))
+> (inspect (get 'uncommon (new (x))))
+> (inspect (get 'uncommon (new (x))))
+23,25c27,29
+< x() . common is 1
+< x() . uncommon is 1
+< x() . common is 3
+---
+> SYNTAX ERROR: :syntaxError
+> common3.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 common4.s
 ------------------------------------------
+1c1
+< include("basics");
+---
+> (include "inherit.s")
+3,7c3
+< function helper() { println("oops!"); }
+< var z =
+< {
+< var common = 0;
+< function helper() { println("oops!"); }
+---
+> (define (helper) (println "oops!"))
+9,17c5
+< function z()
+<     {
+<     var uncommon = 0;
+<     function getCommon() { helper(); common; }
+<     common += 1;
+<     uncommon += 1;
+<     this;
+<     }
+< };
+---
+> (define common 10)
+19,25c7,12
+< function x()
+<     {
+<     var common = 4;
+<     function helper() { println("help!"); }
+<     proxy(z());
+<     this;
+<     }
+---
+> (define (z)
+>     (define parent nil)
+>     (define (getCommon) (helper) common)
+>     (set! 'common (+ common 1))
+>     this
+>     )
+27,29c14,24
+< inspect(x() . getCommon());
+< inspect(x() . uncommon);
+< inspect(x() . getCommon());
+---
+> (define (x)
+>     (define parent (z))
+>     (define common 1)
+>     (define (helper) (println "help!"))
+>     this
+>     )
+> 
+> (inspect ((get 'getCommon (new (x)))))
+> (inspect ((get 'getCommon (new (x)))))
+> (inspect ((get 'getCommon (new (z)))))
+> (inspect ((get 'getCommon (new (z)))))
+31,35c26,28
+< help!
+< x() . getCommon() is 4
+< x() . uncommon is 1
+< help!
+< x() . getCommon() is 4
+---
+> SYNTAX ERROR: :syntaxError
+> common4.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 common5.s
 ------------------------------------------
+1,34c1,38
+< var z = 
+< {
+< var z_shared = { var shared_count = 0; this; };
+< 
+< function z()
+<     {
+<     var count = 0;
+<     extends(z_shared);
+<     count = count + 1;
+<     shared_count = shared_count + 1;
+<     this;
+<     }
+< };
+< 
+< function x()
+<     {
+<     extends(z());
+<     }
+< 
+< function y()
+<     {
+<     extends(z());
+<     }
+< 
+< var xish = x();
+< var yish = y();
+< var zish = z();
+< 
+< println("x's common count is ", xish . shared_count);
+< println("y's common count is ", yish . shared_count);
+< println("z's common count is ", zish . shared_count);
+< println("x's count is ", xish . count);
+< println("y's count is ", yish . count);
+< println("z's count is ", zish . count);
+---
+> (include "inherit.s")
+> 
+> (define z
+>     (scope
+>         (define z_shared (scope (define shared-count 0) this))
+> 
+>         (define (z)
+>             (define count 0)
+>             (extend z_shared)
+>             this
+>             )
+>         )
+>     )
+> 
+> (define (x)
+>     (extend (z))
+>     )
+> 
+> (define (y)
+>     (extend (z))
+>     )
+> 
+> (define xish (x))
+> (define yish (y))
+> (define zish (z))
+> 
+> (set! 'count 1 yish)
+> (set! 'count 2 zish)
+> 
+> (set! 'shared-count 11 yish)
+> (set! 'shared-count 22 xish)
+> 
+> (println "x's count is " (get 'count xish))
+> (println "y's count is " (get 'count yish))
+> (println "z's count is " (get 'count zish))
+> (println "x's common count is " (get 'shared-count xish))
+> (println "y's common count is " (get 'shared-count yish))
+> (println "z's common count is " (get 'shared-count zish))
+36,41c40,42
+< x's common count is 3
+< y's common count is 3
+< z's common count is 3
+< x's count is 1
+< y's count is 1
+< z's count is 1
+---
+> SYNTAX ERROR: :syntaxError
+> common5.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 common.s
 ------------------------------------------
-36,38c36,38
+0a1,2
+> include("inherit.s");
+> 
+4a7
+>     var parent = null;
+9a13
+> function code($x) { $x; }
+12,15c16,18
+<     proxy(z());
+<     ppObject(this);
+<     common . count = common . count + 1;
+<     uncommon . count = uncommon . count + 1;
+---
+>     var parent = z();
+>     parent . common . count = parent . common . count + 1;
+>     parent . uncommon . count = parent . uncommon . count + 1;
+21,23c24,26
+<     proxy(z());
+<     common . count = common . count + 1;
+<     uncommon . count = uncommon . count + 1;
+---
+>     var parent = z();
+>     parent . common . count = parent . common . count + 1;
+>     parent . uncommon . count = parent . uncommon . count + 1;
+27,29c30,32
+< var xish = x();
+< var yish = y();
+< var zish = z();
+---
+> var xish = new(x());
+> var yish = new(y());
+> var zish = new(z());
+36,48c39,40
 < <OBJECT 3300>:
 <     context: <OBJECT 966>
 <     dynamicContext: <OBJECT 966>
----
-> <OBJECT 4261>:
->     context: <OBJECT 1085>
->     dynamicContext: <OBJECT 1085>
-41c41
+<     callDepth: 1
+<     constructor: <function x()>
 <     this: <OBJECT 3300>
----
->     this: <OBJECT 4261>
-43,44c43,44
+<     constructor: <function z()>
 <     uncommon: <OBJECT 3338>
 <     common: <OBJECT 3221>
+< x's common count is 2
+< y's common count is 2
+< x's uncommon count is 1
+< y's uncommon count is 1
 ---
->     uncommon: <OBJECT 4318>
->     common: <OBJECT 4072>
+> EVALUATION ERROR: :undefinedVariable
+> common.s,line 30: variable new is undefined
 ------------------------------------------
 defined.s
 ------------------------------------------
+1c1
+< var methods = array(symbol("++"),:+);
+---
+> (include "reflection.s")
+3c3,5
+< var i = 0;
+---
+> (define methods (array (symbol "-") '+ (symbol "++")))
+> (inspect (length methods))
+> (inspect methods)
+5,16c7,16
+< while (i < length(methods))
+<     {
+<     if (defined?(methods . i,this))
+<         {
+<         println(methods . i, " is defined!");
+<         }
+<     else
+<         {
+<         println(methods . i, " is not defined");
+<         }
+<     i = i + 1;
+<     }
+---
+> (define i 0)
+> 
+> (while (< i (length methods))
+>     (define item (getElement methods i))
+>     (if (defined? item this)
+>         (println item " is defined!")
+>         (println item " is not defined.")
+>         )
+>     (set! 'i (+ i 1))
+>     )
+18,19c18,20
+< ++ is not defined
+< + is defined!
+---
+> SYNTAX ERROR: :syntaxError
+> defined.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 env.s
 ------------------------------------------
-10a11
-> ORBIT_SOCKETDIR
-12,14d12
+1c1
+< var spot = SwayEnv;
+---
+> (include "scam.s")
+3,8c3
+< while (spot != :null)
+<     {
+<     var s = head(spot);
+<     println(prefix(s,stringUntil(s,"=")));
+<     spot = tail(spot);
+<     }
+---
+> (define spot ScamEnv)
+9a5,9
+> (while (!= spot nil)
+>     (define s (car spot))
+>     (println (prefix s (stringUntil s "=")))
+>     (set! 'spot (cdr spot))
+>     )
+11,47c11,13
+< SSH_AGENT_PID
 < KDE_MULTIHEAD
 < GPG_AGENT_INFO
 < TERM
-16,17c14,15
+< SHELL
 < GTK2_RC_FILES
 < GS_LIB
----
-> TERM
-> XDG_SESSION_COOKIE
-19d16
+< GTK_RC_FILES
 < HUSHLOGIN
-21c18
+< WINDOWID
 < KDE_FULL_SESSION
----
-> GTK_MODULES
-23a21
-> GNOME_KEYRING_SOCKET
-24a23
-> USERNAME
-26,27d24
+< USER
+< LS_COLORS
+< SSH_AUTH_SOCK
+< SESSION_MANAGER
 < KONSOLE_DCOP
 < MAIL
-28a26
-> DESKTOP_SESSION
-30c28
+< PATH
+< PWD
 < KONSOLE_DCOP_SESSION
----
-> GDM_KEYBOARD_LAYOUT
-31a30
-> GNOME_KEYRING_PID
-33,34c32,33
+< EDITOR
+< LANG
 < KDE_SESSION_UID
 < SONGDIR
----
-> GDM_LANG
-> GDMSESSION
-36c35
+< HISTCONTROL
 < SHLVL
----
-> SPEECHD_PORT
-38c37,38
+< HOME
 < XCURSOR_THEME
----
-> SHLVL
-> GNOME_DESKTOP_SESSION_ID
-39a40,41
-> XDG_DATA_DIRS
-> DBUS_SESSION_BUS_ADDRESS
-41c43
+< LOGNAME
+< LESSOPEN
 < VIMRUNTIME
----
-> EMAIL
-43d44
+< DISPLAY
 < VIM
+< LESSCLOSE
+< XAUTHORITY
+< COLORTERM
+< _
+---
+> SYNTAX ERROR: :syntaxError
+> env.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 except2.s
 ------------------------------------------
+1,13c1
+< function try($error,$a,$b)
+<     {
+<     var result = catch(force($a));
+<     if (type(result) == :ERROR)
+<         {
+<         $error = result;
+<         force($b);
+<         }
+<     else
+<         {
+<         result;
+<         }
+<     }
+---
+> (include "scam.s")
+15,18c3,12
+< function normalize(a,b)
+<     {
+<     return (a + b) * (a + b);
+<     }
+---
+> (define (try # $error $a $b)
+>     (define result (catch (eval $a #)))
+>     (if (== (type result) 'error)
+>         (begin
+>             (set! $error result #)
+>             (set! 'result (eval $b #))
+>             )
+>         )
+>     result
+>     )
+20,23c14,16
+< function g()
+<     {
+<     var result;
+<     var error;
+---
+> (define (normalize a b)
+>     (* (+ a b) (+ a b))
+>     )
+25,47c18,20
+<     try(error) 
+<         {
+<         throw(:hiy,"ouch"); // comment this line out and a 2 should result
+<         result = normalize(1,2);
+<         }
+<     else if (error . type == :nonFunction)
+<         {
+<         result = 2;
+<         }
+<     else if (error . type == :hey)
+<         {
+<         result = 100;
+<         }
+<     else if (error . type == :hay)
+<         {
+<         result = 33;
+<         }
+<     else
+<         {
+<         throw(error);
+<         }
+<     result;
+<     }
+---
+> (define (g)
+>     (define result)
+>     (define error)
+49,50c22,43
+< var + = 3;
+< println(g());
+---
+>     (try error 
+>         (begin
+>             (throw 'hiy "ouch") // comment this line out and a 2 should result
+>             (set! 'result (normalize 1 2))
+>             )
+>         (if (== (get 'code error) 'nonFunction)
+>             (begin
+>                 (println "not a function!")
+>                 (set! 'result 2)
+>                 )
+>         (if (== (get 'code error) 'hey)
+>             (set! 'result 100)
+>         (if (== (get 'code error) 'hay)
+>             (set! 'result 33)
+>             (throw error)
+>             )))
+>         )
+>     result
+>     )
+> 
+> (define + 3)
+> (println (g))
+52,53c45,47
+< EVALUATION ERROR: :hiy
+< except2.s,line 27: ouch
+---
+> SYNTAX ERROR: :syntaxError
+> except2.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 except3.s
 ------------------------------------------
+1,4c1,3
+< function f()
+<     {
+<     g() + 0;
+<     }
+---
+> (define (f)
+>     (+ (g) 0)
+>     )
+6,12c5,10
+< function g()
+<     {
+<     var error;
+<     error = catch(h());
+<     println("rethrowing error");
+<     throw(error);
+<     }
+---
+> (define (g)
+>     (define error)
+>     (set! 'error (catch (h)))
+>     (println "rethrowing error")
+>     (throw error);
+>     )
+14,18c12,15
+< function h()
+<     {
+<     throw(:ouch,"hey!");
+<     2;
+<     }
+---
+> (define (h)
+>     (throw 'ouch "hey!")
+>     2
+>     )
+20,21c17,18
+< f() + 0;
+< :ok;
+---
+> (+ (f) 0)
+> 'ok
+23,25c20,22
+< EVALUATION ERROR: :ouch
+< except3.s,line 16: hey!
+< rethrowing error
+---
+> SYNTAX ERROR: :syntaxError
+> except3.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
+> error occurred prior to: + (g) 0)[END OF LINE]
 ------------------------------------------
 except4.s
 ------------------------------------------
+1,25c1
+< var mnemon = 10;
+< function f(x)
+<     {
+<     var result;
+<     println("beginning f(",x,").");
+<     result = catch(g(2 * x));
+<     if (type(result) == :ERROR)
+<         {
+<         if (result . type == :undefinedVariable)
+<             {
+<             result = x;
+<             }
+<         else
+<             {
+<             println("rethrowing the error");
+<             throw(result);
+<             }
+<         }
+<     println("done with f(",x,").");
+<     return result;
+<     }
+< function g(y)
+<     {
+<     var result;
+<     println("beginning g(",y,").");
+---
+> (include "scam.s");
+27,32c3,28
+<     throw(:myError,"take that!");
+<     result = mnenom * y;
+<     println("done with g(",y,").");
+<     return result;
+<     }
+< println(f(4));
+---
+> (define (f x)
+>     (define result nil)
+>     (println "beginning f(" x ").")
+>     (set! 'result (catch (g (* 2 x))))
+>     (if (== (type result) 'error)
+>         (if (== (get 'code result) 'undefinedVariable)
+>             (set! 'result x)
+>             (begin
+>                 (println "rethrowing the error");
+>                 (throw result)
+>                 )
+>             )
+>         )
+>     (println "done with f(" x ").")
+>     result
+>     )
+> (define (g y)
+>     (define result nil)
+>     (println "beginning g(" y ").")
+>     //(throw 'undefinedVariable "take that!")
+>     (throw 'myError "take that!")
+>     (set! 'result (* mnenom y))
+>     (println "done with g(" y ").")
+>     result
+>     )
+> (println (f 4))
+34,38c30,32
+< EVALUATION ERROR: :myError
+< except4.s,line 27: take that!
+< beginning f(4).
+< beginning g(8).
+< rethrowing the error
+---
+> SYNTAX ERROR: :syntaxError
+> except4.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: );[END OF LINE]
 ------------------------------------------
 except.s
 ------------------------------------------
+1,12c1
+< function try($a,$b)
+<     {
+<     var result = catch(force($a));
+<     if (type(result) == :ERROR)
+<         {
+<         force($b);
+<         }
+<     else
+<         {
+<         result;
+<         }
+<     }
+---
+> (include "scam.s")
+14,32c3,9
+< function fact(n)
+<     {
+<     if (n == 0)
+<         {
+<         try ()
+<             {
+<             zzz;
+<             }
+<         else
+<             {
+<             println("[ERROR]");
+<             1;
+<             }
+<         }
+<     else
+<         {
+<         return n * fact(n - 1);
+<         }
+<     }
+---
+> (define (try # $a $b)
+>     (define result (catch (eval $a #)))
+>     (if (== (type result) 'error)
+>         (eval $b #)
+>         result
+>         )
+>     )
+34c11,24
+< print("fact(5) is ", fact(5), "\n");
+---
+> (define (fact n)
+>     (if (== n 0)
+>         (try
+>             zzz
+>             (begin
+>                 (println "[ERROR]")
+>                 1
+>                 )
+>             )
+>         (* n (fact (- n 1)))
+>         )
+>     )
+> 
+> (print "fact(5) is "  (fact 5) "\n")
+36,37c26,28
+< [ERROR]
+< fact(5) is 120
+---
+> SYNTAX ERROR: :syntaxError
+> except.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 extend.s
 ------------------------------------------
@@ -170,12 +755,108 @@ extension.s
 ------------------------------------------
 fact.s
 ------------------------------------------
+1c1
+< include("fib.s");
+---
+> (println "starting fact.s")
+3,6c3
+< function fact(n)
+<     {
+<     if (n < 2,n,n * fact(n - 1));
+<     }
+---
+> (include "fib.s")
+8,9c5,7
+< println("fib(5) is ",fib(5));
+< println("fact(5) is ",fact(5));
+---
+> (define (fact n)
+>     (if (< n 2) 1 (* n (fact (- n 1))))
+>     )
+10a9,12
+> (inspect this)
+> 
+> (println "fact: fib(5) is " (fib 5))
+> (println "fact: fact(5) is " (fact 5))
+12,13c14,16
+< fib(5) is 5
+< fact(5) is 120
+---
+> SYNTAX ERROR: :syntaxError
+> fact.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 fib-opt.s
 ------------------------------------------
+18c18
+< x = 22;
+---
+> x = 26;
+36,37c36,37
+< fib(22) is 17711
+< 1 seconds
+---
+> fib(26) is 121393
+> 11 seconds
 ------------------------------------------
 fib.s
 ------------------------------------------
+1c1
+< include("fact.s");
+---
+> (println "starting fib.s")
+3,16c3
+< function fib(n)
+<     {
+<     if (n < 2)
+<         {
+<         n;
+<         }
+<     else
+<         {
+<         fib(n - 1) + fib(n - 2);
+<         }
+<     }
+< var x = 0;
+< var result;
+< var t = time();
+---
+> (include "fact.s")
+18,27c5,20
+< x = 22;
+< result = fib(x);
+< display("fib(");
+< display(x);
+< display(") is ");
+< display(result);
+< display("\n");
+< display(time() - t);
+< display(" seconds");
+< display("\n");
+---
+> (println "done including fact.s")
+> 
+> (define (fib n)
+>     (if (< n 2)
+>         n
+>         (+ (fib (- n 1)) (fib (- n 2)))
+>         )
+>     )
+> (define x 0)
+> (define result nil)
+> (define t (time))
+> 
+> (set! 'x 26)
+> (set! 'result (fib x))
+> (println "fib: fib(" x ") is " result)
+> (println (- (time) t) " seconds")
+29,30c22,24
+< fib(22) is 17711
+< 2 seconds
+---
+> SYNTAX ERROR: :syntaxError
+> fib.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 foreach.s
 ------------------------------------------
@@ -185,15 +866,406 @@ for.s
 ------------------------------------------
 f.s
 ------------------------------------------
+22a23,24
+> EVALUATION ERROR: :undefinedVariable
+> f.s,line 21: variable g is undefined
+24d25
+< g(10) is 3628800
+------------------------------------------
+function.s
+------------------------------------------
+1,55c1,36
+< function parameterListMaker($)
+<     {
+<     var vars = :null;
+< 
+<     while ($ != :null)
+<         {
+<         vars = vars + list($ . 0 . code);
+<         $ = tail($);
+<         }
+< 
+<     vars;
+<     }
+< 
+< function named-lambda($name,params,$body)
+<     {
+<     var $p = thunk(0,$name . context);
+< 
+<     $p . code = params;
+< 
+<     __function__($name,$p,$body);
+<     }
+< 
+< function loadAndgo($name,params,values,$body)
+<     {
+<     var f = named-lambda($name,params,$body);
+< 
+<     apply(f,values);
+<     }
+< 
+< loadAndgo(countdown,parameterListMaker(a),list(4))
+<     {
+<     inspect(a);
+<     if (a > 0)
+<         {
+<         countdown(a - 1);
+<         }
+<     }
+< 
+< loadAndgo(countdown,list(:a),list(4))
+<     {
+<     inspect(a);
+<     if (a > 0)
+<         {
+<         countdown(a - 1);
+<         }
+<     }
+< 
+< (named-lambda(countdown,list(:a),
+<     {
+<     inspect(a);
+<     if (a > 0)
+<         {
+<         countdown(a - 1);
+<         }
+<     }))(4);
+---
+> (define (define-function name params body env)
+>     (define donor (lambda () 1))
+>     (set! 'name name donor)
+>     (set! 'parameters params donor)
+>     (set! 'code body donor)
+>     (addSymbol name donor env)
+>     )
+> 
+> (define (loadAndgo # $name params values $body)
+>     (define f (define-function $name params $body #))
+>     (apply f values)
+>     )
+> 
+> (println "first load and go...");
+> (loadAndgo countdown '(a) '(4)
+>     (begin
+>         (inspect a)
+>         (if (> a 0) (countdown (- a 1)))
+>         )
+>     )
+> 
+> (println "second load and go...")
+> (loadAndgo countdown '(b) '(3)
+>     (begin
+>         (inspect b)
+>         (if (> b 0) (countdown (- b 1)))
+>         )
+>     )
+> 
+> (println "calling define-function directly...")
+> ((define-function 'countdown '(a)
+>     '(begin
+>         (inspect a)
+>         (if (> a 0) (countdown (- a 1)))
+>         )
+>     this) 4)
+57,71c38,40
+< a is 4
+< a is 3
+< a is 2
+< a is 1
+< a is 0
+< a is 4
+< a is 3
+< a is 2
+< a is 1
+< a is 0
+< a is 4
+< a is 3
+< a is 2
+< a is 1
+< a is 0
+---
+> SYNTAX ERROR: :syntaxError
+> function.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
+> error occurred prior to: define donor (lambda () 1))[END OF LINE]
 ------------------------------------------
 gc.s
 ------------------------------------------
+1,3c1,2
+< function f(x)
+<     {
+<     var y = x * x;
+---
+> (define (f x)
+>     (define y (* x x))
+5c4
+<     gc();
+---
+>     (gc)
+7,10c6,9
+<     println("f is ", f);
+<     println("x is ", x);
+<     println("y is ", y);
+<     }
+---
+>     (inspect f)
+>     (inspect x)
+>     (inspect y)
+>     )
+12c11
+< f(3);
+---
+> (f 3)
+14,16c13,15
+< f is <function f(x)>
+< x is 3
+< y is 9
+---
+> SYNTAX ERROR: :syntaxError
+> gc.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+> error occurred prior to: [END OF LINE]
 ------------------------------------------
 g.s
 ------------------------------------------
+1,3c1,2
+< function g(n)
+<     {
+<     var total = 1;
+---
+> (define (g n)
+>     (define total 1)
+5,9c4,7
+<     while (n > 1)
+<         {
+<         total = total * n;
+<         n = n - 1;
+<         }
+---
+>     (while (> n 1)
+>         (set! 'total (* total n))
+>         (set! 'n (- n 1))
+>         )
+11,12c9,10
+<     total;
+<     }
+---
+>     total
+>     )
+14c12
+< var x = 10;
+---
+> (define x 10)
+16c14
+< print("g(",x,") is ", g(x), "\n");
+---
+> (print "g(" x ") is " (g x) "\n")
+18c16,18
+< g(10) is 3628800
+---
+> SYNTAX ERROR: :syntaxError
+> g.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+> error occurred prior to: [END OF LINE]
 ------------------------------------------
 heapsort.s
 ------------------------------------------
+1c1
+< include("basics");
+---
+> (include "scam.s")
+3,21c3,4
+< function heap(items,op)
+<     {
+<     var size = length(items);
+< 
+<     function leftChild(x) { 2 * x + 1; }
+<     function rightChild(x) { 2 * x + 2; }
+<     function deleteMin()
+<         {
+<         var temp = items[0];
+<         items[0] = items[size - 1];
+<         items[size - 1] = temp;
+<         size = size - 1;
+<         heapify(0);
+<         temp;
+<         }
+<     function heapify(root)
+<         {
+<         var extreme;
+<         var newRoot;
+---
+> (define (heap items op)
+>     (define size (length items))
+23c6,21
+<         if (leaf?(root)) { return :ok; }
+---
+>     (define (leftChild x) (+ (* 2 x) 1))
+>     (define (rightChild x) (+ (* 2 x) 2))
+>     (define (deleteExtreme)
+>         (define temp (getElement items 0))
+>         (setElement! items 0 (getElement items (- size 1)))
+>         (setElement! items (- size 1) temp)
+>         (set! 'size (- size 1))
+>         (heapify 0)
+>         temp
+>         )
+> 
+>     (define (heapify root)
+>         (define extreme nil)
+>         (define newRoot nil)
+> 
+>         (if (leaf? root) (return 'ok))
+25c23
+<         extreme = findExtremalChild(root);
+---
+>         (set! 'extreme (findExtremalChild root))
+27c25
+<         if (extreme == items[root]) { return :ok; }
+---
+>         (if (== extreme (getElement items root)) (return 'ok))
+29,92c27,81
+<         if (extreme == items[leftChild(root)])
+<             {
+<             newRoot = leftChild(root);
+<             }
+<         else
+<             {
+<             newRoot = rightChild(root);
+<             }
+<         items[newRoot] = items[root];
+<         items[root] = extreme;
+<         heapify(newRoot);
+<         }
+<     function findExtremalChild(root)
+<         {
+<         var extreme;
+< 
+<         extreme = extremal(op,items[root],items[leftChild(root)]);
+< 
+<         if (rightChild(root) >= size)
+<             {
+<             extreme;
+<             }
+<         else
+<             {
+<             extremal(op,extreme,items[rightChild(root)]);
+<             }
+<         }
+<     function build-heap()
+<         {
+<         var i;
+< 
+<         for (i = size - 1, i >= 0, i = i - 1)
+<             {
+<             heapify(i);
+<             }
+<         }
+< 
+<     function leaf?(x)
+<         {
+<         leftChild(x) >= size;
+<         }
+< 
+<     build-heap();
+<     this;
+<     }
+< 
+< function heap-sort(items,op)
+<     {
+<     var i;
+<     var h;
+< 
+<     h = heap(items,op);
+< 
+<     while (h . size > 0)
+<         {
+<         print(h . deleteMin());
+<         if (h . size > 0,print(" "));
+<         }
+<     }
+< 
+< function extremal(op,a,b)
+<     {
+<     if (a op b,a,b);
+<     }
+---
+>         (if (== extreme (getElement items (leftChild root)))
+>             (set! 'newRoot (leftChild root))
+>             (set! 'newRoot (rightChild root))
+>             )
+> 
+>         (setElement! items newRoot (getElement items root))
+>         (setElement! items root extreme)
+>         (heapify newRoot)
+>         )
+> 
+>     (define (findExtremalChild root)
+>         (define extreme nil)
+>         (set! 'extreme 
+>             (extremal op
+>                 (getElement items root)
+>                 (getElement items (leftChild root))))
+> 
+>         (if (>= (rightChild root) size)
+>             extreme
+>             (extremal op extreme (getElement items (rightChild root)))
+>             )
+>         )
+> 
+>     (define (build-heap)
+>         (define i nil)
+>         (for (set! 'i (- size 1)) (>= i 0) (set! 'i (- i 1))
+>             (println "heapifying element " i)
+>             (heapify i)
+>             (println "element " i " has been heapified")
+>             )
+>         )
+> 
+>     (define (leaf? x) (>= (leftChild x) size))
+> 
+>     (println "about to build-heap...")
+>     (build-heap)
+>     this
+>     )
+> 
+> (define (heap-sort items op)
+>     (define i nil)
+>     (define h nil)
+> 
+>     (set! 'h (heap items op))
+> 
+>     (while (> (get 'size h) 0)
+>         (print ((get 'deleteExtreme h)))
+>         (if (> (get 'size h) 0) (print " "))
+>         )
+>     (println "\n")
+>     )
+> 
+> (define (extremal op a b)
+>     (if (op a b) a b)
+>     )
+94c83
+< var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
+---
+> (define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
+96,97c85
+< heap-sort(a,>);
+< println("\n");
+---
+> (heap-sort a >)
+99,100c87,88
+< inspect(a);
+< inspect(extremal . parameters);
+---
+> (inspect a)
+> (inspect (get 'parameters extremal))
+102,105c90,92
+< 88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
+< 
+< a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
+< extremal . parameters is (op,a,b)
+---
+> SYNTAX ERROR: :syntaxError
+> heapsort.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
+> error occurred prior to: )[END OF LINE]
 ------------------------------------------
 hide.s
 ------------------------------------------
@@ -203,6 +1275,11 @@ hook2.s
 ------------------------------------------
 hook.s
 ------------------------------------------
+14a15,16
+> EVALUATION ERROR: :undefinedVariable
+> hook.s,line 9: variable println is undefined
+17d18
+< hello, world!
 ------------------------------------------
 if2.s
 ------------------------------------------
@@ -219,11 +1296,80 @@ if5.s
 if.s
 ------------------------------------------
 ------------------------------------------
+inherit.s
+------------------------------------------
+0a1,58
+> ; Java style inheritance in three functions (really two, super is not needed)
+> ; linear time
+> 
+> (include "reflection.s")
+> 
+> (define (resetClosures static obj)
+>     (define (update current rest)
+>         (if (closure? current) (set! 'context static current))
+>         (if (neq? rest nil) (update (car rest) (cdr rest)))
+>         )
+>     (define values (locals obj))
+>     ;(println "locals are " values)
+>     (if (!= values nil) (update (car values) (cdr values)))
+>     obj
+>     )
+> 
+> (define (inherit child parents reification static)
+>     ;(println "inherit " (list child parents reification static) "...")
+>     (if (null? parents)
+>         (set! 'context static child)
+>         (set! 'context
+>               (inherit (resetClosures reification (car parents))
+>                        (cdr parents) reification static)
+>               child
+>               )
+>         )
+>     child
+>     )
+> 
+> (define (new child)
+>     ;(println "new...")
+>     (define (chain x) (if (null? x) nil (cons x (chain (get 'parent x)))))
+>     (inherit child (chain (get 'parent child)) child (get 'context child))
+>     )
+> 
+> (define (mixin object @)
+>     (inherit object @ object (get 'context object))
+>     )
+> 
+> (define (super child)
+>     (get 'context child)
+>     )
+> 
+> (define (extend # parent)
+>     (define top
+>         (if (local? 'inherit-top parent) (get 'inherit-top parent) parent))
+>     
+>     ;(println "in extend...")
+>     (addSymbol 'inherit-top top #)
+>     
+>     (set! 'context (get 'context #) top)
+>     (set! 'context parent #)
+>     #
+>     )
+> ------------------------------------------
+> SYNTAX ERROR: :syntaxError
+> inherit.s,line 1: expecting END_OF_INPUT, found SEMICOLON instead
+> error occurred prior to:  Java style inheritance in three functions (really two, super is not needed)[END OF LINE]
+------------------------------------------
 lhs.s
 ------------------------------------------
+31a32
+> type is SYMBOL
 ------------------------------------------
 linecheck.s
 ------------------------------------------
+185a186,189
+> logging file linecheck.s, line 169
+> logging file linecheck.s, line 171
+> logging file linecheck.s, line 175
+> logging file linecheck.s, line 178
 ------------------------------------------
 list.s
 ------------------------------------------
@@ -246,6 +1392,64 @@ object.s
 obj.s
 ------------------------------------------
 ------------------------------------------
+overlay.s
+------------------------------------------
+0a1,54
+> function stack()
+>     {
+>     var store = :null;
+>     function pop()
+>         {
+>         var p = head(store);
+>         store = tail(store);
+>         p;
+>         }
+>     function push(item)
+>         {
+>         store = item join store;
+>         item;
+>         }
+>     function empty?()
+>         {
+>         return store == :null;
+>         }
+>     this;
+>     }
+> 
+> function stack()
+>     {
+>     function pop()
+>         {
+>         if (empty?(),throw(:stackException,"popped an empty stack"));
+>         pop . prior();
+>         }
+>     extends(stack . prior());
+>     this;
+>     }
+> 
+> var s = stack();
+> 
+> pp(stack);
+> inspect(s . push(5));
+> inspect(s . pop());
+> inspect(s . pop());
+> ------------------------------------------
+> EVALUATION ERROR: :stackException
+> overlay.s,line 26: popped an empty stack
+> function stack()
+>     {
+>     function pop()
+>         {
+>         if(empty?(),throw(:stackException,"popped an empty stack"));
+>         pop . prior();
+>         }
+>     extends(stack . prior());
+>     this;
+>     }
+> s . push(5) is 5
+> s . pop() is 5
+> s . pop() is <THROW 4653>
+------------------------------------------
 overload.s
 ------------------------------------------
 ------------------------------------------
@@ -258,8 +1462,8 @@ pp.s
 < <THUNK 7272>:
 <     context: <OBJECT 984>
 ---
-> <THUNK 9610>:
->     context: <OBJECT 1085>
+> <THUNK 10505>:
+>     context: <OBJECT 1103>
 ------------------------------------------
 pq.s
 ------------------------------------------
@@ -279,6 +1483,55 @@ recur.s
 recursion.s
 ------------------------------------------
 ------------------------------------------
+reflection.s
+------------------------------------------
+0a1,45
+> (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
+> 
+> (define (class x) (get 'label x))
+> 
+> (define (closure? x)
+>     (and (and (pair? x) (eq? (car x) 'object)) (eq? (class x) 'closure))
+>     )
+> 
+> (define (object? x)
+>     (and (pair? x) (eq? (car x) 'object))
+>     )
+> 
+> (define (local? id env)
+>     (member? id (car (cdr env)))
+>     )
+> 
+> (define (defined? id env)
+>     (define result (catch (get id env)))
+>     (!= (type result) 'ERROR)
+>     )
+> 
+> (define (locals env)
+>     (cddddr (car (cdr (cdr env))))
+>     )
+> 
+> (define (. obj $field) (get $field obj))
+> 
+> (define (member? x items)
+>     (cond
+>         ((null? items)
+>             #f
+>             )
+>         ((eq? x (car items))
+>             #t
+>             )
+>         (else
+>             (member? x (cdr items))
+>             )
+>         )
+>     )
+> 
+> ------------------------------------------
+> SYNTAX ERROR: :syntaxError
+> reflection.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+> error occurred prior to:  (cdr (cdr (cdr (cdr x)))))[END OF LINE]
+------------------------------------------
 reflect.s
 ------------------------------------------
 ------------------------------------------
@@ -290,16 +1543,100 @@ return3.s
 43c43
 < r is <ERROR 5300>
 ---
-> r is <ERROR 9805>
+> r is <ERROR 10700>
 ------------------------------------------
 return.s
 ------------------------------------------
+1,10c1,9
+< function f()
+<     {
+<     var x;
+<     print("entering f\n");
+<     x = {
+<         print("entering block\n");
+<         return 3;
+<         print("leaving block (this should not be displayed)\n");
+<         5;
+<         };
+---
+> (define (f)
+>     (define x)
+>     (println "entering f...")
+>     (if #t
+>         (print("entering block")
+>         //(return 3)
+>         (println "leaving block (this should not be displayed)")
+>         5
+>         }
+11a11,12
+>     //return 22;
+>     print("really leaving f (this should not be displayed)\n");
+14a16
+> var z = 0;
+16c18,20
+< print("f() returns ",f(),"\n");
+---
+> z = f();
+> print("f() returns ",z,"\n");
+> println("done");
+18,21c22,24
+< f() should return 3
+< entering f
+< entering block
+< f() returns 3
+---
+> SYNTAX ERROR: :syntaxError
+> return.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
+> error occurred prior to: define x)[END OF LINE]
 ------------------------------------------
 reverse.s
 ------------------------------------------
 ------------------------------------------
 right.s
 ------------------------------------------
+------------------------------------------
+scam.s
+------------------------------------------
+0a1,39
+> (define (head x) (car x))
+> (define (tail x) (cdr x))
+> (define (join x,y) (cons x y))
+> 
+> (define (for # init $test $increment $)
+>     (while (eval $test #)
+>         (evalList $ #)
+>         (eval $increment #)
+>         )
+>     )
+> 
+> (define (for-each # $indexVar items $)
+>     (define result false)
+>     (while (!= items nil)
+>         (set! $indexVar (car items) #)
+>         (set! 'result (evalList $ #))
+>         (set! 'items (cdr items))
+>         )
+>     result
+>     )
+> 
+> (define (+= # $v value) (set! $v (+ (eval $v #) value) #))
+> (define (-= # $v value) (set! $v (- (eval $v #) value) #))
+> (define (*= # $v value) (set! $v (* (eval $v #) value) #))
+> (define (/= # $v value) (set! $v (/ (eval $v #) value) #))
+> 
+> ; object-related functions
+> 
+> (define old-type type)
+> 
+> (define (type x)
+>     (if (== (old-type x) 'object) (get 'label x) x)
+>     )
+> 
+> (define (. obj $field) (get $field obj))
+> ------------------------------------------
+> SYNTAX ERROR: :syntaxError
+> scam.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+> error occurred prior to:  (car x))[END OF LINE]
 ------------------------------------------
 sine.s
 ------------------------------------------
@@ -327,22 +1664,26 @@ symbol2.s
 27c27
 < thunk is <THUNK 3237>
 ---
-> thunk is <THUNK 4153>
+> thunk is <THUNK 4222>
 31,32c31,32
 < <THUNK 3237>:
 <     context: <OBJECT 966>
 ---
-> <THUNK 4153>:
->     context: <OBJECT 1085>
+> <THUNK 4222>:
+>     context: <OBJECT 1103>
 38,39c38,39
 < <THUNK 3237>:
 <     context: <OBJECT 966>
 ---
-> <THUNK 4153>:
->     context: <OBJECT 1085>
+> <THUNK 4222>:
+>     context: <OBJECT 1103>
 ------------------------------------------
 symbol.s
 ------------------------------------------
+38a39
+> type is SYMBOL
+39a41
+> type is SYMBOL
 ------------------------------------------
 tailassign.s
 ------------------------------------------

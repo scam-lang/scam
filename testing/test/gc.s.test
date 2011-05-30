@@ -1,16 +1,15 @@
-function f(x)
-    {
-    var y = x * x;
+(define (f x)
+    (define y (* x x))
 
-    gc();
+    (gc)
 
-    println("f is ", f);
-    println("x is ", x);
-    println("y is ", y);
-    }
+    (inspect f)
+    (inspect x)
+    (inspect y)
+    )
 
-f(3);
+(f 3)
 ------------------------------------------
-f is <function f(x)>
-x is 3
-y is 9
+SYNTAX ERROR: :syntaxError
+gc.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
+error occurred prior to: [END OF LINE]
