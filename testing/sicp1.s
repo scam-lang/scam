@@ -16,431 +16,350 @@
 
 ;; interpreter examples
 
-(inspect 486)
+(define items '(
+486
 
-(inspect (+ 137 349))
-(inspect (- 1000 334))
-(inspect (* 5 99))
-(inspect (/ 10 5))
-(inspect (+ 2.7 10))
+(+ 137 349)
+(- 1000 334)
+(* 5 99)
+(/ 10 5)
+(+ 2.7 10)
 
-(inspect (+ 21 35 12 7))
-(inspect (- 21 35 12 7))
-(inspect (- 21))
-(inspect (* 25 4 12))
+(+ 21 35 12 7)
+(- 21 35 12 7)
+(- 21)
+(* 25 4 12)
 
-(inspect (+ (* 3 5) (- 10 6)))
+(+ (* 3 5) (- 10 6))
 
-(inspect (+ (* 3 (+ (* 2 4) (+ 3 5))) (+ (- 10 7) 6)))
+(+ (* 3 (+ (* 2 4) (+ 3 5))) (+ (- 10 7) 6))
 
-(inspect
-    (+ (* 3
-         (+ (* 2 4)
-            (+ 3 5)))
-      (+ (- 10 7)
-         6))
-    )
+(+ (* 3
+     (+ (* 2 4)
+        (+ 3 5)))
+  (+ (- 10 7)
+     6))
+   
 
 
 ;;;SECTION 1.1.2
 
-(inspect (define size 2))
-(inspect size)
-(inspect (* 5 size))
+(define size 2)
+size
+(* 5 size)
 
-(inspect (define pi 3.14159))
-(inspect (define radius 10))
-(inspect (* pi (* radius radius)))
-(inspect (define circumference (* 2 pi radius)))
-;: circumference
+(define pi 3.14159)
+(define radius 10)
+(* pi (* radius radius))
+(define circumference (* 2 pi radius))
+circumference
 
 
 ;;;SECTION 1.1.3
 
-(inspect (* (+ 2 (* 4 6))))
-(inspect    (+ 3 5 7))
+(* (+ 2 (* 4 6)))
+(+ 3 5 7)
 
 
 ;;;SECTION 1.1.4
 
-(inspect (define (square x) (* x x)))
+(define (square x) (* x x))
 
-(inspect (square 21))
-(inspect (square (+ 2 5)))
-(inspect (square (square 3)))
+(square 21)
+(square (+ 2 5))
+(square (square 3))
 
-(inspect
-    (define (sum-of-squares x y)
-        (+ (square x) (square y)))
-    )
 
-(inspect (sum-of-squares 3 4))
+(define (sum-of-squares x y)
+    (+ (square x) (square y)))
 
-(inspect
-    (define (f a)
-        (sum-of-squares (+ a 1) (* a 2)))
-    )
+(sum-of-squares 3 4)
 
-(inspect (f 5))
+(define (f a)
+    (sum-of-squares (+ a 1) (* a 2)))
+
+(f 5)
 
 
 ;;;SECTION 1.1.5
 
-(inspect (f 5))
-(inspect (sum-of-squares (+ 5 1) (* 5 2)))
-(inspect (+ (square 6) (square 10)))
-(inspect (+ (* 6 6) (* 10 10)))
-(inspect (+ 36 100))
+(f 5)
+(sum-of-squares (+ 5 1) (* 5 2))
+(+ (square 6) (square 10))
+(+ (* 6 6) (* 10 10))
+(+ 36 100)
 
-(inspect (f 5))
-(inspect (sum-of-squares (+ 5 1) (* 5 2)))
-(inspect (+    (square (+ 5 1))      (square (* 5 2))  ))
-(inspect (+    (* (+ 5 1) (+ 5 1))   (* (* 5 2) (* 5 2))))
-(inspect (+         (* 6 6)             (* 10 10)))
-(inspect (+           36                   100))
-(inspect                     136)
-
+(f 5)
+(sum-of-squares (+ 5 1) (* 5 2))
+(+    (square (+ 5 1))      (square (* 5 2))  )
+(+    (* (+ 5 1) (+ 5 1))   (* (* 5 2) (* 5 2)))
+(+         (* 6 6)             (* 10 10))
+(+           36                   100)
+136
 
 ;;;SECTION 1.1.6
 
-(inspect
-    (define (abs x)
-        (cond
-            ((> x 0) x)
-            ((= x 0) 0)
-            ((< x 0) (- x))))
-    )
+(define (abs x)
+    (cond
+        ((> x 0) x)
+        ((= x 0) 0)
+        ((< x 0) (- x))))
 
-(inspect 
-    (define (abs x)
-      (cond ((< x 0) (- x))
-            (else x)))
-    )
+(define (abs x)
+  (cond ((< x 0) (- x))
+        (else x)))
 
-(inspect
-    (define (abs x)
-      (if (< x 0)
-          (- x)
-          x))
-    )
+(define (abs x)
+  (if (< x 0)
+      (- x)
+      x))
 
 (define x 7)
-(inspect (and (> x 5) (< x 10)))
+(and (> x 5) (< x 10))
 
-(inspect
-    (define (>= x y)
-      (or (> x y) (= x y)))
-    )
+(define (>= x y)
+  (or (> x y) (= x y)))
 
-(inspect
-    (define (>= x y)
-      (not (< x y)))
-    )
+(define (>= x y)
+  (not (< x y)))
 
 
 ;;EXERCISE 1.1
-(inspect 10)
+10
 
-(inspect (+ 5 3 4))
+(+ 5 3 4)
 
-(inspect (- 9 1))
+(- 9 1)
 
-(inspect (/ 6 2))
+(/ 6 2)
 
-(inspect (+ (* 2 4) (- 4 6)))
+(+ (* 2 4) (- 4 6))
 
-(inspect (define a 3))
+(define a 3)
 
-(inspect (define b (+ a 1)))
+(define b (+ a 1))
 
-(inspect (+ a b (* a b)))
+(+ a b (* a b))
 
-(inspect (= a b))
+(= a b)
 
-(inspect
-    (if (and (> b a) (< b (* a b)))
-        b
-        a)
-    )
+(if (and (> b a) (< b (* a b)))
+    b
+    a)
 
-(inspect 
-    (cond ((= a 4) 6)
-        ((= b 4) (+ 6 7 a))
-        (else 25))
-    )
+(cond ((= a 4) 6)
+    ((= b 4) (+ 6 7 a))
+    (else 25))
 
-(inspect (+ 2 (if (> b a) b a)))
+(+ 2 (if (> b a) b a))
 
-(inspect
-        (* (cond ((> a b) a)
-             ((< a b) b)
-             (else -1))
-            (+ a 1))
-    )
+(* (cond ((> a b) a)
+     ((< a b) b)
+     (else -1))
+    (+ a 1))
 
 ;;EXERCISE 1.4
-(inspect 
-    (define (a-plus-abs-b a b)
-      ((if (> b 0) + -) a b))
-    )
+(define (a-plus-abs-b a b)
+  ((if (> b 0) + -) a b))
 
 ;;EXERCISE 1.5
-(inspect
-    (define (p x) (if (< x 10000) (p (+ x 1)) x))
-    )
+(define (p x) (if (< x 10000) (p (+ x 1)) x))
 
-(inspect
-    (define (test x y)
-      (if (= x 0)
-          0
-          y))
-    )
+(define (test x y)
+  (if (= x 0)
+      0
+      y))
 
-(inspect (if (= 0 0) 0 (p 0)))
-(inspect (test 0 (p 0)))
+(if (= 0 0) 0 (p 0))
+;:(test 0 (p 0))
 
 ;;;SECTION 1.1.7
 
-(inspect
-    (define (sqrt-iter guess x)
-      (if (good-enough? guess x)
-          guess
-          (sqrt-iter (improve guess x)
-                     x)))
-    )
+(define (sqrt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x)
+                 x)))
 
-(inspect
-    (define (improve guess x)
-      (average guess (/ x guess)))
-    )
+(define (improve guess x)
+  (average guess (/ x guess)))
 
-(inspect
-    (define (average x y)
-      (/ (+ x y) 2))
-    )
+(define (average x y)
+  (/ (+ x y) 2))
 
-(inspect
-    (define (good-enough? guess x)
-      (< (abs (- (square guess) x)) 0.001))
-    )
+(define (good-enough? guess x)
+  (< (abs (- (square guess) x)) 0.001))
 
-(inspect
-    (define (sqrt x)
-      (sqrt-iter 1.0 x))
-    )
+(define (sqrt x)
+  (sqrt-iter 1.0 x))
 
 
-(inspect (sqrt 9))
-(inspect (sqrt (+ 100 37)))
-(inspect (sqrt (+ (sqrt 2) (sqrt 3))))
-(inspect (square (sqrt 1000)))
+(sqrt 9)
+(sqrt (+ 100 37))
+(sqrt (+ (sqrt 2) (sqrt 3)))
+(square (sqrt 1000))
 
 
 ;;EXERCISE 1.6
-(inspect
-    (define (new-if predicate then-clause else-clause)
-      (cond (predicate then-clause)
-            (else else-clause)))
-    )
+(define (new-if predicate then-clause else-clause)
+  (cond (predicate then-clause)
+        (else else-clause)))
 
-(inspect (new-if (= 2 3) 0 5))
+(new-if (= 2 3) 0 5)
 
-(inspect (new-if (= 1 1) 0 5))
+(new-if (= 1 1) 0 5)
 
-(inspect
-    (define (sqrt-iter guess x)
-      (new-if (good-enough? guess x)
-              guess
-              (sqrt-iter (improve guess x)
-                         x)))
-    )
+(define (sqrt-iter guess x)
+  (new-if (good-enough? guess x)
+          guess
+          (sqrt-iter (improve guess x)
+                     x)))
 
 
 ;;;SECTION 1.1.8
 
-(inspect
-    (define (square x) (* x x))
-    )
+(define (square x) (* x x))
 
-(inspect
-    (define (square x) 
-      (exp (double (log x))))
-    )
+(define (square x) 
+  (exp (double (log x))))
 
-(inspect
-    (define (double x) (+ x x))
-    )
+(define (double x) (+ x x))
 
 
 ;; As in 1.1.7
-(inspect
-    (define (sqrt x)
-      (sqrt-iter 1.0 x))
-    )
+(define (sqrt x)
+  (sqrt-iter 1.0 x))
 
-(inspect
-    (define (sqrt-iter guess x)
-      (if (good-enough? guess x)
-          guess
-          (sqrt-iter (improve guess x) x)))
-      )
+(define (sqrt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x) x)))
 
-(inspect
-    (define (good-enough? guess x)
-      (< (abs (- (square guess) x)) 0.001))
-  )
+(define (good-enough? guess x)
+  (< (abs (- (square guess) x)) 0.001))
 
-(inspect
-    (define (improve guess x)
-      (average guess (/ x guess)))
-  )
+(define (improve guess x)
+  (average guess (/ x guess)))
 
 
 ;; Block-structured
-(inspect
-    (define (sqrt x)
-      (define (good-enough? guess x)
-        (< (abs (- (square guess) x)) 0.001))
-      (define (improve guess x)
-        (average guess (/ x guess)))
-      (define (sqrt-iter guess x)
-        (if (good-enough? guess x)
-            guess
-            (sqrt-iter (improve guess x) x)))
-      (sqrt-iter 1.0 x))
-    )
+(define (sqrt x)
+  (define (good-enough? guess x)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess x)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess x)
+    (if (good-enough? guess x)
+        guess
+        (sqrt-iter (improve guess x) x)))
+  (sqrt-iter 1.0 x))
 
 ;; Taking advantage of lexical scoping
-(inspect
-    (define (sqrt x)
-      (define (good-enough? guess)
-        (< (abs (- (square guess) x)) 0.001))
-      (define (improve guess)
-        (average guess (/ x guess)))
-      (define (sqrt-iter guess)
-        (if (good-enough? guess)
-            guess
-            (sqrt-iter (improve guess))))
-      (sqrt-iter 1.0))
-    )
+(define (sqrt x)
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+        guess
+        (sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
 
 
 ;;;SECTION 1.2.1
 
 ;; Recursive
 
-(inspect
-    (define (factorial n)
-      (if (= n 1)
-          1
-          (* n (factorial (- n 1)))))
-    )
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* n (factorial (- n 1)))))
 
 
 ;; Iterative
 
-(inspect 
-    (define (factorial n)
-      (fact-iter 1 1 n))
-    )
+(define (factorial n)
+  (fact-iter 1 1 n))
 
-(inspect
-    (define (fact-iter product counter max-count)
-      (if (> counter max-count)
-          product
-          (fact-iter (* counter product)
-                     (+ counter 1)
-                     max-count)))
-    )
+(define (fact-iter product counter max-count)
+  (if (> counter max-count)
+      product
+      (fact-iter (* counter product)
+                 (+ counter 1)
+                 max-count)))
 
 ;; Iterative, block-structured (from footnote)
-(inspect
-    (define (factorial n)
-      (define (iter product counter)
-        (if (> counter n)
-            product
-            (iter (* counter product)
-                  (+ counter 1))))
-      (iter 1 1))
-    )
-
+(define (factorial n)
+  (define (iter product counter)
+    (if (> counter n)
+        product
+        (iter (* counter product)
+              (+ counter 1))))
+  (iter 1 1))
 
 ;;EXERCISE 1.9
-(inspect
-    (define (+ a b)
-      (if (= a 0)
-          b
-          (inc (+ (dec a) b))))
-    )
+(define (+ a b)
+  (if (= a 0)
+      b
+      (inc (+ (dec a) b))))
 
-(inspect
-    (define (+ a b)
-      (if (= a 0)
-          b
-          (+ (dec a) (inc b))))
-    )
+(define (+ a b)
+  (if (= a 0)
+      b
+      (+ (dec a) (inc b))))
 
 ;;EXERCISE 1.10
-(inspect
-    (define (A x y)
-      (cond ((= y 0) 0)
-            ((= x 0) (* 2 y))
-            ((= y 1) 2)
-            (else (A (- x 1)
-                     (A x (- y 1))))))
-    )
+(define (A x y)
+  (cond ((= y 0) 0)
+        ((= x 0) (* 2 y))
+        ((= y 1) 2)
+        (else (A (- x 1)
+                 (A x (- y 1))))))
 
-(inspect (A 1 10))
+(A 1 10)
 
-(inspect (A 2 4))
+(A 2 4)
 
-(inspect (A 3 3))
+(A 3 3)
 
-(inspect (define (f n) (A 0 n)))
+(define (f n) (A 0 n))
 
-(inspect (define (g n) (A 1 n)))
+(define (g n) (A 1 n))
 
-(inspect (define (h n) (A 2 n)))
+(define (h n) (A 2 n))
 
-(inspect (define (k n) (* 5 n n)))
+(define (k n) (* 5 n n))
 
 
 ;;;SECTION 1.2.2
 
 ;; Recursive
 
-(inspect
-    (define (fib n)
-      (cond ((= n 0) 0)
-            ((= n 1) 1)
-            (else (+ (fib (- n 1))
-                     (fib (- n 2))))))
-    )
+(define (fib n)
+  (cond ((= n 0) 0)
+        ((= n 1) 1)
+        (else (+ (fib (- n 1))
+                 (fib (- n 2))))))
 
 ;; Iterative
 
-(inspect
-    (define (fib n)
-      (fib-iter 1 0 n))
-    )
+(define (fib n)
+  (fib-iter 1 0 n))
 
-(inspect
-    (define (fib-iter a b count)
-      (if (= count 0)
-          b
-          (fib-iter (+ a b) a (- count 1))))
-    )
-
+(define (fib-iter a b count)
+  (if (= count 0)
+      b
+      (fib-iter (+ a b) a (- count 1))))
 
 ;; Counting change
 
-(inspect
-    (define (count-change amount)
-      (cc amount 5))
-    )
+(define (count-change amount)
+  (cc amount 5))
 
-(inspect
 (define (cc amount kinds-of-coins)
+  (inspect (list 'cc amount kinds-of-coins))
+  (inspect (stack-depth))
   (cond ((= amount 0) 1)
         ((or (< amount 0) (= kinds-of-coins 0)) 0)
         (else (+ (cc amount
@@ -448,9 +367,6 @@
                  (cc (- amount
                         (first-denomination kinds-of-coins))
                      kinds-of-coins)))))
-    )
-
-(define items '(
 
 (define (first-denomination kinds-of-coins)
   (cond ((= kinds-of-coins 1) 1)
@@ -459,7 +375,8 @@
         ((= kinds-of-coins 4) 25)
         ((= kinds-of-coins 5) 50)))
 
-;: (count-change 100)
+(count-change 10)
+;{
 
 
 ;;;SECTION 1.2.3
@@ -643,7 +560,7 @@
 (define (sum-cubes a b)
   (sum cube a inc b))
 
-;: (sum-cubes 1 10)
+(sum-cubes 1 10)
 
 
 (define (identity x) x)
@@ -651,7 +568,7 @@
 (define (sum-integers a b)
   (sum identity a inc b))
 
-;: (sum-integers 1 10)
+(sum-integers 1 10)
 
 
 (define (pi-sum a b)
@@ -661,7 +578,7 @@
     (+ x 4))
   (sum pi-term a pi-next b))
 
-;: (* 8 (pi-sum 1 1000))
+(* 8 (pi-sum 1 1000))
 
 
 (define (integral f a b dx)
@@ -669,13 +586,13 @@
   (* (sum f (+ a (/ dx 2)) add-dx b)
      dx))
 
-;: (integral cube 0 1 0.01)
+(integral cube 0 1 0.01)
 
-;: (integral cube 0 1 0.001)
+(integral cube 0 1 0.001)
 
 
 ;;EXERCISE 1.32
-;: (accumulate combiner null-value term a next b)
+(accumulate combiner null-value term a next b)
 
 ;;;SECTION 1.3.2
 
@@ -696,7 +613,7 @@
 
 (define plus4 (lambda (x) (+ x 4)))
 
-;: ((lambda (x y z) (+ x y (square z))) 1 2 3)
+((lambda (x y z) (+ x y (square z))) 1 2 3)
 
 
 ;; Using let
@@ -724,13 +641,13 @@
        (* y b)
        (* a b))))
 
-;: (+ (let ((x 3))
-;:      (+ x (* x 10)))
-;:    x)
+(+ (let ((x 3))
+      (+ x (* x 10)))
+    x)
 
-;: (let ((x 3)
-;:       (y (+ x 2)))
-;:   (* x y))
+(let ((x 3)
+      (y (+ x 2)))
+  (* x y))
 
 (define (f x y)
   (define a (+ 1 (* x y)))
@@ -744,9 +661,9 @@
 (define (f g)
   (g 2))
 
-;: (f square)
+(f square)
 
-;: (f (lambda (z) (* z (+ z 1))))
+(f (lambda (z) (* z (+ z 1))))
 
 
 ;;;SECTION 1.3.3
@@ -778,11 +695,11 @@
            (error "Values are not of opposite sign" a b)))))
 
 
-;: (half-interval-method sin 2.0 4.0)
+(half-interval-method sin 2.0 4.0)
 
-;: (half-interval-method (lambda (x) (- (* x x x) (* 2 x) 3))
-;:                       1.0
-;:                       2.0)
+(half-interval-method (lambda (x) (- (* x x x) (* 2 x) 3))
+                      1.0
+                      2.0)
 
 
 ;; Fixed points
@@ -800,10 +717,10 @@
   (try first-guess))
 
 
-;: (fixed-point cos 1.0)
+(fixed-point cos 1.0)
 
-;: (fixed-point (lambda (y) (+ (sin y) (cos y)))
-;:              1.0)
+(fixed-point (lambda (y) (+ (sin y) (cos y)))
+             1.0)
 
 
 (define (sqrt x)
@@ -816,9 +733,9 @@
 
 
 ;;EXERCISE 1.37
-;: (cont-frac (lambda (i) 1.0)
-;:            (lambda (i) 1.0)
-;:            k)
+(cont-frac (lambda (i) 1.0)
+           (lambda (i) 1.0)
+           k)
 
 
 ;;;SECTION 1.3.4
@@ -826,7 +743,7 @@
 (define (average-damp f)
   (lambda (x) (average x (f x))))
 
-;: ((average-damp square) 10)
+((average-damp square) 10)
 
 (define (sqrt x)
   (fixed-point (average-damp (lambda (y) (/ x y)))
@@ -848,7 +765,7 @@
 
 (define (cube x) (* x x x))
 
-;: ((deriv cube) 5)
+((deriv cube) 5)
 
 (define (newton-transform g)
   (lambda (x)
@@ -880,20 +797,36 @@
 
 
 ;;EXERCISE 1.40
-;: (newtons-method (cubic a b c) 1)
+(newtons-method (cubic a b c) 1)
 
 
 ;;EXERCISE 1.41
-;: (((double (double double)) inc) 5)
+(((double (double double)) inc) 5)
 
 
 ;;EXERCISE 1.42
-;: ((compose square inc) 6)
+((compose square inc) 6)
 
 
 ;;EXERCISE 1.43
-;: ((repeated square 2) 5)
-)
+((repeated square 2) 5)
+;}
+)) ;end of items
 
-(inspect items)
+(define (process items #)
+    (define (iter items)
+        (cond
+            ((null? items) 'done)
+            (else
+                (define result (eval (car items) #))
+                (println (car items) " is " result)
+                (inspect (stack-depth))
+                (iter (cdr items))
+                )
+            )
+        )
+    (iter items)
+    )
+
+(process items)
 

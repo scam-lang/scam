@@ -1895,6 +1895,14 @@ trim(int args)
     return start;
     }
         
+/* (stack-depth) */
+
+static int
+stackDepth(int args)
+    {
+    return newInteger(StackPtr);
+    }
+
 void
 loadBuiltIns(int env)
     {
@@ -2622,6 +2630,14 @@ loadBuiltIns(int env)
         newSymbol("set-cdr!"),
         ucons(newSymbol("spot"),
             ucons(valueSymbol,0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = stackDepth;
+    b = makeBuiltIn(env,
+        newSymbol("stack-depth"),
+        0,
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
