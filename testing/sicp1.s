@@ -434,9 +434,12 @@
 
 ;; Counting change
 
-(define (count-change amount)
-  (cc amount 5))
+(inspect
+    (define (count-change amount)
+      (cc amount 5))
+    )
 
+(inspect
 (define (cc amount kinds-of-coins)
   (cond ((= amount 0) 1)
         ((or (< amount 0) (= kinds-of-coins 0)) 0)
@@ -445,6 +448,9 @@
                  (cc (- amount
                         (first-denomination kinds-of-coins))
                      kinds-of-coins)))))
+    )
+
+(define items '(
 
 (define (first-denomination kinds-of-coins)
   (cond ((= kinds-of-coins 1) 1)
@@ -887,4 +893,7 @@
 
 ;;EXERCISE 1.43
 ;: ((repeated square 2) 5)
+)
+
+(inspect items)
 
