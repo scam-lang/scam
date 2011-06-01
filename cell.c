@@ -455,14 +455,14 @@ pop()
 
 void push(int i)
     {
-    debug("push",i);
+    //debug("push",i);
     if (StackPtr >= StackSize)
         {
         printf("stack ptr is %d, stack size is %d\n",StackPtr,StackSize);
         assert(StackPtr < StackSize);
         }
     Stack[StackPtr++] = i;
-    printf("stack ptr now is %d\n",StackPtr);
+    //printf("stack ptr now is %d\n",StackPtr);
     }
 
 static int

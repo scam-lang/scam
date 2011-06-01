@@ -10,7 +10,7 @@
     )
 
 (define (for-each # $indexVar items $)
-    (define result false)
+    (define result #f)
     (while (!= items nil)
         (set! $indexVar (car items) #)
         (set! 'result (evalList $ #))
@@ -34,32 +34,32 @@
 
 (define (. obj $field) (get $field obj))
 
-(define old-plus +)
+(define scam.s-old-plus +)
 (define (+ @)
     (define (iter result items)
         (if (null? items)
             result
-            (iter (old-plus result (car items)) (cdr items))
+            (iter (scam.s-old-plus result (car items)) (cdr items))
             )
         )
     (iter 0 @)
     )
-(define old-times *)
+(define scam.s-old-times *)
 (define (* @)
     (define (iter result items)
         (if (null? items)
             result
-            (iter (old-times result (car items)) (cdr items))
+            (iter (scam.s-old-times result (car items)) (cdr items))
             )
         )
     (iter 1 @)
     )
-(define old-minus -)
+(define scam.s-old-minus -)
 (define (- @)
     (define (iter result items)
         (if (null? items)
             result
-            (iter (old-minus result (car items)) (cdr items))
+            (iter (scam.s-old-minus result (car items)) (cdr items))
             )
         )
     (cond 
@@ -68,12 +68,12 @@
         (else (iter (car @) (cdr @)))
         )
     )
-(define old-divides /)
+(define scam.s-old-divides /)
 (define (/ @)
     (define (iter result items)
         (if (null? items)
             result
-            (iter (old-divides result (car items)) (cdr items))
+            (iter (scam.s-old-divides result (car items)) (cdr items))
             )
         )
     (cond 
@@ -84,3 +84,31 @@
     )
 (define (dec x) (- x 1))
 (define (inc x) (+ x 1))
+
+(define (let # $inits $)
+    (define v nil)
+    (define e (scope this))
+    (set! 'context # e)
+    (for-each v $inits
+        (addSymbol (car v) (eval (car (cdr v)) #) e)
+        (inspect e)
+        )
+    (evalList $ e)
+    )
+
+(define (let* # $inits $)
+    (define v nil)
+    (define e (scope this))
+    (set! 'context # e)
+    (for-each v $inits
+        (addSymbol (car v) (eval (car (cdr v)) e) e)
+        )
+    (evalList $ e)
+    )
+
+(define (negative? n) (< n 0))
+(define (positive? n) (> n 0))
+
+(define (newline) (println))
+(define (display x) (print x))
+

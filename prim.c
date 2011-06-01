@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
 #include "types.h"
 #include "env.h"
 #include "cell.h"
@@ -427,6 +428,82 @@ mod(int args)
         return newInteger(ival(a) % ival(b));
     else
         return throw(exceptionSymbol,"wrong types for '%': %s and %s",aType,bType);
+    }
+
+/* (exp a) */
+
+static int
+eexp(int args)
+    {
+    int a;
+    char *aType;
+
+    a = car(args);
+    aType = type(a);
+
+    if (aType == INTEGER)
+        return newReal(exp(ival(a)));
+    else if (aType == REAL)
+        return newReal(exp(rval(a)));
+    else
+        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
+    }
+
+/* (log a) */
+
+static int
+llog(int args)
+    {
+    int a;
+    char *aType;
+
+    a = car(args);
+    aType = type(a);
+
+    if (aType == INTEGER)
+        return newReal(log(ival(a)));
+    else if (aType == REAL)
+        return newReal(log(rval(a)));
+    else
+        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
+    }
+
+/* (sin a) */
+
+static int
+ssin(int args)
+    {
+    int a;
+    char *aType;
+
+    a = car(args);
+    aType = type(a);
+
+    if (aType == INTEGER)
+        return newReal(sin(ival(a)));
+    else if (aType == REAL)
+        return newReal(sin(rval(a)));
+    else
+        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
+    }
+
+/* (cos a) */
+
+static int
+coss(int args)
+    {
+    int a;
+    char *aType;
+
+    a = car(args);
+    aType = type(a);
+
+    if (aType == INTEGER)
+        return newReal(cos(ival(a)));
+    else if (aType == REAL)
+        return newReal(cos(rval(a)));
+    else
+        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
     }
 
 /* (type item) */
@@ -2425,6 +2502,39 @@ loadBuiltIns(int env)
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
+
+    BuiltIns[count] = eexp;
+    b = makeBuiltIn(env,
+        newSymbol("exp"),
+        ucons(newSymbol("n"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = llog;
+    b = makeBuiltIn(env,
+        newSymbol("log"),
+        ucons(newSymbol("n"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ssin;
+    b = makeBuiltIn(env,
+        newSymbol("sin"),
+        ucons(newSymbol("n"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = coss;
+    b = makeBuiltIn(env,
+        newSymbol("cos"),
+        ucons(newSymbol("n"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
 
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,

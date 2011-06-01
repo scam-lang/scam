@@ -11,6 +11,8 @@
 
 
 (include "scam.s")
+(define original-+ +)
+(define original-* *)
 
 ;;;SECTION 1.1.1
 
@@ -354,6 +356,8 @@ circumference
 
 ;; Counting change
 
+(define + original-+)
+
 (define (count-change amount)
   (cc amount 5))
 
@@ -376,8 +380,6 @@ circumference
         ((= kinds-of-coins 5) 50)))
 
 (count-change 10)
-;{
-
 
 ;;;SECTION 1.2.3
 
@@ -527,6 +529,7 @@ circumference
 
 ;;;SECTION 1.3
 
+(define * original-*)
 (define (cube x) (* x x x))
 
 ;;;SECTION 1.3.1
@@ -578,7 +581,7 @@ circumference
     (+ x 4))
   (sum pi-term a pi-next b))
 
-(* 8 (pi-sum 1 1000))
+(* 8 (pi-sum 1 100))
 
 
 (define (integral f a b dx)
@@ -588,11 +591,11 @@ circumference
 
 (integral cube 0 1 0.01)
 
-(integral cube 0 1 0.001)
+(integral cube 0 1 0.008)
 
 
 ;;EXERCISE 1.32
-(accumulate combiner null-value term a next b)
+;:(accumulate combiner null-value term a next b)
 
 ;;;SECTION 1.3.2
 
@@ -615,6 +618,7 @@ circumference
 
 ((lambda (x y z) (+ x y (square z))) 1 2 3)
 
+(log 10)
 
 ;; Using let
 
@@ -717,6 +721,9 @@ circumference
   (try first-guess))
 
 
+(sin .707)
+(cos .707)
+
 (fixed-point cos 1.0)
 
 (fixed-point (lambda (y) (+ (sin y) (cos y)))
@@ -733,9 +740,9 @@ circumference
 
 
 ;;EXERCISE 1.37
-(cont-frac (lambda (i) 1.0)
-           (lambda (i) 1.0)
-           k)
+;:(cont-frac (lambda (i) 1.0)
+;:           (lambda (i) 1.0)
+;:           k)
 
 
 ;;;SECTION 1.3.4
@@ -797,20 +804,20 @@ circumference
 
 
 ;;EXERCISE 1.40
-(newtons-method (cubic a b c) 1)
+;:(newtons-method (cubic a b c) 1)
 
 
 ;;EXERCISE 1.41
-(((double (double double)) inc) 5)
+;:(((double (double double)) inc) 5)
 
 
 ;;EXERCISE 1.42
-((compose square inc) 6)
+;:((compose square inc) 6)
 
 
 ;;EXERCISE 1.43
-((repeated square 2) 5)
-;}
+;:((repeated square 2) 5)
+
 )) ;end of items
 
 (define (process items #)
@@ -820,7 +827,7 @@ circumference
             (else
                 (define result (eval (car items) #))
                 (println (car items) " is " result)
-                (inspect (stack-depth))
+                ;(inspect (stack-depth))
                 (iter (cdr items))
                 )
             )
