@@ -20,7 +20,7 @@
                  (fib (- n 2))))))
 
 ;;; ***not in book, but needed for code before quote is introduced*** 
-(define nil '())
+;NOT-NEEDED: (define nil '())
 
 ;;;-----------
 ;;;from section 3.3.3 for section 2.4.3
@@ -62,6 +62,7 @@
     dispatch))
 
 (define operation-table (make-table))
+;$
 (define get (operation-table 'lookup-proc))
 (define put (operation-table 'insert-proc!))
 

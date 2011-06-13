@@ -9,14 +9,27 @@
         )
     )
 
-(define (for-each # $indexVar items $)
+(define (for-each2 # $indexVar items $)
     (define result #f)
+    (inspect (type $indexVar))
     (while (!= items nil)
+        (inspect 'top)
         (set! $indexVar (car items) #)
+        (inspect 'top-middle)
         (set! 'result (evalList $ #))
         (set! 'items (cdr items))
         )
     result
+    )
+
+(define (for-each f x)
+    (define (iter items)
+        (cond
+            ((null? items) nil)
+            (else (f (car items)) (iter (cdr items)))
+            )
+        )
+    (iter x)
     )
 
 (define (+= # $v value) (set! $v (+ (eval $v #) value) #))
@@ -89,9 +102,11 @@
     (define v nil)
     (define e (scope this))
     (set! 'context # e)
-    (for-each v $inits
+    (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) #) e)
-        (inspect e)
+        ;(println "adding " (car v) " from " $inits)
+        ;(println "    its value is " (eval (car (cdr v)) #))
+        ;(inspect e)
         )
     (evalList $ e)
     )
@@ -100,7 +115,7 @@
     (define v nil)
     (define e (scope this))
     (set! 'context # e)
-    (for-each v $inits
+    (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) e) e)
         )
     (evalList $ e)
@@ -111,4 +126,46 @@
 
 (define (newline) (println))
 (define (display x) (print x))
+(define remainder %)
+(define (append a b)
+    (cond
+        ((null? a) b)
+        (else (cons (car a) (append (cdr a) b)))
+        )
+    )
+(define (last-pair x)
+    (cond
+        ((null? x) nil)
+        ((null? (cdr x)) x)
+        (else (last-pair (cdr x)))
+        )
+    )
+(define (reverse x)
+    (define (iter store rest)
+        (cond
+            ((null? rest) store)
+            (else (iter (cons (car rest) store) (cdr rest)))
+            )
+        )
+    (iter nil x)
+    )
 
+(define (map op @)
+    (define (map1 items)
+        (cond
+            ((null? items) nil)
+            (else (cons (op (car items)) (map1 (cdr items))))
+            )
+        )
+    (define (iter items)
+        (cond
+            ((null? (car items)) nil)
+            (else (cons (apply op (map car items)) (iter (map cdr items))))
+            )
+        )
+    (cond
+        ((= (length @) 1) (map1 (car @)))
+        (else (iter @))
+        )
+    )
+(define (abs x) (if (< x 0) (- x) x))
