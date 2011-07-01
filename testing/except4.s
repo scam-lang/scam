@@ -1,5 +1,3 @@
-(include "scam.s");
-
 (define (f x)
     (define result nil)
     (println "beginning f(" x ").")

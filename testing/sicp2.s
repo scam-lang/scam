@@ -12,7 +12,6 @@
 
 ;;; Some things require code from other chapters -- see ch2support.scm
 
-(include "scam.s")
 (include "sicp2-support.s")
 
 (define old-cons cons)
@@ -396,37 +395,36 @@ one-through-four
 (length (list x x))
 (count-leaves (list x x))
 
-;{
-
 ;; EXERCISE 2.24
-;: (list 1 (list 2 (list 3 4)))
+(list 1 (list 2 (list 3 4)))
 
 ;; EXERCISE 2.25
-;: (1 3 (5 7) 9)
-;: ((7))
-;: (1 (2 (3 (4 (5 (6 7))))))
+'(1 3 (5 7) 9)
+'((7))
+'(1 (2 (3 (4 (5 (6 7))))))
 
 ;; EXERCISE 2.26
-;: (define x (list 1 2 3))
-;: (define y (list 4 5 6))
-;: 
-;: (append x y)
-;: (cons x y)
-;: (list x y)
+(define x (list 1 2 3))
+(define y (list 4 5 6))
+
+(append x y)
+(cons x y)
+(list x y)
+
 
 ;; EXERCISE 2.27
 
-;: (define x (list (list 1 2) (list 3 4)))
-;: x
-;: (reverse x)
-;: (deep-reverse x)
+(define x (list (list 1 2) (list 3 4)))
+x
+(reverse x)
+'(deep-reverse x)
 
 
 ;; EXERCISE 2.28
 
-;: (define x (list (list 1 2) (list 3 4)))
-;: (fringe x)
-;: (fringe (list x x))
+(define x (list (list 1 2) (list 3 4)))
+'(fringe x)
+'(fringe (list x x))
 
 
 ;; EXERCISE 2.29
@@ -454,8 +452,8 @@ one-through-four
                     (scale-tree (cdr tree) factor)))))
 
 
-;: (scale-tree (list 1 (list 2 (list 3 4) 5) (list 6 7))
-;:             10)
+(scale-tree (list 1 (list 2 (list 3 4) 5) (list 6 7))
+            10)
 
 
 (define (scale-tree tree factor)
@@ -465,6 +463,10 @@ one-through-four
              (* sub-tree factor)))
        tree))
 
+(scale-tree (list 1 (list 2 (list 3 4) 5) (list 6 7))
+            10)
+
+;{
 
 ;; EXERCISE 2.30
 ;: (square-tree

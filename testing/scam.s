@@ -42,7 +42,10 @@
 (define old-type type)
 
 (define (type x)
-    (if (== (old-type x) 'object) (get 'label x) x)
+    (if (and (eq? (old-type x) 'CONS) (eq? (car x) 'object))
+        (get 'label x)
+        x
+        )
     )
 
 (define (. obj $field) (get $field obj))

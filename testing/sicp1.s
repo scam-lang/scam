@@ -10,7 +10,6 @@
 ;;;  last version of square defined here.
 
 
-(include "scam.s")
 (define original-+ +)
 (define original-* *)
 

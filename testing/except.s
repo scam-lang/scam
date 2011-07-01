@@ -1,5 +1,3 @@
-(include "scam.s")
-
 (define (try # $a $b)
     (define result (catch (eval $a #)))
     (if (== (type result) 'error)
@@ -11,7 +9,7 @@
 (define (fact n)
     (if (== n 0)
         (try
-            zzz
+            zzz ;change this line to 1
             (begin
                 (println "[ERROR]")
                 1

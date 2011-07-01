@@ -10,3 +10,4 @@ typedef struct parsertag
 
 extern int parse(PARSER *);
 extern PARSER *newParser(char *);
+extern void freeParser(PARSER *);

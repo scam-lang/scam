@@ -1,5 +1,3 @@
-(include "scam.s")
-
 (define (heap items op)
     (define size (length items))
 

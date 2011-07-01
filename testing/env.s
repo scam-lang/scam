@@ -1,5 +1,3 @@
-(include "scam.s")
-
 (define spot ScamEnv)
 
 (while (!= spot nil)

@@ -34,6 +34,7 @@ static int isExprPending(PARSER *);
 
 static int check(PARSER *,char *);
 static int match(PARSER *,char *);
+static FILE *openScamFile(char *);
 
 /*
  
@@ -69,10 +70,24 @@ newParser(char *fileName)
     p->pending = -1;
     p->line = 1;
     p->file = findSymbol(fileName);
-    p->input = OpenFile(fileName,"r");
+    p->input = openScamFile(fileName);
     p->output = stdout;
 
+    if (p->input == 0) return 0;
+
     return p;
+    }
+
+void
+freeParser(PARSER *p)
+    {
+    if (p->input != 0 && p->input != stdin)
+        fclose(p->input);
+
+    if (p->output != 0 && p->output != stdout)
+        fclose(p->output);
+
+    free(p);
     }
 
 int
@@ -203,4 +218,35 @@ check(PARSER *p,char *t)
     //if (type(Pending) == ID) ppf("Pending is ",Pending,"\n");
 
     return type(p->pending) == t;
+    }
+
+extern char *Home;
+
+static FILE *
+openScamFile(char *fileName)
+    {
+    char buffer[512];
+    FILE *fp;
+
+    //printf("looking for file in current directory\n");
+
+    fp = fopen(fileName,"r");
+    if (fp != 0) return fp;
+
+    snprintf(buffer,sizeof(buffer),"%s/scam/%s",Home,fileName);
+    //printf("looking for file in %s\n",buffer);
+    fp = fopen(buffer,"r");
+    if (fp != 0) return fp;
+    
+    snprintf(buffer,sizeof(buffer),"/usr/local/lib/scam/%s",fileName);
+    //printf("looking for file in %s\n",buffer);
+    fp = fopen(buffer,"r");
+    if (fp != 0) return fp;
+    
+    snprintf(buffer,sizeof(buffer),"/usr/lib/scam/%s",fileName);
+    //printf("looking for file in %s\n",buffer);
+    fp = fopen(buffer,"r");
+    if (fp != 0) return fp;
+
+    return 0;
     }

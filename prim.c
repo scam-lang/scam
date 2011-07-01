@@ -79,6 +79,10 @@ defineFunction(int name,int parameters,int body,int env)
     {
     int closure;
     
+    //printf("defining a function...\n");
+    //debug("    name:",name);
+    //debug("    params:",parameters);
+    //debug("    body:",body);
     assureMemory("defineFunction",CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,0);
 
     closure = makeClosure(env,name,parameters,body,ADD_BEGIN);
@@ -108,7 +112,10 @@ define(int args)
 static int
 addSymbol(int args)
     {
-    return defineIdentifier(car(args),cadr(args),caddr(args));
+    //debug("var: ",car(args));
+    //debug("val: ",cadr(args));
+    //debug("env: ",caddr(args));
+    return defineVariable(caddr(args),car(args),cadr(args));
     }
 
 /* (lambda # $params $) */
@@ -830,6 +837,10 @@ iinclude(int args)
     push(env);
 
     p = newParser(buffer);
+    if (p == 0)
+        return throw(exceptionSymbol,
+            "file %s could not be opened for reading",buffer);
+
     ptree = parse(p);
     fclose(p->input);
     free(p);

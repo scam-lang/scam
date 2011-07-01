@@ -1,5 +1,3 @@
-(include "scam.s")
-
 (define (try # $error $a $b)
     (define result (catch (eval $a #)))
     (if (== (type result) 'error)
@@ -21,7 +19,11 @@
 
     (try error 
         (begin
-            (throw 'hiy "ouch") // comment this line out and a 2 should result
+            (println "starting")
+            ; comment the next uncommented line out and a 2 should result
+            ; change hiy to hey in the next uncommented line and you get 100
+            ; change hiy to hay in the next uncommented line and you get 33
+            (throw 'hiy "ouch")
             (set! 'result (normalize 1 2))
             )
         (if (== (get 'code error) 'nonFunction)
