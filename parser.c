@@ -9,16 +9,10 @@
 #include "types.h"
 #include "parser.h"
 #include "lexer.h"
+#include "env.h"
 #include "util.h"
 
-/* operator types */
-
-FILE *Input;
-FILE *Output;
-
-/* the pending input token, -1 is not assigned */
-
-int Pending = -1;
+//extern int throw(int,char *,...);
 
 /* recursive descent parsing function */
 
@@ -61,7 +55,7 @@ static FILE *openScamFile(char *);
 
 */
 
-/* this is the function that interaces the parser with other modules */
+/* this is the function that intefaces the parser with other modules */
 
 PARSER *
 newParser(char *fileName)
@@ -70,10 +64,15 @@ newParser(char *fileName)
     p->pending = -1;
     p->line = 1;
     p->file = findSymbol(fileName);
+    p->pushedBack = 0;
     p->input = openScamFile(fileName);
     p->output = stdout;
 
-    if (p->input == 0) return 0;
+    if (p->input == 0)
+        {
+        freeParser(p);
+        return 0;
+        }
 
     return p;
     }
@@ -93,10 +92,12 @@ freeParser(PARSER *p)
 int
 parse(PARSER *p)
     {
-    int result;
+    int result,end;
 
     result = exprSeq(p);
-    match(p,END_OF_INPUT);
+    rethrow(result,0);
+    end = match(p,END_OF_INPUT);
+    rethrow(end,0);
 
     return cons(beginSymbol,result);
     }
@@ -107,11 +108,15 @@ exprSeq(PARSER *p)
     int e,b;
 
     e = expr(p);
+    rethrow(e,0);
 
+    push(e);
     if (isExprSeqPending(p))
         b = exprSeq(p);
     else
         b = 0;
+    e = pop();
+    rethrow(b,0);
 
     return cons(e,b);
     }
@@ -134,19 +139,25 @@ expr(PARSER *p)
         {
         match(p,QUOTE);
         r = expr(p);
-        result = cons(quoteSymbol,cons(r,0));
+        rethrow(r,0);
+        assureMemory("expr:quote",2,&r,0);
+        result = ucons(quoteSymbol,ucons(r,0));
         }
     else if (check(p,BACKQUOTE))
         {
         match(p,BACKQUOTE);
         r = expr(p);
-        result = cons(backquoteSymbol,cons(r,0));
+        rethrow(r,0);
+        assureMemory("expr:backquote",2,&r,0);
+        result = ucons(backquoteSymbol,ucons(r,0));
         }
     else if (check(p,COMMA))
         {
         match(p,COMMA);
         r = expr(p);
-        result = cons(commaSymbol,cons(r,0));
+        rethrow(r,0);
+        assureMemory("expr:comma",2,&r,0);
+        result = ucons(commaSymbol,ucons(r,0));
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
@@ -158,7 +169,8 @@ expr(PARSER *p)
             result = exprSeq(p);
         else
             result = 0;
-        match(p,CLOSE_PARENTHESIS);
+        rethrow(result,0);
+        rethrow(match(p,CLOSE_PARENTHESIS),0);
         if (result != 0)
             {
             file(result) = f;
@@ -166,7 +178,8 @@ expr(PARSER *p)
             }
         }
     else
-        Fatal("syntax error on line %d\n",LineNumber);
+        result = throw(exceptionSymbol,"file %s,line %d: syntax error\n",
+            SymbolTable[p->file],p->line);
 
     return result;
     }
@@ -196,7 +209,9 @@ match(PARSER *p,char *t)
 
     if (!check(p,t))
         {
-        Fatal("expecting %s, found %s instead",t,type(p->pending));
+        return throw(exceptionSymbol,
+            "file %s,line %d: expecting %s, found %s instead",
+            SymbolTable[p->file],p->line,t,type(p->pending));
         }
 
     old = p->pending;
@@ -211,11 +226,10 @@ check(PARSER *p,char *t)
         {
         //printf("about to lex...\n");
         p->pending = lex(p);
-        //printf("token is %s\n",type(Pending));
+        //printf("token is %s\n",type(p->pending));
         }
 
-    //printf("type(Pending) is %s\n",type(Pending));
-    //if (type(Pending) == ID) ppf("Pending is ",Pending,"\n");
+    //printf("type(p->pending) is %s\n",type(p->pending)); //if (type(p->pending) == ID) ppf("pending is ",p->pending,"\n");
 
     return type(p->pending) == t;
     }

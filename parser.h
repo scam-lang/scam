@@ -4,6 +4,8 @@ typedef struct parsertag
     int pending;
     int file;
     int line;
+    int pushBack;
+    int pushedBack;
     FILE *input;
     FILE *output;
     } PARSER;

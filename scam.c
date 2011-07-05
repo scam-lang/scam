@@ -86,17 +86,19 @@ main(int argc,char **argv,char **envv)
     defineVariable(env,s,trueSymbol);
 
     push(env);
-    ptree = parse(p);
+    result = parse(p);
+    debug("parser result",result);
+    ptree = result;
     env = pop();
 
     freeParser(p);
 
-    if (isThrow(ptree)) goto ERROR;
+    if (isThrow(result)) goto ERROR;
 
     /* now evaluate main.lib */
 
     push(env);
-    result = eval(ptree,env);
+    result = eval(result,env);
     env = pop();
 
     if (isThrow(result)) goto ERROR;
@@ -136,7 +138,7 @@ main(int argc,char **argv,char **envv)
 
 ERROR:
     //int last;
-    //debug("thrown",result);
+    debug("thrown",result);
     debug("EXCEPTION",error_code(result));
     debug("         ",error_value(result));
     /*

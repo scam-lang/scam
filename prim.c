@@ -513,6 +513,46 @@ coss(int args)
         return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
     }
 
+/* (atan base expt) */
+
+static int
+aatan(int args)
+    {
+    int a = car(args);
+    int b = cadr(args);
+    char *atype = type(a);
+    char *btype = type(b);
+
+    if (atype == INTEGER && btype == INTEGER)
+        return newReal(atan2(ival(a),ival(b)));
+    else if (atype == INTEGER)
+        return newReal(atan2(ival(a),rval(b)));
+    else if (btype == INTEGER)
+        return newReal(atan2(rval(a),ival(b)));
+    else
+        return newReal(atan2(rval(a),rval(b)));
+    }
+        
+/* (expt base expt) */
+
+static int
+expt(int args)
+    {
+    int a = car(args);
+    int b = cadr(args);
+    char *atype = type(a);
+    char *btype = type(b);
+
+    if (atype == INTEGER && btype == INTEGER)
+        return newInteger((int) pow(ival(a),ival(b)));
+    else if (atype == INTEGER)
+        return newReal(pow(ival(a),rval(b)));
+    else if (btype == INTEGER)
+        return newReal(pow(rval(a),ival(b)));
+    else
+        return newReal(pow(rval(a),rval(b)));
+    }
+        
 /* (type item) */
 
 static int
@@ -588,15 +628,10 @@ iif(int args)
     {
     //debug("if test",cadr(args));
 
-    if (sameSymbol(cadr(args),trueSymbol))
-        {
-        //printf("if test is true\n");
-        //debug("then",cadr(args));
-        return makeThunk(caddr(args),car(args));
-        }
-    else
+    if (sameSymbol(cadr(args),falseSymbol))
         {
         //printf("if test is false\n");
+        //debug("then",cadr(args));
         int otherwise = cadddr(args);
         if (otherwise != 0)
             {
@@ -605,6 +640,11 @@ iif(int args)
             }
         else
             return 0;
+        }
+    else
+        {
+        //printf("if test is true\n");
+        return makeThunk(caddr(args),car(args));
         }
     }
 
@@ -2542,6 +2582,24 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("cos"),
         ucons(newSymbol("n"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = aatan;
+    b = makeBuiltIn(env,
+        newSymbol("atan"),
+        ucons(newSymbol("y"),
+            ucons(newSymbol("x"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = expt;
+    b = makeBuiltIn(env,
+        newSymbol("expt"),
+        ucons(newSymbol("base"),
+            ucons(newSymbol("exponent"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

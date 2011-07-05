@@ -466,7 +466,6 @@ x
 (scale-tree (list 1 (list 2 (list 3 4) 5) (list 6 7))
             10)
 
-;{
 
 ;; EXERCISE 2.30
 ;: (square-tree
@@ -509,7 +508,7 @@ x
 
 ;; Sequence operations
 
-;: (map square (list 1 2 3 4 5))
+(map square (list 1 2 3 4 5))
 
 (define (filter predicate sequence)
   (cond ((null? sequence) nil)
@@ -526,16 +525,16 @@ x
       (op (car sequence)
           (accumulate op initial (cdr sequence)))))
 
-;: (accumulate + 0 (list 1 2 3 4 5))
-;: (accumulate * 1 (list 1 2 3 4 5))
-;: (accumulate cons nil (list 1 2 3 4 5))
+(accumulate + 0 (list 1 2 3 4 5))
+(accumulate * 1 (list 1 2 3 4 5))
+(accumulate cons nil (list 1 2 3 4 5))
 
 (define (enumerate-interval low high)
   (if (> low high)
       nil
       (cons low (enumerate-interval (+ low 1) high))))
 
-;: (enumerate-interval 2 7)
+(enumerate-interval 2 7)
 
 (define (enumerate-tree tree)
   (cond ((null? tree) nil)
@@ -543,7 +542,7 @@ x
         (else (append (enumerate-tree (car tree))
                       (enumerate-tree (cdr tree))))))
 
-;: (enumerate-tree (list 1 (list 2 (list 3 4)) 5))
+(enumerate-tree (list 1 (list 2 (list 3 4)) 5))
 
 (define (sum-odd-squares tree)
   (accumulate +
@@ -566,7 +565,7 @@ x
                    (map fib
                         (enumerate-interval 0 n)))))
 
-;: (list-fib-squares 10)
+(list-fib-squares 10)
 
 
 (define (product-of-squares-of-odd-elements sequence)
@@ -575,7 +574,7 @@ x
               (map square
                    (filter odd? sequence))))
 
-;: (product-of-squares-of-odd-elements (list 1 2 3 4 5))
+(product-of-squares-of-odd-elements (list 1 2 3 4 5))
 
 (define (salary-of-highest-paid-programmer records)
   (accumulate max
@@ -590,7 +589,7 @@ x
               0
               coefficient-sequence))
 
-;: (horner-eval 2 (list 1 3 0 5 0 1))
+'(horner-eval 2 (list 1 3 0 5 0 1))
 
 ;; EXERCISE 2.36
 (define (accumulate-n op init seqs)
@@ -599,7 +598,7 @@ x
       (cons (accumulate op init ??FILL-THIS-IN??)
             (accumulate-n op init ??FILL-THIS-IN??))))
 
-;: (accumulate-n + 0 s)
+'(accumulate-n + 0 s)
 
 ;; EXERCISE 2.37
 
@@ -617,20 +616,22 @@ x
               (cdr rest))))
   (iter initial sequence))
 
-;: (fold-right / 1 (list 1 2 3))
-;: (fold-left / 1 (list 1 2 3))
-;: (fold-right list nil (list 1 2 3))
-;: (fold-left list nil (list 1 2 3))
+'(fold-right / 1 (list 1 2 3))
+(fold-left / 1.0 (list 1 2 3))
+'(fold-right list nil (list 1 2 3))
+(fold-left list nil (list 1 2 3))
 
 
 ;;Nested mappings
 
-;: (accumulate append
-;:             nil
-;:             (map (lambda (i)
-;:                    (map (lambda (j) (list i j))
-;:                         (enumerate-interval 1 (- i 1))))
-;:                  (enumerate-interval 1 n)))
+(define n 5)
+
+(accumulate append
+            nil
+            (map (lambda (i)
+                   (map (lambda (j) (list i j))
+                        (enumerate-interval 1 (- i 1))))
+                 (enumerate-interval 1 n)))
 
 (define (flatmap proc seq)
   (accumulate append nil (map proc seq)))
@@ -695,19 +696,18 @@ x
 		 (queen-cols (- k 1))))
 	  (enumerate-interval 1 board-size)))))
   (queen-cols board-size))
-
+
 ;;;SECTION 2.2.4
 
-;: (define wave2 (beside wave (flip-vert wave)))
-;: (define wave4 (below wave2 wave2))
-
+'(define wave2 (beside wave (flip-vert wave)))
+'(define wave4 (below wave2 wave2))
 
 (define (flipped-pairs painter)
   (let ((painter2 (beside painter (flip-vert painter))))
     (below painter2 painter2)))
 
 
-;: (define wave4 (flipped-pairs wave))
+'(define wave4 (flipped-pairs wave))
 
 
 (define (right-split painter n)
@@ -750,8 +750,8 @@ x
     (combine4 painter)))
 
 ; footnote
-;: (define flipped-pairs
-;:   (square-of-four identity flip-vert identity flip-vert))
+'(define flipped-pairs
+  (square-of-four identity flip-vert identity flip-vert))
 
 
 (define (square-limit painter n)
@@ -762,8 +762,8 @@ x
 
 ;; EXERCISE 2.45
 
-;: (define right-split (split beside below))
-;: (define up-split (split below beside))
+'(define right-split (split beside below))
+'(define up-split (split below beside))
 
 
 ;; Frames
@@ -778,9 +778,9 @@ x
                            (edge2-frame frame))))))
 
 
-;: ((frame-coord-map a-frame) (make-vect 0 0))
+'((frame-coord-map a-frame) (make-vect 0 0))
 
-;: (origin-frame a-frame)
+'(origin-frame a-frame)
 
 
 ;; EXERCISE 2.47
@@ -857,59 +857,61 @@ x
       (lambda (frame)
         (paint-left frame)
         (paint-right frame)))))
-
 ;;;SECTION 2.3.1
 
-;: (a b c d)
-;: (23 45 17)
-;: ((Norah 12) (Molly 9) (Anna 7) (Lauren 6) (Charlotte 3))
+'(a b c d)
+'(23 45 17)
+'((Norah 12) (Molly 9) (Anna 7) (Lauren 6) (Charlotte 3))
 
-;: (* (+ 23 45) (+ x 9))
+(define x 3)
+(* (+ 23 45) (+ x 9))
 
 (define (fact n) (if (= n 1) 1 (* n (fact (- n 1)))))
 
 
-;: (define a 1)
-;: (define b 2)
-;: (list a b)
-;: (list 'a 'b)
-;: (list 'a b)
+(define a 1)
+(define b 2)
+(list a b)
+(list 'a 'b)
+(list 'a b)
 
-;: (car '(a b c))
-;: (cdr '(a b c))
+(car '(a b c))
+(cdr '(a b c))
 
 
+(define false #f)
 (define (memq item x)
   (cond ((null? x) false)
         ((eq? item (car x)) x)
         (else (memq item (cdr x)))))
 
-;: (memq 'apple '(pear banana prune))
-;: (memq 'apple '(x (apple sauce) y apple pear))
+(memq 'apple '(pear banana prune))
+(memq 'apple '(x (apple sauce) y apple pear))
 
 
 ;; EXERCISE 2.53
-;: (list 'a 'b 'c)
-;: 
-;: (list (list 'george))
-;: 
-;: (cdr '((x1 x2) (y1 y2)))
-;: 
-;: (cadr '((x1 x2) (y1 y2)))
-;: 
-;: (pair? (car '(a short list)))
-;: 
-;: (memq 'red '((red shoes) (blue socks)))
-;: 
-;: (memq 'red '(red shoes blue socks))
+(list 'a 'b 'c)
+
+(list (list 'george))
+
+(cdr '((x1 x2) (y1 y2)))
+
+(cadr '((x1 x2) (y1 y2)))
+
+(pair? (car '(a short list)))
+
+(memq 'red '((red shoes) (blue socks)))
+
+(memq 'red '(red shoes blue socks))
 
 
 ;; EXERCISE 2.54
-;: (equal? '(this is a list) '(this is a list))
-;: (equal? '(this is a list) '(this (is a) list))
+(equal? '(this is a list) '(this is a list))
+(equal? '(this is a list) '(this (is a) list))
+(equal? '(this (is a) list) '(this (is a) list))
 
 ;; EXERCISE 2.55
-;: (car ''abracadabra)
+(car ''abracadabra)
 
 
 ;;;SECTION 2.3.2
@@ -955,10 +957,20 @@ x
 
 (define (multiplicand p) (caddr p))
 
+(type 3)
+(type 3.3)
+(type "3.3")
+(type '(3))
+(type '3)
+(type 'three)
+(list? (cons 2 3))
+(list? (list 2 3))
+(pair? (cons 2 3))
+(pair? (list 2 3))
 
-;: (deriv '(+ x 3) 'x)
-;: (deriv '(* x y) 'x)
-;: (deriv '(* (* x y) (+ x 3)) 'x)
+(deriv '(+ x 3) 'x)
+(deriv '(* x y) 'x)
+(deriv '(* (* x y) (+ x 3)) 'x)
 
 
 ;; With simplification
@@ -980,13 +992,13 @@ x
         (else (list '* m1 m2))))
 
 
-;: (deriv '(+ x 3) 'x)
-;: (deriv '(* x y) 'x)
-;: (deriv '(* (* x y) (+ x 3)) 'x)
+(deriv '(+ x 3) 'x)
+(deriv '(* x y) 'x)
+(deriv '(* (* x y) (+ x 3)) 'x)
 
 
 ;; EXERCISE 2.57
-;: (deriv '(* x y (+ x 3)) 'x)
+(deriv '(* x y (+ x 3)) 'x)
 
 
 ;;;SECTION 2.3.3
@@ -1183,14 +1195,14 @@ x
 
 ;; EXERCISE 2.67
 
-;: (define sample-tree
-;:   (make-code-tree (make-leaf 'A 4)
-;:                   (make-code-tree
-;:                    (make-leaf 'B 2)
-;:                    (make-code-tree (make-leaf 'D 1)
-;:                                    (make-leaf 'C 1)))))
+(define sample-tree
+  (make-code-tree (make-leaf 'A 4)
+                  (make-code-tree
+                   (make-leaf 'B 2)
+                   (make-code-tree (make-leaf 'D 1)
+                                   (make-leaf 'C 1)))))
 
-;: (define sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0))
+(define sample-message '(0 1 1 0 0 1 0 1 0 1 1 1 0))
 
 
 ;; EXERCISE 2.68
@@ -1205,12 +1217,9 @@ x
 
 (define (generate-huffman-tree pairs)
   (successive-merge (make-leaf-set pairs)))
-
+
 ;;;SECTION 2.4.1
 
-;: (make-from-real-imag (real-part z) (imag-part z))
-
-;: (make-from-mag-ang (magnitude z) (angle z))
 
 (define (add-complex z1 z2)
   (make-from-real-imag (+ (real-part z1) (real-part z2))
@@ -1265,7 +1274,14 @@ x
 
 (define (make-from-mag-ang r a) (cons r a))
 
-
+(define z (cons 2 3))
+(expt 2 4)
+(expt 2 4.)
+
+(make-from-real-imag (real-part z) (imag-part z))
+
+(make-from-mag-ang (magnitude z) (angle z))
+
 ;;;SECTION 2.4.2
 
 (define (attach-tag type-tag contents)
@@ -1372,7 +1388,7 @@ x
 
 (define (make-from-mag-ang r a)
   (make-from-mag-ang-polar r a))
-
+
 ;;;SECTION 2.4.3
 
 ;; uses get/put (from 3.3.3) -- see ch2support.scm
@@ -1428,8 +1444,7 @@ x
   'done)
 
 ;;footnote
-;: (apply + (list 1 2 3 4))
-
+(apply + (list 1 2 3 4))
 
 (define (apply-generic op . args)
   (let ((type-tags (map type-tag args)))
@@ -1484,8 +1499,8 @@ x
 
 (define (operands exp) (cdr exp))
 
-;: ((get (operator exp) 'deriv) (operands exp) var)
 
+;((get (operator exp) 'deriv) (operands exp) var)
 
 ;; Message passing
 (define (make-from-real-imag x y)
@@ -1500,7 +1515,7 @@ x
   dispatch)
 
 (define (apply-generic op arg) (arg op))
-
+
 ;;;SECTION 2.5.1
 
 (define (add x y) (apply-generic 'add x y))
@@ -1611,21 +1626,20 @@ x
 ;; EXERCISE 2.77
 ;; to put in complex package
 
-;: (put 'real-part '(complex) real-part)
-;: (put 'imag-part '(complex) imag-part)
-;: (put 'magnitude '(complex) magnitude)
-;: (put 'angle '(complex) angle)
-
+(put 'real-part '(complex) real-part)
+(put 'imag-part '(complex) imag-part)
+(put 'magnitude '(complex) magnitude)
+(put 'angle '(complex) angle)
 
 ;;;SECTION 2.5.2
 
 ;; to be included in the complex package
-;: (define (add-complex-to-schemenum z x)
-;:   (make-from-real-imag (+ (real-part z) x)
-;:                        (imag-part z)))
-;: 
-;: (put 'add '(complex scheme-number)
-;:      (lambda (z x) (tag (add-complex-to-schemenum z x))))
+(define (add-complex-to-schemenum z x)
+  (make-from-real-imag (+ (real-part z) x)
+                       (imag-part z)))
+
+(put 'add '(complex scheme-number)
+     (lambda (z x) (tag (add-complex-to-schemenum z x))))
 
 
 ;; Coercion
@@ -1633,7 +1647,7 @@ x
 (define (scheme-number->complex n)
   (make-complex-from-real-imag (contents n) 0))
 
-;: (put-coercion 'scheme-number 'complex scheme-number->complex)
+'(put-coercion 'scheme-number 'complex scheme-number->complex)
 
 
 (define (apply-generic op . args)
@@ -1662,14 +1676,14 @@ x
 
 (define (scheme-number->scheme-number n) n)
 (define (complex->complex z) z)
-;: (put-coercion 'scheme-number 'scheme-number
-;:               scheme-number->scheme-number)
-;: (put-coercion 'complex 'complex complex->complex)
+'(put-coercion 'scheme-number 'scheme-number
+              scheme-number->scheme-number)
+'(put-coercion 'complex 'complex complex->complex)
 
 (define (exp x y) (apply-generic 'exp x y))
-;: (put 'exp '(scheme-number scheme-number)
-;:      (lambda (x y) (tag (expt x y))))
-
+(put 'exp '(scheme-number scheme-number)
+      (lambda (x y) (tag (expt x y))))
+
 ;;;SECTION 2.5.3
 
 ;;; ALL procedures in 2.5.3 except make-polynomial
@@ -1796,9 +1810,10 @@ x
 
 
 ;; EXERCISE 2.93
-;: (define p1 (make-polynomial 'x '((2 1)(0 1))))
-;: (define p2 (make-polynomial 'x '((3 1)(0 1))))
-;: (define rf (make-rational p2 p1))
+'(define p1 (make-polynomial 'x '((2 1)(0 1))))
+'(define p2 (make-polynomial 'x '((3 1)(0 1))))
+'(define rf (make-rational p2 p1))
+
 
 
 ;; Rational functions
@@ -1815,10 +1830,9 @@ x
 
 
 ;; EXERCISE 2.94
-;: (define p1 (make-polynomial 'x '((4 1) (3 -1) (2 -2) (1 2))))
-;: (define p2 (make-polynomial 'x '((3 1) (1 -1))))
-;: (greatest-common-divisor p1 p2)
-
+'(define p1 (make-polynomial 'x '((4 1) (3 -1) (2 -2) (1 2))))
+'(define p2 (make-polynomial 'x '((3 1) (1 -1))))
+'(greatest-common-divisor p1 p2)
 
 ;; EXERCISE 2.97
 
@@ -1826,16 +1840,15 @@ x
   (let ((g (gcd n d)))
     (list (/ n g) (/ d g))))
 
-;: (define p1 (make-polynomial 'x '((1 1)(0 1))))
-;: (define p2 (make-polynomial 'x '((3 1)(0 -1))))
-;: (define p3 (make-polynomial 'x '((1 1))))
-;: (define p4 (make-polynomial 'x '((2 1)(0 -1))))
+'(define p1 (make-polynomial 'x '((1 1)(0 1))))
+'(define p2 (make-polynomial 'x '((3 1)(0 -1))))
+'(define p3 (make-polynomial 'x '((1 1))))
+'(define p4 (make-polynomial 'x '((2 1)(0 -1))))
 
-;: (define rf1 (make-rational p1 p2))
-;: (define rf2 (make-rational p3 p4))
+'(define rf1 (make-rational p1 p2))
+'(define rf2 (make-rational p3 p4))
 
-;: (add rf1 rf2)
-;}
+'(add rf1 rf2)
 )) ;end of items
 
 (define (process items #)

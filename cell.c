@@ -187,6 +187,8 @@ memoryInit(int memsize)
     stdoutIndex          = findSymbol("stdout");
 
     rootBottom = MemorySpot;
+
+    debug("exceptionSymbol",exceptionSymbol);
     }
 
 int

@@ -1,3 +1,3 @@
 extern int lex(PARSER *p);
-extern void unread(int);
-extern int getNextCharacter(FILE *);
+extern void unread(int,PARSER *p);
+extern int getNextCharacter(PARSER *);

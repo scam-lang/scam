@@ -13,20 +13,19 @@
 ;;; Some things require code that is not in the book -- see ch3support.scm
 
 
+(include "sicp3-support.s")
+
+(define items '(
+
 ;;;;SECTION 3.1
 
 ;;;SECTION 3.1.1
-
-;: (withdraw 25)
-;: (withdraw 25)
-;: (withdraw 60)
-;: (withdraw 15)
 
 (define balance 100)
 
 (define (withdraw amount)
   (if (>= balance amount)
-      (begin (set! balance (- balance amount))
+      (begin (set! 'balance (- balance amount))
              balance)
       "Insufficient funds"))
 
@@ -35,7 +34,7 @@
   (let ((balance 100))
     (lambda (amount)
       (if (>= balance amount)
-          (begin (set! balance (- balance amount))
+          (begin (set! 'balance (- balance amount))
                  balance)
           "Insufficient funds"))))
 
@@ -43,27 +42,31 @@
 (define (make-withdraw balance)
   (lambda (amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds")))
 
 
-;: (define W1 (make-withdraw 100))
-;: (define W2 (make-withdraw 100))
-;: (W1 50)
-;: (W2 70)
-;: (W2 40)
-;: (W1 40)
+(withdraw 25)
+(withdraw 25)
+(withdraw 60)
+(withdraw 15)
 
+(define W1 (make-withdraw 100))
+(define W2 (make-withdraw 100))
+(W1 50)
+(W2 70)
+(W2 40)
+(W1 40)
 
 (define (make-account balance)
   (define (withdraw amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds"))
   (define (deposit amount)
-    (set! balance (+ balance amount))
+    (set! 'balance (+ balance amount))
     balance)
   (define (dispatch m)
     (cond ((eq? m 'withdraw) withdraw)
@@ -72,32 +75,32 @@
                        m))))
   dispatch)
 
-;: (define acc (make-account 100))
+(define acc (make-account 100))
 
-;: ((acc 'withdraw) 50)
-;: ((acc 'withdraw) 60)
-;: ((acc 'deposit) 40)
-;: ((acc 'withdraw) 60)
+((acc 'withdraw) 50)
+((acc 'withdraw) 60)
+((acc 'deposit) 40)
+((acc 'withdraw) 60)
 
-;: (define acc2 (make-account 100))
+(define acc2 (make-account 100))
 
 
 ;; EXERCISE 3.1
-;: (define A (make-accumulator 5))
-;: (A 10)
-;: (A 10)
+'(define A (make-accumulator 5))
+'(A 10)
+'(A 10)
 
 
 ;; EXERCISE 3.2
-;: (define s (make-monitored sqrt))
-;: (s 100)
-;: (s 'how-many-calls?)
+'(define s (make-monitored sqrt))
+'(s 100)
+'(s 'how-many-calls?)
 
 
 ;; EXERCISE 3.3
-;: (define acc (make-account 100 'secret-password))
-;: ((acc 'secret-password 'withdraw) 40)
-;: ((acc 'some-other-password 'deposit) 50)
+'(define acc (make-account 100 'secret-password))
+'((acc 'secret-password 'withdraw) 40)
+'((acc 'some-other-password 'deposit) 50)
 
 
 ;;;SECTION 3.1.2
@@ -108,7 +111,7 @@
 (define rand
   (let ((x random-init))
     (lambda ()
-      (set! x (rand-update x))
+      (set! 'x (rand-update x))
       x)))
 
 
@@ -159,49 +162,51 @@
 
 (define (make-simplified-withdraw balance)
   (lambda (amount)
-    (set! balance (- balance amount))
+    (set! 'balance (- balance amount))
     balance))
 
 
-;: (define W (make-simplified-withdraw 25))
-;: (W 20)
-;: (W 10)
+(define W (make-simplified-withdraw 25))
+(W 20)
+(W 10)
 
 
 (define (make-decrementer balance)
   (lambda (amount)
     (- balance amount)))
 
-;: (define D (make-decrementer 25))
-;: (D 20)
-;: (D 10)
+(define D (make-decrementer 25))
+(D 20)
+(D 10)
 
-;: ((make-decrementer 25) 20)
-;: ((lambda (amount) (- 25 amount)) 20)
-;: (- 25 20)
+((make-decrementer 25) 20)
+((lambda (amount) (- 25 amount)) 20)
+(- 25 20)
 
-;: ((make-simplified-withdraw 25) 20)
+((make-simplified-withdraw 25) 20)
 
-;: ((lambda (amount) (set! balance (- 25 amount)) 25) 20)
-;: (set! balance (- 25 20)) 25
+((lambda (amount) (set! 'balance (- 25 amount)) 25) 20)
+balance
+(set! 'balance (- 25 20)) 25
+balance
 
 ;;;Sameness and change
 
-;: (define D1 (make-decrementer 25))
-;: (define D2 (make-decrementer 25))
-;: 
-;: (define W1 (make-simplified-withdraw 25))
-;: (define W2 (make-simplified-withdraw 25))
-;: 
-;: (W1 20)
-;: (W1 20)
-;: (W2 20)
+(define D1 (make-decrementer 25))
+(define D2 (make-decrementer 25))
 
-;: (define peter-acc (make-account 100))
-;: (define paul-acc (make-account 100))
-;: 
-;: (define peter-acc (make-account 100))
-;: (define paul-acc peter-acc)
+(define W1 (make-simplified-withdraw 25))
+(define W2 (make-simplified-withdraw 25))
+
+(W1 20)
+(W1 20)
+(W2 20)
+
+(define peter-acc (make-account 100))
+(define paul-acc (make-account 100))
+
+(define peter-acc (make-account 100))
+(define paul-acc peter-acc)
 
 ;;;Pitfalls of imperative programming
 
@@ -219,17 +224,16 @@
     (define (iter)
       (if (> counter n)
           product
-          (begin (set! product (* counter product))
-                 (set! counter (+ counter 1))
+          (begin (set! 'product (* counter product))
+                 (set! 'counter (+ counter 1))
                  (iter))))
     (iter)))
 
 
 ;; EXERCISE 3.7
-;: (define paul-acc
-;:   (make-joint peter-acc 'open-sesame 'rosebud))
+'(define paul-acc
+  (make-joint peter-acc 'open-sesame 'rosebud))
 
-
 ;;;;SECTION 3.2
 
 ;;;SECTION 3.2.1
@@ -237,8 +241,10 @@
 (define (square x)
   (* x x))
 
+(square 4)
 (define square
   (lambda (x) (* x x)))
+(square 4)
 
 
 ;;;SECTION 3.2.2
@@ -252,7 +258,7 @@
 (define (f a)
   (sum-of-squares (+ a 1) (* a 2)))
 
-;: (sum-of-squares (+ a 1) (* a 2))
+(catch (sum-of-squares (+ a 1) (* a 2)))
 
 
 ;; EXERCISE 3.9
@@ -278,15 +284,15 @@
 (define (make-withdraw balance)
   (lambda (amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds")))
 
-;: (define W1 (make-withdraw 100))
-;: (W1 50)
+(define W1 (make-withdraw 100))
+(W1 50)
 
-;: (define W2 (make-withdraw 100))
-
+(define W2 (make-withdraw 100))
+(W2 0)
 
 ;; EXERCISE 3.10
 
@@ -294,14 +300,15 @@
   (let ((balance initial-amount))
     (lambda (amount)
       (if (>= balance amount)
-          (begin (set! balance (- balance amount))
+          (begin (set! 'balance (- balance amount))
                  balance)
           "Insufficient funds"))))
 
 
-;: (define W1 (make-withdraw 100))
-;: (W1 50)
-;: (define W2 (make-withdraw 100))
+(define W1 (make-withdraw 100))
+(W1 50)
+(define W2 (make-withdraw 100))
+(W2 0)
 
 
 ;;;SECTION 3.2.4
@@ -324,11 +331,11 @@
 (define (make-account balance)
   (define (withdraw amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds"))
   (define (deposit amount)
-    (set! balance (+ balance amount))
+    (set! 'balance (+ balance amount))
     balance)
   (define (dispatch m)
     (cond ((eq? m 'withdraw) withdraw)
@@ -337,17 +344,20 @@
                        m))))
   dispatch)
 
-;: (define acc (make-account 50))
-;: 
-;: ((acc 'deposit) 40)
-;: ((acc 'withdraw) 60)
-;: 
-;: (define acc2 (make-account 100))
+(define acc (make-account 50))
 
-
+((acc 'deposit) 40)
+((acc 'withdraw) 60)
+
+(define acc2 (make-account 100))
+
+
 ;;;;SECTION 3.3
 
 ;;;SECTION 3.3.1
+
+(define old-cons cons)
+(define (get-new-pair) (old-cons nil nil))
 
 (define (cons x y)
   (let ((new (get-new-pair)))
@@ -371,15 +381,15 @@
       x
       (last-pair (cdr x))))
 
-;: (define x (list 'a 'b))
-;: (define y (list 'c 'd))
-;: (define z (append  x y))
-;: z
-;: (cdr x)
-;: 
-;: (define w (append! x y))
-;: w
-;: (cdr x)
+(define x (list 'a 'b))
+(define y (list 'c 'd))
+(define z (append  x y))
+z
+(cdr x)
+
+(define w (append! x y))
+w
+(cdr x)
 
 
 ;; EXERCISE 3.13
@@ -387,8 +397,14 @@
   (set-cdr! (last-pair x) x)
   x)
 
-;: (define z (make-cycle (list 'a 'b 'c)))
-
+(define z)
+(begin (set! 'z (make-cycle (list 'a 'b 'c))) 'ok)
+(car z)
+(cadr z)
+(caddr z)
+(cadddr z)
+(caddddr z)
+(cadddddr z)
 
 ;; EXERCISE 3.14
 (define (mystery x)
@@ -403,18 +419,18 @@
 
 ;;; Sharing and identity
 
-;: (define x (list 'a 'b))
-;: (define z1 (cons x x))
-;: (define z2 (cons (list 'a 'b) (list 'a 'b)))
+(define x (list 'a 'b))
+(define z1 (cons x x))
+(define z2 (cons (list 'a 'b) (list 'a 'b)))
 
 (define (set-to-wow! x)
   (set-car! (car x) 'wow)
   x)
 
-;: z1
-;: (set-to-wow! z1)
-;: z2
-;: (set-to-wow! z2)
+z1
+(set-to-wow! z1)
+z2
+(set-to-wow! z2)
 
 
 ;; EXERCISE 3.16
@@ -440,8 +456,8 @@
 
 
 (define (cons x y)
-  (define (set-x! v) (set! x v))
-  (define (set-y! v) (set! y v))
+  (define (set-x! v) (set! 'x v))
+  (define (set-y! v) (set! 'y v))
   (define (dispatch m)
     (cond ((eq? m 'car) x)
           ((eq? m 'cdr) y)
@@ -463,10 +479,10 @@
 
 
 ;; EXERCISE 3.20
-;: (define x (cons 1 2))
-;: (define z (cons x x))
-;: (set-car! (cdr z) 17)
-;: (car x)
+(define x (cons 1 2))
+(define z (cons x x))
+(set-car! (cdr z) 17)
+(car x)
 
 
 ;;;SECTION 3.3.2
@@ -504,11 +520,11 @@
 
 
 ;; EXERCISE 3.21
-;: (define q1 (make-queue))
-;: (insert-queue! q1 'a)
-;: (insert-queue! q1 'b)
-;: (delete-queue! q1)
-;: (delete-queue! q1)
+(define q1 (make-queue))
+(insert-queue! q1 'a)
+(insert-queue! q1 'b)
+(delete-queue! q1)
+(delete-queue! q1)
 
 
 ;;;SECTION 3.3.3
@@ -621,18 +637,6 @@
 
 ;;;SECTION 3.3.4
 
-;: (define a (make-wire))
-;: (define b (make-wire))
-;: (define c (make-wire))
-;: (define d (make-wire))
-;: (define e (make-wire))
-;: (define s (make-wire))
-;: 
-;: (or-gate a b d)
-;: (and-gate a b c)
-;: (inverter c e)
-;: (and-gate d e s)
-
 
 ;;NB. To use half-adder, need or-gate from exercise 3.28
 (define (half-adder a b s c)
@@ -684,11 +688,11 @@
   (let ((signal-value 0) (action-procedures '()))
     (define (set-my-signal! new-value)
       (if (not (= signal-value new-value))
-          (begin (set! signal-value new-value)
+          (begin (set! 'signal-value new-value)
                  (call-each action-procedures))
           'done))
     (define (accept-action-procedure! proc)
-      (set! action-procedures (cons proc action-procedures))
+      (set! 'action-procedures (cons proc action-procedures))
       (proc))
     (define (dispatch m)
       (cond ((eq? m 'get-signal) signal-value)
@@ -736,6 +740,20 @@
                  (display "  New-value = ")
                  (display (get-signal wire)))))
 
+(define a (make-wire))
+(define b (make-wire))
+(define c (make-wire))
+(define d (make-wire))
+(define e (make-wire))
+(define s (make-wire))
+
+(or-gate a b d)
+(and-gate a b c)
+(inverter c e)
+(and-gate d e s)
+
+
+;{
 ;;; Sample simulation
 
 ;: (define the-agenda (make-agenda))
@@ -761,7 +779,7 @@
 
 ;; EXERCISE 3.31
 ;: (define (accept-action-procedure! proc)
-;:   (set! action-procedures (cons proc action-procedures)))
+;:   (set! 'action-procedures (cons proc action-procedures)))
 
 
 ;;;Implementing agenda
@@ -958,8 +976,8 @@
   (let ((value false) (informant false) (constraints '()))
     (define (set-my-value newval setter)
       (cond ((not (has-value? me))
-             (set! value newval)
-             (set! informant setter)
+             (set! 'value newval)
+             (set! 'informant setter)
              (for-each-except setter
                               inform-about-value
                               constraints))
@@ -968,14 +986,14 @@
             (else 'ignored)))
     (define (forget-my-value retractor)
       (if (eq? retractor informant)
-          (begin (set! informant false)
+          (begin (set! 'informant false)
                  (for-each-except retractor
                                   inform-about-no-value
                                   constraints))
           'ignored))
     (define (connect new-constraint)
       (if (not (memq new-constraint constraints))
-          (set! constraints 
+          (set! 'constraints 
                 (cons new-constraint constraints)))
       (if (has-value? me)
           (inform-about-value new-constraint))
@@ -1051,37 +1069,37 @@
 
 (define (withdraw amount)
   (if (>= balance amount)
-      (begin (set! balance (- balance amount))
+      (begin (set! 'balance (- balance amount))
              balance)
       "Insufficient funds"))
 
 
 ;; EXERCISE 3.38
-;: (set! balance (+ balance 10))
-;: (set! balance (- balance 20))
-;: (set! balance (- balance (/ balance 2)))
+;: (set! 'balance (+ balance 10))
+;: (set! 'balance (- balance 20))
+;: (set! 'balance (- balance (/ balance 2)))
 
 
 ;;;SECTION 3.4.2
 
 ;: (define x 10)
-;: (parallel-execute (lambda () (set! x (* x x)))
-;:                   (lambda () (set! x (+ x 1))))
+;: (parallel-execute (lambda () (set! 'x (* x x)))
+;:                   (lambda () (set! 'x (+ x 1))))
 
 ;: (define x 10)
 ;: (define s (make-serializer))
-;: (parallel-execute (s (lambda () (set! x (* x x))))
-;:                   (s (lambda () (set! x (+ x 1)))))
+;: (parallel-execute (s (lambda () (set! 'x (* x x))))
+;:                   (s (lambda () (set! 'x (+ x 1)))))
 
 
 (define (make-account balance)
   (define (withdraw amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds"))
   (define (deposit amount)
-    (set! balance (+ balance amount))
+    (set! 'balance (+ balance amount))
     balance)
   (let ((protected (make-serializer)))
     (define (dispatch m)
@@ -1097,21 +1115,21 @@
 
 ;: (define x 10)
 ;: (define s (make-serializer))
-;: (parallel-execute (lambda () (set! x ((s (lambda () (* x x))))))
-;:                   (s (lambda () (set! x (+ x 1)))))
+;: (parallel-execute (lambda () (set! 'x ((s (lambda () (* x x))))))
+;:                   (s (lambda () (set! 'x (+ x 1)))))
 
 
 ;; EXERCISE 3.40
 
 ;: (define x 10)
-;: (parallel-execute (lambda () (set! x (* x x)))
-;:                   (lambda () (set! x (* x x x))))
+;: (parallel-execute (lambda () (set! 'x (* x x)))
+;:                   (lambda () (set! 'x (* x x x))))
 ;: 
 ;: 
 ;: (define x 10)
 ;: (define s (make-serializer))
-;: (parallel-execute (s (lambda () (set! x (* x x))))
-;:                   (s (lambda () (set! x (* x x x)))))
+;: (parallel-execute (s (lambda () (set! 'x (* x x))))
+;:                   (s (lambda () (set! 'x (* x x x)))))
 
 
 ;; EXERCISE 3.41
@@ -1119,11 +1137,11 @@
 (define (make-account balance)
   (define (withdraw amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds"))
   (define (deposit amount)
-    (set! balance (+ balance amount))
+    (set! 'balance (+ balance amount))
     balance)
   (let ((protected (make-serializer)))
     (define (dispatch m)
@@ -1140,11 +1158,11 @@
 (define (make-account balance)
   (define (withdraw amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds"))
   (define (deposit amount)
-    (set! balance (+ balance amount))
+    (set! 'balance (+ balance amount))
     balance)
   (let ((protected (make-serializer)))
     (let ((protected-withdraw (protected withdraw))
@@ -1168,11 +1186,11 @@
 (define (make-account-and-serializer balance)
   (define (withdraw amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds"))
   (define (deposit amount)
-    (set! balance (+ balance amount))
+    (set! 'balance (+ balance amount))
     balance)
   (let ((balance-serializer (make-serializer)))
     (define (dispatch m)
@@ -1210,11 +1228,11 @@
 (define (make-account-and-serializer balance)
   (define (withdraw amount)
     (if (>= balance amount)
-        (begin (set! balance (- balance amount))
+        (begin (set! 'balance (- balance amount))
                balance)
         "Insufficient funds"))
   (define (deposit amount)
-    (set! balance (+ balance amount))
+    (set! 'balance (+ balance amount))
     balance)
   (let ((balance-serializer (make-serializer)))
     (define (dispatch m)
@@ -1358,8 +1376,8 @@
   (let ((already-run? false) (result false))
     (lambda ()
       (if (not already-run?)
-          (begin (set! result (proc))
-                 (set! already-run? true)
+          (begin (set! 'result (proc))
+                 (set! 'already-run? true)
                  result)
           result))))
 
@@ -1380,7 +1398,7 @@
 (define sum 0)
 
 (define (accum x)
-  (set! sum (+ x sum))
+  (set! 'sum (+ x sum))
   sum)
 
 ;: (define seq (stream-map accum (stream-enumerate-interval 1 20)))
@@ -1666,7 +1684,7 @@
 (define rand
   (let ((x random-init))
     (lambda ()
-      (set! x (rand-update x))
+      (set! 'x (rand-update x))
       x)))
 
 
@@ -1703,7 +1721,7 @@
 ;; same as in section 3.1.3
 (define (make-simplified-withdraw balance)
   (lambda (amount)
-    (set! balance (- balance amount))
+    (set! 'balance (- balance amount))
     balance))
 
 (define (stream-withdraw balance amount-stream)
@@ -1711,4 +1729,26 @@
    balance
    (stream-withdraw (- balance (stream-car amount-stream))
                     (stream-cdr amount-stream))))
+;}
+
+)) ;end of items
+
+(define (process items #)
+    (define old-car car)
+    (define old-cdr cdr)
+    (define (iter items)
+        (cond
+            ((null? items) 'done)
+            (else
+                (define result (eval (old-car items) #))
+                (println (old-car items) " is " result)
+                ;(inspect (stack-depth))
+                (iter (old-cdr items))
+                )
+            )
+        )
+    (iter items)
+    )
+
+(process items)
 

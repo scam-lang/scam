@@ -1,8 +1,6 @@
 ;;; CODE FROM OTHER CHAPTERS OF STRUCTURE AND INTERPRETATION OF
 ;;;  COMPUTER PROGRAMS NEEDED BY CHAPTER 2
 
-(include "scam.s")
-
 ;;;from chapter 1
 (define (square x) (* x x))
 
@@ -62,7 +60,6 @@
     dispatch))
 
 (define operation-table (make-table))
-;$
 (define get (operation-table 'lookup-proc))
 (define put (operation-table 'insert-proc!))
 
