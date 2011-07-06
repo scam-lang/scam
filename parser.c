@@ -12,8 +12,6 @@
 #include "env.h"
 #include "util.h"
 
-//extern int throw(int,char *,...);
-
 /* recursive descent parsing function */
 
 static int exprSeq(PARSER *);
@@ -99,7 +97,8 @@ parse(PARSER *p)
     end = match(p,END_OF_INPUT);
     rethrow(end,0);
 
-    return cons(beginSymbol,result);
+    assureMemory("parse",1,&result,0);
+    return uconsfl(beginSymbol,result,file(result),line(result));
     }
 
 static int
@@ -124,7 +123,7 @@ exprSeq(PARSER *p)
 static int
 expr(PARSER *p)
     {
-    int r;
+    int r,q;
     int result;
 
     if (check(p,INTEGER))
@@ -137,27 +136,27 @@ expr(PARSER *p)
         result = match(p,SYMBOL);
     else if (check(p,QUOTE))
         {
-        match(p,QUOTE);
+        q = match(p,QUOTE);
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:quote",2,&r,0);
-        result = ucons(quoteSymbol,ucons(r,0));
+        result = uconsfl(quoteSymbol,ucons(r,0),file(q),line(q));
         }
     else if (check(p,BACKQUOTE))
         {
-        match(p,BACKQUOTE);
+        q = match(p,BACKQUOTE);
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:backquote",2,&r,0);
-        result = ucons(backquoteSymbol,ucons(r,0));
+        result = uconsfl(backquoteSymbol,ucons(r,0),file(q),line(q));
         }
     else if (check(p,COMMA))
         {
-        match(p,COMMA);
+        q = match(p,COMMA);
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:comma",2,&r,0);
-        result = ucons(commaSymbol,ucons(r,0));
+        result = uconsfl(commaSymbol,ucons(r,0),file(q),line(q));
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
@@ -177,9 +176,12 @@ expr(PARSER *p)
             line(result) = l;
             }
         }
+    else if (isThrow(p->pending))
+        return p->pending;
     else
-        result = throw(exceptionSymbol,"file %s,line %d: syntax error\n",
-            SymbolTable[p->file],p->line);
+        return throw(syntaxExceptionSymbol,
+            "file %s,line %d: expected an expression, got %s instead",
+            SymbolTable[p->file],p->line,type(p->pending));
 
     return result;
     }
@@ -206,12 +208,17 @@ static int
 match(PARSER *p,char *t)
     {
     int old;
+    int matches;
 
-    if (!check(p,t))
+    matches = check(p,t);
+    if (!matches)
         {
-        return throw(exceptionSymbol,
-            "file %s,line %d: expecting %s, found %s instead",
-            SymbolTable[p->file],p->line,t,type(p->pending));
+        if (isThrow(p->pending))
+            return p->pending;
+        else
+            return throw(syntaxExceptionSymbol,
+                "file %s,line %d: expecting %s, found %s instead",
+                SymbolTable[p->file],p->line,t,type(p->pending));
         }
 
     old = p->pending;
@@ -231,7 +238,10 @@ check(PARSER *p,char *t)
 
     //printf("type(p->pending) is %s\n",type(p->pending)); //if (type(p->pending) == ID) ppf("pending is ",p->pending,"\n");
 
-    return type(p->pending) == t;
+    if (isThrow(p->pending))
+        return 0;
+    else
+        return type(p->pending) == t;
     }
 
 extern char *Home;

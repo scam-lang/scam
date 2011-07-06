@@ -26,7 +26,7 @@
 #define FILENAMESIZE 256
 
 static int skipWhiteSpace(PARSER *);
-static int lexNumber(PARSER *);
+static int lexNumber(PARSER *,int);
 static int lexSymbol(PARSER *,int);
 static int lexString(PARSER *);
 
@@ -36,37 +36,49 @@ lex(PARSER *p)
     int ch; 
 
     ch = skipWhiteSpace(p); 
+    rethrow(ch,0);
 
-    switch(ch) 
-        { 
-        /* single character tokens */ 
-        case EOF: 
-            return newPunctuation(END_OF_INPUT);
-        case '(': 
-            return newPunctuation(OPEN_PARENTHESIS);
-        case ')': 
-            return newPunctuation(CLOSE_PARENTHESIS);
-        case '\'': 
-            return newPunctuation(QUOTE);
-        case ',': 
-            return newPunctuation(COMMA);
-        default: 
-            /* numbers, tokens, and strings */ 
-            if (isdigit(ch) || ch == '-' || ch == '.') 
-                {
-                int result;
-                unread(ch,p);
-                result = lexNumber(p); 
-                return result;
-                }
-            else if (ch == '\"') 
-                return lexString(p); 
-            else
-                return lexSymbol(p,ch);
-        } 
-    return throw(exceptionSymbol,
-        "file %s,line %d: unexpected character (%c)\n",
-        SymbolTable[p->file],p->line,ch);
+    if (ch == EOF || strchr("()'`,",ch) != 0) /* single character tokens */ 
+        {
+        int result;
+
+        switch(ch) 
+            { 
+            case EOF: 
+                result = newPunctuation(END_OF_INPUT);
+                break;
+            case '(': 
+                result = newPunctuation(OPEN_PARENTHESIS);
+                break;
+            case ')': 
+                result = newPunctuation(CLOSE_PARENTHESIS);
+                break;
+            case '\'': 
+                result = newPunctuation(QUOTE);
+                break;
+            case '`': 
+                result = newPunctuation(BACKQUOTE);
+                break;
+            case ',': 
+                result = newPunctuation(COMMA);
+                break;
+            default:
+                Fatal("INTERNAL ERROR: bad single character token\n");
+            }
+        file(result) = p->file;
+        line(result) = p->line;
+        return result;
+        }
+    else if (isdigit(ch) || ch == '-' || ch == '.') 
+        return lexNumber(p,ch); 
+    else if (ch == '\"') 
+        return lexString(p); 
+    else if (isprint(ch))
+        return lexSymbol(p,ch);
+    else 
+        return throw(lexicalExceptionSymbol,
+            "file %s,line %d: unexpected character (%d)\n",
+            SymbolTable[p->file],p->line,ch);
     } 
 
 static int
@@ -91,6 +103,7 @@ skipWhiteSpace(PARSER *p)
             else if (ch == '{') /* skip to close comment */
                 {
                 int prev = ch;
+                int lineNumber = p->line;
                 while ((ch = getNextCharacter(p))
                 && ch != EOF && (prev != ';' || ch != '}'))
                     {
@@ -98,9 +111,11 @@ skipWhiteSpace(PARSER *p)
                     prev = ch;
                     }
                 if (ch == EOF)
-                    return throw(exceptionSymbol,
+                    {
+                    return throw(lexicalExceptionSymbol,
                         "file %s,line %d: unterminated comment\n",
-                            SymbolTable[p->file],p->line);
+                            SymbolTable[p->file],lineNumber);
+                    }
                 }
             else /* skip to end of line */
                 {
@@ -114,9 +129,8 @@ skipWhiteSpace(PARSER *p)
     }
 
 static int
-lexNumber(PARSER *p)
+lexNumber(PARSER *p,int ch)
     {
-    int ch;
     char s[512] = "";
     int count;
     int first;
@@ -131,7 +145,6 @@ lexNumber(PARSER *p)
     digits = 0;
 
     count = 0;
-    ch = getNextCharacter(p);
     while (isdigit(ch) || (first && ch == '-') || (!decimal && ch == '.')
         || (!exponent && (ch == 'E' || ch == 'e')))
         {
@@ -151,15 +164,20 @@ lexNumber(PARSER *p)
         if (isdigit(ch)) digits = 1;
         s[count++] = ch;
         if (count >= sizeof(s) - 1)
-            Fatal("SOURCE CODE ERROR\nline %d\n"
-                "number is too large\n",p->line);
+            return throw(lexicalExceptionSymbol,
+                "file %s,line %d: number has too many digits",
+                SymbolTable[p->file],p->line);
         ch = getNextCharacter(p);
         }
 
     s[count] = '\0';
 
-    if (digits && strchr(" \t\n()[];,",ch) == 0)
-        return newPunctuation(BAD_NUMBER);
+    if (digits && strchr(" \t\n();,",ch) == 0)
+        {
+        return throw(lexicalExceptionSymbol,
+            "file %s,line %d: misformed number (%s%c)",
+            SymbolTable[p->file],p->line,s,ch);
+        }
 
     unread(ch,p);
 
@@ -173,6 +191,9 @@ lexNumber(PARSER *p)
         result = newReal(atof(s));
     else
         result = newInteger(atoi(s));
+
+    file(result) = p->file;
+    line(result) = p->line;
 
     return result;
     }
@@ -193,8 +214,9 @@ lexSymbol(PARSER *p,int ch)
         //printf("symbol: %c\n", ch);
             buffer[index++] = ch;
         if (index == sizeof(buffer))
-            Fatal("SOURCE CODE ERROR\nline %d\n"
-                "token too large\n",p->line);
+            return throw(lexicalExceptionSymbol,
+                "file %s,line %d: token has too many characters",
+                SymbolTable[p->file],p->line);
         }
 
     unread(ch,p);
@@ -203,6 +225,9 @@ lexSymbol(PARSER *p,int ch)
     //printf("lexSymbol: buffer is %s\n", buffer);
 
     result = newSymbol(buffer);
+
+    file(result) = p->file;
+    line(result) = p->line;
 
     return result;
     }
@@ -215,10 +240,12 @@ lexString(PARSER *p)
     char buffer[4096];
     int result;
     int backslashed;
+    int lineNumber;
 
     index = 0;
 
     backslashed = 0;
+    lineNumber = p->line;
     while ((ch = getNextCharacter(p)) && ch != EOF)
         {
         if (ch == '\"')
@@ -228,9 +255,10 @@ lexString(PARSER *p)
             {
             ch = getNextCharacter(p);
             if (ch == EOF)
-                Fatal("SOURCE CODE ERROR\nline %d\n"
+                return throw(lexicalExceptionSymbol,
+                    "file %s,line %d: "
                     "unexpected end of file (last char was a backslash)\n",
-                    p->line);
+                    SymbolTable[p->file],p->line);
             if (ch == 'n')
                 buffer[index++] = '\n';
             else if (ch == 't')
@@ -249,16 +277,18 @@ lexString(PARSER *p)
             buffer[index++] = ch;
 
         if (index == sizeof(buffer) - 1)
-            Fatal("SOURCE CODE ERROR\nline %d\n"
-                "string too large\n",p->line);
+            return throw(lexicalExceptionSymbol,
+                "file %s,line %d: string has too many characters",
+                SymbolTable[p->file],lineNumber);
         }
 
     buffer[index] = '\0';
 
     if (ch != '\"')
         {
-        Fatal("SOURCE CODE ERROR\nline %d\nunterminated string: \"",
-            p->line);
+        return throw(lexicalExceptionSymbol,
+            "file %s,line %d: unterminated string",
+            SymbolTable[p->file],lineNumber);
         }
 
     //printf("string is <%s>\n", buffer);
@@ -266,6 +296,9 @@ lexString(PARSER *p)
     result = newString(buffer);
     //printf("line %d: indent of new string \"%s\" is %d\n",
         //line(result),buffer,indent(result));
+
+    file(result) = p->file;
+    line(result) = p->line;
 
     return result;
     }

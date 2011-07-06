@@ -24,16 +24,11 @@ extern int *the_cdrs;
 extern CELL *new_cars;
 extern int *new_cdrs;
 
-extern int LineNumber;
-extern int FileIndex;
-
 extern int cons(int,int);
 extern int ucons(int,int);
+extern int uconsfl(int,int,int,int);
 extern int append(int,int);
 extern int length(int);
-
-#define cfile (symbols[FileIndex])
-#define cline (LineNumber)
 
 #define type(a)     (the_cars[a].type)
 #define ival(a)     (the_cars[a].ival)
@@ -139,6 +134,8 @@ extern int messageSymbol;
 extern int spacerSymbol;
 extern int defineSymbol;
 extern int exceptionSymbol;
+extern int lexicalExceptionSymbol;
+extern int syntaxExceptionSymbol;
 extern int nonFunctionSymbol;
 extern int returnSymbol;
 extern int levelSymbol;

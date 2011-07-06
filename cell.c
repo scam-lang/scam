@@ -8,9 +8,6 @@
 #include "util.h"
 #include "pp.h"
 
-int LineNumber;
-int FileIndex;
-
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
@@ -66,6 +63,8 @@ int messageSymbol;
 int spacerSymbol;
 int defineSymbol;
 int exceptionSymbol;
+int lexicalExceptionSymbol;
+int syntaxExceptionSymbol;
 int nonFunctionSymbol;
 int returnSymbol;
 int levelSymbol;
@@ -170,7 +169,9 @@ memoryInit(int memsize)
     messageSymbol        = newSymbol("message");
     spacerSymbol         = newSymbol(" SPACER");
     defineSymbol         = newSymbol("define");
-    exceptionSymbol      = newSymbol("EXCEPTION");
+    exceptionSymbol      = newSymbol("generalException");
+    lexicalExceptionSymbol = newSymbol("lexicalException");
+    syntaxExceptionSymbol = newSymbol("syntaxException");
     nonFunctionSymbol    = newSymbol("nonFunction");
     returnSymbol         = newSymbol("return");
     levelSymbol          = newSymbol("level");
@@ -187,8 +188,6 @@ memoryInit(int memsize)
     stdoutIndex          = findSymbol("stdout");
 
     rootBottom = MemorySpot;
-
-    debug("exceptionSymbol",exceptionSymbol);
     }
 
 int
@@ -213,8 +212,8 @@ ucons(int a,int b)
     spot = the_cars + MemorySpot;
     spot->type = CONS;
     spot->ival = a;
-    spot->line = LineNumber;
-    spot->file = FileIndex;
+    spot->line = line(a);
+    spot->file = line(b);
     spot->transferred = 0;
 
     the_cdrs[MemorySpot] = b;
@@ -222,6 +221,18 @@ ucons(int a,int b)
     ++MemorySpot;
 
     return MemorySpot - 1;
+    }
+
+int
+uconsfl(int a,int b,int fileIndex,int lineNumber)
+    {
+    int c;
+    
+    c = ucons(a,b);
+    file(c) =  fileIndex;
+    line(c) = lineNumber;
+
+    return c;
     }
 
 /* append is destructive! */
@@ -253,8 +264,8 @@ newString(char *s)
         type(MemorySpot) = STRING;
         ival(MemorySpot) = *s;
         count(MemorySpot) = length;
-        line(MemorySpot) = LineNumber;
-        file(MemorySpot) = FileIndex;
+        line(MemorySpot) = 0;
+        file(MemorySpot) = 0;
         transferred(MemorySpot) = 0;
 
         cdr(MemorySpot) = MemorySpot + 1;

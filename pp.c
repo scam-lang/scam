@@ -171,7 +171,7 @@ ppLevel(FILE *fp,int expr,int mode)
     else if (expr == -1)
         printf("xcall!");
     else
-        Fatal("pretty printing: type %s unknown\n",type(expr));
+        printf(type(expr));
 
     if (transferred(expr)) fprintf(fp,"*");
     }

@@ -87,7 +87,6 @@ main(int argc,char **argv,char **envv)
 
     push(env);
     result = parse(p);
-    debug("parser result",result);
     ptree = result;
     env = pop();
 
@@ -119,7 +118,8 @@ main(int argc,char **argv,char **envv)
     defineVariable(env,s,trueSymbol);
 
     push(env);
-    ptree = parse(p);
+    result = parse(p);
+    ptree = result;
     env = pop();
 
     freeParser(p);
@@ -140,7 +140,8 @@ ERROR:
     //int last;
     debug("thrown",result);
     debug("EXCEPTION",error_code(result));
-    debug("         ",error_value(result));
+    pp(stdout,error_value(result));
+    printf("\n");
     /*
     int last;
     if (TraceBack) printf("EXCEPTION TRACE\n");
