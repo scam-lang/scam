@@ -171,7 +171,7 @@ ppLevel(FILE *fp,int expr,int mode)
     else if (expr == -1)
         printf("xcall!");
     else
-        printf(type(expr));
+        printf("%s",type(expr));
 
     if (transferred(expr)) fprintf(fp,"*");
     }
