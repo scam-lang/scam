@@ -104,7 +104,11 @@ define(int args)
     else if (type(first) == SYMBOL)
         return defineIdentifier(first,car(rest),car(args));
     else
-        return throw(exceptionSymbol,"can only define SYMBOLS, not type %s",type(first));
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "can only define SYMBOLS, not type %s",
+            SymbolTable[args],line(args),
+            type(first));
     }
 
 /* (addSymbol name init env) */
@@ -156,7 +160,12 @@ not(int args)
     {
     if (sameSymbol(car(args),trueSymbol)) return falseSymbol;
     if (sameSymbol(car(args),falseSymbol)) return trueSymbol;
-    return throw(exceptionSymbol,"not: non-boolean");
+    return throw(exceptionSymbol,
+        "file %s,line %d: "
+        "cannot logically negate type %s",
+        SymbolTable[file(args)],line(args),
+        type(car(args))
+        );
     }
 
 /* (< a b) */
@@ -164,24 +173,51 @@ not(int args)
 static int
 isLessThan(int args)
     {
-    int a,b;
+    int a,b,result;
     char *aType,*bType;
 
-    a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
+    args = car(args);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return scamBoolean(ival(a) < ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return scamBoolean(ival(a) < rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return scamBoolean(rval(a) < ival(b));
-    else if (aType == REAL && bType == REAL)
-        return scamBoolean(rval(a) < rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '<': %s and %s",aType,bType);
+    if (args == 0) return scamBoolean(1);
+
+    if (cdr(args) == 0) return scamBoolean(1);
+
+    a = car(args);
+
+    result = 1;
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            result = ival(a) < ival(b);
+        else if (aType == INTEGER && bType == REAL)
+            result = ival(a) < rval(b);
+        else if (aType == REAL && bType == INTEGER)
+            result = rval(a) < ival(b);
+        else if (aType == REAL && bType == REAL)
+            result = rval(a) < rval(b);
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '<': %s and %s",
+                SymbolTable[file(args)],line(args),
+                aType,bType);
+
+        if (!result) break;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    result = scamBoolean(result);
+    file(result) = file(args);
+    line(result) = line(args);
+
+    return result;
     }
 
 /* (<= a b) */
@@ -189,24 +225,55 @@ isLessThan(int args)
 static int
 isLessThanOrEqualTo(int args)
     {
-    int a,b;
+    int a,b,result;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return scamBoolean(1);
+
+    if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return scamBoolean(ival(a) <= ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return scamBoolean(ival(a) <= rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return scamBoolean(rval(a) <= ival(b));
-    else if (aType == REAL && bType == REAL)
-        return scamBoolean(rval(a) <= rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '<=': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    result = 1;
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            result = ival(a) <= ival(b);
+        else if (aType == INTEGER && bType == REAL)
+            result = ival(a) <= rval(b);
+        else if (aType == REAL && bType == INTEGER)
+            result = rval(a) <= ival(b);
+        else if (aType == REAL && bType == REAL)
+            result = rval(a) <= rval(b);
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '<=': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        if (!result) break;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    result = scamBoolean(result);
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
 /* (= a b) */
@@ -214,24 +281,55 @@ isLessThanOrEqualTo(int args)
 static int
 isNumericEqualTo(int args)
     {
-    int a,b;
+    int a,b,result;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return scamBoolean(1);
+
+    if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return scamBoolean(ival(a) == ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return scamBoolean(ival(a) == rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return scamBoolean(rval(a) == ival(b));
-    else if (aType == REAL && bType == REAL)
-        return scamBoolean(rval(a) == rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '=': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    result = 1;
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            result = ival(a) == ival(b);
+        else if (aType == INTEGER && bType == REAL)
+            result = ival(a) == rval(b);
+        else if (aType == REAL && bType == INTEGER)
+            result = rval(a) == ival(b);
+        else if (aType == REAL && bType == REAL)
+            result = rval(a) == rval(b);
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '=': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        if (!result) break;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    result = scamBoolean(result);
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
 /* (> a b) */
@@ -239,49 +337,112 @@ isNumericEqualTo(int args)
 static int
 isGreaterThan(int args)
     {
-    int a,b;
+    int a,b,result;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return scamBoolean(1);
+
+    if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return scamBoolean(ival(a) > ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return scamBoolean(ival(a) > rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return scamBoolean(rval(a) > ival(b));
-    else if (aType == REAL && bType == REAL)
-        return scamBoolean(rval(a) > rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '>': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    result = 1;
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            result = ival(a) > ival(b);
+        else if (aType == INTEGER && bType == REAL)
+            result = ival(a) > rval(b);
+        else if (aType == REAL && bType == INTEGER)
+            result = rval(a) > ival(b);
+        else if (aType == REAL && bType == REAL)
+            result = rval(a) > rval(b);
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '>': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        if (!result) break;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    result = scamBoolean(result);
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
+
 
 /* (>= a b) */
 
 static int
 isGreaterThanOrEqualTo(int args)
     {
-    int a,b;
+    int a,b,result;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return scamBoolean(1);
+
+    if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return scamBoolean(ival(a) >= ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return scamBoolean(ival(a) >= rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return scamBoolean(rval(a) >= ival(b));
-    else if (aType == REAL && bType == REAL)
-        return scamBoolean(rval(a) >= rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '>=': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    result = 1;
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            result = ival(a) >= ival(b);
+        else if (aType == INTEGER && bType == REAL)
+            result = ival(a) >= rval(b);
+        else if (aType == REAL && bType == INTEGER)
+            result = rval(a) >= ival(b);
+        else if (aType == REAL && bType == REAL)
+            result = rval(a) >= rval(b);
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '>=': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        if (!result) break;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    result = scamBoolean(result);
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
 /* (eq? a b) */
@@ -289,16 +450,51 @@ isGreaterThanOrEqualTo(int args)
 static int
 isEq(int args)
     {
-    int a = car(args);
-    int b = cadr(args);
+    int a,b,result;
+    char *aType,*bType;
+    int fi,li;
 
-    if (type(a) != type(b)) return falseSymbol;
+    args = car(args);
 
-    if (type(a) == INTEGER) return scamBoolean(ival(a) == ival(b));
-    if (type(a) == REAL) return scamBoolean(ival(a) == ival(b));
-    if (type(a) == SYMBOL) return scamBoolean(ival(a) == ival(b));
+    if (args == 0) return scamBoolean(1);
 
-    return scamBoolean(a == b);
+    if (cdr(args) == 0) return scamBoolean(1);
+
+    a = car(args);
+
+    fi = file(a);
+    li = line(a);
+
+    result = 1;
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+ 
+        if (type(a) != type(b))
+            result = 0;
+        else if (aType == INTEGER)
+            result = ival(a) == ival(b);
+        else if (aType == REAL)
+            result = rval(a) == rval(b);
+        else if (aType == SYMBOL)
+            result = ival(a) == ival(b);
+        else 
+            result = a == b;
+
+        if (!result) break;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    result = scamBoolean(result);
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
 /* (neq? a b) */
@@ -306,16 +502,51 @@ isEq(int args)
 static int
 isNotEq(int args)
     {
-    int a = car(args);
-    int b = cadr(args);
+    int a,b,result;
+    char *aType,*bType;
+    int fi,li;
 
-    if (type(a) != type(b)) return trueSymbol;
+    args = car(args);
 
-    if (type(a) == INTEGER) return scamBoolean(ival(a) != ival(b));
-    if (type(a) == REAL) return scamBoolean(ival(a) != ival(b));
-    if (type(a) == SYMBOL) return scamBoolean(ival(a) != ival(b));
+    if (args == 0) return scamBoolean(1);
 
-    return scamBoolean(a != b);
+    if (cdr(args) == 0) return scamBoolean(1);
+
+    a = car(args);
+
+    fi = file(a);
+    li = line(a);
+
+    result = 1;
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+ 
+        if (type(a) != type(b))
+            result = 1;
+        else if (aType == INTEGER)
+            result = ival(a) != ival(b);
+        else if (aType == REAL)
+            result = rval(a) != rval(b);
+        else if (aType == SYMBOL)
+            result = ival(a) != ival(b);
+        else 
+            result = a != b;
+
+        if (!result) break;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    result = scamBoolean(result);
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
 /* (+ a b) */
@@ -325,22 +556,48 @@ plus(int args)
     {
     int a,b;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return newInteger(0);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return newInteger(ival(a) + ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return newReal(ival(a) + rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return newReal(rval(a) + ival(b));
-    else if (aType == REAL && bType == REAL)
-        return newReal(rval(a) + rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '+': %s and %s",aType,bType);
+
+
+    fi = file(a);
+    li = line(a);
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            a = newInteger(ival(a) + ival(b));
+        else if (aType == INTEGER && bType == REAL)
+            a = newReal(ival(a) + rval(b));
+        else if (aType == REAL && bType == INTEGER)
+            a = newReal(rval(a) + ival(b));
+        else if (aType == REAL && bType == REAL)
+            a = newReal(rval(a) + rval(b));
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '+': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        file(a) = fi;
+        line(a) = li;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    return a;
     }
 
 /* (- a b) */
@@ -350,22 +607,46 @@ minus(int args)
     {
     int a,b;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return newInteger(0);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return newInteger(ival(a) - ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return newReal(ival(a) - rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return newReal(rval(a) - ival(b));
-    else if (aType == REAL && bType == REAL)
-        return newReal(rval(a) - rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '-': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            a = newInteger(ival(a) - ival(b));
+        else if (aType == INTEGER && bType == REAL)
+            a = newReal(ival(a) - rval(b));
+        else if (aType == REAL && bType == INTEGER)
+            a = newReal(rval(a) - ival(b));
+        else if (aType == REAL && bType == REAL)
+            a = newReal(rval(a) - rval(b));
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '-': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        file(a) = fi;
+        line(a) = li;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    return a;
     }
 
 /* (* a b) */
@@ -375,22 +656,46 @@ times(int args)
     {
     int a,b;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return newInteger(0);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return newInteger(ival(a) * ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return newReal(ival(a) * rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return newReal(rval(a) * ival(b));
-    else if (aType == REAL && bType == REAL)
-        return newReal(rval(a) * rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '*': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            a = newInteger(ival(a) * ival(b));
+        else if (aType == INTEGER && bType == REAL)
+            a = newReal(ival(a) * rval(b));
+        else if (aType == REAL && bType == INTEGER)
+            a = newReal(rval(a) * ival(b));
+        else if (aType == REAL && bType == REAL)
+            a = newReal(rval(a) * rval(b));
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '*': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        file(a) = fi;
+        line(a) = li;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    return a;
     }
 
 /* (/ a b) */
@@ -400,22 +705,46 @@ divides(int args)
     {
     int a,b;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return newInteger(0);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return newInteger(ival(a) / ival(b));
-    else if (aType == INTEGER && bType == REAL)
-        return newReal(ival(a) / rval(b));
-    else if (aType == REAL && bType == INTEGER)
-        return newReal(rval(a) / ival(b));
-    else if (aType == REAL && bType == REAL)
-        return newReal(rval(a) / rval(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '/': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            a = newInteger(ival(a) / ival(b));
+        else if (aType == INTEGER && bType == REAL)
+            a = newReal(ival(a) / rval(b));
+        else if (aType == REAL && bType == INTEGER)
+            a = newReal(rval(a) / ival(b));
+        else if (aType == REAL && bType == REAL)
+            a = newReal(rval(a) / rval(b));
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '/': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        file(a) = fi;
+        line(a) = li;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    return a;
     }
 
 /* (% a b) */
@@ -425,16 +754,40 @@ mod(int args)
     {
     int a,b;
     char *aType,*bType;
+    int fi,li;
+
+    args = car(args);
+
+    if (args == 0) return newInteger(0);
 
     a = car(args);
-    b = cadr(args);
-    aType = type(a);
-    bType = type(b);
 
-    if (aType == INTEGER && bType == INTEGER)
-        return newInteger(ival(a) % ival(b));
-    else
-        return throw(exceptionSymbol,"wrong types for '%': %s and %s",aType,bType);
+    fi = file(a);
+    li = line(a);
+
+    while (cdr(args) != 0)
+        {
+        aType = type(a);
+        b = cadr(args);
+        bType = type(b);
+
+        if (aType == INTEGER && bType == INTEGER)
+            a = newInteger(ival(a) % ival(b));
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "wrong types for '%': %s and %s",
+                SymbolTable[fi],li,
+                aType,bType);
+
+        file(a) = fi;
+        line(a) = li;
+
+        args = cdr(args);
+        a = car(args);
+        }
+
+    return a;
     }
 
 /* (exp a) */
@@ -442,18 +795,27 @@ mod(int args)
 static int
 eexp(int args)
     {
-    int a;
+    int a,result;
     char *aType;
 
     a = car(args);
     aType = type(a);
 
     if (aType == INTEGER)
-        return newReal(exp(ival(a)));
+        result = newReal(exp(ival(a)));
     else if (aType == REAL)
-        return newReal(exp(rval(a)));
+        result = newReal(exp(rval(a)));
     else
-        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong type for 'exp': %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            aType);
+
+    file(result) = file(car(args));
+    line(result) = line(car(args));
+
+    return result;
     }
 
 /* (log a) */
@@ -461,18 +823,27 @@ eexp(int args)
 static int
 llog(int args)
     {
-    int a;
+    int a,result;
     char *aType;
 
     a = car(args);
     aType = type(a);
 
     if (aType == INTEGER)
-        return newReal(log(ival(a)));
+        result = newReal(log(ival(a)));
     else if (aType == REAL)
-        return newReal(log(rval(a)));
+        result = newReal(log(rval(a)));
     else
-        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong type for 'exp': %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            aType);
+
+    file(result) = file(car(args));
+    line(result) = line(car(args));
+
+    return result;
     }
 
 /* (sin a) */
@@ -480,18 +851,27 @@ llog(int args)
 static int
 ssin(int args)
     {
-    int a;
+    int a,result;
     char *aType;
 
     a = car(args);
     aType = type(a);
 
     if (aType == INTEGER)
-        return newReal(sin(ival(a)));
+        result = newReal(sin(ival(a)));
     else if (aType == REAL)
-        return newReal(sin(rval(a)));
+        result = newReal(sin(rval(a)));
     else
-        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong type for 'exp': %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            aType);
+
+    file(result) = file(car(args));
+    line(result) = line(car(args));
+
+    return result;
     }
 
 /* (cos a) */
@@ -499,18 +879,27 @@ ssin(int args)
 static int
 coss(int args)
     {
-    int a;
+    int a,result;
     char *aType;
 
     a = car(args);
     aType = type(a);
 
     if (aType == INTEGER)
-        return newReal(cos(ival(a)));
+        result = newReal(cos(ival(a)));
     else if (aType == REAL)
-        return newReal(cos(rval(a)));
+        result = newReal(cos(rval(a)));
     else
-        return throw(exceptionSymbol,"wrong type for 'exp': %s",aType);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong type for 'exp': %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            aType);
+
+    file(result) = file(car(args));
+    line(result) = line(car(args));
+
+    return result;
     }
 
 /* (atan base expt) */
@@ -518,19 +907,25 @@ coss(int args)
 static int
 aatan(int args)
     {
+    int result;
     int a = car(args);
     int b = cadr(args);
     char *atype = type(a);
     char *btype = type(b);
 
     if (atype == INTEGER && btype == INTEGER)
-        return newReal(atan2(ival(a),ival(b)));
+        result = newReal(atan2(ival(a),ival(b)));
     else if (atype == INTEGER)
-        return newReal(atan2(ival(a),rval(b)));
+        result = newReal(atan2(ival(a),rval(b)));
     else if (btype == INTEGER)
-        return newReal(atan2(rval(a),ival(b)));
+        result = newReal(atan2(rval(a),ival(b)));
     else
-        return newReal(atan2(rval(a),rval(b)));
+        result = newReal(atan2(rval(a),rval(b)));
+
+    file(result) = file(car(args));
+    line(result) = line(car(args));
+
+    return result;
     }
         
 /* (expt base expt) */
@@ -538,19 +933,25 @@ aatan(int args)
 static int
 expt(int args)
     {
+    int result;
     int a = car(args);
     int b = cadr(args);
     char *atype = type(a);
     char *btype = type(b);
 
     if (atype == INTEGER && btype == INTEGER)
-        return newInteger((int) pow(ival(a),ival(b)));
+        result = newInteger((int) pow(ival(a),ival(b)));
     else if (atype == INTEGER)
-        return newReal(pow(ival(a),rval(b)));
+        result = newReal(pow(ival(a),rval(b)));
     else if (btype == INTEGER)
-        return newReal(pow(rval(a),ival(b)));
+        result = newReal(pow(rval(a),ival(b)));
     else
-        return newReal(pow(rval(a),rval(b)));
+        result = newReal(pow(rval(a),rval(b)));
+
+    file(result) = file(car(args));
+    line(result) = line(car(args));
+
+    return result;
     }
         
 /* (type item) */
@@ -724,7 +1125,10 @@ setCar(int args)
     {
     if (type(car(args)) != CONS)
         return throw(exceptionSymbol,
-            "attempt to set the car of type %s",type(car(args)));
+            "file %s,line %d: "
+            "attempt to set the car of type %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            type(car(args)));
 
     caar(args) = cadr(args);
     return cadr(args);
@@ -737,7 +1141,10 @@ setCdr(int args)
     {
     if (type(car(args)) != CONS)
         return throw(exceptionSymbol,
-            "attempt to set the car of type %s",type(car(args)));
+            "file %s,line %d: "
+            "attempt to set the cdr of type %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            type(car(args)));
 
     cdar(args) = cadr(args);
     return cadr(args);
@@ -754,7 +1161,10 @@ set(int args)
     //printf("in set!...");
     if (type(id) != SYMBOL)
         return throw(exceptionSymbol,
-            "set! identifier resolved to type %s, not SYMBOL",type(id));
+            "file %s,line %d: "
+            "set! identifier resolved to type %s, not SYMBOL",
+            SymbolTable[file(id)],line(id),
+            type(id));
 
     if (cadddr(args) == 0)
         result = setVariableValue(id,cadr(args),caddr(args));
@@ -778,9 +1188,13 @@ assign(int args)
     if (type(id) == SYMBOL)
         return set(args);
 
-    if (type(id) != CONS && sameSymbol(car(id),dotSymbol))
+    printf("type of id is %s\n",type(id));
+    if (type(id) != CONS || !sameSymbol(car(id),dotSymbol))
         return throw(exceptionSymbol,
-            "first argument to assign was not a symbol or a dot operation");
+            "file %s,line %d: "
+            "cannot assign to type %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            type(id));
 
     env = cadr(id);
     id = caddr(id);
@@ -809,7 +1223,10 @@ get(int args)
     //printf("in get...");
     if (type(id) != SYMBOL)
         return throw(exceptionSymbol,
-            "get variable argument resolved to type %s, not SYMBOL",type(id));
+            "file %s,line %d: "
+            "get variable argument resolved to type %s, not SYMBOL",
+            SymbolTable[file(args)],line(args),
+            type(id));
 
     if (caddr(args) == 0)
         return getVariableValue(id,cadr(args));
@@ -821,7 +1238,11 @@ static int
 force(int args)
     {
     if (!isThunk(car(args)))
-        return throw(exceptionSymbol,"cannot force type %s",type(car(args)));
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "cannot force type %s",
+            SymbolTable[file(args)],line(args),
+            type(car(args)));
 
     return car(args);
     }
@@ -2512,8 +2933,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = plus;
     b = makeBuiltIn(env,
         newSymbol("+"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2521,8 +2941,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = minus;
     b = makeBuiltIn(env,
         newSymbol("-"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2530,8 +2949,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = times;
     b = makeBuiltIn(env,
         newSymbol("*"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2539,8 +2957,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = divides;
     b = makeBuiltIn(env,
         newSymbol("/"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2548,8 +2965,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = mod;
     b = makeBuiltIn(env,
         newSymbol("%"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2684,8 +3100,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isLessThan;
     b = makeBuiltIn(env,
         newSymbol("<"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2693,8 +3108,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isLessThanOrEqualTo;
     b = makeBuiltIn(env,
         newSymbol("<="),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2702,8 +3116,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isGreaterThan;
     b = makeBuiltIn(env,
         newSymbol(">"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2711,8 +3124,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isGreaterThanOrEqualTo;
     b = makeBuiltIn(env,
         newSymbol(">="),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2720,8 +3132,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isEq;
     b = makeBuiltIn(env,
         newSymbol("eq?"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2729,8 +3140,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isEq;
     b = makeBuiltIn(env,
         newSymbol("=="),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2738,8 +3148,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isNotEq;
     b = makeBuiltIn(env,
         newSymbol("neq?"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2747,8 +3156,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isNumericEqualTo;
     b = makeBuiltIn(env,
         newSymbol("="),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2756,8 +3164,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isNotEq;
     b = makeBuiltIn(env,
         newSymbol("!="),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
+        ucons(atSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

@@ -89,16 +89,13 @@ skipWhiteSpace(PARSER *p)
     while ((ch = getNextCharacter(p))
     && ch != EOF && (isspace(ch) || ch == ';'))
         {
-        if (ch == '\n') ++(p->line);
         if (ch == ';')
             { 
             ch = getNextCharacter(p);
             if (ch == '$') /* skip to end of file */
                 {
                 while ((ch = getNextCharacter(p)) && ch != EOF)
-                    {
-                    if (ch == '\n') ++(p->line);
-                    }
+                    continue;
                 }
             else if (ch == '{') /* skip to close comment */
                 {
@@ -107,7 +104,6 @@ skipWhiteSpace(PARSER *p)
                 while ((ch = getNextCharacter(p))
                 && ch != EOF && (prev != ';' || ch != '}'))
                     {
-                    if (ch == '\n') ++(p->line);
                     prev = ch;
                     }
                 if (ch == EOF)
@@ -269,10 +265,7 @@ lexString(PARSER *p)
                 buffer[index++] = ch;
             }
         else if (ch == '\n')
-            {
-            ++(p->line);
             buffer[index++] = '\n';
-            }
         else
             buffer[index++] = ch;
 
@@ -312,12 +305,14 @@ getNextCharacter(PARSER *p)
         {
         p->pushedBack = 0;
         //printf("getNextCharacter: returning pushed back <%c>\n",pushBack);
+        if (p->pushBack == '\n') ++(p->line);
         return p->pushBack;
         }
     else
         {
         ch = fgetc(p->input);
         //printf("getNextCharacter: returning <%c>\n",ch);
+        if (ch == '\n') ++(p->line);
         return ch;
         }
     }
@@ -325,6 +320,7 @@ getNextCharacter(PARSER *p)
 void
 unread(int ch,PARSER *p)
     {
+    if (ch == '\n') --(p->line);
     p->pushedBack = 1;
     p->pushBack = ch;
     }

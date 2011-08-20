@@ -10,7 +10,7 @@
 #include "util.h"
 
 static int evalBuiltIn(int,int);
-static int processArguments(int,int,int,int,int);
+static int processArguments(int,int,int,int,int,int,int);
 static int evaluatedArgList(int,int);
 static int unevaluatedArgList(int);
 
@@ -116,14 +116,18 @@ evalCall(int call,int env, int mode)
 
     if (!isClosure(closure))
         return throw(nonFunctionSymbol,
-            "attempted to call %s as a function", type(closure));
+            "file %s,line %d: "
+            "attempted to call %s as a function",
+            SymbolTable[file(closure)],line(closure),
+            type(closure));
 
     /* args are the cdr of call */
 
     push(closure);
     //debug("unevaluated args",cdr(call));
     eargs = processArguments(closure_name(closure),
-        closure_parameters(closure),cdr(call),env,mode);
+        closure_parameters(closure),cdr(call),env,mode,
+        file(car(call)),line(car(call)));
     closure = pop();
 
     rethrow(eargs,0);
@@ -211,19 +215,24 @@ evalList(int items,int env,int mode)
     }
 
 static int
-processArguments(int name, int params,int args,int env,int mode)
+processArguments(int name,int params,int args,int env,int mode,int fi,int li)
     {
     int first,rest,result;
 
     //debug("p-a",params);
     if (params == 0 && args == 0)
-        result = 0;
-    else if (params == 0)
+        return 0;
+
+    if (params == 0)
         {
-        return throw(exceptionSymbol,"too many arguments to function %s",
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "too many arguments to function %s",
+            SymbolTable[fi],li,
             SymbolTable[ival(name)]);
         }
-    else if (sameSymbol(car(params),atSymbol))
+
+    if (sameSymbol(car(params),atSymbol))
         {
         if (mode == NORMAL)
             {
@@ -233,40 +242,43 @@ processArguments(int name, int params,int args,int env,int mode)
         else
             rest = unevaluatedArgList(args);
         assureMemory("processArgs:eArgs",1,&rest,0);
-        result = ucons(rest,0);
+        result = uconsfl(rest,0,fi,li);
         }
     else if (sameSymbol(car(params),dollarSymbol))
         {
         assureMemory("processArgs:amp",1 + length(args),&args,0);
         rest = unevaluatedArgList(args);
-        result = ucons(rest,0);
+        result = uconsfl(rest,0,fi,li);
         }
     else if (sameSymbol(car(params),sharpSymbol))
         {
         push(env);
-        rest = processArguments(name,cdr(params),args,env,mode);
+        rest = processArguments(name,cdr(params),args,env,mode,fi,li);
         env = pop();
 
         rethrow(rest,0);
 
         assureMemory("processArgs:sharp",1,&env,&rest,0);
-        result = ucons(env,rest);
+        result = uconsfl(env,rest,fi,li);
         }
     else if (args == 0)
         {
-        return throw(exceptionSymbol,"too few arguments to function %s",
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "too few arguments to function %s",
+            SymbolTable[fi],li,
             SymbolTable[ival(name)]);
         }
     else if (*SymbolTable[ival(car(params))] == '$')
         {
         push(args);
-        rest = processArguments(name,cdr(params),cdr(args),env,mode);
+        rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
         assureMemory("processArgs:tArg",1,&rest,0);
         args = pop();
 
         rethrow(rest,0);
 
-        result = ucons(car(args),rest);
+        result = uconsfl(car(args),rest,fi,li);
         }
     else
         {
@@ -288,13 +300,13 @@ processArguments(int name, int params,int args,int env,int mode)
             first = car(args);
 
         push(first);
-        rest = processArguments(name,cdr(params),cdr(args),env,mode);
+        rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
         assureMemory("processArgs:eArg",1,&rest,0);
         first = pop();
 
         rethrow(rest,0);
 
-        result = ucons(first,rest);
+        result = uconsfl(first,rest,fi,li);
         }
     //debug("p-a result",result);
     return result;
@@ -311,7 +323,8 @@ unevaluatedArgList(args)
     if (args == 0)
         return 0;
     else
-        return ucons(car(args),unevaluatedArgList(cdr(args)));
+        return uconsfl(car(args),unevaluatedArgList(cdr(args)),
+            file(car(args)),line(car(args)));
 
     }
 
@@ -344,6 +357,6 @@ evaluatedArgList(args,env)
 
         rethrow(rest,0);
 
-        return ucons(first,rest);
+        return uconsfl(first,rest,file(first),line(first));
         }
     }
