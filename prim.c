@@ -1234,6 +1234,8 @@ get(int args)
         return getVariableValue(id,car(caddr(args)));
     }
 
+/* (force $thunk) */
+
 static int
 force(int args)
     {
@@ -1300,7 +1302,10 @@ iinclude(int args)
     p = newParser(buffer);
     if (p == 0)
         return throw(exceptionSymbol,
-            "file %s could not be opened for reading",buffer);
+            "file %s,line %d: "
+            "file %s could not be opened for reading",
+            SymbolTable[file(args)],line(args),
+            buffer);
 
     ptree = parse(p);
     fclose(p->input);
