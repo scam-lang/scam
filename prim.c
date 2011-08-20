@@ -1280,6 +1280,13 @@ iinclude(int args)
     char buffer2[1024];
     PARSER *p;
 
+    if (type(fileName) != STRING)
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "include argument was type %s, not STRING",
+            SymbolTable[file(args)],line(args),
+            type(fileName));
+
     cellString(buffer,sizeof(buffer),fileName);
 
     //check to see if file has already been included
@@ -1399,7 +1406,10 @@ ccar(int args)
 
     if (t != CONS && t != STRING && t != ARRAY)
         return throw(exceptionSymbol,
-            "attempt to take car of type %s",type(car(args)));
+            "file %s,line %d: "
+            "attempt to take car of type %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            type(car(args)));
 
     return car(car(args));
     }
@@ -1468,7 +1478,7 @@ skipWhiteSpace(FILE *fp)
 
 
 static int
-addOpenPort(FILE *fp,int portType)
+addOpenPort(FILE *fp,int portType,int fi,int li)
     {
     int i;
     int maxPorts = sizeof(OpenPorts) / sizeof(FILE *);
@@ -1484,7 +1494,11 @@ addOpenPort(FILE *fp,int portType)
 
     if (i == maxPorts)
         {
-        return throw(exceptionSymbol,"too many ports open at once");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "too many ports open at once",
+            SymbolTable[fi],li
+            );
         }
 
     OpenPorts[i] = fp;
@@ -1520,24 +1534,31 @@ setPort(int args)
             }
         else 
             return throw(exceptionSymbol,
+                "file %s,line %d: "
                 "%s is not a valid argument to setPort",
+                SymbolTable[file(args)],line(args),
                 SymbolTable[ival(target)]);
         }
     else if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
         {
         old = CurrentInputIndex;
         CurrentInputIndex = ival(cadr(target));
-        return ucons(inputPortSymbol,ucons(newInteger(old),0));
+        return uconsfl(inputPortSymbol,ucons(newInteger(old),0),
+            file(args),line(args));
         }
     else if (type(target) == CONS && sameSymbol(car(target),outputPortSymbol))
         {
         old = CurrentOutputIndex;
         CurrentOutputIndex = ival(cadr(target));
-        return ucons(outputPortSymbol,ucons(newInteger(old),0));
+        return uconsfl(outputPortSymbol,ucons(newInteger(old),0),
+            file(args),line(args));
         }
 
     return throw(exceptionSymbol,
-        "setPort given a non-port as argument: %s",type(target));
+        "file %s,line %d: "
+        "setPort given a non-port as argument: %s",
+        SymbolTable[file(args)],line(args),
+        type(target));
     }
 
 static int
@@ -1555,58 +1576,83 @@ getOutputPort(int args)
     }
 
 static int
+checkValidPort(int index,int fi,int li)
+    {
+    if (index == 0)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to close stdin",
+            SymbolTable[fi],li
+            );
+        }
+    if (index == 1)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to close stdout",
+            SymbolTable[fi],li
+            );
+        }
+    if (index >= MaxPorts || index < 0)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to close a non-existent port: %d",
+            SymbolTable[fi],li,
+            index);
+        }
+    if (OpenPorts[index] == 0)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to close an unopened port: %d",
+            SymbolTable[fi],li,
+            index);
+        }
+
+    return 0;
+    }
+
+static int
 cclose(int args)
     {
-    int target,index;
+    int target,index,newPort;
 
     target = car(args);
-    debug("port is",target);
 
-    if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
+    if (type(target) == CONS)
         {
+        if (sameSymbol(car(target),inputPortSymbol))
+            newPort = 0;
+        else if (sameSymbol(car(target),outputPortSymbol))
+            newPort = 1;
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "close passed a malformed port",
+                SymbolTable[file(args)],line(args)
+                );
+
+        if (cdr(target) == 0 || type(cadr(target)) != INTEGER)
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "close passed a malformed port",
+                SymbolTable[file(args)],line(args)
+                );
+
         index = ival(cadr(target));
-        if (index == 0)
-            {
-            return throw(exceptionSymbol,"attempt to close stdin");
-            }
-        if (index >= MaxPorts)
-            {
-            return throw(exceptionSymbol,
-                "attempt to close a non-existent port: %d",index);
-            }
-        if (OpenPorts[index] == 0)
-            {
-            return throw(exceptionSymbol,
-                "attempt to close an unopened port: %d",index);
-            }
+        rethrow(checkValidPort(index,file(args),line(args)),0);
         fclose(OpenPorts[index]);
         OpenPorts[index] = 0;
-        if (CurrentInputIndex == index) CurrentInputIndex = 0;
-        }
-    else if (type(target) == CONS && sameSymbol(car(target),outputPortSymbol))
-        {
-        index = ival(cadr(target));
-        if (index == 1)
-            {
-            return throw(exceptionSymbol,"attempt to close stdout");
-            }
-        if (index >= MaxPorts)
-            {
-            return throw(exceptionSymbol,
-                "attempt to close a non-existent port: %d",index);
-            }
-        if (OpenPorts[index] == 0)
-            {
-            return throw(exceptionSymbol,
-                "attempt to close an unopened port: %d",index);
-            }
-        fclose(OpenPorts[index]);
-        OpenPorts[index] = 0;
-        if (CurrentOutputIndex == index) CurrentOutputIndex = 1;
+        if (CurrentInputIndex == index) CurrentInputIndex = newPort;
         }
     else
         return throw(exceptionSymbol,
-            "bad type passed to close: %s", type(target));
+            "file %s,line %d: "
+            "close passed a malformed port",
+            SymbolTable[file(args)],line(args)
+            );
 
     return trueSymbol;
     }
@@ -1621,10 +1667,18 @@ readChar(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read a character from a closed port");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a character from a closed port",
+            SymbolTable[file(args)],line(args)
+            );
 
     if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read a character at end of input");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a character at end of input",
+            SymbolTable[file(args)],line(args)
+            );
 
     ch = fgetc(fp);
 
@@ -1662,10 +1716,18 @@ readInt(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read an integer from a closed port");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read an integer from a closed port",
+            SymbolTable[file(args)],line(args)
+            );
 
     if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read an integer at end of input");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read an integer at end of input",
+            SymbolTable[file(args)],line(args)
+            );
 
     i = 0;
     fscanf(fp," %d",&i);
@@ -1681,10 +1743,18 @@ readReal(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read a real from a closed port");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a real from a closed port",
+            SymbolTable[file(args)],line(args)
+            );
 
     if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read a real at end of input");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a real at end of input",
+            SymbolTable[file(args)],line(args)
+            );
 
     r = 0;
     fscanf(fp," %lf",&r);
@@ -1704,10 +1774,18 @@ readString(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read a string from a closed port");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a string from a closed port",
+            SymbolTable[file(args)],line(args)
+            );
 
     if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read a string at end of input");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a string at end of input",
+            SymbolTable[file(args)],line(args)
+            );
 
     skipWhiteSpace(fp);
 
@@ -1716,7 +1794,10 @@ readString(int args)
         {
         ungetc(ch,fp);
         return throw(exceptionSymbol,
-            "found <%c> instead of double quote at the start of a string",ch);
+            "file %s,line %d: "
+            "found <%c> instead of double quote at the start of a string",
+            SymbolTable[file(args)],line(args),
+            ch);
         }
 
     index = 0;
@@ -1730,7 +1811,11 @@ readString(int args)
             {
             ch = fgetc(fp);
             if (ch == EOF)
-                return throw(exceptionSymbol,"attempt to read a string at end of input");
+                return throw(exceptionSymbol,
+                    "file %s,line %d: "
+                    "attempt to read a string at end of input",
+                    SymbolTable[file(args)],line(args)
+                    );
             if (ch == 'n')
                 buffer[index++] = '\n';
             else if (ch == 't')
@@ -1746,13 +1831,21 @@ readString(int args)
             }
 
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,"attempt to read a very long string failed");
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to read a very long string failed",
+                SymbolTable[file(args)],line(args)
+                );
         }
 
     buffer[index] = '\0';
 
     if (ch != '\"')
-        return throw(exceptionSymbol,"attempt to read an unterminated string");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read an unterminated string",
+            SymbolTable[file(args)],line(args)
+            );
 
     //printf("string is <%s>\n", buffer);
 
@@ -1773,10 +1866,18 @@ readToken(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read a token from a closed port");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a token from a closed port",
+            SymbolTable[file(args)],line(args)
+            );
 
     if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read a token at end of input");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read a token at end of input",
+            SymbolTable[file(args)],line(args)
+            );
 
     skipWhiteSpace(fp);
 
@@ -1785,7 +1886,11 @@ readToken(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,"attempt to read a very long token failed");
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to read a very long token failed",
+                SymbolTable[file(args)],line(args)
+                );
         }
 
     buffer[index] = '\0';
@@ -1949,7 +2054,7 @@ oopen(int args)
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"r");
             if (fp == 0)
                 return throw(exceptionSymbol,"file %s cannot be opened for reading",buffer);
-            result = addOpenPort(fp,inputPortSymbol);
+            result = addOpenPort(fp,inputPortSymbol,file(args),line(args));
             }
         else if (ival(mode) == writeIndex)
             {
@@ -1959,7 +2064,7 @@ oopen(int args)
             if (fp == 0)
                 return throw(exceptionSymbol,"file %s cannot be opened for writing",buffer);
             //printf("file opened successfully\n");
-            result = addOpenPort(fp,outputPortSymbol);
+            result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
             }
         else if (ival(mode) == appendIndex)
             {
@@ -1967,7 +2072,7 @@ oopen(int args)
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"a");
             if (fp == 0)
                 return throw(exceptionSymbol,"file %s cannot be opened for appending",buffer);
-            result = addOpenPort(fp,outputPortSymbol);
+            result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
             }
         else 
             {
@@ -2628,7 +2733,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = readChar;
     b = makeBuiltIn(env,
         newSymbol("readChar"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2636,7 +2741,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = readInt;
     b = makeBuiltIn(env,
         newSymbol("readInt"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2644,7 +2749,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = readReal;
     b = makeBuiltIn(env,
         newSymbol("readReal"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2652,7 +2757,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = readString;
     b = makeBuiltIn(env,
         newSymbol("readString"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2660,7 +2765,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = readToken;
     b = makeBuiltIn(env,
         newSymbol("readToken"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2668,7 +2773,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = readLine;
     b = makeBuiltIn(env,
         newSymbol("readLine"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2709,7 +2814,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = getOutputPort;
     b = makeBuiltIn(env,
         newSymbol("getOutputPort"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2717,7 +2822,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = getInputPort;
     b = makeBuiltIn(env,
         newSymbol("getInputPort"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -2733,7 +2838,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = isEof;
     b = makeBuiltIn(env,
         newSymbol("eof?"),
-        0,
+        ucons(sharpSymbol,0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
