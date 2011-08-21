@@ -16,5 +16,5 @@
     inspect(c . value(10));
     inspect(c . value(1000));
 ------------------------------------------
-c . value(10) is 7.0000000000
-c . value(1000) is 7.0000000000
+EXCEPTION: undefinedVariable
+file ch05.s,line 1: variable /* is undefined

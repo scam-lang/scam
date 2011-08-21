@@ -4,6 +4,4 @@
 
 (print "(square 4) is " (sqr 4) "\n")
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-call.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-error occurred prior to: [END OF LINE]
+(square 4) is 16

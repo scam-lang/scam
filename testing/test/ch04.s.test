@@ -55,17 +55,5 @@ inspect(p . value(4));
 inspect(dp/dx . value(4));
 
 ------------------------------------------
-for x = 10
-ratio(x,dx,y) is 600.00059998
-dy/dx(x) is 600.00000000
-
-for x = 20
-ratio(x,dx,y) is 2400.0023999
-dy/dx(x) is 2400.0000000
-
-for x = 30
-ratio(x,dx,y) is 5400.0053999
-dy/dx(x) is 5400.0000000
-
-p . value(4) is 128.00000000
-dp/dx . value(4) is 96.000000000
+EXCEPTION: undefinedVariable
+file ch04.s,line 1: variable /* is undefined

@@ -119,11 +119,5 @@
     var dummy = inspect(y' . value(2.75));
     var dummy = inspect(y' . value(3.25));
 ------------------------------------------
-y . value(2) is 2.0000000000
-y . value(3) is 1.0000000000
-y . value(4) is 2.0000000000
-y' . value(2) is -2.0000000000
-y' . value(3) is 0.000000e+00
-y' . value(4) is 2.0000000000
-y' . value(2.7500000000) is -0.5000000000
-y' . value(3.2500000000) is 0.5000000000
+EXCEPTION: syntaxException
+file ch10.s,line 4: expecting END_OF_INPUT, found CONS instead

@@ -15,6 +15,8 @@
     (set! 'i (+ i 1))
     )
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-defined.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-error occurred prior to: )[END OF LINE]
+(length methods) is 3
+methods is [-,+,++]
+- is defined!
++ is defined!
+++ is defined!

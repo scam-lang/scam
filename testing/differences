@@ -1,9 +1,128 @@
 OLD vs. NEW
 adders.s
 ------------------------------------------
+1,47c1,42
+< include("basics");
+< include("wire.s");
+< include("logic.s");
+< include("agenda.s");
+< 
+< function half-adder(a, b, sum, carry, simulator)
+<     {
+<     var or->and = wire();
+<     var not->and = wire();
+< 
+<     AND(a,b,carry,simulator);
+<     OR(a,b,or->and,simulator);
+<     NOT(carry,not->and,simulator);
+<     AND(or->and,not->and,sum,simulator);
+<     }
+< 
+< function full-adder(a, b, carry-in, sum, carry-out, agenda)
+<     {
+<     var ha1->ha2 = wire();
+<     var ha1->or = wire();
+<     var ha2->or = wire();
+< 
+<     half-adder(b,carry-in,ha1->ha2,ha1->or,agenda);
+<     half-adder(a,ha1->ha2,sum,ha2->or,agenda);
+<     OR(ha1->or,ha2->or,carry-out,agenda);
+<     }
+< 
+< function simulateHalfAdder()
+<     {
+<     var i;
+<     var a = wire();
+<     var b = wire();
+<     var sum = wire();
+<     var carry = wire();
+<     var simulator = agenda();
+<     var inputs = array(array(0,0), array(0,1), array(1,0), array(1,1));
+< 
+<     println("a\t\b\tsum\t\carry");
+< 
+<     half-adder(a, b, sum, carry, simulator);
+< 
+<     for (i = 0, i < length(inputs), i = i + 1)
+<         {
+<         a . set(inputs . i . 0);
+<         b . set(inputs . i . 1);
+<         simulator . run();
+<         println(inputs . i . 0, "\t", inputs . i . 1,
+---
+> (include "wire.s")
+> (include "logic.s")
+> (include "agenda.s")
+> 
+> (define (half-adder a b sum carry simulator)
+>     (define or->and (wire))
+>     (define not->and (wire))
+> 
+>     (AND a b carry simulator)
+>     (OR a b or->and simulator)
+>     (NOT carry not->and simulator)
+>     (AND or->and not->and sum simulator)
+>     )
+> 
+> (define (full-adder a b carry-in sum carry-out agenda)
+>     (define ha1->ha2 (wire))
+>     (define ha1->or (wire))
+>     (define ha2->or (wire))
+> 
+>     (half-adder b carry-in ha1->ha2,ha1->or agenda)
+>     (half-adder a ha1->ha2 sum ha2->or agenda)
+>     (OR ha1->or ha2->or carry-out agenda)
+>     )
+> 
+> (define (simulateHalfAdder)
+>     (define i)
+>     (define a (wire))
+>     (define b (wire))
+>     (define sum (wire))
+>     (define carry (wire))
+>     (define simulator (agenda))
+>     (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+> 
+>     (println "a\t\b\tsum\t\carry")
+> 
+>     (half-adder a b sum carry simulator)
+> 
+>     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+>         (a . set(inputs . i . 0);
+>         (b . set(inputs . i . 1);
+>             ((. simulator run))
+>             (println (getElement (. inputs i) 0) "\t", inputs . i . 1,
+49,50c44,45
+<         }
+<     }
+---
+>             )
+>     )
+87,101c82,83
+< a       b       sum     carry
+< 0       0       0       0
+< 0       1       1       0
+< 1       0       1       0
+< 1       1       0       1
+< 
+< a       b       c-in    sum     c-out
+< 0       0       0       0       0
+< 0       0       1       1       0
+< 0       1       0       1       0
+< 0       1       1       0       1
+< 1       0       0       1       0
+< 1       0       1       0       1
+< 1       1       0       0       1
+< 1       1       1       1       1
+---
+> EXCEPTION: syntaxException
+> file adders.s,line 81: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
 ------------------------------------------
 agenda.s
 ------------------------------------------
+23a24,25
+> EXCEPTION: nonFunction
+> file agenda.s,line 1: attempted to call STRING as a function
 ------------------------------------------
 apply.s
 ------------------------------------------
@@ -16,42 +135,212 @@ bad.s
 ------------------------------------------
 block.s
 ------------------------------------------
+1,2d0
+< (include "scam.s")
+< 
 ------------------------------------------
 call.s
 ------------------------------------------
 ------------------------------------------
 catch.s
 ------------------------------------------
+4c4
+<          : attempted to call INTEGER as a function
+---
+> file catch.s,line 1: attempted to call INTEGER as a function
 ------------------------------------------
 ch01.s
 ------------------------------------------
+1,8c1,3
+< /*
+<  *
+<  * Chapter 1 code
+<  *
+<  */
+< 
+< 
+< println("no code in chapter");
+---
+> ;
+> ; Chapter 1 code
+> ;
+9a5
+> (println "no code in chapter")
 ------------------------------------------
 ch02.s
 ------------------------------------------
+1,6c1,15
+<     var x = 1000000;
+<     var f = 1.0 / 16;
+<     function smaller(amount,fraction)
+<         {
+<         inspect(amount * fraction);
+<         }
+---
+> (define x 1000000)
+> (define f (/ 1.0 16))
+> (define (smaller amount fraction)
+>         (inspect (* amount fraction))
+>         )
+> 
+> ;/****************************************************/
+> 
+> (define (test)
+>     (println "Chapter 2 test...\n")
+>     (inspect x)
+>     (inspect f)
+>     (print "smaller(x,f)...\n    ")
+>     (smaller x f)
+>     )
+8,19c17
+< 
+< 
+< /****************************************************/
+< 
+< function test()
+<     {
+<     println("Chapter 2 test...\n");
+<     print("smaller(x,f)...\n    ");
+<     smaller(x,f);
+<     }
+< 
+< test();
+---
+> (test)
+22a21,22
+> x is 1000000
+> f is 0.062500
+24c24
+<     amount * fraction is 62500.000000
+---
+>     (* amount fraction) is 62500.000000
 ------------------------------------------
 ch03.s
 ------------------------------------------
+26,32c26,27
+< ratio(40,0.0100000000,h) is 0.5000000000
+< ratio(40,0.0001000000,h) is 0.5000000000
+< ratio(20,0.0001000000,h) is 0.5000000000
+< ratio(100,1,g) is 201
+< ratio(100,0.1000000000,g) is 200.10000000
+< ratio(100,0.0100000000,g) is 200.01000000
+< ratio(100,0.0010000000,g) is 200.00100000
+---
+> EXCEPTION: undefinedVariable
+> file ch03.s,line 1: variable function is undefined
 ------------------------------------------
 ch04.s
 ------------------------------------------
+58,71c58,59
+< for x = 10
+< ratio(x,dx,y) is 600.00059998
+< dy/dx(x) is 600.00000000
+< 
+< for x = 20
+< ratio(x,dx,y) is 2400.0023999
+< dy/dx(x) is 2400.0000000
+< 
+< for x = 30
+< ratio(x,dx,y) is 5400.0053999
+< dy/dx(x) is 5400.0000000
+< 
+< p . value(4) is 128.00000000
+< dp/dx . value(4) is 96.000000000
+---
+> EXCEPTION: undefinedVariable
+> file ch04.s,line 1: variable /* is undefined
 ------------------------------------------
 ch05.s
 ------------------------------------------
+19,20c19,20
+< c . value(10) is 7.0000000000
+< c . value(1000) is 7.0000000000
+---
+> EXCEPTION: undefinedVariable
+> file ch05.s,line 1: variable /* is undefined
 ------------------------------------------
 ch06.s
 ------------------------------------------
+82,86c82,83
+< a . value(3) + b . value(3) is -38.000000000
+< z . value(3) is -38.000000000
+< t . toString() is "3x^2"
+< cc . toString() is "4x^2 + 3x^1 + -5x^0"
+< dc/dx . toString() is "8x^1 + 3x^0 + 0x^-1"
+---
+> EXCEPTION: syntaxException
+> file ch06.s,line 32: expecting END_OF_INPUT, found CONS instead
 ------------------------------------------
 ch07.s
 ------------------------------------------
+117,143c117,118
+< f' . toString() is "3x^0 + 0x^-1"
+< f' . value(0) is 3.0000000000
+< f' . value(5) is 3.0000000000
+< f'' . toString() is "0x^-1 + 0x^-2"
+< f'' . value(0) is 0
+< f'' . value(5) is 0
+< -------------------------------------
+< f . toString() is "3x + -5"
+< f' . toString() is "3 + 0"
+< f'' . toString() is "0 + 0"
+< f'' . value(0) is 0
+< f'' . value(5) is 0
+< -------------------------------------
+< f . toString() is "3x + -5"
+< f' . toString() is "3 + 0"
+< f'' . toString() is "0 + 0"
+< f'' . value(0) is 0
+< f'' . value(5) is 0
+< -------------------------------------
+< z . toString() is "4x^3 + 3x^2 + 2x + 1"
+< z' . toString() is "12x^2 + 6x + 2"
+< z'' . toString() is "24x + 6"
+< z''' . toString() is "24"
+< z'' . value(1) is 30.000000000
+< z'' . value(2) is 54.000000000
+< z''' . value(1) is 24.000000000
+< z''' . value(2) is 24.000000000
+---
+> EXCEPTION: syntaxException
+> file ch07.s,line 4: expecting END_OF_INPUT, found CONS instead
 ------------------------------------------
 ch08.s
 ------------------------------------------
+38,40c38,39
+< t . toString() is "5w^3"
+< a . toString() is "15w^2"
+< b . toString() is "0"
+---
+> EXCEPTION: syntaxException
+> file ch08.s,line 9: expecting END_OF_INPUT, found CONS instead
 ------------------------------------------
 ch09.s
 ------------------------------------------
+105,109c105,106
+< t . toString() is "4x^3"
+< t' . toString() is "12x^2"
+< s . toString() is "x^2 + 17"
+< w . toString() is "3(x^2 + 17)^2"
+< w' . toString() is "6(x^2 + 17) * 2x"
+---
+> EXCEPTION: syntaxException
+> file ch09.s,line 4: expecting END_OF_INPUT, found CONS instead
 ------------------------------------------
 ch10.s
 ------------------------------------------
+122,129c122,123
+< y . value(2) is 2.0000000000
+< y . value(3) is 1.0000000000
+< y . value(4) is 2.0000000000
+< y' . value(2) is -2.0000000000
+< y' . value(3) is 0.000000e+00
+< y' . value(4) is 2.0000000000
+< y' . value(2.7500000000) is -0.5000000000
+< y' . value(3.2500000000) is 0.5000000000
+---
+> EXCEPTION: syntaxException
+> file ch10.s,line 4: expecting END_OF_INPUT, found CONS instead
 ------------------------------------------
 common2.s
 ------------------------------------------
@@ -63,12 +352,10 @@ common2.s
 < println(bindings(common));
 ---
 > (println (bindings common))
-5c5,7
+5c5
 < ((context,<OBJECT 966>),(dynamicContext,null),(callDepth,0),(constructor,null),(this,<OBJECT 2824>),(count,0))
 ---
-> SYNTAX ERROR: :syntaxError
-> common2.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-> error occurred prior to: )[END OF LINE]
+> ((label environment) (context <object 7749>) (level 0) (constructor nil) (this <object 7814>) (count 0))
 ------------------------------------------
 common3.s
 ------------------------------------------
@@ -120,14 +407,15 @@ common3.s
 > (inspect (get 'common (new (x))))
 > (inspect (get 'uncommon (new (x))))
 > (inspect (get 'uncommon (new (x))))
-23,25c27,29
+23,25c27,30
 < x() . common is 1
 < x() . uncommon is 1
 < x() . common is 3
 ---
-> SYNTAX ERROR: :syntaxError
-> common3.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
+> (get (quote common) (new (x))) is 1
+> (get (quote common) (new (x))) is 2
+> (get (quote uncommon) (new (x))) is 1
+> (get (quote uncommon) (new (x))) is 1
 ------------------------------------------
 common4.s
 ------------------------------------------
@@ -186,16 +474,19 @@ common4.s
 > (inspect ((get 'getCommon (new (x)))))
 > (inspect ((get 'getCommon (new (z)))))
 > (inspect ((get 'getCommon (new (z)))))
-31,35c26,28
-< help!
+32,33c27
 < x() . getCommon() is 4
 < x() . uncommon is 1
-< help!
+---
+> ((get (quote getCommon) (new (x)))) is 1
+35c29,33
 < x() . getCommon() is 4
 ---
-> SYNTAX ERROR: :syntaxError
-> common4.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
+> ((get (quote getCommon) (new (x)))) is 1
+> oops!
+> ((get (quote getCommon) (new (z)))) is 13
+> oops!
+> ((get (quote getCommon) (new (z)))) is 14
 ------------------------------------------
 common5.s
 ------------------------------------------
@@ -273,17 +564,20 @@ common5.s
 > (println "x's common count is " (get 'shared-count xish))
 > (println "y's common count is " (get 'shared-count yish))
 > (println "z's common count is " (get 'shared-count zish))
-36,41c40,42
+36,39c40
 < x's common count is 3
 < y's common count is 3
 < z's common count is 3
 < x's count is 1
-< y's count is 1
+---
+> x's count is 0
+41c42,45
 < z's count is 1
 ---
-> SYNTAX ERROR: :syntaxError
-> common5.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
+> z's count is 2
+> x's common count is 22
+> y's common count is 22
+> z's common count is 22
 ------------------------------------------
 common.s
 ------------------------------------------
@@ -334,8 +628,8 @@ common.s
 < x's uncommon count is 1
 < y's uncommon count is 1
 ---
-> EVALUATION ERROR: :undefinedVariable
-> common.s,line 30: variable new is undefined
+> EXCEPTION: nonFunction
+> file common.s,line 1: attempted to call STRING as a function
 ------------------------------------------
 defined.s
 ------------------------------------------
@@ -373,21 +667,20 @@ defined.s
 >         )
 >     (set! 'i (+ i 1))
 >     )
-18,19c18,20
+18c18,20
 < ++ is not defined
-< + is defined!
 ---
-> SYNTAX ERROR: :syntaxError
-> defined.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
+> (length methods) is 3
+> methods is [-,+,++]
+> - is defined!
+19a22
+> ++ is defined!
 ------------------------------------------
 env.s
 ------------------------------------------
-1c1
+1,8c1
 < var spot = SwayEnv;
----
-> (include "scam.s")
-3,8c3
+< 
 < while (spot != :null)
 <     {
 <     var s = head(spot);
@@ -396,58 +689,80 @@ env.s
 <     }
 ---
 > (define spot ScamEnv)
-9a5,9
+9a3,7
 > (while (!= spot nil)
 >     (define s (car spot))
 >     (println (prefix s (stringUntil s "=")))
 >     (set! 'spot (cdr spot))
 >     )
-11,47c11,13
-< SSH_AGENT_PID
+10a9
+> ORBIT_SOCKETDIR
+12,14d10
 < KDE_MULTIHEAD
 < GPG_AGENT_INFO
 < TERM
-< SHELL
+16,19c12,13
 < GTK2_RC_FILES
 < GS_LIB
 < GTK_RC_FILES
 < HUSHLOGIN
-< WINDOWID
+---
+> TERM
+> XDG_SESSION_COOKIE
+21c15,16
 < KDE_FULL_SESSION
-< USER
-< LS_COLORS
-< SSH_AUTH_SOCK
-< SESSION_MANAGER
+---
+> GNOME_KEYRING_CONTROL
+> GTK_MODULES
+24a20,21
+> DEFAULTS_PATH
+> USERNAME
+26,27c23,24
 < KONSOLE_DCOP
 < MAIL
-< PATH
-< PWD
+---
+> XDG_CONFIG_DIRS
+> DESKTOP_SESSION
+30,31c27
 < KONSOLE_DCOP_SESSION
 < EDITOR
-< LANG
+---
+> GDM_KEYBOARD_LAYOUT
+33,36c29,34
 < KDE_SESSION_UID
 < SONGDIR
 < HISTCONTROL
 < SHLVL
-< HOME
-< XCURSOR_THEME
-< LOGNAME
-< LESSOPEN
-< VIMRUNTIME
-< DISPLAY
-< VIM
-< LESSCLOSE
-< XAUTHORITY
-< COLORTERM
-< _
 ---
-> SYNTAX ERROR: :syntaxError
-> env.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
+> GNOME_KEYRING_PID
+> MANDATORY_PATH
+> GDM_LANG
+> UBUNTU_MENUPROXY
+> GDMSESSION
+> SPEECHD_PORT
+38c36,38
+< XCURSOR_THEME
+---
+> SHLVL
+> LANGUAGE
+> GNOME_DESKTOP_SESSION_ID
+39a40,41
+> DBUS_SESSION_BUS_ADDRESS
+> XDG_DATA_DIRS
+41c43,44
+< VIMRUNTIME
+---
+> EMAIL
+> WINDOWPATH
+43d45
+< VIM
+------------------------------------------
+error0.s
+------------------------------------------
 ------------------------------------------
 except2.s
 ------------------------------------------
-1,13c1
+1,13c1,10
 < function try($error,$a,$b)
 <     {
 <     var result = catch(force($a));
@@ -462,13 +777,6 @@ except2.s
 <         }
 <     }
 ---
-> (include "scam.s")
-15,18c3,12
-< function normalize(a,b)
-<     {
-<     return (a + b) * (a + b);
-<     }
----
 > (define (try # $error $a $b)
 >     (define result (catch (eval $a #)))
 >     (if (== (type result) 'error)
@@ -479,16 +787,25 @@ except2.s
 >         )
 >     result
 >     )
-20,23c14,16
+15,18c12,14
+< function normalize(a,b)
+<     {
+<     return (a + b) * (a + b);
+<     }
+---
+> (define (normalize a b)
+>     (* (+ a b) (+ a b))
+>     )
+20,23c16,18
 < function g()
 <     {
 <     var result;
 <     var error;
 ---
-> (define (normalize a b)
->     (* (+ a b) (+ a b))
->     )
-25,47c18,20
+> (define (g)
+>     (define result)
+>     (define error)
+25,47c20,42
 <     try(error) 
 <         {
 <         throw(:hiy,"ouch"); // comment this line out and a 2 should result
@@ -513,16 +830,13 @@ except2.s
 <     result;
 <     }
 ---
-> (define (g)
->     (define result)
->     (define error)
-49,50c22,43
-< var + = 3;
-< println(g());
----
 >     (try error 
 >         (begin
->             (throw 'hiy "ouch") // comment this line out and a 2 should result
+>             (println "starting")
+>             ; comment the next uncommented line out and a 2 should result
+>             ; change hiy to hey in the next uncommented line and you get 100
+>             ; change hiy to hay in the next uncommented line and you get 33
+>             (throw 'hiy "ouch")
 >             (set! 'result (normalize 1 2))
 >             )
 >         (if (== (get 'code error) 'nonFunction)
@@ -539,16 +853,19 @@ except2.s
 >         )
 >     result
 >     )
-> 
+49,50c44,45
+< var + = 3;
+< println(g());
+---
 > (define + 3)
 > (println (g))
-52,53c45,47
+52,53c47,49
 < EVALUATION ERROR: :hiy
 < except2.s,line 27: ouch
 ---
-> SYNTAX ERROR: :syntaxError
-> except2.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
+> starting
+> EXCEPTION: hiy
+> ouch
 ------------------------------------------
 except3.s
 ------------------------------------------
@@ -593,18 +910,16 @@ except3.s
 ---
 > (+ (f) 0)
 > 'ok
-23,25c20,22
+23,24d19
 < EVALUATION ERROR: :ouch
 < except3.s,line 16: hey!
-< rethrowing error
----
-> SYNTAX ERROR: :syntaxError
-> except3.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
-> error occurred prior to: + (g) 0)[END OF LINE]
+25a21,22
+> EXCEPTION: ouch
+> hey!
 ------------------------------------------
 except4.s
 ------------------------------------------
-1,25c1
+1,32c1,26
 < var mnemon = 10;
 < function f(x)
 <     {
@@ -630,9 +945,7 @@ except4.s
 <     {
 <     var result;
 <     println("beginning g(",y,").");
----
-> (include "scam.s");
-27,32c3,28
+< 
 <     throw(:myError,"take that!");
 <     result = mnenom * y;
 <     println("done with g(",y,").");
@@ -666,20 +979,18 @@ except4.s
 >     result
 >     )
 > (println (f 4))
-34,38c30,32
+34,35d27
 < EVALUATION ERROR: :myError
 < except4.s,line 27: take that!
-< beginning f(4).
-< beginning g(8).
+38c30,31
 < rethrowing the error
 ---
-> SYNTAX ERROR: :syntaxError
-> except4.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: );[END OF LINE]
+> done with f(4).
+> 4
 ------------------------------------------
 except.s
 ------------------------------------------
-1,12c1
+1,12c1,7
 < function try($a,$b)
 <     {
 <     var result = catch(force($a));
@@ -693,8 +1004,14 @@ except.s
 <         }
 <     }
 ---
-> (include "scam.s")
-14,32c3,9
+> (define (try # $a $b)
+>     (define result (catch (eval $a #)))
+>     (if (== (type result) 'error)
+>         (eval $b #)
+>         result
+>         )
+>     )
+14,32c9,20
 < function fact(n)
 <     {
 <     if (n == 0)
@@ -715,20 +1032,10 @@ except.s
 <         }
 <     }
 ---
-> (define (try # $a $b)
->     (define result (catch (eval $a #)))
->     (if (== (type result) 'error)
->         (eval $b #)
->         result
->         )
->     )
-34c11,24
-< print("fact(5) is ", fact(5), "\n");
----
 > (define (fact n)
 >     (if (== n 0)
 >         (try
->             zzz
+>             zzz ;change this line to 1
 >             (begin
 >                 (println "[ERROR]")
 >                 1
@@ -737,1029 +1044,29 @@ except.s
 >         (* n (fact (- n 1)))
 >         )
 >     )
-> 
-> (print "fact(5) is "  (fact 5) "\n")
-36,37c26,28
-< [ERROR]
-< fact(5) is 120
+34c22
+< print("fact(5) is ", fact(5), "\n");
 ---
-> SYNTAX ERROR: :syntaxError
-> except.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
+> (print "fact(5) is "  (fact 5) "\n")
 ------------------------------------------
 extend.s
 ------------------------------------------
+35,38c35,36
+< wow() is wow, wow, wow!
+< obj . wow() is 16
+< obj . yow() is 256
+< obj . zow() is 65536
+---
+> EXCEPTION: undefinedVariable
+> file extend.s,line 1: variable function is undefined
 ------------------------------------------
 extension.s
 ------------------------------------------
-------------------------------------------
-fact.s
-------------------------------------------
-1c1
-< include("fib.s");
+20,22c20,21
+< z = y(); z . a is 3
+< (y()) . a is 3
+< .(y(),a) is 3
 ---
-> (println "starting fact.s")
-3,6c3
-< function fact(n)
-<     {
-<     if (n < 2,n,n * fact(n - 1));
-<     }
----
-> (include "fib.s")
-8,9c5,7
-< println("fib(5) is ",fib(5));
-< println("fact(5) is ",fact(5));
----
-> (define (fact n)
->     (if (< n 2) 1 (* n (fact (- n 1))))
->     )
-10a9,12
-> (inspect this)
-> 
-> (println "fact: fib(5) is " (fib 5))
-> (println "fact: fact(5) is " (fact 5))
-12,13c14,16
-< fib(5) is 5
-< fact(5) is 120
----
-> SYNTAX ERROR: :syntaxError
-> fact.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
-------------------------------------------
-fib-opt.s
-------------------------------------------
-18c18
-< x = 22;
----
-> x = 26;
-36,37c36,37
-< fib(22) is 17711
-< 1 seconds
----
-> fib(26) is 121393
-> 11 seconds
-------------------------------------------
-fib.s
-------------------------------------------
-1c1
-< include("fact.s");
----
-> (println "starting fib.s")
-3,16c3
-< function fib(n)
-<     {
-<     if (n < 2)
-<         {
-<         n;
-<         }
-<     else
-<         {
-<         fib(n - 1) + fib(n - 2);
-<         }
-<     }
-< var x = 0;
-< var result;
-< var t = time();
----
-> (include "fact.s")
-18,27c5,20
-< x = 22;
-< result = fib(x);
-< display("fib(");
-< display(x);
-< display(") is ");
-< display(result);
-< display("\n");
-< display(time() - t);
-< display(" seconds");
-< display("\n");
----
-> (println "done including fact.s")
-> 
-> (define (fib n)
->     (if (< n 2)
->         n
->         (+ (fib (- n 1)) (fib (- n 2)))
->         )
->     )
-> (define x 0)
-> (define result nil)
-> (define t (time))
-> 
-> (set! 'x 26)
-> (set! 'result (fib x))
-> (println "fib: fib(" x ") is " result)
-> (println (- (time) t) " seconds")
-29,30c22,24
-< fib(22) is 17711
-< 2 seconds
----
-> SYNTAX ERROR: :syntaxError
-> fib.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
-------------------------------------------
-foreach.s
-------------------------------------------
-------------------------------------------
-for.s
-------------------------------------------
-------------------------------------------
-f.s
-------------------------------------------
-22a23,24
-> EVALUATION ERROR: :undefinedVariable
-> f.s,line 21: variable g is undefined
-24d25
-< g(10) is 3628800
-------------------------------------------
-function.s
-------------------------------------------
-1,55c1,36
-< function parameterListMaker($)
-<     {
-<     var vars = :null;
-< 
-<     while ($ != :null)
-<         {
-<         vars = vars + list($ . 0 . code);
-<         $ = tail($);
-<         }
-< 
-<     vars;
-<     }
-< 
-< function named-lambda($name,params,$body)
-<     {
-<     var $p = thunk(0,$name . context);
-< 
-<     $p . code = params;
-< 
-<     __function__($name,$p,$body);
-<     }
-< 
-< function loadAndgo($name,params,values,$body)
-<     {
-<     var f = named-lambda($name,params,$body);
-< 
-<     apply(f,values);
-<     }
-< 
-< loadAndgo(countdown,parameterListMaker(a),list(4))
-<     {
-<     inspect(a);
-<     if (a > 0)
-<         {
-<         countdown(a - 1);
-<         }
-<     }
-< 
-< loadAndgo(countdown,list(:a),list(4))
-<     {
-<     inspect(a);
-<     if (a > 0)
-<         {
-<         countdown(a - 1);
-<         }
-<     }
-< 
-< (named-lambda(countdown,list(:a),
-<     {
-<     inspect(a);
-<     if (a > 0)
-<         {
-<         countdown(a - 1);
-<         }
-<     }))(4);
----
-> (define (define-function name params body env)
->     (define donor (lambda () 1))
->     (set! 'name name donor)
->     (set! 'parameters params donor)
->     (set! 'code body donor)
->     (addSymbol name donor env)
->     )
-> 
-> (define (loadAndgo # $name params values $body)
->     (define f (define-function $name params $body #))
->     (apply f values)
->     )
-> 
-> (println "first load and go...");
-> (loadAndgo countdown '(a) '(4)
->     (begin
->         (inspect a)
->         (if (> a 0) (countdown (- a 1)))
->         )
->     )
-> 
-> (println "second load and go...")
-> (loadAndgo countdown '(b) '(3)
->     (begin
->         (inspect b)
->         (if (> b 0) (countdown (- b 1)))
->         )
->     )
-> 
-> (println "calling define-function directly...")
-> ((define-function 'countdown '(a)
->     '(begin
->         (inspect a)
->         (if (> a 0) (countdown (- a 1)))
->         )
->     this) 4)
-57,71c38,40
-< a is 4
-< a is 3
-< a is 2
-< a is 1
-< a is 0
-< a is 4
-< a is 3
-< a is 2
-< a is 1
-< a is 0
-< a is 4
-< a is 3
-< a is 2
-< a is 1
-< a is 0
----
-> SYNTAX ERROR: :syntaxError
-> function.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
-> error occurred prior to: define donor (lambda () 1))[END OF LINE]
-------------------------------------------
-gc.s
-------------------------------------------
-1,3c1,2
-< function f(x)
-<     {
-<     var y = x * x;
----
-> (define (f x)
->     (define y (* x x))
-5c4
-<     gc();
----
->     (gc)
-7,10c6,9
-<     println("f is ", f);
-<     println("x is ", x);
-<     println("y is ", y);
-<     }
----
->     (inspect f)
->     (inspect x)
->     (inspect y)
->     )
-12c11
-< f(3);
----
-> (f 3)
-14,16c13,15
-< f is <function f(x)>
-< x is 3
-< y is 9
----
-> SYNTAX ERROR: :syntaxError
-> gc.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-> error occurred prior to: [END OF LINE]
-------------------------------------------
-g.s
-------------------------------------------
-1,3c1,2
-< function g(n)
-<     {
-<     var total = 1;
----
-> (define (g n)
->     (define total 1)
-5,9c4,7
-<     while (n > 1)
-<         {
-<         total = total * n;
-<         n = n - 1;
-<         }
----
->     (while (> n 1)
->         (set! 'total (* total n))
->         (set! 'n (- n 1))
->         )
-11,12c9,10
-<     total;
-<     }
----
->     total
->     )
-14c12
-< var x = 10;
----
-> (define x 10)
-16c14
-< print("g(",x,") is ", g(x), "\n");
----
-> (print "g(" x ") is " (g x) "\n")
-18c16,18
-< g(10) is 3628800
----
-> SYNTAX ERROR: :syntaxError
-> g.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-> error occurred prior to: [END OF LINE]
-------------------------------------------
-heapsort.s
-------------------------------------------
-1c1
-< include("basics");
----
-> (include "scam.s")
-3,21c3,4
-< function heap(items,op)
-<     {
-<     var size = length(items);
-< 
-<     function leftChild(x) { 2 * x + 1; }
-<     function rightChild(x) { 2 * x + 2; }
-<     function deleteMin()
-<         {
-<         var temp = items[0];
-<         items[0] = items[size - 1];
-<         items[size - 1] = temp;
-<         size = size - 1;
-<         heapify(0);
-<         temp;
-<         }
-<     function heapify(root)
-<         {
-<         var extreme;
-<         var newRoot;
----
-> (define (heap items op)
->     (define size (length items))
-23c6,21
-<         if (leaf?(root)) { return :ok; }
----
->     (define (leftChild x) (+ (* 2 x) 1))
->     (define (rightChild x) (+ (* 2 x) 2))
->     (define (deleteExtreme)
->         (define temp (getElement items 0))
->         (setElement! items 0 (getElement items (- size 1)))
->         (setElement! items (- size 1) temp)
->         (set! 'size (- size 1))
->         (heapify 0)
->         temp
->         )
-> 
->     (define (heapify root)
->         (define extreme nil)
->         (define newRoot nil)
-> 
->         (if (leaf? root) (return 'ok))
-25c23
-<         extreme = findExtremalChild(root);
----
->         (set! 'extreme (findExtremalChild root))
-27c25
-<         if (extreme == items[root]) { return :ok; }
----
->         (if (== extreme (getElement items root)) (return 'ok))
-29,92c27,81
-<         if (extreme == items[leftChild(root)])
-<             {
-<             newRoot = leftChild(root);
-<             }
-<         else
-<             {
-<             newRoot = rightChild(root);
-<             }
-<         items[newRoot] = items[root];
-<         items[root] = extreme;
-<         heapify(newRoot);
-<         }
-<     function findExtremalChild(root)
-<         {
-<         var extreme;
-< 
-<         extreme = extremal(op,items[root],items[leftChild(root)]);
-< 
-<         if (rightChild(root) >= size)
-<             {
-<             extreme;
-<             }
-<         else
-<             {
-<             extremal(op,extreme,items[rightChild(root)]);
-<             }
-<         }
-<     function build-heap()
-<         {
-<         var i;
-< 
-<         for (i = size - 1, i >= 0, i = i - 1)
-<             {
-<             heapify(i);
-<             }
-<         }
-< 
-<     function leaf?(x)
-<         {
-<         leftChild(x) >= size;
-<         }
-< 
-<     build-heap();
-<     this;
-<     }
-< 
-< function heap-sort(items,op)
-<     {
-<     var i;
-<     var h;
-< 
-<     h = heap(items,op);
-< 
-<     while (h . size > 0)
-<         {
-<         print(h . deleteMin());
-<         if (h . size > 0,print(" "));
-<         }
-<     }
-< 
-< function extremal(op,a,b)
-<     {
-<     if (a op b,a,b);
-<     }
----
->         (if (== extreme (getElement items (leftChild root)))
->             (set! 'newRoot (leftChild root))
->             (set! 'newRoot (rightChild root))
->             )
-> 
->         (setElement! items newRoot (getElement items root))
->         (setElement! items root extreme)
->         (heapify newRoot)
->         )
-> 
->     (define (findExtremalChild root)
->         (define extreme nil)
->         (set! 'extreme 
->             (extremal op
->                 (getElement items root)
->                 (getElement items (leftChild root))))
-> 
->         (if (>= (rightChild root) size)
->             extreme
->             (extremal op extreme (getElement items (rightChild root)))
->             )
->         )
-> 
->     (define (build-heap)
->         (define i nil)
->         (for (set! 'i (- size 1)) (>= i 0) (set! 'i (- i 1))
->             (println "heapifying element " i)
->             (heapify i)
->             (println "element " i " has been heapified")
->             )
->         )
-> 
->     (define (leaf? x) (>= (leftChild x) size))
-> 
->     (println "about to build-heap...")
->     (build-heap)
->     this
->     )
-> 
-> (define (heap-sort items op)
->     (define i nil)
->     (define h nil)
-> 
->     (set! 'h (heap items op))
-> 
->     (while (> (get 'size h) 0)
->         (print ((get 'deleteExtreme h)))
->         (if (> (get 'size h) 0) (print " "))
->         )
->     (println "\n")
->     )
-> 
-> (define (extremal op a b)
->     (if (op a b) a b)
->     )
-94c83
-< var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
----
-> (define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
-96,97c85
-< heap-sort(a,>);
-< println("\n");
----
-> (heap-sort a >)
-99,100c87,88
-< inspect(a);
-< inspect(extremal . parameters);
----
-> (inspect a)
-> (inspect (get 'parameters extremal))
-102,105c90,92
-< 88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
-< 
-< a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
-< extremal . parameters is (op,a,b)
----
-> SYNTAX ERROR: :syntaxError
-> heapsort.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-> error occurred prior to: )[END OF LINE]
-------------------------------------------
-hide.s
-------------------------------------------
-------------------------------------------
-hook2.s
-------------------------------------------
-------------------------------------------
-hook.s
-------------------------------------------
-14a15,16
-> EVALUATION ERROR: :undefinedVariable
-> hook.s,line 9: variable println is undefined
-17d18
-< hello, world!
-------------------------------------------
-if2.s
-------------------------------------------
-------------------------------------------
-if3.s
-------------------------------------------
-------------------------------------------
-if4.s
-------------------------------------------
-------------------------------------------
-if5.s
-------------------------------------------
-------------------------------------------
-if.s
-------------------------------------------
-------------------------------------------
-inherit.s
-------------------------------------------
-0a1,58
-> ; Java style inheritance in three functions (really two, super is not needed)
-> ; linear time
-> 
-> (include "reflection.s")
-> 
-> (define (resetClosures static obj)
->     (define (update current rest)
->         (if (closure? current) (set! 'context static current))
->         (if (neq? rest nil) (update (car rest) (cdr rest)))
->         )
->     (define values (locals obj))
->     ;(println "locals are " values)
->     (if (!= values nil) (update (car values) (cdr values)))
->     obj
->     )
-> 
-> (define (inherit child parents reification static)
->     ;(println "inherit " (list child parents reification static) "...")
->     (if (null? parents)
->         (set! 'context static child)
->         (set! 'context
->               (inherit (resetClosures reification (car parents))
->                        (cdr parents) reification static)
->               child
->               )
->         )
->     child
->     )
-> 
-> (define (new child)
->     ;(println "new...")
->     (define (chain x) (if (null? x) nil (cons x (chain (get 'parent x)))))
->     (inherit child (chain (get 'parent child)) child (get 'context child))
->     )
-> 
-> (define (mixin object @)
->     (inherit object @ object (get 'context object))
->     )
-> 
-> (define (super child)
->     (get 'context child)
->     )
-> 
-> (define (extend # parent)
->     (define top
->         (if (local? 'inherit-top parent) (get 'inherit-top parent) parent))
->     
->     ;(println "in extend...")
->     (addSymbol 'inherit-top top #)
->     
->     (set! 'context (get 'context #) top)
->     (set! 'context parent #)
->     #
->     )
-> ------------------------------------------
-> SYNTAX ERROR: :syntaxError
-> inherit.s,line 1: expecting END_OF_INPUT, found SEMICOLON instead
-> error occurred prior to:  Java style inheritance in three functions (really two, super is not needed)[END OF LINE]
-------------------------------------------
-lhs.s
-------------------------------------------
-31a32
-> type is SYMBOL
-------------------------------------------
-linecheck.s
-------------------------------------------
-185a186,189
-> logging file linecheck.s, line 169
-> logging file linecheck.s, line 171
-> logging file linecheck.s, line 175
-> logging file linecheck.s, line 178
-------------------------------------------
-list.s
-------------------------------------------
-------------------------------------------
-logic.s
-------------------------------------------
-------------------------------------------
-map.s
-------------------------------------------
-------------------------------------------
-matrixproblem.s
-------------------------------------------
-------------------------------------------
-object3.s
-------------------------------------------
-------------------------------------------
-object.s
-------------------------------------------
-------------------------------------------
-obj.s
-------------------------------------------
-------------------------------------------
-overlay.s
-------------------------------------------
-0a1,54
-> function stack()
->     {
->     var store = :null;
->     function pop()
->         {
->         var p = head(store);
->         store = tail(store);
->         p;
->         }
->     function push(item)
->         {
->         store = item join store;
->         item;
->         }
->     function empty?()
->         {
->         return store == :null;
->         }
->     this;
->     }
-> 
-> function stack()
->     {
->     function pop()
->         {
->         if (empty?(),throw(:stackException,"popped an empty stack"));
->         pop . prior();
->         }
->     extends(stack . prior());
->     this;
->     }
-> 
-> var s = stack();
-> 
-> pp(stack);
-> inspect(s . push(5));
-> inspect(s . pop());
-> inspect(s . pop());
-> ------------------------------------------
-> EVALUATION ERROR: :stackException
-> overlay.s,line 26: popped an empty stack
-> function stack()
->     {
->     function pop()
->         {
->         if(empty?(),throw(:stackException,"popped an empty stack"));
->         pop . prior();
->         }
->     extends(stack . prior());
->     this;
->     }
-> s . push(5) is 5
-> s . pop() is 5
-> s . pop() is <THROW 4653>
-------------------------------------------
-overload.s
-------------------------------------------
-------------------------------------------
-p1.s
-------------------------------------------
-------------------------------------------
-pp.s
-------------------------------------------
-96,97c96,97
-< <THUNK 7272>:
-<     context: <OBJECT 984>
----
-> <THUNK 10505>:
->     context: <OBJECT 1103>
-------------------------------------------
-pq.s
-------------------------------------------
-------------------------------------------
-priorityQueue.s
-------------------------------------------
-------------------------------------------
-prior.s
-------------------------------------------
-------------------------------------------
-rb.s
-------------------------------------------
-------------------------------------------
-recur.s
-------------------------------------------
-------------------------------------------
-recursion.s
-------------------------------------------
-------------------------------------------
-reflection.s
-------------------------------------------
-0a1,45
-> (define (cddddr x) (cdr (cdr (cdr (cdr x)))))
-> 
-> (define (class x) (get 'label x))
-> 
-> (define (closure? x)
->     (and (and (pair? x) (eq? (car x) 'object)) (eq? (class x) 'closure))
->     )
-> 
-> (define (object? x)
->     (and (pair? x) (eq? (car x) 'object))
->     )
-> 
-> (define (local? id env)
->     (member? id (car (cdr env)))
->     )
-> 
-> (define (defined? id env)
->     (define result (catch (get id env)))
->     (!= (type result) 'ERROR)
->     )
-> 
-> (define (locals env)
->     (cddddr (car (cdr (cdr env))))
->     )
-> 
-> (define (. obj $field) (get $field obj))
-> 
-> (define (member? x items)
->     (cond
->         ((null? items)
->             #f
->             )
->         ((eq? x (car items))
->             #t
->             )
->         (else
->             (member? x (cdr items))
->             )
->         )
->     )
-> 
-> ------------------------------------------
-> SYNTAX ERROR: :syntaxError
-> reflection.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-> error occurred prior to:  (cdr (cdr (cdr (cdr x)))))[END OF LINE]
-------------------------------------------
-reflect.s
-------------------------------------------
-------------------------------------------
-reify.s
-------------------------------------------
-------------------------------------------
-return3.s
-------------------------------------------
-43c43
-< r is <ERROR 5300>
----
-> r is <ERROR 10700>
-------------------------------------------
-return.s
-------------------------------------------
-1,10c1,9
-< function f()
-<     {
-<     var x;
-<     print("entering f\n");
-<     x = {
-<         print("entering block\n");
-<         return 3;
-<         print("leaving block (this should not be displayed)\n");
-<         5;
-<         };
----
-> (define (f)
->     (define x)
->     (println "entering f...")
->     (if #t
->         (print("entering block")
->         //(return 3)
->         (println "leaving block (this should not be displayed)")
->         5
->         }
-11a11,12
->     //return 22;
->     print("really leaving f (this should not be displayed)\n");
-14a16
-> var z = 0;
-16c18,20
-< print("f() returns ",f(),"\n");
----
-> z = f();
-> print("f() returns ",z,"\n");
-> println("done");
-18,21c22,24
-< f() should return 3
-< entering f
-< entering block
-< f() returns 3
----
-> SYNTAX ERROR: :syntaxError
-> return.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
-> error occurred prior to: define x)[END OF LINE]
-------------------------------------------
-reverse.s
-------------------------------------------
-------------------------------------------
-right.s
-------------------------------------------
-------------------------------------------
-scam.s
-------------------------------------------
-0a1,39
-> (define (head x) (car x))
-> (define (tail x) (cdr x))
-> (define (join x,y) (cons x y))
-> 
-> (define (for # init $test $increment $)
->     (while (eval $test #)
->         (evalList $ #)
->         (eval $increment #)
->         )
->     )
-> 
-> (define (for-each # $indexVar items $)
->     (define result false)
->     (while (!= items nil)
->         (set! $indexVar (car items) #)
->         (set! 'result (evalList $ #))
->         (set! 'items (cdr items))
->         )
->     result
->     )
-> 
-> (define (+= # $v value) (set! $v (+ (eval $v #) value) #))
-> (define (-= # $v value) (set! $v (- (eval $v #) value) #))
-> (define (*= # $v value) (set! $v (* (eval $v #) value) #))
-> (define (/= # $v value) (set! $v (/ (eval $v #) value) #))
-> 
-> ; object-related functions
-> 
-> (define old-type type)
-> 
-> (define (type x)
->     (if (== (old-type x) 'object) (get 'label x) x)
->     )
-> 
-> (define (. obj $field) (get $field obj))
-> ------------------------------------------
-> SYNTAX ERROR: :syntaxError
-> scam.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-> error occurred prior to:  (car x))[END OF LINE]
-------------------------------------------
-sine.s
-------------------------------------------
-------------------------------------------
-stack2.s
-------------------------------------------
-------------------------------------------
-stack.s
-------------------------------------------
-------------------------------------------
-stream.s
-------------------------------------------
-------------------------------------------
-subset.s
-------------------------------------------
-------------------------------------------
-super.s
-------------------------------------------
-------------------------------------------
-swap.s
-------------------------------------------
-------------------------------------------
-symbol2.s
-------------------------------------------
-27c27
-< thunk is <THUNK 3237>
----
-> thunk is <THUNK 4222>
-31,32c31,32
-< <THUNK 3237>:
-<     context: <OBJECT 966>
----
-> <THUNK 4222>:
->     context: <OBJECT 1103>
-38,39c38,39
-< <THUNK 3237>:
-<     context: <OBJECT 966>
----
-> <THUNK 4222>:
->     context: <OBJECT 1103>
-------------------------------------------
-symbol.s
-------------------------------------------
-38a39
-> type is SYMBOL
-39a41
-> type is SYMBOL
-------------------------------------------
-tailassign.s
-------------------------------------------
-------------------------------------------
-throw.s
-------------------------------------------
-------------------------------------------
-toString.s
-------------------------------------------
-------------------------------------------
-trace.s
-------------------------------------------
-------------------------------------------
-tree2.s
-------------------------------------------
-------------------------------------------
-tree3.s
-------------------------------------------
-------------------------------------------
-tree.s
-------------------------------------------
-------------------------------------------
-try.s
-------------------------------------------
-------------------------------------------
-tyro2.s
-------------------------------------------
-------------------------------------------
-tyro.s
-------------------------------------------
-------------------------------------------
-uninit.s
-------------------------------------------
-------------------------------------------
-variadic.s
-------------------------------------------
-------------------------------------------
-variation2.s
-------------------------------------------
-------------------------------------------
-variation3.s
-------------------------------------------
-------------------------------------------
-variation.s
-------------------------------------------
-------------------------------------------
-virtual2.s
-------------------------------------------
-------------------------------------------
-virtual.s
-------------------------------------------
-------------------------------------------
-while2.s
-------------------------------------------
-------------------------------------------
-while3.s
-------------------------------------------
-------------------------------------------
-while-else.s
-------------------------------------------
-------------------------------------------
-while.s
-------------------------------------------
-------------------------------------------
-wire.s
-------------------------------------------
-------------------------------------------
-with.s
-------------------------------------------
-------------------------------------------
-x.s
-------------------------------------------
-------------------------------------------
-z.s
-------------------------------------------
-------------------------------------------
-zsieve.s
-------------------------------------------
+> EXCEPTION: undefinedVariable
+> file extension.s,line 1: variable function is undefined
 ------------------------------------------

@@ -32,7 +32,5 @@ println("obj . wow() is ", obj . wow());
 println("obj . yow() is ", obj . yow());
 println("obj . zow() is ", obj . zow());
 ------------------------------------------
-wow() is wow, wow, wow!
-obj . wow() is 16
-obj . yow() is 256
-obj . zow() is 65536
+EXCEPTION: undefinedVariable
+file extend.s,line 1: variable function is undefined

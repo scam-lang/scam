@@ -2,6 +2,4 @@
 
 (println (bindings common))
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-common2.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-error occurred prior to: )[END OF LINE]
+((label environment) (context <object 7749>) (level 0) (constructor nil) (this <object 7814>) (count 0))

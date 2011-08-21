@@ -23,10 +23,5 @@ inspect(ratio(100,0.1,g));
 inspect(ratio(100,0.01,g));
 inspect(ratio(100,0.001,g));
 ------------------------------------------
-ratio(40,0.0100000000,h) is 0.5000000000
-ratio(40,0.0001000000,h) is 0.5000000000
-ratio(20,0.0001000000,h) is 0.5000000000
-ratio(100,1,g) is 201
-ratio(100,0.1000000000,g) is 200.10000000
-ratio(100,0.0100000000,g) is 200.01000000
-ratio(100,0.0010000000,g) is 200.00100000
+EXCEPTION: undefinedVariable
+file ch03.s,line 1: variable function is undefined

@@ -183,13 +183,14 @@ isLessThan(int args)
     if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
+    args = cdr(args);
 
     result = 1;
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
@@ -210,7 +211,7 @@ isLessThan(int args)
         if (!result) break;
 
         args = cdr(args);
-        a = car(args);
+        a = b;
         }
 
     result = scamBoolean(result);
@@ -236,16 +237,17 @@ isLessThanOrEqualTo(int args)
     if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
     result = 1;
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
@@ -266,7 +268,7 @@ isLessThanOrEqualTo(int args)
         if (!result) break;
 
         args = cdr(args);
-        a = car(args);
+        a = b;
         }
 
     result = scamBoolean(result);
@@ -292,16 +294,17 @@ isNumericEqualTo(int args)
     if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
     result = 1;
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
@@ -322,7 +325,7 @@ isNumericEqualTo(int args)
         if (!result) break;
 
         args = cdr(args);
-        a = car(args);
+        a = b;
         }
 
     result = scamBoolean(result);
@@ -348,16 +351,17 @@ isGreaterThan(int args)
     if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
     result = 1;
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
@@ -378,7 +382,7 @@ isGreaterThan(int args)
         if (!result) break;
 
         args = cdr(args);
-        a = car(args);
+        a = b;
         }
 
     result = scamBoolean(result);
@@ -405,16 +409,17 @@ isGreaterThanOrEqualTo(int args)
     if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
     result = 1;
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
@@ -435,7 +440,7 @@ isGreaterThanOrEqualTo(int args)
         if (!result) break;
 
         args = cdr(args);
-        a = car(args);
+        a = b;
         }
 
     result = scamBoolean(result);
@@ -461,16 +466,17 @@ isEq(int args)
     if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
     result = 1;
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
  
         if (type(a) != type(b))
@@ -487,7 +493,7 @@ isEq(int args)
         if (!result) break;
 
         args = cdr(args);
-        a = car(args);
+        a = b;
         }
 
     result = scamBoolean(result);
@@ -513,16 +519,17 @@ isNotEq(int args)
     if (cdr(args) == 0) return scamBoolean(1);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
     result = 1;
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
  
         if (type(a) != type(b))
@@ -539,7 +546,7 @@ isNotEq(int args)
         if (!result) break;
 
         args = cdr(args);
-        a = car(args);
+        a = b;
         }
 
     result = scamBoolean(result);
@@ -563,16 +570,15 @@ plus(int args)
     if (args == 0) return newInteger(0);
 
     a = car(args);
-
-
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
-    while (cdr(args) != 0)
+    while (args != 0)
         {
         aType = type(a);
-        b = cadr(args);
+        b = car(args);
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
@@ -594,7 +600,6 @@ plus(int args)
         line(a) = li;
 
         args = cdr(args);
-        a = car(args);
         }
 
     return a;
@@ -643,7 +648,6 @@ minus(int args)
         line(a) = li;
 
         args = cdr(args);
-        a = car(args);
         }
 
     return a;
@@ -692,7 +696,6 @@ times(int args)
         line(a) = li;
 
         args = cdr(args);
-        a = car(args);
         }
 
     return a;
@@ -741,7 +744,6 @@ divides(int args)
         line(a) = li;
 
         args = cdr(args);
-        a = car(args);
         }
 
     return a;
@@ -784,7 +786,6 @@ mod(int args)
         line(a) = li;
 
         args = cdr(args);
-        a = car(args);
         }
 
     return a;
@@ -1658,6 +1659,28 @@ cclose(int args)
     }
 
 static int
+checkPortForReading(FILE *fp,char *item,int args)
+    {
+    if (fp == 0)
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read %s from a closed port",
+            SymbolTable[file(args)],line(args),
+            item
+            );
+
+    if (feof(fp))
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "attempt to read %s at end of input",
+            SymbolTable[file(args)],line(args),
+            item
+            );
+
+    return 0;
+    }
+
+static int
 readChar(int args)
     {
     int ch;
@@ -1666,19 +1689,7 @@ readChar(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a character from a closed port",
-            SymbolTable[file(args)],line(args)
-            );
-
-    if (feof(fp))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a character at end of input",
-            SymbolTable[file(args)],line(args)
-            );
+    rethrow(checkPortForReading(fp,"a character",args),0);
 
     ch = fgetc(fp);
 
@@ -1715,19 +1726,7 @@ readInt(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read an integer from a closed port",
-            SymbolTable[file(args)],line(args)
-            );
-
-    if (feof(fp))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read an integer at end of input",
-            SymbolTable[file(args)],line(args)
-            );
+    rethrow(checkPortForReading(fp,"an integer",args),0);
 
     i = 0;
     fscanf(fp," %d",&i);
@@ -1742,19 +1741,7 @@ readReal(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a real from a closed port",
-            SymbolTable[file(args)],line(args)
-            );
-
-    if (feof(fp))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a real at end of input",
-            SymbolTable[file(args)],line(args)
-            );
+    rethrow(checkPortForReading(fp,"a real",args),0);
 
     r = 0;
     fscanf(fp," %lf",&r);
@@ -1773,19 +1760,7 @@ readString(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a string from a closed port",
-            SymbolTable[file(args)],line(args)
-            );
-
-    if (feof(fp))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a string at end of input",
-            SymbolTable[file(args)],line(args)
-            );
+    rethrow(checkPortForReading(fp,"a string",args),0);
 
     skipWhiteSpace(fp);
 
@@ -1865,19 +1840,7 @@ readToken(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a token from a closed port",
-            SymbolTable[file(args)],line(args)
-            );
-
-    if (feof(fp))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read a token at end of input",
-            SymbolTable[file(args)],line(args)
-            );
+    rethrow(checkPortForReading(fp,"a token",args),0);
 
     skipWhiteSpace(fp);
 
@@ -1918,16 +1881,15 @@ readWhile(int args)
     if (type(a) != STRING)
         {
         return throw(exceptionSymbol,
-            "readWhile argument should be STRING, not type %s",type(a));
+            "file %s,line %d: "
+            "readWhile argument should be STRING, not type %s",
+            SymbolTable[file(args)],line(args),
+            type(a));
         }
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read characters from a closed port");
-
-    if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read characters at end of input");
+    rethrow(checkPortForReading(fp,"characters",args),0);
 
     cellStringTr(target,sizeof(target),a);
 
@@ -1936,7 +1898,11 @@ readWhile(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,"attempt to read a very long token failed");
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to read a very long token failed",
+                SymbolTable[file(args)],line(args)
+                );
         }
 
     buffer[index] = '\0';
@@ -1964,16 +1930,15 @@ readUntil(int args)
     if (type(a) != STRING)
         {
         return throw(exceptionSymbol,
-            "readWhile argument should be STRING, not type %s",type(a));
+            "file %s,line %d: "
+            "readWhile argument should be STRING, not type %s",
+            SymbolTable[file(args)],line(args),
+            type(a));
         }
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read characters from a closed port");
-
-    if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read characters at end of input");
+    rethrow(checkPortForReading(fp,"characters",args),0);
 
     cellStringTr(target,sizeof(target),a);
 
@@ -1982,7 +1947,11 @@ readUntil(int args)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,"attempt to read a very long token failed");
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to read a very long token failed",
+                SymbolTable[file(args)],line(args)
+                );
         }
 
     buffer[index] = '\0';
@@ -2007,18 +1976,18 @@ readLine(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    if (fp == 0)
-        return throw(exceptionSymbol,"attempt to read a line from a closed port");
-
-    if (feof(fp))
-        return throw(exceptionSymbol,"attempt to read a line at end of input");
+    rethrow(checkPortForReading(fp,"a line",args),0);
 
     index = 0;
     while ((ch = fgetc(fp)) && ch != EOF && ch != '\n')
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,"attempt to read a very long line failed");
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to read a very long line failed",
+                SymbolTable[file(args)],line(args)
+                );
         }
 
     buffer[index] = '\0';
@@ -2053,7 +2022,11 @@ oopen(int args)
             char buffer[512];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"r");
             if (fp == 0)
-                return throw(exceptionSymbol,"file %s cannot be opened for reading",buffer);
+                return throw(exceptionSymbol,
+                    "file %s,line %d: "
+                    "file %s cannot be opened for reading",
+                    SymbolTable[file(args)],line(args),
+                    buffer);
             result = addOpenPort(fp,inputPortSymbol,file(args),line(args));
             }
         else if (ival(mode) == writeIndex)
@@ -2062,7 +2035,11 @@ oopen(int args)
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"w");
             //printf("buffer is %s\n",buffer);
             if (fp == 0)
-                return throw(exceptionSymbol,"file %s cannot be opened for writing",buffer);
+                return throw(exceptionSymbol,
+                    "file %s,line %d: "
+                    "file %s cannot be opened for writing",
+                    SymbolTable[file(args)],line(args),
+                    buffer);
             //printf("file opened successfully\n");
             result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
             }
@@ -2071,20 +2048,30 @@ oopen(int args)
             char buffer[256];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"a");
             if (fp == 0)
-                return throw(exceptionSymbol,"file %s cannot be opened for appending",buffer);
+                return throw(exceptionSymbol,
+                    "file %s,line %d: "
+                    "file %s cannot be opened for appending",
+                    SymbolTable[file(args)],line(args),
+                    buffer);
             result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
             }
         else 
             {
-            return throw(exceptionSymbol,"unknown open mode :%s, "
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "%s is an unknown mode "
                 "(should be 'read, 'write, or 'append)",
+                SymbolTable[file(args)],line(args),
                 SymbolTable[ival(mode)]);
             }
         }
     else
         {
-        return throw(exceptionSymbol,"unknown mode type: %s, "
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "%s is an unknown mode "
             "(should be 'read, 'write, or 'append)",
+            SymbolTable[file(args)],line(args),
             type(mode));
         }
 
@@ -2213,7 +2200,10 @@ llength(int args)
         return newInteger(size);
         }
     else
-        return throw(exceptionSymbol,"cannot take the length of type %s",
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "cannot take the length of type %s",
+            SymbolTable[file(args)],line(args),
             type(item));
     }
 
@@ -2229,17 +2219,28 @@ getElement(int args)
 
     if (index < 0)
         return throw(exceptionSymbol,
-            "negative indices (%d) are not allowed",index);
+            "file %s,line %d: "
+            "negative indices (%d) are not allowed",
+            SymbolTable[file(args)],line(args),
+            index);
 
     if (kind == ARRAY)
         limit = count(supply);
     else if (kind == STRING || kind == CONS)
         limit = length(supply);
     else
-        return throw(exceptionSymbol,"cannont index into type %s",kind);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "cannot index into type %s",
+            SymbolTable[file(args)],line(args),
+            kind);
 
     if (index >= limit)
-        return throw(exceptionSymbol,"index (%d) is too large",index);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "index (%d) is too large",
+            SymbolTable[file(args)],line(args),
+            index);
 
     if (type(supply) == ARRAY)
         {
@@ -2271,17 +2272,28 @@ setElement(int args)
 
     if (index < 0)
         return throw(exceptionSymbol,
-            "negative indices (%d) are not allowed",index);
+            "file %s,line %d: "
+            "negative indices (%d) are not allowed",
+            SymbolTable[file(args)],line(args),
+            index);
 
     if (kind == ARRAY)
         limit = count(supply);
     else if (kind == STRING || kind == CONS)
         limit = length(supply);
     else
-        return throw(exceptionSymbol,"cannont index into type %s",kind);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "cannot index into type %s",
+            SymbolTable[file(args)],line(args),
+            kind);
 
     if (index >= limit)
-        return throw(exceptionSymbol,"index (%d) is too large",index);
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "index (%d) is too large",
+            SymbolTable[file(args)],line(args),
+            index);
 
     if (type(supply) == ARRAY)
         {
@@ -2346,7 +2358,11 @@ tthrow(int args)
     else if (cadr(args) != 0)
         return makeThrow(item,car(cadr(args)),0);
     else
-        return throw(exceptionSymbol,"wrong number of arguments to throw");
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong number of arguments to throw",
+            SymbolTable[file(args)],line(args)
+            );
     }
 
 /* string manipulations */
@@ -2365,14 +2381,18 @@ prefix(int args)
     if (type(a) != STRING)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "prefix: first argument should be STRING, not %s",
+            SymbolTable[file(args)],line(args),
             type(a));
         }
 
     if (type(b) != INTEGER)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "prefix: second argument should be INTEGER, not %s",
+            SymbolTable[file(args)],line(args),
             type(b));
         }
 
@@ -2404,14 +2424,18 @@ suffix(int args)
     if (type(a) != STRING)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "suffix: first argument should be STRING, not %s",
+            SymbolTable[file(args)],line(args),
             type(a));
         }
 
     if (type(b) != INTEGER)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "suffix: second argument should be INTEGER, not %s",
+            SymbolTable[file(args)],line(args),
             type(b));
         }
 
@@ -2433,7 +2457,9 @@ stringWhile(int args)
     if (type(a) != STRING || type(b) != STRING)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "stringWhile: both arguments should be STRING, not %s and %s",
+            SymbolTable[file(args)],line(args),
             type(a),type(b));
         }
 
@@ -2461,7 +2487,9 @@ stringUntil(int args)
     if (type(a) != STRING || type(b) != STRING)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "stringUntil: both arguments should be STRING, not %s and %s",
+            SymbolTable[file(args)],line(args),
             type(a),type(b));
         }
 
@@ -2486,14 +2514,18 @@ substring(int args)
     if (type(needle) != STRING)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "substring: first argument is type %s (should be %s)",
+            SymbolTable[file(args)],line(args),
             type(needle),STRING);
         }
 
     if (type(haystack) != STRING)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "substring: second argument is %s (should be %s)",
+            SymbolTable[file(args)],line(args),
             type(haystack),STRING);
         }
 
@@ -2524,7 +2556,9 @@ trim(int args)
     if (type(a) != STRING)
         {
         return throw(exceptionSymbol,
+            "file %s,line %d: "
             "trim: argument is type %s (should be %s)",
+            SymbolTable[file(args)],line(args),
             type(a),STRING);
         }
 

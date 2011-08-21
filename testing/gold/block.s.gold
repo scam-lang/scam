@@ -1,5 +1,3 @@
-(include "scam.s")
-
 (define i 0)
 
 (define (for2 # init $test  $increment  $)

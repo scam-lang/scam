@@ -23,6 +23,5 @@
 (print "sum (via f): " (f 1 2 3 4) "\n")
 (print "sum (via g): " (g 1 2 3 4) "\n")
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-apply.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-error occurred prior to: [END OF LINE]
+sum (via f): 10
+sum (via g): 10

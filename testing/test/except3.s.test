@@ -17,6 +17,6 @@
 (+ (f) 0)
 'ok
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-except3.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
-error occurred prior to: + (g) 0)[END OF LINE]
+rethrowing error
+EXCEPTION: ouch
+hey!

@@ -138,7 +138,7 @@ main(int argc,char **argv,char **envv)
 
 ERROR:
     //int last;
-    debug("thrown",result);
+    //debug("thrown",result);
     debug("EXCEPTION",error_code(result));
     pp(stdout,error_value(result));
     printf("\n");

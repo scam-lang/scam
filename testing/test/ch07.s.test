@@ -114,30 +114,5 @@ var dummy = inspect(z'' . value(2));
 var dummy = inspect(z''' . value(1));
 var dummy = inspect(z''' . value(2));
 ------------------------------------------
-f' . toString() is "3x^0 + 0x^-1"
-f' . value(0) is 3.0000000000
-f' . value(5) is 3.0000000000
-f'' . toString() is "0x^-1 + 0x^-2"
-f'' . value(0) is 0
-f'' . value(5) is 0
--------------------------------------
-f . toString() is "3x + -5"
-f' . toString() is "3 + 0"
-f'' . toString() is "0 + 0"
-f'' . value(0) is 0
-f'' . value(5) is 0
--------------------------------------
-f . toString() is "3x + -5"
-f' . toString() is "3 + 0"
-f'' . toString() is "0 + 0"
-f'' . value(0) is 0
-f'' . value(5) is 0
--------------------------------------
-z . toString() is "4x^3 + 3x^2 + 2x + 1"
-z' . toString() is "12x^2 + 6x + 2"
-z'' . toString() is "24x + 6"
-z''' . toString() is "24"
-z'' . value(1) is 30.000000000
-z'' . value(2) is 54.000000000
-z''' . value(1) is 24.000000000
-z''' . value(2) is 24.000000000
+EXCEPTION: syntaxException
+file ch07.s,line 4: expecting END_OF_INPUT, found CONS instead

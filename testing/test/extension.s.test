@@ -17,6 +17,5 @@ println("z = y(); z . a is ", z . a);
 println("(y()) . a is ", (y()) . a);
 println(".(y(),a) is ", .(y(),a));
 ------------------------------------------
-z = y(); z . a is 3
-(y()) . a is 3
-.(y(),a) is 3
+EXCEPTION: undefinedVariable
+file extension.s,line 1: variable function is undefined

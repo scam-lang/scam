@@ -1,19 +1,17 @@
-    var x = 1000000;
-    var f = 1.0 / 16;
-    function smaller(amount,fraction)
-	{
-	inspect(amount * fraction);
-	}
+(define x 1000000)
+(define f (/ 1.0 16))
+(define (smaller amount fraction)
+	(inspect (* amount fraction))
+	)
 
+;/****************************************************/
 
+(define (test)
+    (println "Chapter 2 test...\n")
+    (inspect x)
+    (inspect f)
+    (print "smaller(x,f)...\n    ")
+    (smaller x f)
+    )
 
-/****************************************************/
-
-function test()
-    {
-    println("Chapter 2 test...\n");
-    print("smaller(x,f)...\n    ");
-    smaller(x,f);
-    }
-
-test();
+(test)

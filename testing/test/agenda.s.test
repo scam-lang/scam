@@ -21,3 +21,5 @@ function agenda()
     this;
     }
 ------------------------------------------
+EXCEPTION: nonFunction
+file agenda.s,line 1: attempted to call STRING as a function

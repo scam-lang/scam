@@ -23,6 +23,11 @@
 (inspect ((get 'getCommon (new (z)))))
 (inspect ((get 'getCommon (new (z)))))
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-common4.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-error occurred prior to: )[END OF LINE]
+help!
+((get (quote getCommon) (new (x)))) is 1
+help!
+((get (quote getCommon) (new (x)))) is 1
+oops!
+((get (quote getCommon) (new (z)))) is 13
+oops!
+((get (quote getCommon) (new (z)))) is 14

@@ -93,7 +93,7 @@ function mv(m,v)
     map(function (r) { r dot-product v; },m);
     }
 ["pp.s"]
-<THUNK 10505>:
+<THUNK 10816>:
     context: <OBJECT 1103>
     code: hello + goodbye
 

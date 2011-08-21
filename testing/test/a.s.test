@@ -10,6 +10,4 @@
 
 (print "zeta of "  z  " and "  z  " is "  (a+b z z) "\n")
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-a.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-error occurred prior to: [END OF LINE]
+zeta of 10 and 10 is 400

@@ -1,5 +1,3 @@
-(include "scam.s")
-
 (define (heap items op)
     (define size (length items))
 
@@ -88,5 +86,5 @@
 (inspect (get 'parameters extremal))
 ------------------------------------------
 SYNTAX ERROR: :syntaxError
-heapsort.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-error occurred prior to: )[END OF LINE]
+heapsort.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
+error occurred prior to: define size (length items))[END OF LINE]

@@ -79,8 +79,5 @@ inspect(cc . toString()); //STRING: 4x^2 + 3x^1 + -5x^0
 inspect(dc/dx . toString());
 
 ------------------------------------------
-a . value(3) + b . value(3) is -38.000000000
-z . value(3) is -38.000000000
-t . toString() is "3x^2"
-cc . toString() is "4x^2 + 3x^1 + -5x^0"
-dc/dx . toString() is "8x^1 + 3x^0 + 0x^-1"
+EXCEPTION: syntaxException
+file ch06.s,line 32: expecting END_OF_INPUT, found CONS instead

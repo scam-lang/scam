@@ -1,9 +1,5 @@
-/*
- *
- * Chapter 1 code
- *
- */
+;
+; Chapter 1 code
+;
 
-
-println("no code in chapter");
-
+(println "no code in chapter")

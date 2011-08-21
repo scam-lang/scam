@@ -11,6 +11,3 @@
 (println "fact: fib(5) is " (fib 5))
 (println "fact: fact(5) is " (fact 5))
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-fact.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-error occurred prior to: )[END OF LINE]

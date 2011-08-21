@@ -35,6 +35,5 @@
     inspect(a . toString());
     inspect(b . toString());
 ------------------------------------------
-t . toString() is "5w^3"
-a . toString() is "15w^2"
-b . toString() is "0"
+EXCEPTION: syntaxException
+file ch08.s,line 9: expecting END_OF_INPUT, found CONS instead

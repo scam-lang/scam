@@ -36,5 +36,5 @@ println("y's common count is ", yish . common . count);
 println("x's uncommon count is ", xish . uncommon . count);
 println("y's uncommon count is ", yish . uncommon . count);
 ------------------------------------------
-EVALUATION ERROR: :undefinedVariable
-common.s,line 30: variable new is undefined
+EXCEPTION: nonFunction
+file common.s,line 1: attempted to call STRING as a function

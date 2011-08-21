@@ -102,8 +102,5 @@
     var dummy = inspect(w . toString());
     var dummy = inspect(w' . toString());
 ------------------------------------------
-t . toString() is "4x^3"
-t' . toString() is "12x^2"
-s . toString() is "x^2 + 17"
-w . toString() is "3(x^2 + 17)^2"
-w' . toString() is "6(x^2 + 17) * 2x"
+EXCEPTION: syntaxException
+file ch09.s,line 4: expecting END_OF_INPUT, found CONS instead

@@ -1,5 +1,3 @@
-(include "scam.s");
-
 (define (f x)
     (define result nil)
     (println "beginning f(" x ").")
@@ -27,6 +25,7 @@
     )
 (println (f 4))
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-except4.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-error occurred prior to: );[END OF LINE]
+beginning f(4).
+beginning g(8).
+done with f(4).
+4

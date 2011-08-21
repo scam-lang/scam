@@ -37,6 +37,9 @@
 (println "y's common count is " (get 'shared-count yish))
 (println "z's common count is " (get 'shared-count zish))
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-common5.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-error occurred prior to: )[END OF LINE]
+x's count is 0
+y's count is 1
+z's count is 2
+x's common count is 22
+y's common count is 22
+z's common count is 22
