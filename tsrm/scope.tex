@@ -1,0 +1,569 @@
+\chapter{Scope}
+\label{Scope}
+
+A {\it scope} holds the current set of variables and their values.
+In Scam, there is something called the {\it global scope}.
+The global scope holds all the values of the built-in variables
+and functions (remember, a function name is just a variable).
+
+When you enter the Scam interpreter, either by running it
+interactively or by using it to evaluate a program in
+a file, you start out in the global scope.
+As you define variables, they and their values are added
+to the global scope.
+
+This interaction adds the variable {\it x} to the global scope:
+
+\begin{verbatim}
+    >>> x = 3
+\end{verbatim}
+
+This interaction adds two more variables to the global scope:
+
+\begin{verbatim}
+    >>> y = 4
+    >>> def negate(z):
+    ...     return -z;
+    ...
+    >>>
+\end{verbatim}
+
+What are the two variables?
+\T The two variables added to the global scope are {\it y} and {\it negate}.
+\W Highlight the following line to see the answer:
+
+\W\begin{quote}
+\W {\it The two variables added to the global scope are} {\color{white} y and negate.}
+\W\end{quote}
+
+Indeed, since the name of a function is a variable and the variable {\it negate}
+is being bound to a function object, it becomes clear that
+this binding is occurring in the
+global scope, just like {\it y} being bound to 4.
+
+Scopes in Scam can be identified by their indentation level.
+The global scope holds all variables defined with an indentation
+level of zero.
+Recall that when functions are defined, the body of the function
+is indented. This implies that variables defined in the function body
+belong to a different scope and this is indeed the case.
+Thus we can identify to which scope a variable belongs by
+looking at the pattern of indentations.
+In particular,
+we can label variables as 
+either {\it local} or {\it non-local}
+with respect to a particular scope.
+Moreover, non-local variables may be {\it in scope} or
+or {\it out of scope}.
+
+\section{In Scope or Out}
+
+The indentation pattern of a program can tells us where
+variables are visible (in scope) and where they are
+not (out of scope).
+We begin by first learning to recognizing the scopes in which variables
+are defined.
+
+\subsection{The Local Variable Pattern}
+
+All variables {\it defined} at a particular
+indentation level or scope are considered
+{\it local} to that indentation level or scope.
+In Scam, if one assigns a value to a variable, that variable
+must be local to that scope.
+The only exception is if the variable was
+explicitly declared {\it global} (more on that later).
+Moreover, the formal parameters of a function definition
+belong to the scope that is identified with
+the function body. 
+So within a function body, the local variables are the formal
+parameters plus any variables defined in the function body.
+
+Let's look at an example.
+Note,
+you do not need to completely understand the examples presented in
+the rest of the chapter in order 
+to identify the local and non-local variables.
+
+\begin{verbatim}
+def f(a,b):
+    c = a + b
+    c = g(c) + X
+    d = c * c + a
+    return d * b
+\end{verbatim}
+
+In this example, we can immediately say the 
+formal parameters,
+{\it a} and {\it b},
+are local with respect to the scope of the body of function {\it f}.
+Furthermore, variables
+{\it c} and {\it d}
+are defined in the function body
+so they are local as well,
+with respect to the scope of the body of function {\it f}.
+It is rather wordy to say ``local with respect to the
+scope of the body of the function {\it f}'', so Computer Scientists
+will almost always shorten this to ``local with respect to {\it f}''
+or just ``local''
+if it is clear the discussion is about a particular function or scope.
+We will use this shortened phrasing from here on out.
+Thus {\it a}, {\it b}, {\it c}, and {\it d} are local with respect to {\it f}.
+The variable {\it f} is local to the global scope since the function
+{\it f} is defined in the global scope.
+
+\subsection{The Non-local Variable Pattern}
+
+In the previous section, we determined the local
+variables of the function.
+By the process 
+of elimination, that means the variables
+{\it g}, and {\it X} are non-local.
+The name of function itself is non-local with respect
+to its body, {\it f} is non-local as well.
+
+Another way of making this determination is
+that
+neither {\tt g} nor {\tt X} are assigned values
+in the function body. Therefore, they must be non-local.
+In addition, should a variable be explicitly declared {\it global},
+it is non-local even if it is assigned a value.
+Here again is an example:
+
+\begin{verbatim}
+def h(a,b):
+    global c
+    c = a + b
+    c = g(c) + X
+    d = c * c + a
+    return d * b
+\end{verbatim}
+
+In this example, variables {\it a}, {\it b}, and {\it d} are local with respect
+to {\it h} while {\it c}, {\it g}, and {\it X} are non-local.
+Even though {\it c} is assigned a value, the declaration:
+
+\begin{verbatim}
+    global c
+\end{verbatim}
+
+means that {\it c} belongs to a different scope (the global scope) and thus
+is non-local.
+
+\subsection{The Accessible Variable Pattern}
+
+A variable is accessible with respect to
+a particular scope if it is {\it in scope}.
+A variable is in scope if it is local or
+was defined in a scope that
+{\it encloses} the particular scope.
+Some scope
+{\it A} encloses some other scope {\it B}
+if, by moving (perhaps repeatedly) leftward from
+scope B, scope A can be reached.
+Here is example:
+
+\begin{verbatim}
+Z = 5
+
+def f(x):
+   return x + Z
+
+print(f(3))
+\end{verbatim}
+
+The variable {\it Z} is local with respect to the global scope
+and is non-local with respect to {\it f}. However, we can
+move leftward from the scope of {\it f} one indentation level and
+reach the global scope where {\it Z} is defined.
+Therefore, the global scope encloses the scope of {\it f} and
+thus {\it Z} is accessible from {\it f}.
+Indeed, the global scope encloses all other scopes and this
+is why the built-in functions are accessible at any indentation
+level.
+
+Here is another example that has two enclosing scopes:
+
+\begin{verbatim}
+X = 3
+def g(a)
+   def m(b)
+      return a + b + X + Y
+   Y = 4
+   return m(a % 2)
+
+print(g(5))
+\end{verbatim}
+
+If we look at function {\it m}, we see that there is only
+one local variable, {\it b}, and that {\it m} references three
+non-local variables,
+{\it a}, {\it X}, and {\it Y}. 
+Are these non-local variables accessible?
+Moving leftward from the body of {\it m}, we reach the body of {\it g},
+so the scope of {\it g} encloses the scope of {\it m}. The local variables
+of {\it g} are {\it a}, {\it m}, and {\it Y}, so both {\it a} and {\it Y}
+are accessible in the scope of {\it m}.
+If we move leftward again, we reach the global scope,
+so the global scope encloses the scope of {\it g}, which in turn encloses
+the scope of {\it m}. By transitivity, the global scope encloses
+the scope of {\it m}, so {\it X}, which is defined in the global scope
+is accessible to the scope of {\it m}.
+So, all the non-locals of {\it m} are accessible to {\it m}.
+
+In the next section, we explore how a variable can be
+inaccessible.
+
+\subsection{The Tinted Windows Pattern}
+
+The scope of local variables is like a car with tinted
+windows, with the variables defined within riding in
+the back seat.
+If you are outside the scope, you cannot
+peer through the car windows  and see those variables.
+You might try and buy some x-ray glasses, but they
+probably wouldn't work.
+Here is an example:
+
+\begin{verbatim}
+    z = 3
+
+    def f(a):
+        c = a + g(a)
+        return c * c
+
+    print("the value of a is",a) #x-ray!
+    f(z);
+\end{verbatim}
+
+The print statement causes an error:
+
+\begin{verbatim}
+    Traceback (most recent call last):
+      File "xray.py", line 7, in <module>
+          print("the value of a is",a) #x-ray!
+          NameError: name 'a' is not defined
+\end{verbatim}
+
+If we also tried to print the value of {\it c},
+which is a local variable of function {\it f}, at that
+same point in the program, we would get a similar error.
+
+The rule for figuring out which variables are in scope and
+which are not is:
+{\it you} {\bf cannot} {\it see into an enclosed scope}.
+Contrast this with the non-local pattern:
+{\it you} {\bf can} {\it see variables
+declared in enclosing outer scopes}.
+
+\subsection{Tinted Windows with Parallel Scopes}
+
+The tinted windows pattern also applies to parallel scopes.
+Consider this code:
+
+\begin{verbatim}
+    z = 3
+
+    def f(a):
+        return a + g(a)
+
+    def g(x):
+        # starting point 1
+        print("the value of a is",a) #x-ray!
+        return x + 1
+
+    f(z);
+\end{verbatim}
+
+Note that the global scope encloses both the scope of {\it f} and
+the scope of {\it g}. However, the scope of {\it f} does
+not enclose the scope of {\it g}. Neither does
+the scope of {\it g} enclose the scope of {\it f}.
+
+One of these functions references a variable that is not in scope.
+Can you guess which one?
+\T The function {\it g} references a  variable not in scope.
+\W Highlight the following line to see the answer:
+
+\W\begin{quote}
+\W {\it The function} {\color{white} g} {\it references variable not in scope.}
+\W\end{quote}
+
+Let's see why by first examining {\it f} to see whether or
+not its non-local references are in scope.
+The only local variable of function {\it f} is
+{\it a}. The only referenced non-local is {\it g}.
+Moving leftward from the body of {\it f}, we reach the
+global scope where where both {\it f} and {\it g} are defined.
+Therefore, {\it g}
+is visible with respect to {\it f} since it is defined in a scope
+(the global scope) that encloses {\it f}.
+
+Now to investigate {\it g}. The only local variable of
+{\it g} is {\it x}
+and the only non-local that {\it g} references is {\it a}.
+Moving outward to the global scope, we see that there is
+no variable {\it a} defined there,
+therefore the variable {\it a} is not in scope with
+respect to {\it g}.
+
+When we actually run the code,
+we get an error similar to the following when running this program:
+
+\begin{verbatim}
+    Traceback (most recent call last):
+      File "xray.py", line 11, in <module>
+        f(z);
+      File "xray.py", line 4, in f
+        return a + g(a)
+      File "xray.py", line 8, in g
+        print("the value of a is",a) #x-ray!
+    NameError: global name 'a' is not defined
+\end{verbatim}
+
+The lesson to be learned here is
+that we cannot see into
+the local scope of the body of function {\it f},
+{\it even if we are at a similar nesting level}.
+Nesting level doesn't matter. We can only see variables
+in our own scope and those in {\it enclosing} scopes.
+All other variables cannot be seen.
+
+Therefore, if you ever see a variable-not-defined error,
+you either have spelled the variable name wrong, you haven't
+yet created the variable, or you are trying to use x-ray vision
+to see somewhere you can't. 
+
+\section{Alternate terminology}
+
+Sometimes, enclosed scopes are referred to as {\it inner} scopes while
+enclosing scopes are referred to as {\it outer} scopes. In addition,
+both locals and any non-locals found in enclosing scopes are considered
+{\it visible} or {\it in scope}, while non-locals that are not
+found in an enclosing scope are considered {\it out of scope}.
+We will use all these terms in the remainder of the text book.
+
+\section{Three Scope Rules}
+
+Here are three simple rules you can use to help you
+figure out the scope of a particular variable:
+
+\begin{itemize}
+\item
+        Formal parameters belong in
+\item
+        The function name belongs out
+\item
+        You can see out but you can't see in (tinted windows).
+\end{itemize}
+
+The first rule is shorthand for the fact that formal parameters
+belong to the scope of the function body. Since the function body
+is `inside' the function definition, we can say the formal parameters
+belong in.
+
+The second rule reminds us that as we move outward from a function body,
+we find the enclosing scope holds the function definition. That is to
+say, the function name is bound to a function object in the scope
+enclosing the function body.
+
+The third rule tells us all the variables that belong to 
+ever-enclosing scopes are accessible and therefore
+can be referenced by the innermost scope. The opposite is
+not true. A variable in an enclosed scope can not be referenced
+by an enclosing scope. If you forget the directions of this
+rule, think of tinted windows. You can see out of a tinted
+window, but you can't see in.
+
+\section{Shadowing}
+
+The formal parameters of a function can be thought of
+as variable definitions that are only in effect when
+the body of the function is being evaluated. That is,
+those variables are only visible in the body and no where
+else. This is why formal parameters are considered to be
+{\it local} variable definitions, since they only have local
+effect (with the locality being
+the function body). Any direct reference to those
+particular variables outside the body of the function
+is not allowed (Recall that you can't see in).
+Consider the following interaction with
+the interpreter:
+
+\begin{verbatim}
+    >>> def square(a):
+    ...     return a * a
+    ...
+    >>>
+     
+    >>> square(4)
+    16
+     
+    >>> a
+    NameError: name 'a' is not defined
+\end{verbatim}
+
+
+In the above example, the scope of variable {\it a} is restricted
+to the body of the function {\it square}.
+Any reference to
+{\it a} other than in the context of {\it square} is invalid. Now
+consider a slightly different interaction with the
+interpreter:
+
+\begin{verbatim}
+    >>> a = 10
+    >>> def almostSquare(a):
+    ...     return a * a + b
+    ...
+    >>> b = 1
+     
+    >>> almostSquare(4)
+    17
+
+    >>> a
+    10
+\end{verbatim}
+
+In this dialog, the global scope has three
+variables added, {\it a}, {\it almostSquare} and
+{\it b}.
+In addition, the variable serving as the formal parameter
+of {\it almostSquare} has the same name as the first variable
+defined in the dialog. Moreover, the body of {\it almostSquare}
+refers to both variables {\it a} and {\it b}. To which {\it a} does
+the body of almostSquare refer? The global {\it a} or the local {\it a}?
+Although it seems confusing at first,
+the Scam interpreter has no difficulty in figuring out
+what's what. From the responses of the interpreter,
+the {\it b} in the body must refer to the variable that was
+defined with an initial value of one. This is consistent with
+our thinking, since {\it b} belongs to the enclosing scope
+and is accessible within the body of {\it almostSquare}.
+The {\it a} in the function body must refer to the
+formal parameter whose value was set to 4 by the call to
+the function (given the output of the interpreter).
+
+When a local variable has the same name as a non-local variable
+that is also in scope, the local variable is said to
+{\it shadow} the non-local version. The term shadowed refers to the fact
+that the other variable is in the shadow of the local
+variable and cannot be seen. Thus, when the
+interpreter needs the value of the variable, the value of
+the local variable is retrieved.
+It is also possible for a non-local variable to shadow
+another non-local variable. In this case, the variable
+in the nearest outer scope shadows the variable in
+the scope further away.
+
+In general, when a variable is referenced,
+Scam first looks in the local
+scope.
+If the variable is not found there,
+Scam looks in the enclosing scope.
+If the variable is not there,
+it looks in the scope enclosing the enclosing scope, 
+and so on.
+
+In the particular example,
+a reference to {\it a} is made when the body of
+{\it almostSquare} is executed. The value of {\it a}
+is immediately found in the local scope.
+When the value of {\it b} is required,
+it is not found in the local scope. The interpreter
+then searches the enclosing scope (which in this case happens
+to be the global scope).
+The global scope does hold {\it b} and its value, so a value
+of 1 is retrieved.
+
+Since {\it a} has a value of 4 and {\it b} has a value of 1, the
+value of 17 is returned by the function. Finally, the
+last interaction with the interpreter illustrates the
+fact that the initial binding of {\it a} was unaffected by the
+function call.
+
+\section{Modules}
+
+Often, we wish to use code that has already been written.
+Usually, such code contains handy functions that have
+utility for many different projects. In Scam, such
+collections of functions are known as modules.
+We can include modules into our current project with
+the {\it import} statement, which we saw in
+\link*{the chapter on functions}[Chapters~\Ref]{Functions}
+and
+\link*{the chapter on programs and files}[\Ref]{ScamPrograms}.
+
+The import statement has two forms. The first is:
+
+\begin{verbatim}
+    from ModuleX import *
+\end{verbatim}
+
+This statement imports all the definitions from ModuleX and places
+them into the global scope. At this point, those definitions
+look the same as the built-ins, but if any of those definitions
+have the same name as a built-in, the built-in is shadowed.
+
+The second form looks like this:
+
+\begin{verbatim}
+    import ModuleX
+\end{verbatim}
+
+This creates a new scope that is separate from the global scope
+(but is enclosed by the global scope).
+Suppose
+{\it ModuleX} has a definition for variable {\it a}, with a value
+of 1.
+Since {\it a} is in a scope
+enclosed by the global scope, it is inaccessible from the global
+scope (you can't see in):
+
+\begin{verbatim}
+    >>> import ModuleX
+    >>> a
+    NameError: name 'a' is not defined
+\end{verbatim}
+
+The direct reference to {\it a} failed, as expected.
+However, one can get to {\it a} and its value {\it indirectly}:
+
+\begin{verbatim}
+    >>> import ModuleX
+    >>> ModuleX . a
+    1
+\end{verbatim}
+
+This new notation is known as {\it dot} notation and is commonly
+used in object-oriented programming systems to references pieces
+of an object. For our purposes, {\it ModuleX} can be thought
+of as
+a {\it named} scope and the {\it dot} operator is used to look
+up variable {\it a} in the scope named ModuleX.
+
+This second form of import is used when the possibility that
+some of your functions or variables have the same name as
+those in the included module. Here is an example:
+
+\begin{verbatim}
+    >>> a = 0
+    >>> from ModuleX import *
+
+    >>> a
+    1
+\end{verbatim}
+
+Note that the {\it ModuleX}'s variable {\it a} has showed the previously
+defined {\it a}. With the second form of import, the two versions
+of {\it a} can each be referenced:
+
+\begin{verbatim}
+    >>> a = 0
+    >>> import ModuleX
+
+    >>> a
+    0
+    >>> ModuleX . a
+    1
+\end{verbatim}

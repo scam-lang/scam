@@ -1,0 +1,105 @@
+\documentclass{book}  
+\usepackage[usenames]{color}
+\usepackage{graphicx}
+\usepackage{hyperlatex}
+\usepackage{upquote}
+\usepackage[margin=1.0in]{geometry}
+\usepackage[compact,small]{titlesec}
+\usepackage{booktabs}
+
+\include{hypersymbols}
+
+\W\usepackage{rhxpanel}
+\W\newcommand{\HlxPanelHome}{0}
+\htmlcss{steely.css}
+\newcommand{\HlxIcons}{}
+\htmlpanelfield{Contents}{hlxcontents}
+\W\newcommand\codesize \small
+\T\newcommand\codesize \normalsize
+\W\newcommand\sf \bf
+\W\newcommand\sc \it
+
+\definecolor{CodeGreen}{rgb}{0.0,0.45,0.2}
+\W\newcommand\highlight{white}
+\T\newcommand\highlight{black}
+
+\htmldepth{2}
+\htmltitle{The Scam Reference Manual}
+\htmladdress{\xlink{lusth@cs.ua.edu}{mailto:lusth@cs.ua.edu}}
+
+\T\setlength\parskip{10 pt}
+\T\setlength\parindent{0 in}
+
+\title{The Scam Reference Manual}
+
+\author{John C. Lusth}
+
+\begin{document}
+
+\maketitle
+
+\W\htmlrule
+\W\xlink{Printable Version}{book.pdf}
+\W\htmlrule
+
+\begin{rawxml}
+<script type="text/javascript">
+
+// Google Internal Site Search script-
+// By JavaScriptKit.com (http://www.javascriptkit.com)
+// For this and over 400+ free scripts,
+// visit JavaScript Kit- http://www.javascriptkit.com/
+// This notice must stay intact for use
+
+//Enter domain of site to search.
+var domainroot="beastie.cs.ua.edu/cs150/book/"
+
+function Gsitesearch(curobj){
+curobj.q.value="site:"+domainroot+" "+curobj.qfront.value
+}
+
+</script>
+
+
+<form
+    action="http://www.google.com/search"
+    method="get" onSubmit="Gsitesearch(this)">
+
+    <p>Search the textbook: 
+    <input name="q" type="hidden" />
+    <input name="qfront" type="text" style="width: 180px" />
+    <input type="submit" value="Search" /></p>
+
+    </form>
+
+<p style="font: normal 11px Arial">This free script provided by<br />
+<a href="http://www.javascriptkit.com">JavaScript Kit</a></p>
+\end{rawxml}
+
+\tableofcontents
+\setcounter{tocdepth}{2} 
+
+\include{starting-out}
+\include{literals}
+\include{combining-literals}
+\include{precedence}
+\include{variables}
+\include{assignment}
+\include{conditionals}
+\include{functions}
+\include{programs}
+\include{io}
+\include{more-functions}
+\include{scope}
+\include{recursion}
+\include{loops}
+\include{recursion-vs-loops}
+\include{more-input}
+\include{arrays-and-lists}
+\include{sorting}
+%\include{ch19}
+%\include{ch20}
+%\include{ch21}
+%\include{ch22}
+
+\end{document}

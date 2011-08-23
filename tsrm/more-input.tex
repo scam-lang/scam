@@ -1,0 +1,405 @@
+\chapter{More on Input}
+\label{MoreOnInput}
+
+Now that we have learned how to loop, we can perform
+more sophisticated types of input.
+
+\section{Converting command line arguments en mass}
+
+Suppose all the command-line arguments are numbers that
+need to be converted from their string versions stored
+in {\it sys.argv}.
+We can use a loop and the accumulate pattern to accumulate
+the converted string elements:
+
+\begin{verbatim}
+    def convertArgsToNumbers():
+        total = []
+        # start at 1 to skip over program file name
+        for i in range(1,len(sys.argv),1):
+            num = eval(sys.argv[i])
+            total = total + [num]
+        return total
+\end{verbatim}
+
+The accumulator, total, starts out as the empty list. For each
+element of sys.argv beyond the program file name, we convert
+it and store the result in num. We then turn that number
+into a list (by enclosing it in brackets) and then add it
+to the growing list.
+
+With a program file named {\it convert.py} as follows:
+
+\begin{verbatim}
+    import sys
+
+    def main():
+        ints = convertArgsToNumbers()
+        print("original args are",sys.argv[1:])
+        print("converted args are",ints)
+
+    def convertArgsToNumbers():
+        ...
+
+    main()
+\end{verbatim}
+
+we get the following behavior:
+
+\begin{verbatim}
+   $ python convert.py 1 34 -2
+   original args are ['1', '34', '-2']
+   converted args are [1, 34, -2]
+\end{verbatim}
+
+Note the absence of quotation marks in the converted list,
+signifying that the elements are indeed numbers.
+
+\section{Reading individual items from files}
+
+Instead of reading all of the file at once using the {\it read} function,
+we can read it one item at a time. When we read an
+item at a time, we always follow this pattern:
+
+\begin{verbatim}
+    open the file
+    read the first item
+    while the read was good
+        process the item
+        read the next item
+    close the file
+\end{verbatim}
+
+In Scam, we tell if the read was good by checking the
+value of the variable that points to the value read.
+Usually, the empty string is used to indicate the
+read failed.
+
+\section*{Processing files a line at a time}
+
+Here is another version of the {\it copyFile} function from
+\link*{the chapter on input and output}[Chapter~\Ref]{InputAndOutput}.
+This version reads and writes
+one line at a time. In addition, the function returns
+the number of lines processed:
+
+\begin{verbatim}
+    def copyFile(inFile,outFile):
+        in = open(inFile,"r")
+        out = open(outFile,"w")
+        count = 0
+        line = in.readline()
+        while (line != ""):
+            out.write(line)
+            count += 1
+            line = in.readline()
+        in.close()
+        out.close()
+        return count
+\end{verbatim}
+            
+Notice we used the counting pattern.
+
+\section*{Using a Scanner}
+
+A scanner is a reading subsystem that allows you
+to read whitespace-delimited tokens from a file.
+To get a scanner for Scam, issue this command:
+
+\begin{verbatim}
+    wget beastie.cs.ua.edu/cs150/projects/scanner.py
+\end{verbatim}
+
+To use a scanner, you will need to import it into your program:
+
+\begin{verbatim}
+   from scanner import *
+\end{verbatim}
+
+Typically, a scanner is used with a loop. Suppose we wish to count the
+number of 
+short tokens (a token is a series of characters surrounded by empty space)
+in a file. Let's assume a short token is one whose length is less
+than or equal to some limit.
+Here is a loop that does that:
+
+\begin{verbatim}
+    def countShortTokens(fileName):
+        s = Scanner(fileName)              #create the scanner
+        count = 0
+        token = s.readtoken()              #read the first token
+        while token != "":                 #check if the read was good
+            if (len(token) <= SHORT_LIMIT):
+                count += 1
+            token = s.readtoken()          #read the next token
+        s.close()                          #always close the scanner when done
+        return count
+\end{verbatim}
+
+Note that the use of the scanner follows the standard reading pattern:
+opening (creating the scanner),
+making the first read, testing if the read was good, processing
+the item read (by counting it), reading the next item, and finally
+closing the file (by closing the scanner) after the loop terminates.
+Using a scanner always means performing the five steps as given
+in the comments.
+This code also incorporates the filtered-counting pattern, as expected.
+
+\section{Reading Tokens into a List}
+
+Note that the {\it countShortTokens} function is doing two things, reading
+the tokens and also counting the number of short tokens. It is said that this
+function has two {\it concerns}, reading and counting. A
+fundamental principle of Computer Science is {\it separation of
+concerns}.
+To separate the concerns, we have one function read the tokens,
+storing them into a list (reading and storing is considered to
+be a single concern).
+We then have another function count the tokens. Thus, we will
+have separated the two concerns into separate functions, each
+with its own concern.
+Here is the reading (and storing) function, which implements
+the accumulation pattern:
+
+\begin{verbatim}
+    def readTokens(fileName):
+        s = Scanner(fileName)              #create the scanner
+        items = []
+        token = s.readtoken()              #read the first token
+        while token != "":                 #check if the read was good
+            items = items + [token]
+            token = s.readtoken()          #read the next token
+        s.close()                          #always close the scanner when done
+        return items
+\end{verbatim}
+
+Next, we implement the filtered-counting function. Instead of passing
+the file name, as before, we pass the list of tokens that
+were read:
+
+\begin{verbatim}
+    def  countTokens(items):
+        count = 0
+        for i in range(0,len(items),1)
+            if (len(items[i]) <= SHORT_LIMIT):
+                count += 1
+        return count
+\end{verbatim}
+
+Each function is now simpler than the original function. This makes
+it easier to fix any errors in a function since you can concentrate
+on the single concern implemented by that function.
+
+\section{Reading Records into a List}
+
+Often, data in a file is organized as {\it records}, where
+a record is just a collection of consecutive tokens.
+Each token in a record is known as a {\it field}.
+Suppose every four tokens in a file comprises a record:
+
+\begin{verbatim}
+    Smith    President 32  87000
+    Jones    Assistant 15  99000
+    Thompson    Hacker  2 147000
+\end{verbatim}
+
+Typically, we define a function to read one collection of tokens
+at a time.
+Here is a function that reads a single record:
+
+\begin{verbatim}
+    def readRecord(s):                   # we pass the scanner in
+        name = s.readtoken()
+        if name == "":
+            return None                  # no record, returning None
+        title = s.readtoken()
+        service = eval(s.readtoken())
+        salary = eval(s.readtoken())
+        return [name,title,service,salary]
+\end{verbatim}
+
+Note that we return either a record as a list or None if
+no record was read.
+Since years of service and salary are numbers, we
+convert them appropriately with {\it eval}.
+
+To total up all the salaries, for example, we can use an accumulation
+loop (assuming the salary data resides in a file named
+{\it salaries}).
+We do so by repeatedly calling {\it readrecord}:
+
+\begin{verbatim}
+    function totalPay(fileName):
+        s = Scanner(fileName)
+        total = 0
+        record = readRecord(s)
+        while (record != None):
+            total += record[3]
+            record = readRecord(s)
+        s.close()            
+        print("total salaries:",total)
+\end{verbatim}
+
+Note that it is the job of the caller of {\it readRecord} to
+create the scanner, repeatedly send the scanner to
+{\it readRecord}, and close
+the scanner when done.
+Also note that we tell if the read was good by checking
+to see if {\it readRecord} return {\tt None}.
+
+The above function has two stylistic flaws. It uses those
+magic numbers we read about in 
+\link*{the chapter on assignment}[Chapter~\Ref]{Assignment}.
+It is not clear from the code that the field at index
+three is the salary.
+To make the code more readable, we can set up some ``constants''
+in the global scope (so that they will be visible everywhere):
+The second issue is that
+that the function has two concerns (reading and accumulating).
+We will fix the magic number problem first.
+
+\begin{verbatim}
+    NAME = 0
+    TITLE = 1
+    SERVICE = 2
+    SALARY = 3
+\end{verbatim}
+
+Our accumulation loop now becomes:
+
+\begin{verbatim}
+    total = 0
+    record = readRecord(s)
+    while record != None:
+        total += record[SALARY]
+        record = readRecord(s)
+\end{verbatim}
+
+We can also rewrite our {\it readRecord} function so
+that it only needs to know the number of fields:
+
+\begin{verbatim}
+    def readRecord(s):                   # we pass the scanner in
+        name = s.readtoken()
+        if name == "":
+            return None                  # no record, returning None
+        title = s.readtoken()
+        service = eval(s.readtoken())
+        salary = eval(s.readtoken())
+
+        # create an empty record
+
+        result = [0,0,0,0]               
+
+        # fill out the elements
+
+        result[NAME] = name
+        result[TITLE] = title
+        result[SERVICE] = service
+        result[SALARY] = salary
+
+        return result
+\end{verbatim}
+
+Even if someone changes the constants to:
+
+\begin{verbatim}
+    NAME = 3
+    TITLE = 2
+    SERVICE = 1
+    SALARY = 0
+\end{verbatim}
+
+The code still works correctly. Now, however, the salary resides
+at index 0, but the accumulation loop is still accumulating the
+salary due to its use of the constant to access the salary.
+
+\section{Creating a List of Records}
+
+We can separate the two concerns of the {\it totalPay} function
+by having one function read the records into a list
+and having another total up the salaries.
+A list of
+records is known as a {\it table}.
+Creating the table
+is just like accumulating the salary, but instead
+we accumulate the entire record into a list:
+
+\begin{verbatim}
+    def readTable(fileName):
+        s = Scanner(fileName)
+        table = []
+        record = readRecord(s)
+        while record != None:
+            table += [record]       #brackets around record!
+            record = readRecord(s)
+        s.close()            
+\end{verbatim}
+
+Now the table holds all the records in the file.
+We must remember to enclose the record in square brackets 
+before we accumulate it into the growing table. The
+superior student will try this code without the brackets
+and ascertain the difference.
+
+The accumulation function is straightforward:
+
+\begin{verbatim}
+    def totalPay(fileName):
+        table = readTable(fileName)
+        total = 0
+        for i in range(0,len(table),1):
+            record = table[i]
+            total += record[SALARY]
+        return total
+\end{verbatim}
+
+We can simply this function by removing the temporary variable
+{\it record}:
+
+\begin{verbatim}
+    def totalPay(fileName):
+        table = readTable(fileName)
+        total = 0
+        for i in range(0,len(table),1):
+            total += table[i][SALARY]
+        return total
+\end{verbatim}
+
+Since a table is just a list, so we can walk it, accumulate
+items in each record (as we just did with salary), filter it and so on.
+
+\section{Other Scanner Methods}
+
+A scanner object has other methods for reading. They are
+
+\begin{description}
+\item[{\tt readline()}]
+    read a line from a file, like Scam's {\it readline}.
+\item[{\tt readchar()}]
+    read the next non-whitespace character
+\item[{\tt readrawchar()}]
+    read the next character, whitespace or no
+\item[{\tt readstring()}]
+    read a string - if a string is not pending, '' is returned
+\item[{\tt readint()}]
+    read an integer - if an integer is not pending, '' is returned
+\item[{\tt readfloat()}]
+    read a floating point number - if an float is not pending, '' is returned
+\end{description}
+
+You can also use a scanner to read from the keyboard. Simply
+pass an empty string as the file name:
+
+\begin{verbatim}
+    s = Scanner("")
+\end{verbatim}
+
+You can scan tokens and such from a string as well by first
+creating a keyboard scanner, and then setting the input
+to the string you wish to scan:
+
+\begin{verbatim}
+    s = Scanner("")
+    s.fromstring(str)
+\end{verbatim}

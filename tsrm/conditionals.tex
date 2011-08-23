@@ -1,0 +1,213 @@
+\chapter{Conditionals}
+\label{Conditionals}
+
+Conditionals implement decision points in a computer program.
+Suppose you have a program that performs some task on an
+image. You may well have a point in the program where you
+do one thing if the image is a JPEG and quite another
+thing if the image is a GIF file. Likely, at this point,
+your program will include a conditional expression to make
+this decision.
+
+Before learning about conditionals, it is important to
+learn about logical expressions. Such expressions are the
+core of conditionals and loops.\footnote{
+We will learn about loops in the next chapter.
+}
+
+\section{Logical expressions}
+
+A logical expression evaluates to a truth value, in essence true or
+false. For example, the expression $x > 0$
+resolves to true if {\it x} is positive
+and false if {\it x} is negative or zero. In Scam, truth is represented by
+the symbol {\tt True} and falsehood
+by the symbol {\tt False}.
+Together,
+these two symbols are known as {\it {\sc boolean}} values.
+
+One can assign truth values to variables:
+
+\begin{verbatim}
+      >>> c = -1
+      >>> z = c > 0;
+
+      >>> z
+      False
+\end{verbatim}
+
+Here, the variable {\it z} would be assigned a value of {\tt True}
+if {\it c} is positive;
+since {\it c} is negative, it is assigned a value of {\tt False}.
+
+\section{Logical operators}
+
+Scam has the following logical operators.
+ 
+\begin{tabular}{cl}
+    {\tt ==}    & equal to \\
+    {\tt !=}    & not equal to \\
+    {\tt >=}    & greater than or equal to \\
+    {\tt >}     & greater than \\
+    {\tt <}     & less than \\
+    {\tt <=}    & less than or equal to \\
+    {\tt and}   & and \\
+    {\tt or}    & or \\
+\end{tabular}
+
+The first five operators are used for comparing two things,
+while the last two operators are the glue that joins up simpler
+logical expressions into more complex ones.
+
+\section{Short circuiting}
+
+When evaluating a logical expression,
+Scam evaluates the expression from left to right and
+stops evaluating as soon as it finds out that the expression
+is definitely true or definitely false.
+For example, when encountering the expression:
+
+\begin{verbatim}
+      x != 0 and y / x > 2
+\end{verbatim}
+
+if {\it x} has a value of 0, the subexpression on the left side of the
+{\tt and}
+connective resolves to false. At this point, there is no way for the
+entire expression to be true (since both the left hand side and the right
+hand side must be true for an
+{\tt and}
+expression to be true), so the right
+hand side of the expression is not evaluated. Note that this expression
+protects against a divide-by-zero error.
+
+\section{If expressions}
+
+Scam's {\it if} expressions are used to conditionally execute code,
+depending on the truth value of what is known as the
+{\it test} expression. One version of {\it if} has a block of
+code following the test expression:
+
+Here is an example:
+
+\begin{verbatim}
+    if (name == "John"):
+        print("What a great name you have!")
+\end{verbatim}
+
+In this version, when the test expression is true ({\it i.e.}, 
+the string {\tt "John"} is bound to the variable {\it name}), 
+then the code that is indented under the {\tt if} is evaluated 
+(i.e., the compliment
+is printed). The indented code is known as a {\it block}.
+If the test expression is false, however the
+block is not evaluated.
+In this text, we will enclose the test expression in parentheses
+even though it is not required by Scam. We do that because
+some important programming languages require the parentheses
+and we want to get you into the habit.
+
+Here is another form of {\it if}:
+
+\begin{verbatim}
+    if (major == "Computer Science"):
+        print("Smart choice!")
+    else:
+        print("Ever think about changing your major?")
+\end{verbatim}
+
+In this version, {\it if} has two blocks, one following the
+test expression and one following the {\tt else} keyword.
+Note the colons that follow the test expression and the else;
+these are required by Scam.
+As before, the first block is evaluated if the test expression
+is true. If the test expression is false, however,
+the second block is evaluated instead.
+
+\section{if-elif-else chains}
+
+You can chain {\tt if} statements together, as in:
+
+\begin{verbatim}
+    if (bases == 4):
+        print("HOME RUN!!!")
+    elif (bases == 3):
+        print("Triple!!")
+    elif (bases == 2):
+        print("double!")
+    elif (bases == 1) 
+        print("single")
+    else:
+        print("out")
+\end{verbatim}
+
+The block that is eventually evaluated is
+directly underneath the first test expression
+that is true, reading from top to bottom.
+If no test expression is true, the block associated
+with the else is evaluated.
+
+What is the difference between {\tt if-elif-else}
+chains and a sequence of
+unchained {\it if}s? Consider this rewrite of the
+above code:
+
+\begin{verbatim}
+    if (bases == 4):
+        print("HOME RUN!!!");
+    if (bases == 3):
+        print("Triple!!");
+    if (bases == 2):
+        print("double!");
+    if (bases == 1):
+        print("single");
+    else:
+        print("out");
+\end{verbatim}
+
+In the second version, there are four if statements and
+the else belongs to the last if. Does this behave exactly
+the same? The answer is, it depends. Suppose the value
+of the variable {\it bases} is 0. Then both versions print:
+
+\begin{verbatim}
+    out
+\end{verbatim}
+
+However, if the value of {\it bases} is 3, for example, the first
+version prints:
+
+\begin{verbatim}
+    triple!!
+\end{verbatim}
+
+while the second version prints:
+
+\begin{verbatim}
+    triple!!
+    out
+\end{verbatim}
+
+Why the difference? In the first version, a subsequent test
+expression is evaluated {\it only} if all previous test expressions
+evaluated to false. Once a test expression evaluates to true in
+an {\tt if-elif-else} chain, the associated block is evaluated and
+no more processing of the chain is performed. Like the {\tt and} and
+{\tt or} {\sc boolean} connectives,
+an {\tt if-elif-else} chain short-circuits.
+
+In contrast, the sequences of {\tt if}s are independent; there is no
+short-circuiting. When the test expression of the first if
+fails, the test expression of the second {\tt if} succeeds
+and {\tt triple!!} is
+printed. Now the test expression of the third if is tested and
+fails as well as the test expression of the fourth if. But since
+the fourth if has an else, the {\tt else} block is evaluated and
+{\tt out}
+is printed.
+
+It is important to know when to use an {\tt if-elif-else} chain and
+when to use a sequence of independent {\tt if}s.
+If there should be only
+one outcome, then use an {\tt if-elif-else} chain. Otherwise,
+use a sequence of {\tt if}s.

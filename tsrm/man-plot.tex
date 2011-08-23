@@ -1,0 +1,151 @@
+\section{Plot}
+
+The {\it plot} library uses one linux application:
+{\it gnuplot}. A {\it plot}-based program uses {\it gnuplot}
+to generate the plot and display it.
+
+Here is a sample program that plots a simple graph:
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+     include("plot");
+     var x = array(0,1,2,3,4,5);
+     var y = array(0,1,2,3,4,5);
+     openPlot();
+     addData(x,y);
+     addPlotPoints(1,2);
+     showPlot();
+     closePlot();     
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+The first line of the  program causes the {\it plot} library to be 
+loaded. The second and third lines alloate arrays to be used. The fourth 
+line opens a plot file named {\it data}. The fifth line adds the arrays 
+to the data file. The sixth writes to the data file that column 1 should 
+be plotted versus column 2. The seventh line displays the plot while the 
+eigth closes the file.
+
+The next section, in man page format, describes the public interface of 
+the {\it plot} library.
+
+\subsection*{The Sway Plot Library}
+
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+
+			Sway Plot Library
+
+
+
+NAME
+	plot - a Sway plotting library
+
+SYNOPSIS
+	include("plot");
+
+DESCRIPTION
+	plot is a library for Sway and is based upon the gnuplot 
+	package. There are functions for most of the gnuplot primitives 
+	as well as functions for higher abstraction and data manipulation. 
+	There is also a degree of data control not available in gnuplot.
+
+    TOP-LEVEL FUNCTIONS
+	There are three top-level functions. The open and close image 
+	functions are required, whereas the third is purely aesthetic.
+	
+	function plotOpen()
+		Open a basic plot file. This merely initializes all 
+		files and filenames.
+	
+	function plotClose(name)
+		Writes the image data out to the file name constructed 
+		by appending the image name with its type.
+
+	function showPlot()
+		Displays the image constructed at that point.
+
+    PLOTTING FUNCTIONS
+	In the following lines xs and ys are arrays of numbers.
+	
+	function trendPoly(xs,ys,degree,precision)
+		Plots a trendline of specified degree using xs and ys as 
+		the x and y values to be plotted. This function also 
+		produces an equation to the screen representing the 
+		computed tendline with decimal precision up to the 
+		specified precision.
+
+	function addData(xs,ys,...)
+		Adds data to the document used to plot points.
+
+	function addPlotPoints(X,Y)
+		Plots points in the data file using the columns 
+		specified. X represents the column containing the 
+		x-values and Y represents the column containing the 
+		y-values.
+
+    SETTINGS FUNCTIONS
+
+	function xlabel(name)
+		Labels the x-axis of the plot with the title name.
+
+	function ylabel(name)
+		Labels the y-axis of the plot with the title name.
+	
+	function xRange(x1,x2)
+		Sets the x-axis to range from point x1 to point x2 in 
+		automatically determined increments.	
+	
+	function yRange(y1,y2)
+		Sets the y-axis to range from point y1 to y2 in 
+		automatically determined increments.
+
+	function autoscale()
+		Automatically determines the x-axis and y-axis scaling.
+
+	function moveKey(x,y)
+		Move the key location to point (x,y) on the graph.
+
+	function removeKey()
+		Removes the key.
+	
+	function labelPoint(x,y,label)
+		Place a label titled label at point (x,y).
+
+	function removeLabels()
+		Removes all labels placed on the plot.
+
+	function logscale()
+		Converts the x and y-axis to logarithmic scales.
+
+	function xLogscale()
+		Converts the x-axis to logarithmic scale.
+		
+	function yLogscale()
+		Converts the y-axis to logarithmic scale.
+
+	function setxTics(xs)
+		Specifically places every tic at a set location along 
+		the x-axis.
+	
+	function setyTics(ys)
+		Specifically places every tic at a set location along 
+		the y-axis.
+
+	function removexTics()
+		Resets the x-axis back to its automatic scale.
+
+	function removeyTics()
+		Resets the y-axis back to its automatic scale.
+
+    AUTHOR
+		Written by James M Tacey, November, 2009.
+
+
+1.0			15 November 2009
+\end{verbatim}
+\end{codesize}
+\color{black}
+\end{document}

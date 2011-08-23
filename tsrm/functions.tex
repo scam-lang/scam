@@ -1,0 +1,329 @@
+\chapter{Functions}
+\label{Functions}
+
+Recall from 
+\link*{the chapter on assignment}[Chapter~\Ref]{Assignment}
+the series of expressions we evaluated to find
+the {\it y}-value of a point on the line:
+
+\begin{verbatim}
+    y = 5x - 3
+\end{verbatim}
+    
+First, we assigned values to the slope,
+the {\it x}-value, and the {\it y}-intercept:
+
+\begin{verbatim}
+    >>> m = 5
+    >>> x = 9  
+    >>> b = -3
+\end{verbatim}
+
+Once those variables have been assigned,
+we can compute the value of {\it y}:
+
+\begin{verbatim}
+    >>> y = m * x + b
+
+    >>> y
+    42
+\end{verbatim}
+
+Now, suppose we wished to find the {\it y}-value corresponding to
+a different {\it x}-value or, worse yet, for a different {\it x}-value
+on a different line. All the work we did would have to be
+repeated. A {\it function} is a way to encapsulate all these operations
+so we can repeat them with a minimum of effort.
+
+\section{Encapsulating a series of operations}
+
+First, we will define a not-too-useful function that
+calculates {\it y} give a slope of 5,
+a {\it y}-intercept of -3, and an
+{\it x}-value of 9 (exactly
+as above). We do this by wrapping a function around
+the sequence of operations above.
+The return value of this function is the computed {\it y} value:
+
+\begin{verbatim}
+def y():
+    m = 5
+    x = 9
+    b = -3
+    return m * x + b
+\end{verbatim}
+
+There are a few things to note. The keyword {\tt def} indicates
+that a function definition is occurring. The name of this
+particular function is {\it y}. The names of the things
+being sent to the function are given between the parentheses;
+since there is nothing between the parentheses, we don't
+need to send any information to this function when we call it.
+Together, the first line is known as the {\it function signature},
+which tells you the name of the function and how many values
+it expects to be sent when called.
+
+The stuff indented from the first line of the function definition
+is called the {\it function body} and
+is the code that will be evaluated (or executed) when the
+function is called. You must remember this: {\it the function body
+is not evaluated until the function is called}.
+
+Once the function is defined, we can find the value of {\it y} repeatedly.
+Let's assume the function was entered into the file named
+{\it line.py}.
+
+First we import the code in {\it line.py} with the from statement:
+
+\begin{verbatim}
+    >>> from line import *   # not line.py!
+\end{verbatim}
+
+This makes the python interpreter behave as if we had typed
+in the function definition residing in {\it line.py} directly into
+the interpreter. Note, we omit the {\it .py} extension in the import
+statement.
+
+After importing the {\it y} function, the next thing we do
+is call it:
+
+\begin{verbatim}
+    >>> y()
+    42
+    >>> y()
+    42
+\end{verbatim}
+    
+The parentheses after the {\it y} indicate that we wish to call
+the {\it y} function and get its value. Because we designed the
+function to take no values when called, we do not place any
+values between the parentheses.
+
+Note that when we call the {\it y} function again,
+we get the exact same answer.
+
+The {\it y} function, as written,
+is not too useful in that we cannot use it to compute
+similar things, such as the {\it y}-value for a different value of
+{\it x}.
+This is because we `hard-wired' the values of {\it b}, {\it x}, and {\it m},
+We can improve this function by passing in the value of {\it x}
+instead of hard-wiring the value to 9.
+
+\section{Passing arguments}
+
+A hallmark of a good function is that it lets you compute
+more than one thing. We can modify our {\it y} function to {\it take in} the
+value of {\it x} in which we are interested.
+In this way,
+we can compute more than one value of {\it y}.
+We do this by {\it passing} in 
+an {\it argument}\footnote{
+The information that is passed into a function is collectively
+known as {\it arguments}.}, in this case, the value of {\it x}.
+
+\begin{verbatim}
+def y(x):
+    slope = 5
+    intercept = -3
+    return slope * x + intercept
+\end{verbatim}
+
+Note that we have moved {\it x} from the body of the function
+to between the parentheses. We have also refrained from
+giving it a value since its value is to be sent to the function
+when the function is called.
+What we have done is to {\it parameterize} the function to make it more
+general and more useful. The variable {\it x} is now called a
+{\it formal parameter} since it sits between the parentheses in
+the first line of the function definition.
+
+Now we can compute {\it y} for an infinite number of {\it x}'s:
+
+\begin{verbatim}
+    >>> from line.py import *
+    >>> y(9)
+    42
+    
+    >>> y(0)
+    -3
+    
+    >>> y(-2)
+    -13
+\end{verbatim}
+
+What if we wish to
+compute a {\it y}-value for a given {\it x} for a different
+line? One approach would be to pass in the {\it slope} and {\it intercept}
+as well as {\it x}:
+
+\begin{verbatim}
+def y(x,m,b):
+    return m * x + b
+\end{verbatim}
+
+Now we need to pass even more information to {\it y} when we call it:
+    
+\begin{verbatim}
+    >>> from line.py import *
+    >>> y(9,5,-3)
+    42
+     
+    >>> y(0,5,-3)
+    -3
+\end{verbatim}
+
+If we wish to calculate using a different line, we just pass in the
+new {\it slope} and {\it intercept} along with our value of {\it x}.
+This certainly works as intended, but is not the best way. One problem
+is that we keep on having to type in the slope and intercept even if
+we are computing {\it y}-values on the same line. Anytime you
+find yourself doing the same tedious thing over and over,
+be assured that
+someone has thought of a way to avoid that particular tedium.
+If so, how do we
+customize our function so that we only have to enter the slope
+and intercept once per particular line? We will explore
+one way for doing this. In reading further,
+it is not important if you understand all that is going on.
+What is important is that you know you can use functions
+to run similar code over and over again.
+
+\section{Creating functions on the fly}
+
+Since creating functions is hard work (lots of typing) and
+Computer Scientists avoid unnecessary work like the plague, somebody
+early on got the idea of writing a function that itself 
+creates functions! Brilliant! We can do this for our line problem.
+We will tell our creative function to create a {\it y} function
+for a particular slope and intercept! While we are at it,
+let's change the variable names {\it m} and {\it b} to {\it slope}
+and {\it intercept}, respectively:
+
+\begin{verbatim}
+def makeLine(slope,intercept):
+    def y(x):
+        return slope * x + intercept
+    return y    # the value of y is returned, y is NOT CALLED!
+\end{verbatim}
+
+The {\it makeLine} function creates a {\it y} function
+and then returns it. Note that this returned function {\it y} takes
+one value when called, the value of {\it x}.
+
+So our creative {\it makeLine} function
+simply defines a {\it y} function and then
+returns it. Now we can create a bunch of different lines:
+
+\begin{verbatim}
+    >>> from line.py import *
+    >>> a = makeLine(5,-3)
+    >>> b = makeLine(6,2)
+
+    >>> a(9)
+    42
+    
+    >>> b(9)
+    56
+
+    >>> a(9)
+    42
+\end{verbatim}
+
+Notice how lines {\it a} and {\it b} remember
+the slope and intercept supplied
+when they were created.\footnote{
+The local function {\it y} does not really remember these values,
+but for an introductory course, this is a good enough explanation.}.
+While this is decidedly cool, the problem is many languages (C, C++, and Java
+included\footnote{
+C++ and Java, as well as Scam, give you another approach, {\it objects}.
+We will not go into objects in this course, but
+you will learn all about them in your next programming course.})
+do not allow you to define functions that create other functions.
+Fortunately, Scam does allow this.
+
+While this might seem a little mind-boggling, don't worry. The
+things you should take away from this are:
+
+\begin{itemize}
+\item
+    functions encapsulate calculations
+\item
+    functions can be parameterized
+\item
+    functions can be called
+\item
+    functions return values
+\end{itemize}
+
+\section{The Function and Procedure Patterns}
+
+When a function calculates (or obtains) a value and returns it, we say
+that it implements the {\it function} pattern. If a function
+does not have a return value, we say it implements the
+{\it procedure} pattern.
+
+Here is an example of the {\it function} pattern:
+
+\begin{verbatim}
+def square(x):
+    return x * x
+\end{verbatim}
+
+This function takes a value, stores it in {\it x}, computes the square
+of {\it x} and return the result of the computation.
+
+Here is an example of the {\it procedure} pattern:
+
+\begin{verbatim}
+def greeting(name):
+    print("hello,",name)
+\end{verbatim}
+
+Almost always,
+a function that implements the {\it function} pattern does not print
+anything, while a function that implements the procedure
+pattern often does\footnote{Many times, the printing is
+done to a file, rather than  the console.}.
+A common function that implements the procedure pattern
+is the {\it main} function.
+A common mistake made by beginning programmers is
+to print a calculated value rather than to return it. So, when defining
+a function, you should ask yourself, should I implement the function
+pattern or the procedure pattern?
+
+Most of the function you implement in this class follow the function
+pattern.
+
+Another common mistake is to inadvertently implement a {\it procedure} pattern
+when a {\it function} pattern is called for. This happens when the {\it return}
+keyword is omitted.
+
+\begin{verbatim}
+def psquare(x):
+    x * x
+\end{verbatim}
+
+While the above code looks like the function pattern, it is actually
+a procedure pattern. What happens is the value $x * x$ is calculated,
+but since it is not returned, the newly calculated value is thrown
+away (remember the {\it throw-away} pattern?).
+
+Calling this kind of function yields a surprising result:
+
+\begin{verbatim}
+    >>> psquare(4)
+    >>>
+
+    >>>print(psquare(6))
+    None
+\end{verbatim}
+
+When you do not specify a return value, but you use
+the return value anyway (as in the printing example),
+the return value is set to {\it None}.
+
+Usually, the procedure pattern causes some side-effect to happen
+(like printing). A procedure like {\it psquare}, which has no side-effect
+is a useless function.

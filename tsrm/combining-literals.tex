@@ -1,0 +1,286 @@
+\chapter{Combining Literals}
+\label{CombiningLiterals}
+
+Like the literals themselves, combinations of literals are also
+expressions. For example, suppose you have forgotten your times table
+and aren't quite sure whether 8 times 7 is 54 or 56. We can ask Scam,
+presenting the interpreter with the expression:
+
+\begin{verbatim}
+    >>> 8 * 7
+    56
+    >>> 8*7
+    56
+\end{verbatim}
+
+As before, the semicolon signals the end of the expression. The
+multiplication sign * is known as an {\it operator}, as it {\it operates} on the 8
+and the 7, producing an equivalent literal value. The 8 and the 7 are
+known as {\it operands}. It seems that the actual names of various operands are
+not being taught anymore, so for nostalgia's sake, here they are. The
+operand to the left of the multiplication sign (in this case the 8) is
+known as the {\it multiplicand}. The operand to the right (in this case the 7)
+is known as the {\it multiplier}. The result is known as the {\it product}.
+
+The operands of the other basic operators
+have special names too. For addition, the left operand is known as the
+{\it augend} and the right operand is known as the {\it addend}.
+The result is known as the {\it sum}.
+For subtraction,
+the left operand is the {\it minuend}, the right the {\it subtrahend}, and
+the result as the {\it difference}.
+Finally
+for division (and I think this is still taught), the left operand is
+the {\it dividend}, the right operand is the {\it divisor}, and the 
+result is the {\it quotient}.
+
+In general, we will separate
+operators from their operands by
+spaces, tabs,
+or newlines, collectively known as {\it whitespace}.\footnote{
+Computer Scientists, when they have to write their annual reports,
+often refer to the things they are reporting on as
+{\it darkspace}. It's always good to have a lot of darkspace in
+your annual report!
+}
+It's not necessary to do so, but it  makes your code
+easier to read.
+
+Scam always takes in an expression and displays an equivalent
+literal expression ({\it e.g.}, integer or real). All Scam operators are
+binary, meaning they operate on exactly two operands. We first look at
+the numeric operators.
+
+\section{Numeric operators}
+
+If it makes sense to add two things together, you can probably do it in
+Scam using the + operator. For example:
+
+\begin{verbatim}
+    >>> 2 + 3
+    5
+    
+    >>> 1.9 + 3.1 
+    5.0
+\end{verbatim}
+    
+One can see that if one adds two integers, the result is an integer. If
+one does the same with two reals, the result is a real.
+
+You can even add strings and lists:
+
+\begin{verbatim}
+    >>> "hello" + "world"
+    'helloworld'
+
+    >>> [1, 3, 5] + [2, 4, 6]
+    [1, 3, 5, 2, 4, 6]
+\end{verbatim}
+
+The process of joining strings and lists together is known as
+{\it concatenation}.
+
+Things get more interesting when
+you add things having different types. Adding an integer and a real (in
+any order) always yields a real.
+
+\begin{verbatim}
+    >>> 2 + 3.3
+    5.3
+    
+    >>> 3.3 + 2
+    5.3
+\end{verbatim}
+    
+Adding an string to an integer
+(with an augend integer) yields an error;
+the types are not `close' enough, like they are with
+integers and reals:
+
+\begin{verbatim}
+    >>> 2 + "hello"
+    TypeError: unsupported operand types(s) for +: 'int' and 'str'
+\end{verbatim}
+
+In general, when adding two things,
+the types must match or nearly match.
+    
+You can multiply strings and lists with numbers:
+
+\begin{verbatim}
+    >>> "hello" * 3
+    'hellohellohello'
+
+    >>> [1, 2] * 3
+    [1, 2, 1, 2, 1, 2]
+\end{verbatim}
+
+Subtraction and division of numbers follow the
+same rules as addition. However, these operators, as defined,
+do not work for strings and lists.
+
+Of special note is the division operator with respect to integer
+operands. Consider evaluating the following expression:
+
+\begin{verbatim}
+    15 / 2
+\end{verbatim}
+
+If one asked the Scam interpreter to perform this task, the result
+would be 7.5, as expected. However, often we wish for just
+the quotient without the remainder. In this case, the
+quotient is 7 and the remainder is 0.5. 
+The double forward slash operator is Scam's quotient
+operator; if we ask the interpreter to  evaluate
+
+\begin{verbatim}
+    14 // 5
+\end{verbatim}
+
+the result would be 2, not 2.8. 
+Use of the quotient operator is known as {\it integer} {\it division}.
+
+The complement to integer division is the modulus operator \%. While the
+result of integer division is the quotient, the result of the modulus
+operator is the remainder. Thus
+
+\begin{verbatim}
+    14 % 5
+\end{verbatim}
+
+evaluates to 4 since 4 is left over when 5 is divided into 14. To check
+if this is true, one can ask the interpreter to evaluate:
+
+\begin{verbatim}
+    (14 // 5 * 5) + (14 % 5) == 14
+\end{verbatim}
+
+This complicated expression asks the question `is it true that the
+quotient times the divisor plus the remainder is equal to the original
+dividend?'. The Scam interpreter will respond that, indeed, it is
+true. The reason for the parentheses is delineate
+the quotient and the remainder within the addition.
+The parentheses can also be used to change the {\it precedence}
+of operators; this is
+is explained in more detail in the
+next chapter.
+
+\section{Comparing things}
+
+Remember the {\sc boolean} literals, {\tt True} and {\tt False}?
+We can use the {\sc boolean}
+comparison operators to generate such values. For example, we can ask
+if 3 is less than 4:
+
+\begin{verbatim}
+    >>> 3 < 4
+    True
+\end{verbatim}
+
+The interpreters response says that, indeed, 3 is less than 4. If it were
+not, the interpreter would respond with {\tt False}.
+Besides
+{\tt <}
+(less than),
+there are other {\sc boolean} comparison operators:
+{\tt <=}
+(less than or equal to),
+{\tt >}
+(greater than),
+{\tt >=}
+(greater than or equal to),
+{\tt ==}
+(equal to), and
+{\tt !=}
+(not equal to).
+
+Besides integers, we can compare reals with reals, strings with strings,
+and lists with lists
+using the comparison operators:
+
+\begin{verbatim}
+    >>> "apple" < "banana"
+    True
+    
+    >>> [1, 2, 3] < [1, 2, 4]
+    True
+\end{verbatim}
+    
+In general, it is illegal
+to compare integers or reals with strings.
+
+Any Scam type can be compared with any other type with the
+{\tt ==}
+and
+{\tt !=}
+comparison operators.
+If an integer is compared with a real with these
+operators, the integer is converted into a real before the comparison
+is made. In other cases, comparing different types with
+{\tt ==}
+will yield
+a value of {\tt False}. Conversely, comparing different types with
+{\tt !=}
+will yield
+{\tt True}
+(the exception, as above, being integers compared with reals).
+If the types match,
+{\tt ==}
+will yield true only if the values
+match as well. The operator
+{\tt !=}
+behaves accordingly.
+
+\section{Combining comparisons}
+
+We can combine comparisons with the {\sc boolean} logical connectives
+{\tt and} and {\tt or}:
+
+\begin{verbatim}
+    >>> 3 < 4 and 4 < 5
+    True
+    
+    >>> 3 < 4 or 4 < 5
+    True
+    
+    >>> 3 < 4 and 5 < 4
+    False
+    
+    >>> 3 < 4 or 5 < 4
+    True
+\end{verbatim}
+
+The first interaction asks if both the expression
+{\tt 3 < 4} and the expression
+{\tt 4 < 5} are true. Since both are, the
+interpreter responds with {\tt True}. The second interaction
+asks if at least one of the expressions is true. Again, the
+interpreter responds with {\tt True}. The difference between {\tt and}
+and {\tt or} is illustrated in the last two interactions. Since
+only one expression is true (the latter expression being
+false) only the {\tt or} operator yields a true value.
+
+There is one more {\sc boolean} logic operation, called
+{\it not}. It simply reverses the value of the expression
+to which it is attached. The {\it not} operator can only be called
+as a function (since it is not a binary operator). Since
+you do not yet know about functions, I'll show you what
+it looks like but won't yet explain its actions.
+
+\begin{verbatim}
+    >>> not(3 < 4 and 4 < 5)
+    False
+    
+    >>> not(3 < 4 or 4 < 5)
+    False
+    
+    >>> not(3 < 4 and 5 < 4)
+    True
+    
+    >>> not(3 < 4 or 5 < 4)
+    False
+\end{verbatim}
+
+Note that we attached {\it not} to each of the previous expressions involving
+the logical connectives. Note also that the response of the interpreter
+is reversed from before in each case.

@@ -1,0 +1,858 @@
+\chapter{Recursion}
+\label{Recursion}
+
+In 
+\link*{the chapter on conditionals}[Chapter~\Ref]{Conditionals},
+we learned about conditionals.
+When we combine conditionals with functions that call
+themselves, we obtain a powerful programming paradigm
+called {\it recursion}.
+
+Recursion is a form of looping; when we loop,
+we evaluate code over and over again. To stop the loop,
+we use a conditional.
+Recursive loops are often
+easier to write and understand, as compared to the iterative loops
+such as {\it while}s and {\it for}s, which you will learn
+about in the next chapter.
+
+Many mathematical functions are easy to implement recursively, so
+we will start there. Recall that the factorial of a number
+{\it n} is:
+
+    \[ n! = n * (n - 1) * (n - 2) * ... * 2 * 1 \]
+
+Consider writing a function which computes the factorial of a positive
+integer. For example, if the function were passed the value of 4, it
+should return the value of 24 since 4! is 4*3*2*1 or 24.
+To apply
+recursion to solve this problem or any problem, for that matter,
+it must be possible to state the solution
+of a problem so that it references a simpler version
+of the problem. For factorial, the factorial of a
+number can be stated in terms of a simpler factorial.
+
+    \[ 0! = 1 \]
+    \[ n! = n * (n - 1)! \] otherwise
+
+This second formulation states that the factorial of zero is one\footnote{
+Mathematicians, being an inclusive bunch, like to invite
+zero to the factorial party.
+}
+and that the factorial of any other (positive) number is obtained by
+multiplying the that number by the factorial of one less than that
+number. After some study, you should be able to see that both
+the first formulation (with the ellipses ...) and this new
+formulation are equivalent.\footnote{
+The first formulation gets the basic idea of factorial
+across but is not very precise. For example, how would you compute
+the factorial of three using the first formulation?
+}
+The second form is particularly well suited for implementation
+as a computer program:
+
+\begin{verbatim}
+      def factorial(n):
+          if (n == 0):
+              return 1
+          else:
+              return n * factorial(n - 1)
+\end{verbatim}
+
+Note how  the {\it factorial} function
+precisely implements the second formulation.
+
+Convince yourself that the function really works by tracing the function call:
+
+\begin{verbatim}
+    factorial(3)
+\end{verbatim}
+
+Decomposing the call, we find that:
+
+\begin{verbatim}
+    factorial(3) is 3 * factorial(2)
+\end{verbatim}
+
+since {\it n}, having a value of 3, is not equal to 0.
+and so the second block of the {\it if} is evaluated.
+We can replace \verb!factorial(2)!
+by \verb!2 * factorial(1)!, yielding:
+
+\begin{verbatim}
+    factorial(3) is 3 * 2 * factorial(1)
+\end{verbatim}
+
+since {\it n}, now having a value of 2, is still not zero.
+Continuing along this vein, we can replace
+\verb!factorial(1)! by \verb!1 * factorial(0)!, yielding:
+
+\begin{verbatim}
+    factorial(3) is 3 * 2 * 1 * factorial(0)
+\end{verbatim}
+
+Now in this call to factorial,
+{\it n} does have a value of zero, so we can replace
+\verb!factorial(0)! with its immediate return value of zero:
+
+\begin{verbatim}
+    factorial(3) is 3 * 2 * 1 * 1
+\end{verbatim}
+
+Thus, \verb!factorial(3)! has a value of six:
+
+\begin{verbatim}
+    >>> factorial(3)
+    6
+\end{verbatim}
+
+as expected.
+
+\section{The parts of a recursive function}
+
+Recursive approaches rely on the fact that it is
+usually simpler to solve a smaller problem than a
+larger one. In the factorial problem, trying to
+find the factorial $n - 1$ is a little bit simpler
+than finding the factorial of $n$. If finding the
+factorial of $n - 1$ is still too hard to solve easily,
+then find the factorial of $n - 2$ and so on until
+we find a case where the solution is easy.
+With regards to factorial, this is when $n$ is equal to
+zero. The {\it easy-to-solve} code (and the values that get
+you there) is known as the {\it base} case. The
+{\it find-the-solution-using-a-simpler-problem} code (and the values
+that get you there) is known as the {\it recursive} case.
+The recursive case usually contains a call to the very
+function being executed. This call is known as a
+{\it recursive} call.
+
+Most well-formed recursive functions are composed of
+at least one {\it base} case and at least one {\it recursive} case.
+
+\section{The greatest common divisor}
+
+Consider finding the greatest common divisor (gcd) of two numbers. One
+The Ancient Greek Philosopher Euclid devised a solution involving
+repeated division.
+The first division divides the two
+numbers in question, saving the remainder. Now the divisor becomes
+the dividend and the
+remainder becomes the divisor. This process is repeated until
+the remainder becomes zero.
+At that
+point, the current divisor is the gcd.
+We can specify this as a recurrence equation, with this last bit about
+the remainder becoming zero as our base case:
+
+\begin{center}
+\begin{tabular}{lcll}
+\T\toprule
+    $gcd$($a$,$b$) & is & $b$ & if $a$ divided by $b$ has a remainder of zero\\
+    $gcd$($a$,$b$) & is & $gcd$($b$,$a$ \% $b$) & otherwise \T\\
+\T\bottomrule
+\end{tabular}
+\end{center}
+
+where {\it a} and {\it b} are the dividend and the divisor, respectively.
+Recall that the modulus operator \verb!%! returns the remainder.
+Using the recurrence equation as a guide, we can easily implement
+a function for computing the gcd of two numbers.
+
+\begin{verbatim}
+    def gcd(dividend,divisor):
+        if (dividend % divisor == 0):
+            return divisor
+        else:
+            gcd(divisor,dividend % divisor)
+\end{verbatim}
+
+We can improve this function slightly, by noting that
+the remainder is computed again to make the recursive call.
+Rather than compute it twice, we compute it straight off
+and save it in an aptly named variable:
+
+\begin{verbatim}
+    def gcd(dividend,divisor):
+        remainder = dividend % divisor
+        if (remainder == 0):
+            return divisor
+        else:
+            return gcd(divisor,remainder)
+\end{verbatim}
+
+Look at how the recursive version turns the {\it divisor} into 
+the {\it dividend}
+by passing {\it divisor} as the first argument in the recursive
+call.
+By the same token, {\it remainder} becomes {\it divisor} by nature
+of being the second argument in the recursive call.
+To convince yourself that the routine really works,
+modify {\it gcd} to `visualize' the arguments. On simple
+way of visualizing the action of a function is to
+add a print statement:
+
+\begin{verbatim}
+    def gcd(dividend,divisor):
+        remainder = dividend % divisor
+        print("gcd:",dividend,divisor,remainder)
+        if (remainder == 0):
+            return divisor
+        else:
+            return gcd(divisor,remainder)
+\end{verbatim}
+
+After doing so, we get the following output:
+
+\begin{verbatim}
+    >>> gcd(66,42)
+    gcd: 66 42 24
+    gcd: 42 24 18
+    gcd: 24 18 6
+    gcd: 18 6 0
+    INTEGER: 6
+\end{verbatim}
+
+Note, how the first remainder, 24, keeps shifting
+to the left.
+In the first recursive call, the remainder becomes 
+{\it second}, so the 24 shifts one spot to the left. On
+the second recursive call, the current {\it divisor},
+which is 24,
+becomes the {\it dividend},
+so the 24 shifts once again to
+the left.
+
+\section{The Fibonacci sequence}
+
+A third example of recursion is the computation of the
+$n^{th}$ Fibonacci number.
+The Fibonacci series looks like this:
+ 
+\begin{verbatim}
+    n       0   1   2   3   4   5   6   7   8    ...
+    Fib(n)  0   1   1   2   3   5   8  13  21    ...
+\end{verbatim}
+
+and is found in nature again and again.\footnote{
+Pineapples, the golden ratio, chambered nautilus, etc.
+}
+In general, a Fibonacci number is equal to the sum of the previous
+two Fibonacci numbers. The exceptions are the zeroeth and the first
+Fibonacci numbers which are equal to 0 and 1 respectively. Voila! The
+recurrence case and the two base cases have jumped right out at us! Here,
+then is a recursive implementation of a function which computes the $n^{th}$
+Fibonacci number.
+
+\begin{center}
+\begin{tabular}{lcll}
+\T\toprule
+    {\it fib}({\it n}) & is & 0 & if {\it n} is zero\\
+    {\it fib}({\it n}) & is & 1 & if {\it n} is one\\
+    {\it fib}({\it n}) & is & {\it fib}({\it n} - 1) + {\it fib}({\it n} - 2) & otherwise\\
+\T\bottomrule
+\end{tabular}
+\end{center}
+
+Again, it is straightforward to convert the recurrence equation
+into a working function:
+ 
+\begin{verbatim}
+    # compute the nth Fibonacci number
+    # n must be non-negative!
+    
+    def fibonacci(n):
+        if (n == 0):
+            return 0
+        elif (n == 1):
+            return 1
+        else:
+            return fibonacci(n-1) + fibonacci(n-2)
+\end{verbatim}
+
+Our implementation is straightforward and elegant. Unfortunately, it's
+horribly inefficient. Unlike our recursive version of
+{\it factorial} which
+recurred about as many times as the size of the number sent to the function,
+our Fibonacci version will recur many, many more times than the size of
+its input.  Here's why.
+
+Consider the call to \verb!fib(6)!.
+Tracing all the recursive calls to {\it fib}, we get:
+
+\begin{verbatim}
+    fib(6) is fib(5) + fib(4)
+\end{verbatim}
+
+Replacing \verb!fib(5)! with \verb!fib(4) + fib(3)!,
+we get:
+
+\begin{verbatim}
+    fib(6) is fib(4) + fib(3) + fib(4)
+\end{verbatim}
+
+We can already see a problem, we will compute \verb!fib(4)! twice,
+once from the original call to \verb!fib(6)! and again when we
+try to find \verb!fib(5)!.
+If we write down all the recursive calls generated by \verb!fib(6)!
+with each recursive call indented from the previous, we
+get a structure that looks like this:
+
+\begin{verbatim}
+    fib(6)
+        fib(5)
+            fib(4)
+                fib(3)
+                    fib(2)
+                        fib(1)
+                        fib(0)
+                    fib(1)
+                fib(2)
+                    fib(1)
+                    fib(0)
+            fib(3)
+                fib(2)
+                    fib(1)
+                    fib(0)
+                fib(1)
+        fib(4)
+            fib(3)
+                fib(2)
+                    fib(1)
+                    fib(0)
+                fib(1)
+            fib(2)
+                fib(1)
+                fib(0)
+\end{verbatim}
+
+We would expect, based on how the Fibonacci sequence is
+generated,
+to take about six 'steps' to calculate \verb!fib(6)!. 
+Instead,
+ultimately there were 13 calls to either
+\verb!fib(1)! or \verb!fib(0)!.\footnote{
+13 is $7^{th}$ Fibonacci number. Curious!
+}
+There was a tremendous amount of duplicated
+and, therefore, wasted effort. An important part
+of Computer Science is how to reduce the wasted effort.
+One way is to cache previously computed values.\footnote{
+Another way is to use an iterative loop. You will learn
+about loops in the next chapter.}
+
+\section{Manipulating lists with recursion}
+
+Recursion and lists go hand-in-hand. What follows
+are a number of recursive patterns involving lists
+that you should be able to recognize and implement.
+
+For the following discussion, assume the 
+{\it head} function returns the first item in the given list,
+while the
+{\it tail}
+function returns a list composed of all the items
+in the given list except for the first element.
+If the list is empty, it will have a value of 
+\verb![]!.
+
+By the way, the head and tail functions are easily implemented
+in Scam:
+
+\begin{verbatim}
+    def head(items): return items[0]
+    def tail(items): return items[1:]  #slicing!
+\end{verbatim}
+
+\section{The {\it counting} pattern}
+
+The {\it counting} pattern is used to count the number of items
+in a collection. If a list is empty, then its count of items
+is zero.
+The following function
+counts and ultimately returns the number of items in the list:
+
+\begin{verbatim}
+    def count(items):
+        if (items == []):
+            return 0
+        else:
+            return 1 + tail(items)
+\end{verbatim}
+
+The functions works on the observation that if you count
+the number of items in the tail of a list, then the number
+of items in the entire list is one plus that number. The
+extra one accounts for the head item that was not counted when the
+tail was counted.
+
+\section{The {\it accumulate} pattern}
+
+The {\it accumulate} pattern is used to combine all the values in
+a list.
+The following function performs a summation of the list values:
+
+\begin{verbatim}
+    def sum(items):
+        if (items == []):
+            return 0
+        else:
+            return head(items) + sum(tail(items))
+\end{verbatim}
+
+Note that the only difference between the {\it count} function and
+the {\it sum} function is the recursive case adds in the value of
+the head item, rather than just counting the head item.
+That the function count and the function sum fact look similar
+is no coincidence. In fact, most recursive functions, especially
+those working on lists, look very
+similar to one another.
+
+\section{The {\it filtered-count} and {\it filtered-accumulate} patterns}
+
+A variation on the {\it counting} and {\it accumulate} 
+patterns involves {\it filtering}. When filtering,
+we use an additional \verb!if! statement to decide whether 
+or not we should count the item, or in the case of accumulating,
+whether or not the item ends up in the accumulation.
+
+Suppose we wish to count the number of even items in
+a list:
+
+\begin{verbatim}
+    def countEvens(items):
+        if (items == []):
+            return 0
+        elif (head(items) % 2 == 0):
+            return 1 + countEvens(tail(items))
+        else:
+            return 0 + countEvens(tail(items))
+\end{verbatim}
+
+The base case states that there are zero even numbers
+in an empty list.
+The first recursive case simply counts the head item if
+it is even and so adds 1 to the count of even items in
+the remainder of the list. The second recursive case
+does not count the head item as even (because it is not)
+and so adds in a 0 to the count of the remaining items.
+Of course, the last return would almost always be written
+as:
+
+\begin{verbatim}
+    return countEvens(tail(items))
+\end{verbatim}
+
+As another example of filtered counting, we can
+pass in a value and count how many times that
+value occurs:
+
+\begin{verbatim}
+    def occurrences(target,items):
+        if (items == []):
+            return 0
+        elif (head(items) == target):
+            return 1 + occurrences(target,tail(items))
+        else:
+            return occurrences(target,tail(items))
+\end{verbatim}
+
+An example of a filtered-accumulation would be 
+to sum the even-numbered integers in a list:
+
+\begin{verbatim}
+    def sumEvens(items):
+        if (items == []):
+            return []
+        elif (isEven(head(items))):
+            return head(items) + sumEvens(tail(items))
+        else:
+            return sumEvens(tail(items))
+\end{verbatim}
+
+where the {\it isEven} function is defined as:
+
+\begin{verbatim}
+    def isEven(x):
+        return x % 2 == 0
+\end{verbatim}
+
+\section{The {\it filter} pattern}
+
+A special case of a filtered-accumulation is called {\it filter}.
+Instead of summing the filtered items (for example), we collect
+the filtered items into a list. The new list is said to be
+a {\it reduction} of the original list.
+
+Suppose we wish to extract the even numbers from a list. The
+code looks very much like the {\it sumEvens} function in the previous
+section, but instead of adding in the desired item,
+we make a list out of it and concatenate to it the
+reduction of the tail of the list:
+
+\begin{verbatim}
+    def extractEvens(items):
+        if (items == []):
+            return []
+        elif (isEven(head(items))):
+            return [head(items)] + extractEvens(tail(items))
+        else:
+            return extractEvens(tail(items))
+\end{verbatim}
+
+Given a list of integers, {\it extractEvens} returns a (possibly empty)
+list of the even numbers:
+
+\begin{verbatim}
+    >>> extractEvens([4,2,5,2,7,0,8,3,7])
+    [4, 2, 2, 0, 8]
+
+    >>> extractEvens([1,3,5,7,9])
+    []
+\end{verbatim}
+
+\section{The {\it map} pattern}
+
+{\it Mapping} is a task closely coupled with that
+of reduction, but rather than collecting
+certain items, as with the {\it filter} pattern, we
+collect all the items. As we collect, however,
+we transform each item as
+we collect it. The basic pattern looks like this:
+
+\begin{verbatim}
+    def map(f,items):
+        if (items == []): 
+            return []
+        else:
+            return [f(head(items))] + map(f,tail(items))
+\end{verbatim}
+
+Here, function {\it f} is used to transform each item in the
+recursive step.
+
+Suppose we wish to subtract one from each element in a list.
+First we need a transforming function that reduces its argument
+by one:
+
+\begin{verbatim}
+    def decrement(x): return x - 1
+\end{verbatim}
+
+Now we can ``map'' the {\it decrement} function over a list of numbers:
+
+\begin{verbatim}
+    >>> map(decrement,[4,3,7,2,4,3,1])
+    [3, 2, 6, 1, 3, 2,  0]
+\end{verbatim}
+
+\section{The {\it search} pattern}
+
+The {\it search} pattern is a slight variation of {\it filtered-counting}.
+Suppose we wish to see if a value is present in a list. We can
+use a filtered-counting approach and if the count is greater than
+zero, we know that the item was indeed in the list.
+
+\begin{verbatim}
+    def find(target,items):
+        return occurrences(target,items) > 0
+\end{verbatim}
+
+In this case, {\it occurrences} helps {\it find} do its job. We call
+such functions, naturally, {\it helper functions}.
+We can improve the efficiency of {\it find} by having it
+perform the search, but short-circuiting the
+search once the target item is found. We do this
+by turning the first recursive case into a second base case:
+
+\begin{verbatim}
+    def find(target,items):
+        if (items == []):
+            return False
+        elif (head(items) == target):    # short-circuit!
+            return True
+        else:
+            return find(target,tail(items))
+\end{verbatim}
+
+When the list is empty, we return false because if
+the item had been list, we would have hit the second
+base case (and returned true) before hitting the first.
+If neither base case hits, we simple search the remainder of
+the list (the recursive case).
+If the second base case never hits, the first base case 
+eventually will.
+
+\section{The {\it shuffle} pattern}
+
+Sometimes, we wish to combine two lists into a third list,
+This is easy to do with the concatenation operator, \verb!+!.
+
+\begin{verbatim}
+   list3 = list1 + list2
+\end{verbatim}
+
+This places the first element in the second list after the last
+element in the first list.
+However, many times we wish to intersperse the elements from the
+first list with the elements in the second list. This is known
+as a {\it shuffle}, so named since it is similar to shuffling a deck of
+cards. When a deck of cards is shuffled,
+the deck is divided in two halves (one half is akin to the first
+list and the other half is akin to the second list). Next the 
+two halves are interleaved back into a single deck (akin to
+the resulting third list).
+
+We can use recursion to shuffle two lists. If both lists are exactly
+the same length, the recursive function is easy to implement
+using the {\it accumulate} pattern:
+
+\begin{verbatim}
+    def shuffle(list1,list2):
+        if (list1 == []):
+            return []
+        else:
+            return [head(list1),head(list2)] + shuffle(tail(list1),tail(list2))
+\end{verbatim}
+
+If {\it list1} is empty
+(which means {\it list2} is empty since they have the same number of elements),
+the function returns the empty, since shuffling nothing together
+yields nothing.
+Otherwise, we take the first elements of each list and make a list
+out of the two elements, then appending the shuffle of
+the remaining elements to that list.
+
+If you have ever shuffled a deck of cards, you will know that it is
+rare for the deck to be split exactly in half prior to the shuffle.
+Can we amend our shuffle function to deal with this problem? Indeed,
+we can,
+by simply placing the extra cards (list items) at the end
+of the shuffle. We don't know which list ({\it list1} or {\it list2})
+will go empty first,
+so we test for each list becoming empty in turn:
+
+\begin{verbatim}
+    def shuffle2(list1,list2):
+        if (list1 == []):
+            return list2
+        elif (list2 == []):
+            return list1
+        else:
+            return [head(list1),head(list2)] + shuffle(tail(list1),tail(list2))
+\end{verbatim}
+
+If either list is empty, we return the other. Only if both are
+not empty do we execute the recursive case.
+       
+\section{The {\it merge} pattern}
+
+With the {\it shuffle} pattern, we always took the head elements from both
+lists at each step in the shuffling process.
+Sometimes, we wish to place a constraint of the choice of elements.
+For example, suppose the two lists to be combined are sorted
+and we wish the resulting list to be sorted as well. The
+following example shows that shuffling does not always work:
+
+\begin{verbatim}
+    >>> a = [1,4,6,7,8]
+    >>> b = [2,3,5,9]
+
+    >>> c = shuffle2(a,b)
+    [1, 2, 4, 3, 6, 5, 7, 9, 8]
+\end{verbatim}
+
+The {\it merge} pattern is used to ensure the resulting list is
+sorted and is based upon the {\it filtered-accumulate} pattern.
+the merge. We only accumulate an item {\it if} it is the smallest item
+in the two lists:
+
+\begin{verbatim}
+    def merge(list1,list2):
+        if (list1 == []):
+            return list2
+        elif (list2 == []):
+            return list1
+        elif (head(list1) < head(list2)):
+            return [head(list1)] + merge(tail(list1),list2)
+        else:
+            return [head(list2)] + merge(list1,tail(list2))
+\end{verbatim}
+
+As with {\it shuffle2}, we don't know which list will become empty
+first, so we check both in turn.
+
+In the first recursive case, the first element of the first list
+is smaller than the first element of the second list.
+So we accumulate the first element of the first list and
+recur, sending the tail of the first list because we have
+used/accumulated the head of that list. The second list we
+pass unmodified, since we did not use/accumulate an element
+from the second list.
+
+In the second recursive case, we implement the symmetric version
+of the first recursive case, focusing on the second list rather
+than the first.
+
+\section{The {\it generic} {\it merge} pattern}
+
+The {\it merge} function in the previous section hard-wired the
+comparison operator to \verb!<!. Many times, the elements
+of the lists to be merged cannot be compared with \verb!<! or, if
+they can, a different operator, such as \verb!>!, might be desired.
+The generic merge solves this problem by allowing the caller to
+pass in a comparison function as a third argument:
+
+\begin{verbatim}
+    def genericMerge(list1,list1,pred):
+\end{verbatim}
+        
+where {\it pred} is the formal parameter that
+holds a predicate function\footnote{Recall that a predicate
+function returns {\it True} or {\it False}.}.
+Now we replace the \verb!<! in merge with a call to {\it pred}.
+
+\begin{verbatim}
+    def genericMerge(list1,list1,pred):
+        if (list1 == []):
+            return list2
+        elif (list2 == []):
+            return list1
+        elif (pred(head(list1),head(list2))):
+            return [head(list1)] + genericMerge(tail(list1),list2,pred)
+        else:
+            return [head(list2)] + genericMerge(list1,tail(list2),pred)
+\end{verbatim}
+
+The {\it pred} function, which is passed the two head elements, returns
+\verb!True!, if the first element should be accumulated,
+and \verb!False!, otherwise.
+
+We can still use {\it genericMerge} to merge two sorted lists of numbers
+(which can be compared with <) by using the {\it operator} module. The
+{\it operator} module provides function forms of the
+operators \verb!+!, \verb!-!,
+\verb!<!, and so on.
+
+\begin{verbatim}
+    >>> import operator
+    >>> a = [1,4,6,7,8]
+    >>> b = [2,3,5,9]
+
+    >>> c = genericMerge(a,b,operator.lt)
+    [1, 2, 3, 4, 5, 6, 7, 8, 9]
+\end{verbatim}
+
+The {\it genericMerge} function is a {\it generalization} of {\it merge}.
+When we generalize a function,  we modify it so it can do what it
+did before plus new things that it could not. Here, we can still
+have it (genericMerge) do what it (merge) did before, by passing
+in the correct comparison operator.
+
+\section{The {\it fossilized} pattern}
+
+If a recursive function mistakenly never makes the problem
+smaller, the problems is said to be {\it fossilized}.
+Without ever smaller problems, the base case is never reached
+and the function recurs\footnote{The word is {\it recurs}, not {\it recurses}!}
+forever.
+This condition is known as an
+{\it infinite recursive loop}. Here is an example:
+
+\begin{verbatim}
+    def factorial(n):
+        if (n == 0):
+            return 1
+        else:
+            return n * factorial(n)
+\end{verbatim}
+
+Since factorial is solving the same problem over and over, {\it n}
+never gets smaller so it never reaches zero.
+Fossilizing the problem is a common error made by both novice
+and expert programmers alike.
+
+\section{The {\it bottomless} pattern}
+
+Related to the {\it fossilized} pattern is the {\it bottomless} pattern.
+With the {\it bottomless} pattern, the problem gets smaller, but the base
+case is never reached. Here is a function that attempts to
+divide a positive number by two, by seeing how many times
+you can subtract two from the number:\footnote{
+Yes, division is just repeated subtraction, just like
+multiplication is repeated division.}
+
+\begin{verbatim}
+    def div2(n):
+        if (n == 0):
+            return 0
+        else:
+            return 1 + div2(n - 2)
+\end{verbatim}
+
+Things work great for a while:
+
+\begin{verbatim}
+    >>> div2(16)
+    8
+
+    >>> div2(6)
+    3
+
+    >>> div2(134)
+    67
+\end{verbatim}
+
+But then, something goes terribly wrong:
+
+\begin{verbatim}
+    >>> div2(7)
+    RuntimeError: maximum recursion depth exceeded in cmp
+\end{verbatim}
+
+What happened? To see, let's {\it visualize} our function,
+as we did with the {\it gcd} function previously,
+by adding a {\it print} statement:
+
+\begin{verbatim}
+    def div2(n):
+        print("div2: n is",n)
+        if (n == 0):
+            return 0
+        else:
+            return 1 + div2(n - 2)
+\end{verbatim}
+
+Now every time the function is called, both originally and
+recursively, we can see how the value of {\it n} is changing:
+
+\begin{verbatim}
+    >>div2(7)
+    div2: n is 7
+    div2: n is 5
+    div2: n is 3
+    div2: n is 1
+    div2: n is -1
+    div2: n is -3
+    div2: n is -5
+    div2: n is -7
+    ...
+    RuntimeError: maximum recursion depth exceeded in cmp
+\end{verbatim}
+
+Now we can see why things went wrong, the value of {\it n}
+skipped over the value of zero and just kept on going.
+The solution is to change the base case to catch odd
+(and even) numbers:
+
+\begin{verbatim}
+    def div2(n):
+        if (n < 2):
+            return 0
+        else:
+            return 1 + div2(n - 2)
+\end{verbatim}
+    
+Remember, when you see a recursion depth exceeded error,
+you likely have implemented either
+the fossilized or the bottomless pattern.

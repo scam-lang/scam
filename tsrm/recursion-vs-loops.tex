@@ -1,0 +1,373 @@
+\chapter{Comparing Recursion and Looping}
+\label{RecursionLoop}
+
+In the previous two chapters, we learned about repeatedly
+evaluating the same code using both recursion and loops.
+Now we compare and contrast the two techniques by
+implementing the three mathematical functions from
+\link*{the chapter on assignment}[Chapter~\Ref]{Recursion}:
+{\it factorial}, {\it fibonacci}, and {\it gcd}, with loops.
+
+\section{Factorial}
+
+Recall that the factorial function, written recursively,
+looks like this:
+
+\begin{verbatim}
+    def factorial(n):
+        if (n == 0):
+            return 1
+        else:
+            return n * factorial(n - 1)
+\end{verbatim}
+
+We see that is a form of the {\it accumulate} pattern. So our factorial
+function using a loop should look something like this:
+
+\begin{verbatim}
+    def factorial(n):
+        total = ???
+        for i in range(???):
+            total *= ???
+        return total
+\end{verbatim}
+
+Since we are accumulating a product, total should
+be initialized to 1.
+
+\begin{verbatim}
+    def factorial(n):
+        total = 1
+        for i in range(???):
+            total *= ???
+        return total
+\end{verbatim}
+
+Also, the loop variable should take on all values in
+the factorial, from 1 to {\it n}:
+
+\begin{verbatim}
+    def factorial(n):
+        total = 1
+        for i in range(1,n+1,1):
+            total *= ???
+        return total
+\end{verbatim}
+
+Finally, we accumulate {\it i} into the total:
+
+\begin{verbatim}
+    def factorial(n):
+        total = 1
+        for i in range(1,n+1,1):
+            total *= i
+        return total
+\end{verbatim}
+
+The second argument to range is set to $n+1$ instead of $n$ because
+we want $n$ to be included in the total.
+
+Now, compare the loop version to the recursive version. Both contain
+about the same amount of code, but the recursive version is easier
+to ascertain as correct.
+
+\section{The greatest common divisor }
+
+Here is a slightly different version of the gcd function, built using
+the following recurrence:
+
+\begin{center}
+\begin{tabular}{lcll}
+\T\toprule
+    $gcd$($a$,$b$) & is & $a$ & if $b$ is zero\\
+    $gcd$($a$,$b$) & is & $gcd$($b$,$a$ \% $b$) & otherwise \T\\
+\T\bottomrule
+\end{tabular}
+\end{center}
+
+The function allows one more recursive call than the other. By doing
+so, we eliminate the need for the local variable {\it remainder}. Here is
+the implementation:
+
+\begin{verbatim}
+    def gcd(a,b):
+        if (b == 0):
+            return a
+        else:
+            return gcd(b,a % b)
+\end{verbatim}
+
+Let's turn it into a looping function. This style of
+recursion doesn't fit any of the patterns we know, so
+we'll have to start from scratch. We do know that 
+{\it b} becomes the new value of {\it a} and {\it a} \% {\it b} becomes 
+the new value of {\it b}
+on every recursive call,
+so the same thing must happen on every evaluation of
+the loop body.
+We stop when {\it b} is equal to zero so we should continue looping
+while {\it b} is  not equal to zero. These observations lead us
+to this implementation:
+
+\begin{verbatim}
+    def gcd(a,b):
+        while (b != 0):
+            a = b
+            b = a % b
+        return a
+\end{verbatim}
+
+Unfortunately, this implementation is faulty, since we've lost
+the original value of {\it a} by the time we perform the modulus 
+operation. Reversing the two statements in the body of the loop:
+
+\begin{verbatim}
+    def gcd(a,b):
+        while (b != 0):
+            b = a % b
+            a = b
+        return a
+\end{verbatim}
+
+is no better; we lose the original value of {\it b} by the time we
+assign it to {\it a}. What we need to do is temporarily save the
+original value of {\it b} before we assign {\it a}'s value. Then
+we can assign the saved value to {\it a} after {\it b} has been reassigned:
+
+\begin{verbatim}
+    def gcd(a,b):
+        while (b != 0):
+            temp = b
+            b = a % b
+            a = temp
+        return a
+\end{verbatim}
+
+Now the function is working correctly. But why did we temporarily
+need to save a value in the loop version and not in the recursive
+version? The answer is that the recursive call does not perform
+any assignments so no values were lost. On the recursive call,
+new versions of the formal parameters {\it a} and {\it b} received the
+computations performed for the function call. The old versions
+were left untouched.
+
+It should be noted that Scam allows simultaneous assignment that
+obviates the need for the temporary variable:
+
+\begin{verbatim}
+    def gcd(a,b):
+        while (b != 0):
+            a,b = b,a % b
+        return a
+\end{verbatim}
+
+While this code is much shorter, it is a little more difficult to
+read. Moreover, other common languages do not share this feature
+and you are left using a temporary variable to preserve needed
+values when using those languages.
+
+\section{The Fibonacci sequence}
+
+Recall the recursive implementation of Fibonacci:
+
+\begin{verbatim}
+    def fib(n):
+        if (n < 2)
+            return n
+        else
+            return fib(n - 1) + fib(n - 2)
+\end{verbatim}
+
+For brevity, we have collapsed the two base cases into
+a single base case. If {\it n} is zero, zero is returned and if
+{\it n} is one, one is returned, as before.
+
+Let's So let's try to compute
+using an iterative loop. As before, this doesn't seem
+to fit a pattern, so we start by reasoning about this.
+If we let {\it a} be the first Fibonacci number, zero, and {\it b}
+be the second Fibonacci number, one, then the third fibonacci
+number would be $a + b$, which we can save in a variable 
+named {\it c}.
+At  this point, the fourth Fibonacci number would be $b + c$,
+but since we are using a loop, we need to have the code be
+the same for each iteration of the loop. If we let $a$ have the
+value of $b$ and $b$ have the value of $c$, then the fourth Fibonacci
+number would be $a + b$ again.
+This leads to our implementation:
+
+\begin{verbatim}
+    def fib(n):
+        a = 0    # the first Fibonacci number
+        b = 1    # the second Fibonacci number
+        for i in range(0,n,1):
+            c = a + b
+            a = b
+            b = c
+        return a
+\end{verbatim}
+
+In the loop body, we see that {\it fib} is much like {\it gcd};
+the second number becomes the first number and some combination of
+the first and second number becomes the second number.
+In the case of {\it gcd}, the combination was the remainder and, in the
+case of {\it fib}, the combination is sum.
+A rather large question remains, why does the function return {\it a}
+instead of {\it b} or {\it c}? The reason is, suppose {\it fib} was
+called with a value of 0, which is supposed to generate
+the first Fibonacci number. The loop does not run in this case
+and the value of {\it a} is returned, zero, as required.
+If a value of 1 is passed to {\it fib}, then the loop runs exactly
+once and {\it a} gets the original value of {\it b}, one. The loop expects and
+this time, one is returned, as required. So, empirically, it
+appears that the value of a is the correct choice of return value.
+As with factorial, hitting on the right way to proceed iteratively
+is not exactly straightforward, while the recursive version
+practically wrote itself.
+
+\section{CHALLENGE: Transforming loops into recursions}
+
+To transform an iterative loop into a
+recursive loop, one first identifies those variables
+that exist outside the loop but are changing in the loop body;
+these variable will become formal parameters in the recursive
+function.
+For example, the {\it fib} loop above has three (not two!)
+variables that
+are being changed during each iteration of the loop:
+{\it a}, {\it b}, and {\it i}.\footnote{The loop variable
+is considered an outside variable changed by the loop.} 
+The variable {\it c} is used only inside the loop and thus is
+ignored.
+
+Given this, we start out
+our recursive function like so:
+
+\begin{verbatim}
+    def loop(a,b,i):
+        ...
+\end{verbatim}
+
+The loop test becomes an {\it if} test in the body of
+the {\it loop} function:
+
+\begin{verbatim}
+    def loop(a,b,i)
+        if (i < n):
+            ...
+        else:
+            ...
+\end{verbatim}
+
+The {\it if-true} block becomes the recursive call.
+The arguments to the recursive call encode the updates
+to the loop variables 
+The {\it if-false} block becomes the value the loop attempted to
+calculate:
+
+\begin{verbatim}
+    def loop(a,b,i):
+        if (i < n):
+            return loop(b,a + b,i + 1)
+        else:
+            return a
+\end{verbatim}
+
+Remember, a gets the value of b and b gets the value of
+{\it c} which is $a + b$. Since we are performing recursion
+with no assignments, we don't need the variable {\it c} anymore.
+The loop variable {\it i} is incremented
+by one each time.
+
+Next, we replace the loop with the the {\it loop} function in the
+function
+containing the original loop. That way, any non-local variables
+referenced in the test or body of the original loop will
+be visible to the {\it loop} function:
+
+\begin{verbatim}
+    def fib(n):
+        def (a,b,i):
+            if (i < n)
+                return loop(b,a + b,i + 1)
+            else:
+                return a
+        ...
+\end{verbatim}
+
+Finally, we call the {\it loop} function with the initial
+values of the loop variables:
+
+\begin{verbatim}
+    def fib(n):
+        def (a,b,i):
+            if (i < n)
+                return loop(b,a + b,i + 1)
+            else:
+                return a
+        return loop(0,1,0)
+\end{verbatim}
+
+Note that this recursive function looks nothing like our
+original {\it fib}. However, it suffers from none of the inefficiencies
+of the original version and yet it performs no assignments.\footnote{
+A style of programming that uses no assignments is called {\it functional}
+programming and is very important in theorizing about the nature
+of computation.} The reason for its efficiency is that it performs
+that exact calculations and number of calculations as the
+loop based function.
+
+For more practice, let's convert the iterative version of
+{\it factorial} into a recursive function using this method.
+We'll again end up with a different recursive function
+than before. For convenience, here is the loop version:
+
+\begin{verbatim}
+    def fact(n):
+        total = 1
+        for i in range(1,n+1,1):
+            total *= i
+        return total
+\end{verbatim}
+
+We start, as before, by working on the {\it loop} function.
+In this case,
+only two variables are changing in the loop:
+{\it total} and {\it i}.
+
+\begin{verbatim}
+    def loop(total,i):
+        ...
+\end{verbatim}
+
+Next, we write the {\it if} expression:
+
+\begin{verbatim}
+    def loop(total,i):
+        if (i < n + 1):
+            return loop(total * i,i + 1)
+        else:
+            return total
+\end{verbatim}
+
+Next, we embed the {\it loop} function and call it:
+
+\begin{verbatim}
+    def fact(n):
+        def loop(total,i):
+            if (i < n + 1):
+                return loop(total * i,i + 1)
+            else:
+                return total
+        return loop(1,1)
+\end{verbatim}
+
+The moral of this story is that any iterative loop can be rewritten
+as a recursion and any recursion can be rewritten as
+an iterative loop. Moreover, in {\it good} languages,\footnote{
+Scam is one of these good languages!}
+there is no reason to prefer one way over the other,
+either in terms of the time it takes or the space used
+in execution. To reiterate,
+use a recursion if that makes the implementation
+more clear, otherwise, use an iterative loop.

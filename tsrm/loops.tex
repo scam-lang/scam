@@ -1,0 +1,609 @@
+\chapter{Loops}
+\label{Loops}
+
+In the previous chapter, you learned how recursion can
+solve a problem by breaking it in to smaller versions
+of the same problem. Another approach is to use
+{\it iterative} {\it loops}. In some programming
+languages, loops are preferred as they use much
+less computer memory as compared to recursions.
+In other languages, this is not the case at all.
+In general, there
+is no reason to prefer recursions over loops or vice versa,
+other than this memory issue.
+Any loop can be written as a recursion and any recursion
+can be written as a loop.
+Use a recursion if that makes the implementation
+more clear, otherwise, use an iterative loop.
+
+The most
+basic loop structure in Scam is the {\it while} loop, an example of
+which is:
+
+\begin{verbatim}
+    while (i < 10):
+        print(i,end="")
+        i = i + 1
+\end{verbatim}
+
+We see a {\tt while} loop looks much like an {\tt if}
+statement.
+The difference
+is that blocks belonging to {\tt if}s are evaluated at most once whereas
+blocks associated with loops may be evaluated many many times.
+Another difference in nomenclature is that the block of a loop
+is known as the {\it body} (like blocks associated with function
+definitions). Furthermore, the loop test expression is known
+as the {\it loop condition}.
+
+As Computer Scientists hate to type extra characters if they can
+help it, you will often see:
+
+\begin{verbatim}
+    i = i + 1
+\end{verbatim}
+
+written as
+
+\begin{verbatim}
+    i += 1
+\end{verbatim}
+
+The latter version is read as ``increment {\it i}''.
+
+A {\it while} loop tests its condition before the body of the loop is
+executed. If the initial test fails, the body is not executed at all. For
+example:
+
+\begin{verbatim}
+    i = 10
+    while (i < 10):
+        print(i,end="")
+        i += 1
+\end{verbatim}
+
+never prints out anything since the test immediately fails. In this example,
+however:
+
+\begin{verbatim}
+    i = 0;
+    while (i < 10):
+        print(i,end="")
+        i += 1
+\end{verbatim}
+
+the loop prints out the digits 0 through 9:
+
+\begin{verbatim}
+    0123456789
+\end{verbatim}
+    
+A {\tt while} loop repeatedly evaluates its body
+as long as the loop condition remains true.
+
+To write an infinite loop, use {\tt :true} as the condition:
+
+\begin{verbatim}
+    while (True):
+        i = getInput()
+        print("input is",i)
+        process(i)
+        }
+\end{verbatim}
+
+\section{Other loops}
+
+There are many kinds of loops in Scam, in this text
+we will only refer to {\tt while} loops and {\tt for}
+loops that count,
+as these are commonly found in other programming languages.
+The {\tt while} loop we have seen; here is an example of a counting
+{\tt for} loop:
+
+\begin{verbatim}
+    for i in range(0,10,1):
+        print(i)
+\end{verbatim}
+
+This loop is exactly equivalent to:
+
+\begin{verbatim}
+    i = 0
+    while (i < 10):
+        print(i)
+        i += 1
+\end{verbatim}
+
+In fact, a while loop of the general form:
+
+\begin{verbatim}
+    i = INIT
+    while (i < LIMIT):
+        # body
+        ...
+        i += STEP
+\end{verbatim}
+
+can be written as a \\verb!for! loop:
+
+\begin{verbatim}
+    for i in range(INIT,LIMIT,STEP):
+        # body
+        ...
+\end{verbatim}
+
+The {\it range} function counts from
+{\tt INIT} to {\tt LIMIT} (non-inclusive)
+by {\tt STEP} and these
+values are assigned
+to {\it i}, in turn. After each assignment to {\it i},
+the loop body is evaluated.
+After the last value is assigned to {\it i} and the
+loop body evaluated on last time, the \\verb!for! loop ends.
+
+In Scam, the {\it range} function assumes 1 for the step
+if the step is omitted and assumes 0 for the initial
+value and 1 for the step if both the initial value and
+step are omitted.
+However, in this text, we will always give the initial
+value and step of the \\verb!for! loop explicitly.
+
+For loops are commonly used to sweep through each element of an list:
+
+\begin{verbatim}
+     for i in range(0,len(items),1):
+         print(items[i]) 
+\end{verbatim}
+
+Recall the items in a list of $n$ elements are located at
+indices $0$ through $n - 1$. These are exactly the values
+produced by the {\it range} function. So, this loop accesses
+each element, by its index, in turn, and thus prints out
+each element, in turn.
+Since using an index of {\it n} in a list of {\it n} items produces an
+error, the {\it range} function conveniently makes its given
+limit non-inclusive.
+
+As stated earlier, there are other kinds of loops in
+Scam, some of which, at times, are more convenient
+to use than a {\tt while} loop or a counting {\tt for} loop. However,
+anything that can be done with those other loops can be
+done with the loops presented here.
+Like recursion and lists, loops and lists go very well
+together.
+The next sections detail some common loop patterns involving
+lists.
+
+\section{The {\it counting} pattern}
+
+The counting pattern is used to count the number of items
+in a collection. Note that the built-in function len already
+does this for Scam lists, but many programming languages
+do not have lists as part of the language; the programmer
+must supply lists. For this example, assume that the {\it start}
+function gets the first item in the given list,
+returning {\tt None}
+if there are no items in the list. The {\it next}
+function returns the next item in the given list,
+returning {\tt None}
+if there are no more items. This {\tt while} loop counts the number
+of items in the list:
+
+\begin{verbatim}
+    count = 0
+    i = start(items)
+    while (i != None)
+         count += 1
+         i = next(items)
+\end{verbatim}
+
+When the loop finishes, the variable count holds the number of
+items in the list.
+
+The counting pattern increments a counter everytime the loop
+body is evaluated.
+
+\section{The {\it filtered-count} pattern}
+
+A variation on counting pattern involves filtering. When {\it filtering},
+we use an {\tt if} statement to decide whether we should count an item
+or not. Suppose we wish to count the number of even items in
+a list:
+
+\begin{verbatim}
+    count = 0
+    for i in range(0,len(items),1):
+        if (items[i] % 2 == 0):
+            count += 1
+\end{verbatim}
+
+When this loop terminates, the variable {\it count} will hold the
+number of even integers in the list of items since the count
+is incremented only when the item of interest is even.
+
+\section{The {\it accumulate} pattern}
+
+Similar to the counting pattern, the {\it accumulate} pattern
+updates a variable, not by increasing its value by one, but by the value of
+an item. This loop, sums all the values in a list:
+
+\begin{verbatim}
+    total = 0
+    for i in range(0,len(items),1):
+        total += items[i]
+\end{verbatim}
+
+By convention, the variable {\it total} is used to accumulate the item
+values. When accumulating a sum, total is initialized to zero. When
+accumulating a product, total is initialized to one.
+
+\section{The {\it filtered-accumulate} pattern}
+
+Similar to the {\it accumulate} pattern, the {\it filtered-accumulate} pattern
+updates a variable only if some test is passed.
+This function sums all the even values in a given list, returning
+the final sum:
+
+\begin{verbatim}
+    def sumEvens(items):
+        total = 0
+        for i in range(0,len(items),1):
+            if (items[i] % 2 == 0)
+                total += items[i]
+        return total
+\end{verbatim}
+
+As before, the variable {\it total} is used to accumulate the item
+values. As with a regular accumulating, {\it total} is initialized to zero when
+accumulating a sum. The initialization value is one when
+accumulating a product and the initialization value is
+the empty list when accumulating a list (see {\it filtering} below).
+
+\section{The {\it search} pattern}
+
+The {\it search} pattern is a slight variation of {\it filtered-counting}.
+Suppose we wish to see if a value is present in a list. We can
+use a filtered-counting approach and if the count is greater than
+zero, we know that the item was indeed in the list.
+
+\begin{verbatim}
+    count = 0
+    for i in range(0,len(items),1):
+        if (items[i] == target):
+            count += 1
+    found = count > 0
+\end{verbatim}
+
+This pattern is so common, it is often encapsulated in a function.
+Moreover, we can improve the efficiency by short-circuiting the
+search. Once the target item is found, there is no need to 
+search the remainder of the list:
+
+\begin{verbatim}
+    def find(target,items):
+        found = False:
+        i = 0
+        while (not(found) and i < len(items)):
+            if (items[i] == target):
+                found = True
+            i += 1
+        return found
+\end{verbatim}
+
+We presume the target item is not in the list and 
+as long as it is not found, we continue to search the list.
+As soon as we find the item, we set the variable found
+to True and then the loop condition fails, since
+not true is false.
+
+Experienced programmers would likely define this function
+to use an immediate return once the target item is found:
+
+\begin{verbatim}
+    def find(target,items):
+        for i in range(0,len(items),1):
+            if (items[i] == target):
+                return True
+        return False
+\end{verbatim}
+
+As a beginning programmer, however, you should avoid returns
+from the body of a loop. The reason is most beginners end up
+defining the function this way instead:
+
+\begin{verbatim}
+    def find(target,items):
+        for i in range(0,len(items),1):
+            if (items[i] == target):
+                return True
+            else:
+                return False
+\end{verbatim}
+
+The behavior of this latter version of {\it find} is incorrect,
+but unfortunately, it appears to work correctly under some
+conditions. If you cannot figure out why this version
+fails under some conditions and appears to succeed under
+others, you most definitely should stay away from placing
+returns in loop bodies.
+        
+\section{The {\it filter} pattern}
+
+Recall that a special case of a filtered-accumulation is the {\it filter}
+pattern.
+A loop version  of filter starts out by initializing an accumulator variable to
+an empty list. In the loop body, the accumulator variable
+gets updated with those items from the original list that 
+pass some test.
+
+Suppose we wish to extract the even numbers from a list.
+Our test, then, is to see if the current element is even.
+If so, we add it to our growing list:
+
+\begin{verbatim}
+    def extractEvens(items):
+        evens = []
+        for i in range(0,len(items),1):
+            if (items[i] % 2 == 0):
+                evens = evens + [items[i]]
+        return evens
+\end{verbatim}
+
+Given a list of integers, {\it extractEvens} returns a (possibly empty)
+list of the even numbers:
+
+\begin{verbatim}
+    >>> extractEvens([4,2,5,2,7,0,8,3,7])
+    [4, 2, 2, 0, 8]
+
+    >>> extractEvens([1,3,5,7,9])
+    []
+\end{verbatim}
+
+\section{The {\it extreme} pattern}
+
+Often, we wish to find the largest or smallest value
+in a list. Here is one approach, which assumes that the
+first item is the largest and then corrects that assumption
+if need be:
+
+\begin{verbatim}
+    largest = items[0]
+    for i in range(0,len(items),1):
+        if (items[i] > largest):
+            largest = items[i]
+\end{verbatim}
+
+When this loop terminates, the variable {\it largest} holds the
+largest value. We can improve the loop slightly by noting
+that the first time the loop body evaluates, we compare the
+putative largest value against itself, which is a worthless
+endeavor. To fix this, we can start the index variable {\it i}
+at 1 instead:
+
+\begin{verbatim}
+    largest = items[0]
+    for i in range(1,len(items),1): #start comparing at index 1
+        if (items[i] > largest):
+            largest = items[i]
+\end{verbatim}
+
+Novice programmers often make the mistake of initialing setting
+{\it largest} to zero and then comparing all values against {\it largest},
+as in:
+
+\begin{verbatim}
+    largest = 0
+    for i in range(0,len(items),1):
+        if (items[i] > largest):
+            largest = items[i]
+\end{verbatim}
+
+This code appears to work in some cases, namely if the largest
+value in the list is greater than or equal to zero. If not,
+as is the case when all values in the list are negative,
+the code produces an erroneous result of zero as the largest
+value.
+
+\section{The {\it extreme-index} pattern}
+
+Sometimes, we wish to find the index of the most extreme
+value in a list rather than the actual extreme value.
+In such cases, we assume index zero holds the extreme value:
+
+\begin{verbatim}
+    ilargest = 0
+    for i in range(1,len(items),1):
+        if (items[i] > items[ilargest]):
+            ilargest = i
+\end{verbatim}
+
+Here, we successively store the index of the largest value
+see so far in the variable {\it ilargest}.
+
+\section{The {\it shuffle} pattern}
+
+Recall, the {\it shuffle} pattern from the previous chapter.
+Instead of using recursion, we can use a version of
+the loop accumulation pattern instead. As before,
+let's assume the lists are exactly the same size:
+
+\begin{verbatim}
+    def shuffle(list1,list2):
+        list3 = []
+        for i in range(0,len(list1),1):
+            list3 = list3 + [list1[i],list2[i]]
+        return list3
+\end{verbatim}
+
+Note how we initialized the resulting list {\it list3} to
+the empty list. Then, as we walked the first list, we
+pulled elements from both lists, adding them into the
+resulting list.
+
+When we have walked past the end of {\it list1} is empty,
+we know we have also walked past the end of {\it list2}, since the
+two lists have the same size.
+
+If the incoming lists do not have the same length,
+life gets more complicated:
+
+\begin{verbatim}
+    def shuffle2(list1,list2):
+        list3 = []
+        if (len(list1) < len(list2)):
+            for i in range(0,len(list1),1):
+                list3 = list3 + [list1[i],list2[i]]
+            return list3 + list2[i:]
+        else:
+            for i in range(0,len(list2),1):
+                list3 = list3 + [list1[i],list2[i]]
+            return list3 + list1[i:]
+\end{verbatim}
+
+We can also use a {\it while} loop that goes until one of the lists
+is empty. This has the effect of removing the redundant code
+in {\it shuffle2}:
+
+\begin{verbatim}
+    def shuffle3(list1,list2):
+        list3 = []
+        i = 0
+        while (i < len(list2) and i < len(list2)):
+            list3 = [list1[i],list2[i]]
+            i = i + 1
+        ...
+\end{verbatim}
+
+When the loop ends, one or both of the lists have been exhausted,
+but we don't know which one or ones. A simple solution is to
+add both remainders to {\it list3} and return.
+
+\begin{verbatim}
+    def shuffle3(list1,list2):
+        list3 = []
+        i = 0
+        while (i < len(list2) and i < len(list2)):
+            list3 = [list1[i],list2[i]]
+            i = i + 1
+        return list3 + list1[i:] + list2[i:]
+\end{verbatim}
+
+Suppose {\it list1} is empty. Then the expression {\tt list1[i:]} will
+generate the empty list. Adding the empty list to {\it list3} will
+have no effect, as desired. The same is true if {\it list2}
+(or both {\it list1} and {\it list2} are empty).
+
+\section{The {\it merge} pattern}
+
+We can also merge using a loop. Suppose we have two
+ordered lists (we will assume increasing order)
+and we wish to merge them into one ordered
+list. We start by keeping two index variables,
+one pointing to the smallest element in {\it list1} and
+one pointing to the smallest element in {\it list2}.
+Since the lists are ordered, we know the that the smallest
+elements are at the head of the lists:
+
+\begin{verbatim}
+   i = 0  # index variable for list1
+   j = 0  # index variable for list2
+\end{verbatim}
+
+Now, we loop, similar to {\it shuffle3}:
+
+\begin{verbatim}
+    while (i < len(list1) and j < len(list2)):
+\end{verbatim}
+
+Inside the loop, we test to see if the smallest element
+in list1 is smaller than the smallest element in list2:
+
+\begin{verbatim}
+        if (list1[i] < list2[j]):
+\end{verbatim}
+
+If it is, we add the element from {\it list1} to {\it list3} and increase
+the index variable {\it i} for {\it list1} since we have `used up' the value
+at index {\it i}.
+
+\begin{verbatim}
+            list3 = list3 + [list1[i]]
+            i = i + 1
+\end{verbatim}
+
+Otherwise, {\it list2} must have the smaller element and we do likewise:
+
+\begin{verbatim}
+            list3 = list3 + [list2[j]]
+            j = j + 1
+\end{verbatim}
+
+Finally, when the loop ends ({\it i} or {\it j} has gotten too large),
+we add the remainders of both lists to {\it list3} and return:
+
+\begin{verbatim}
+    return list3 + list1[i:] + list2[j:]
+\end{verbatim}
+
+In the case of merging, one of the lists will be exhausted
+and the other will not. As with shuffle3, we really don't
+care which list was exhausted.
+
+Putting it all together yields:
+
+\begin{verbatim}
+    def merge(list1,list2):
+        list3 = []
+        i = 0
+        j = 0
+        while (i < len(list1) and j < len(list2)):
+            if (list1[i] < list2[j]):
+                list3 = list3 + [list1[i]]
+                i = i + 1
+            else:
+                list3 = list3 + [list2[j]]
+                j = j + 1
+        return list3 + list1[i:] + list2[j:]
+\end{verbatim}
+
+\section{The {\it fossilized} Pattern}
+
+Sometimes, a loop is so ill-specified that it never ends. This
+is known as an {\it infinite loop}. Of the
+two loops we are investigating, the {\it while} loop is the most
+susceptible to infinite loop errors. One common mistake
+is the {\it fossilized} pattern, in which the index variable never
+changes so that the loop condition never becomes false:
+
+\begin{verbatim}
+    i = 0
+    while (i < n):
+        print(i)
+\end{verbatim}
+
+This loop keeps printing until you terminate the program with
+prejudice. The reason is that {\it i} never changes; presumably a
+statement to increment {\it i} at the bottom of the loop body has
+been omitted.
+
+\section{The {\it missed-condition} pattern}
+
+Related to the bottomless pattern of recursive functions
+is the missed condition pattern of loops.
+With missed condition, the index variable is updated, but
+it is updated in such a way that the loop condition is
+never evaluates to false.
+
+\begin{verbatim}
+    i = n
+    while (i > 0):
+        print(i)
+        i += 1
+\end{verbatim}
+
+Here, the index variable {\it i} needs to be decremented rather than
+incremented. If {\it i} has an initial value greater than zero,
+the increment pushes {\it i} further and further above zero.
+Thus, the loop condition never fails and the loop
+becomes infinite.

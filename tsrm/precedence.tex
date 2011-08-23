@@ -1,0 +1,66 @@
+\chapter{Precedence and Associativity}
+\label{PrecedenceAndAssociativity}
+
+\section{Precedence}
+
+Precedence (partially) describes the order in which operators, in
+an expression involving different operators, are evaluated. In Scam,
+the expression
+
+\begin{verbatim}
+    3 + 4 < 10 - 2
+\end{verbatim}
+
+evaluates to true. In particular, {\tt 3 + 4} and {\tt 10 - 2}
+are evaluated before the {\tt <}, yielding {\tt 7 < 8},
+which is indeed true. This implies that {\tt +} and
+{\tt -} have higher precedence than {\tt <}. If
+{\tt <} had higher precedence, then {\tt 4 < 10}
+would be evaluated first, yielding {\tt 3 + :true - 2}, which
+is nonsensical.
+
+Note that precedence is only a partial ordering. We cannot tell, for
+example whether {\tt 3 + 4} is evaluated before the {\tt 10 - 2},
+or vice versa. Upon close examination, we see that it does not
+matter which is performed first as long as both are performed before
+the expression involving {\tt <} is evaluated.
+
+It is common to
+assume that the left operand is evaluated before the right operand. For
+the {\sc boolean} connectives {\tt and} and {\tt or},
+this is indeed true. But for other operators, such an assumption
+can lead you into trouble. You will learn why later. For now, remember
+never, never, never depend on the order in which operands are evaluated!
+
+The lowest precedence operator in Scam is the assignment operator which
+is described later. Next come the {\sc boolean} connectives {\tt and}
+and {\tt or}.  At the next higher level are the {\sc boolean}
+comparatives, {\tt <}, {\tt <=}, {\tt >},
+{\tt >=}, {\tt ==}, and {\tt !=}.  After
+that come the additive arithmetic operators {\tt +}
+and{\tt -}. Next comes the
+multiplicative operators
+{\tt *}, {\tt /} and {\tt \%}.
+Higher still is the exponentiation operator {\tt **}.
+Finally, at the highest level of precedence is the selection,
+or {\it dot}, operator (the dot operator is a period or full-stop). Higher
+precedence operations are performed before lower precedence operations.
+Functions which are called with operator syntax have the same precedence
+level as the mathematical operators.
+
+\section{Associativity}
+
+Associativity describes how multiple expressions connected by operators at the same
+precedence level are evaluated. All the operators, with the exception of
+the assignment and exponentiation operators, are left associative.
+For example the expression
+5 - 4 - 3 - 2 - 1 is equivalent to ((((5 - 4) - 3) - 2) - 1). For
+a left-associative structure, the equivalent, fully parenthesized,
+structure has open parentheses piling up on the left. If the minus
+operator was right associative, the equivalent expression would be
+(5 - (4 - (3 - (2 - 1)))), with the close parentheses piling up on
+the right. For a commutative operator, it does not matter whether it
+is left associative or right associative. Subtraction, however, is not
+commutative, so associativity does matter. For the given expression, the
+left associative evaluation is -5. If minus were right associative, the
+evaluation would be 3. 

@@ -1,0 +1,237 @@
+\documentclass[10pt]{article}
+\usepackage{mdwlist}
+\usepackage{setspace}
+\usepackage{ulem}
+\usepackage{booktabs}
+\usepackage{hyperlatex}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{upquote}
+\usepackage{color}
+\usepackage[compact]{titlesec}
+\usepackage{pgf}
+
+\definecolor{CodeGreen}{rgb}{0.0,0.45,0.2}
+
+\W\newcommand\codesize \large
+\T\newcommand\codesize \normalsize
+
+\W\newcommand\uline \underline
+\W\newcommand\sf \bf
+\W\newcommand\toprule \htmlrule
+\W\newcommand\midrule \htmlrule
+\W\newcommand\bottomrule \htmlrule
+
+\htmldepth{1}
+\htmltitle{quiz}
+
+\T\setlength\parskip{12 pt}
+\T\setlength\parindent{0 in}
+
+\date{Revision Date: \today}
+
+\begin{document}
+\begin{center}
+\begin{spacing}{0.75}
+{\Large CS}
+ {\Large 150}
+ 
+\vspace{0.2in}
+
+ {\large Lists}
+ {\large Quiz}
+
+\end{spacing}
+\end{center}
+\thispagestyle{empty}
+%This concept list has 10 items
+\begin{enumerate}
+\item
+In the list below, at what index does {\it cat} reside? 
+
+\W\newline\W\htmlimage{l1.1.png}
+\T\input{l1.1.pgf}
+
+
+\begin{enumerate}
+\item
+0
+\item
+2
+\item
+3
+\item
+1
+\item
+4
+\end{enumerate}
+\item
+What is the first element of this list: {\codesize\verb![4, 1, 0]!}?
+\begin{enumerate}
+\item
+there is no first element
+\item
+4
+\item
+0
+\item
+1
+\end{enumerate}
+\item
+What is the index of the 4 in this list: {\codesize\verb![4, 1, 0]!}?
+\begin{enumerate}
+\item
+1
+\item
+0
+\item
+2
+\item
+3
+\item
+4
+\end{enumerate}
+\item
+How many elements are in this list: {\codesize\verb![4, 1, 0]!}?
+\begin{enumerate}
+\item
+4
+\item
+0
+\item
+3
+\item
+1
+\end{enumerate}
+\item
+What is the resulting of adding these two lists: 
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    [4, 2, 0] + [3, 1]
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+\begin{enumerate}
+\item
+an error, the lists are not the same size
+\item
+{\codesize\verb![4, 3, 2, 1, 0]!}
+\item
+{\codesize\verb![0, 1, 2, 3, 4]!}
+\item
+{\codesize\verb![4, 2, 0, 3, 1]!}
+\end{enumerate}
+\item
+What element is at index 3 in the list resulting from this addition: 
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    [5, 0, 4] + [2, 3, 8]
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+\begin{enumerate}
+\item
+3
+\item
+4
+\item
+2
+\item
+there is no index 3 in the resulting list
+\item
+0
+\end{enumerate}
+\item
+What is the value of {\it a} when this code fragment is executed: 
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    b = ["hello", 3, True]
+    a = b[-1]
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+\begin{enumerate}
+\item
+{\codesize\verb!"hello"!}
+\item
+{\codesize\verb!3!}
+\item
+{\codesize\verb!True!}
+\end{enumerate}
+\item
+What is the value of {\it a} when this code fragment is executed: 
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    b = ["hello", 3, True]
+    a = b[0:1]
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+\begin{enumerate}
+\item
+{\codesize\verb!["hello"]!}
+\item
+{\codesize\verb!["hello", 3]!}
+\item
+{\codesize\verb!"hello"!}
+\item
+{\codesize\verb!["hello", 3, True]!}
+\item
+an error, since an array index is too large
+\end{enumerate}
+\item
+What is the value of {\it a} when this code fragment is executed: 
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    b = ["hello", 3, True]
+    a = b[1:1]
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+\begin{enumerate}
+\item
+an error, since index 1 is too large
+\item
+{\codesize\verb![3]!}
+\item
+{\codesize\verb!3!}
+\item
+{\codesize\verb![]!}
+\item
+{\codesize\verb![3, True]!}
+\end{enumerate}
+\item
+What is the value of {\it a} when this code fragment is executed: 
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    b = ["hello", 3, True]
+    a = b[1:]
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+\begin{enumerate}
+\item
+{\codesize\verb![]!}
+\item
+{\codesize\verb![True]!}
+\item
+{\codesize\verb!["hello", 3, True]!}
+\item
+an error, since index 1 is too large
+\item
+{\codesize\verb![3, True]!}
+\end{enumerate}
+
+\end{enumerate}
+\end{document}

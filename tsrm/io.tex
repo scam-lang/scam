@@ -1,0 +1,408 @@
+\chapter{Input and Output}
+\label{InputAndOutput}
+
+Scam distinguishes between reading from the keyboard
+and writing to the console as opposed to reading and writing
+to a file. First we cover reading from the keyboard.
+
+\section{Reading from the keyboard}
+
+To read from the keyboard, one uses the
+{\it input} function:
+
+\begin{verbatim}
+    name = input("What is your name? ")
+\end{verbatim}
+
+The {\it input} function prints the given message to  the console
+(this message is known as a {\it prompt})
+and waits until a response is typed.
+The {\it input} function (as of Scam3) always returns a string.
+If you wish to read an {\it integer}, you can wrap the call to {\it input}
+in a call to {\it int}:
+
+\begin{verbatim}
+    age = int(input("How old are you? "))
+\end{verbatim}
+
+Other conversion functions similar to {\it int} are {\it float}, which
+converts the string {\it input} returns to a real number, and
+{\it eval}, which converts a string into its Scam equivalent.
+For example, we could substitute {\it eval} for {\it int} or {\it float} and
+we would get the exact same result, {\it provided} an integer
+or a real number, respectively, were typed in response to
+{\it input} prompt. The {\it eval} function can even to some math for you:
+
+\begin{verbatim}
+    >>> eval("3 + 7")
+    10
+\end{verbatim}
+
+\section{Writing to the Console}
+
+One uses the {\it print} function to display text on the console:
+The {\it print} function is {\it variadic}, which means
+it can take a variable number
+of arguments.
+The {\it print} function has lots of options, but we will be
+interested in only two, {\it sep} and {\it end}.
+The {\it sep} (for separator) option specifies what
+is printed between the arguments
+sent to be printed. If the {\it sep} option is missing, a
+space is printed between the values received by {\it print}:
+
+\begin{verbatim}
+    >>> print(1,2,3)
+    1 2 3
+    >>>
+\end{verbatim}
+
+If we wish to use commas as the separator, we would do this:
+
+\begin{verbatim}
+    >>> print(1,2,3,sep=",")
+    1,2,3
+    >>>
+\end{verbatim}
+
+If we wish to have no separator, we bind {\it sep} to an empty string:
+
+\begin{verbatim}
+    >>> print(1,2,3,sep="")
+    123
+    >>>
+\end{verbatim}
+
+The {\it end} option specifies what be printed after the arguments
+are printed. If you don't supply a {\it end} option, a newline
+is printed by default. This call to {\it print} prints an exclamation
+point and then a newline at the end:
+
+\begin{verbatim}
+    >>> print(1,2,3,end="!\n")
+    1 2 3!
+    >>>
+\end{verbatim}
+
+If you don't want anything printed at the end, bind {\it end} to an
+empty string:
+
+\begin{verbatim}
+    >>> print(1,2,3,end="")
+    1 2 3>>>
+\end{verbatim}
+
+Notice how the Scam prompt ends up on the same line as
+the values printed.
+
+You can combine the {\it sep} and {\it end} options.
+
+\section{Reading from the Command Line}
+
+The command line is the line typed in a terminal window
+that runs a python program (or any other program).
+Here is a typical command line on a Linux system:
+
+\begin{verbatim}
+    lusth@sprite:~/l1/activities$ python3 prog3.py
+\end{verbatim}
+
+Everything up to and including the dollar sign is
+the system prompt. As with all prompts, it is used
+to signify that the system is waiting for input.
+The user of the system (me) has typed in the command:
+
+\begin{verbatim}
+    python3 prog3.py
+\end{verbatim}
+
+in response to the prompt. Suppose {\it prog3.py} is a file
+with the following code:
+
+\begin{verbatim}
+    import sys
+
+    def main():
+        print("command-line arguments:")
+        print("    ",sys.argv)
+
+    main()
+\end{verbatim}
+
+In this case, the output of this program would be:
+
+\begin{verbatim}
+    command-line arguments:
+        ['prog3.py']
+\end{verbatim}
+
+Note that the program imports the {\it sys} module and when
+the value of the variable {\it sys.argv} is printed, we
+see its value is:
+
+\begin{verbatim}
+    ['prog3.py']
+\end{verbatim}
+
+This tells us that {\it sys.argv} points to a list (because of the
+square brackets) and that the program file name, as a string,
+is found in this list.
+
+\section*{Command-line arguments}
+
+The second way to pass information to a program is
+through {\it command-line arguments}.
+Any whitespace-delimited tokens following
+the program file name are stored in {\it sys.argv} 
+along with the name of the program being run
+by the Scam interpreter.
+For example, suppose we run {\it prog3.py} with the this
+command:
+
+\begin{verbatim}
+    python3 prog3.py 123 123.4 True hello, world
+\end{verbatim}
+
+Then the output would be:
+
+\begin{verbatim}
+    command-line arguments:
+        ['prog3.py', '123', '123.4', 'True', 'hello,', 'world']
+\end{verbatim}
+
+From this result, we can see that all of the tokens are stored
+in {\it sys.argv} and that they are stored as strings, {\it regardless} of
+whether they look like some other entity, such as integer,
+real number, or Boolean.
+
+If we wish for {\tt "hello, world"} to be a single token,
+we would need to enclose the tokens in quotes:
+
+\begin{verbatim}
+    python3 prog3.py 123 123.4 True "hello, world"
+\end{verbatim}
+
+In this case, the output is:
+
+\begin{verbatim}
+    command-line arguments:
+        ['prog3.py', '123', '123.4', 'True', 'hello, world']
+\end{verbatim}
+
+There are certain characters that have special meaning to
+the system. A couple of these are '*' and ';'. To include
+these characters in a command-line argument, they need to
+be {\it escaped} by inserting a backslash prior to the 
+character.
+Here is an example:
+
+\begin{verbatim}
+    python3 prog.py \; \* \\
+\end{verbatim}
+
+To insert a backslash, one escapes it with a backslash.
+The output from this command is:
+
+\begin{verbatim}
+    command-line arguments:
+        ['prog3.py', ';', '*', '\\']
+\end{verbatim}
+
+Although it looks as if there are two backslashes in the last
+token, there is but a single backslash. Scam uses two
+backslashes to indicate a single backslash.
+
+\subsection*{Counting the command line arguments}
+
+The number of command-line arguments (including the program file name)
+can be found by using the {\it len} (length) function. If we modify
+{\it prog3.py}'s main function to be:
+
+\begin{verbatim}
+    def main():
+        print("command-line argument count:",len(sys.argv))
+        print("command-line arguments:")
+        print("    ",sys.argv)
+\end{verbatim}
+
+and enter the following command at the system prompt:
+
+\begin{verbatim}
+    python3 prog3.py 123 123.4 True hello world
+\end{verbatim}
+
+we get this output:
+
+\begin{verbatim}
+    command-line argument count: 6
+    command-line arguments:
+         ['prog3.py', '123', '123.4', 'True', 'hello', 'world']
+\end{verbatim}
+
+As expected, we see that there are six command-line arguments,
+including the program file name.
+
+\section*{Accessing individual arguments}
+
+As with most programming languages and with Scam lists,
+the individual tokens in {\it sys.argv} are accessed with
+zero-based indexing. To access the program file name, we would
+use the expression:
+
+\begin{verbatim}
+    sys.argv[0]
+\end{verbatim}
+
+To access the first command-line argument after the program
+file name, we would use the expression:
+
+\begin{verbatim}
+    sys.argv[1]
+\end{verbatim}
+
+Let's now modify {\it prog3.py} so that it prints out each argument
+individually. We will using a construct called a loop to do this. You
+will learn about looping later, but for now, the statement
+starting with {\tt for} generates all the legal indices for
+{\it sys.argv}, from zero to the length of {\it sys.argv} minus one.
+Each index, stored in the variable {\it i}, is then used to print the argument
+stored at that location in sys.argv:
+
+\begin{verbatim}
+    def main():
+        print("command-line argument count:",len(sys.argv))
+        print("command-line arguments:")
+        for i in range(0,len(sys.argv),1):
+            print("   ",i,":",sys.argv[i])
+\end{verbatim}
+    
+Given this command:
+
+\begin{verbatim}
+    python3 prog3.py 123 123.4 True hello world
+\end{verbatim}
+
+we get the following output:
+
+\begin{verbatim}
+    command-line argument count: 6
+    command-line arguments:
+        0 : prog3.py
+        1 : 123
+        2 : 123.4
+        3 : True
+        4 : hello
+        5 : world
+\end{verbatim}
+
+This code works no matter how many command line arguments are sent.
+The superior student will ascertain that this is true.
+
+\subsection{What command-line arguments are}
+
+The command line arguments  are stored as strings.
+Therefore, you must use the {\it int}, {\it float}, or {\it eval} functions
+if you
+wish to use any of the command line arguments as numbers.
+
+\section{Reading from Files}
+
+The third way to get data to a program is to read the
+data that has been previously stored in a file.
+
+Scam uses a {\it file pointer} system in reading from a
+file. To read from a file, the first
+step is to obtain a pointer to the file. This is
+known as {\it opening} a file. Suppose
+we wish to read from a file named {\it data}. We
+would open the file like this:
+
+\begin{verbatim}
+    fp = open("data","r")
+\end{verbatim}
+
+The {\it open} command takes two arguments, the name of the
+file and the kind of file pointer to return. In this
+case, we wish for a {\it reading} file pointer, so we pass
+the string {\tt "r"}.
+
+Next, we can read the entire file into a single string with
+the {\it read} method:
+
+\begin{verbatim}
+    text = fp.read()
+\end{verbatim}
+
+After this statement is evaluated, the variable {\it text} would
+point to a string containing every character in the file {\it data}.
+We call {\it read} a method, rather than a function (which it is), to
+indicate that it is a function that belongs to a file pointer
+object, which {\it fp} is. You will learn about objects 
+in a later class, but the `dot' operator is a clue that
+the thing to the left of the dot is an object and the
+thing to the right is a method (or simple variable) that
+belongs to the object.
+
+When we are done reading a file, we {\it close} it:
+
+\begin{verbatim}
+    fp.close()
+\end{verbatim}
+
+\section{Writing to a File}
+
+Scam also requires a file pointer to write to 
+a file. The {\it open} function is again used to obtain
+a file pointer, but this time we desire a {\it writing}
+file pointer, so we send the string {\tt "w"} as the
+second argument to {\it open}:
+
+\begin{verbatim}
+    fp = open("data.save","w")
+\end{verbatim}
+
+Now the variable {\it fp} points to a writing file object, which
+has a method named {\it write}. The only argument {\it write} takes
+is a string. That string is then written to the file. Here is
+a function that copies the text from one file into another:
+
+\begin{verbatim}
+    def copyFile(inFile,outFile):
+        in = open(inFile,"r")
+        out = open(outFile,"w")
+        text = in.read();
+        out.write(text);
+        in.close()
+        out.close()
+\end{verbatim}
+            
+Opening a file in order to write to
+it has the effect of emptying the file of its contents
+soon as it is opened.
+The following code deletes
+the {\it contents} of a file (which is different than
+deleting the file):
+
+\begin{verbatim}
+    # delete the contents
+    fp = open(fileName,"w")
+    fp.close()
+\end{verbatim}
+
+We can get rid of the variable {\it fp} by simply treating the
+call to {\it open} as the object {\it open} returns, as in:
+
+\begin{verbatim}
+    # delete the contents
+    open(fileName,"w").close()
+\end{verbatim}
+
+If you wish to start writing to a file, but save what was
+there previously, call the {\it open} function to obtain
+an {\it appending} file pointer:
+
+\begin{verbatim}
+    fp = open(fileName,"a")
+\end{verbatim}
+
+Subsequent writes to {\it fp} will append text to what is already there.

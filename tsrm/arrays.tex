@@ -1,0 +1,245 @@
+\chapter{Arrays}
+\label{Arrays}
+
+In this chapter, we will study {\it arrays}, a device
+used for bringing related bits of data together underneath one
+roof, so to speak. Such a device is known as a data structure;
+an array is one of the most basic of data structures.
+
+Unfortunately, arrays are not built in to Scam and
+third party array modules are practically or semantically 
+deficient. Therefore,
+this chapter is based on a custom array module you can
+download (sorry, Linux only).
+
+\section{Getting the array and list modules}
+
+If you are running Linux on a 32-bit Intel machine,
+run these commands to download the modules:
+
+\begin{verbatim}
+    wget beastie.cs.ua.edu/cs150/array-i386/nakarray.so
+\end{verbatim}
+
+If you are running Linux on a 64-bit machine, use this
+command instead:
+
+\begin{verbatim}
+    wget beastie.cs.ua.edu/cs150/array-amd64/nakarray.so
+\end{verbatim}
+
+Place the {\it nakarray.so} file
+in the same directory as
+your program that uses arrays. One would
+import the array module
+with the following line:
+
+\begin{verbatim}
+    from nakarray import *
+\end{verbatim}
+
+\section{Arrays as data structures}
+
+A {\it data}
+{\it structure} is simply a collection of
+bits of information\footnote{
+Bits in the informal sense, not zeros and ones.
+}
+that are
+somehow glued together into a single whole. Each of these bits
+can be be accessed individually. Usually, the bits are somehow
+related, so the data structure is a convenient way
+to keep all these related bits nicely packaged together.
+
+At its most basic, a data structure supports the following actions:
+
+\begin{itemize}
+\item
+       creating the structure
+\item
+       putting data into the structure
+\item
+       taking data out of the structure
+\end{itemize}
+
+We will study these actions with an eye to how long each
+action is expected to take.
+
+An array is a data structure with the property that each
+individual piece of data can be accessed just as quickly as any of the
+others. In other words, the process of putting data in and
+taking data out takes a constant amount of time regardless of
+the size of the array and where the data being accessed is
+placed in the array\footnote{
+Not all data structures have this
+property (but they do have other advantages over arrays.}.
+
+\section{Array creation}
+
+To create an array, one uses the {\it Array} function:
+
+\begin{verbatim}
+    a = Array(10)
+\end{verbatim}
+
+The function call \verb!Array(10)!
+creates an array with room for ten items or {\it elements}.
+The variable {\it a} is created and set to point to
+the array.
+
+In many languages, array creation can take anywhere from {\it constant} time
+(if elements are not initialized) or {\it linear} time (if they are).
+What do we mean by constant time? We mean, in this particular
+case, the amount of time it takes to create an array of 10 elements
+takes the same amount of time it takes to create an array of 
+1,000,000 elements. In other words, the time it takes to create an
+array is independent of the size of the array.
+By the same token, linear time means the time it takes to create
+an array is proportional to the size of the array. If array creation
+takes linear time, we would expect the time it takes to create
+a 1,000,000 element array would be, roughly, 100,000,000 times
+longer than the time to create a 10 element array. 
+
+At the end of the chapter, we will attempt to figure out whether
+array creation takes constant or linear time.
+
+\section{Setting and getting array elements}
+
+Most data structures allow you to both add and remove data.
+For arrays, adding data means to {\it set} the value of an array element,
+while removing data means to {\it get} the value of an array element.
+It does not mean that elements themselves are being created and
+destroyed (although this can be the case in other data structures).
+
+To set an individual element, one uses {\it square bracket notation}.
+For example, here's how to set the
+first item in the array
+
+\begin{verbatim}
+    >>> a[0] = 42
+\end{verbatim}
+
+The number between the square brackets is known as an
+{\it index}.
+As with Scam lists, note that the index of the first element is zero.
+This means
+that the index
+of the second element is one, and so on.
+In other words, zero-based counting is used to
+number array elements.
+
+Once an element has been set, you can retrieve it from the array
+using a similar notation. The following code illustrates the
+retrieval of the first (index zero) element.
+
+\begin{verbatim}
+    >>> e = a[0]
+
+    >>> e
+    42
+\end{verbatim}
+
+Of course, there is no need to assign the value of an array
+element to a variable; you can access it directly:
+
+\begin{verbatim}
+    >>> a[0]
+    42
+\end{verbatim}
+
+The elements of an array are initialized to \verb!None!, so if you
+access an element that hasn't been set, you get \verb!None! as a
+result:
+
+\begin{verbatim}
+    >>> print(a[1])
+    None
+
+    >>>print(a)
+    [42, None, None, None, None, None, None, None, None, None]
+\end{verbatim}
+
+To find out the number of elements in an array, you can use
+the {\it len} function:
+
+\begin{verbatim}
+    >>> len(a)
+    10
+\end{verbatim}
+
+Because of zero-based counting, the index of the last element
+is always one less the number of elements in the array. For
+a ten element array then, the last legal index is nine:
+
+\begin{verbatim}
+    >>> a[9] = 13
+
+    >>>print(a)
+    [42, None, None, None, None, None, None, None, None, 13]
+\end{verbatim}
+
+Trying to access an element beyond the $9^{th}$ results in
+an error:
+
+\begin{verbatim}
+    >>> a[10] = 99
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      IndexError: Index '10' is out of range.
+\end{verbatim}
+
+\section{Limitations on our arrays}
+
+Unlike built-in Scam strings and lists, the {\it nakarray} module
+does not allow:
+
+\begin{itemize}
+\item
+        `slicing' an array.
+\item
+        negative indices
+\item
+        concatenation two arrays using the plus operator
+\end{itemize}
+
+The reasons for these restrictions is that other common languages
+do not support these features. In those languages, you need
+to implement these features yourself. The superior student
+will attempt to add these features by defining special purpose
+functions for our arrays.
+
+\section{Advantages of our arrays}
+
+The array module that comes with the
+Scam distribution has two major disadvantages:
+
+\begin{itemize}
+\item
+    you cannot create an array of a given size - you must
+    instead create an empty array and then repeatedly append
+    elements to the array.
+\item
+    you must specify the type of element to  be stored in
+    the array at array creation time - such arrays are known
+    as {\it homogeneous} arrays.
+\end{itemize}
+        
+As seen in the previous sections,
+arrays made with the {it nakarray} can
+be made of any size quite easily.
+As to the second disadvantage,
+we feel that arrays, 
+like Scam lists, should be
+{\it heterogeneous}.
+Homogeneous, in Computer Science speak, means ``all of one type''
+so a homogeneous array can only hold all integers or all strings,
+but not both. Heterogeneous arrays can hold a mixture of types.
+
+\section{The utility of arrays}
+
+Due to their constant time properties, arrays are
+a useful data structure for many applications involving
+large amounts of data. One of the most useful applications
+is searching for presence of certain elements in an array.
+The next chapter discusses how arrays can make this
+search process quite efficient.

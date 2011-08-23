@@ -1,0 +1,147 @@
+\chapter{Sorting}
+\label{Sorting}
+
+\section*{Sorted Tables}
+
+Recall that a table is a list of records where
+each record is a list of the fields incorporating
+the record.
+
+Sometimes, you need to merge two sorted tables into
+one table that remains sorted. First, you have
+to decide which field is used for the
+sorting. In our example, the records in the data file
+could be sorted on NAME or on SALARY or any other
+field.
+
+Suppose we had two data files that are sorted on SALARY,
+{\it salaries.1} and {\it salaries.2}.  We wish to merge the data
+in both files, printing  out the merged data, again in
+sorted order.
+
+First, we need to read the data into tables:
+
+\begin{verbatim}
+    table1 = readTable("salaries.1")
+    table2 = readTable("salaries.2")
+\end{verbatim}
+
+Our strategy is to compare the first unaccumulated
+record in {\it table1} to the first unaccumulated record
+in {\it table2}. Let's call these records {\it r1} and {\it r2}, respectively.
+If the salary of {\it r1} is less than that of {\it r2}, we accumulate
+{\it r1}. Otherwise we accumulate {\it r2}.
+We will repeat this process using a loop.
+
+It is clear we need two variables, the first points to
+the index of the first unaccumulated record in the table1,
+while the second variable points to the first unaccumulated
+record in the second table.
+We start out both variables at zero, meaning no records
+have been accumulated yet:
+
+\begin{verbatim}
+    index1 = 0
+    index2 = 0
+\end{verbatim}
+
+How do we know when to stop accumulating? When we
+run out of records to compare. This happens
+when {\it index1} has passed
+the index of the last record in {\it table1} or {\it index2} has passed the
+index of the last record in {\it table2}.
+We reverse that logic for a while loop, because it runs
+while the test condition is true. The reversed logic is
+``as long as index1 has not passed the {\it index} of the last record
+in {\it table1} AND {\it index2} has not passed the index of the last
+record in {\it table2}''.
+
+\begin{verbatim}
+    total = []
+    while (index1 < len(table1) and index2 < len(table2):
+        r1 = table1[index1]
+        r2 = table2[index2]
+        ...
+\end{verbatim}
+
+We also must advance {\it index1} and {\it index2} to that the loop will
+finally end. When do we advance {\it index1}? When we accumulate
+a record from {\it table1}. When do we advance {\it index2}? Likewise,
+when we accumulate a record from {\it table2}.
+
+
+\begin{verbatim}
+    total = []
+    while (index1 < len(table1) and index2 < len(table2):
+        r1 = table1[index1]
+        r2 = table2[index2]
+        if (r1[SALARY] < r2[SALARY]):
+           total = total + [r1]
+           index1 += 1
+        else:
+           total = total + [r2]
+           index2 += 1
+\end{verbatim}
+
+When will this loop end? When one of the indices gets too high\footnote{
+Only one will be too high. Why is that?}.
+This means we will have accumulated all the
+records from one of the tables, but we don't know which one.
+So, we add two more loops to accumulate any left over records:
+
+\begin{verbatim}
+    for i in range(index1,len(table1),1):
+        total = total + [table1[i]]
+
+    for i in range(index2,len(table2),1):
+        total = total + [table2[i]]
+\end{verbatim}
+
+Finally, we encapsulate all of our merging code into
+a function, passing in the index of the field that was
+used to sort the data. This field is
+known as the {\it key}:
+
+\begin{verbatim}
+    def merge(table1,table2,key):
+        total = []
+        while (index1 < len(table1) and index2 < len(table2):
+            r1 = table1[index1]
+            r2 = table2[index2]
+            if (r1[key] < r2[key]):
+               total = total + [r1]
+               index1 += 1
+            else:
+               total = total + [r2]
+               index2 += 1
+
+        for i in range(index1,len(table1),1):
+            total = total + [table1[i]]
+
+        for i in range(index2,len(table2),1):
+            total = total + [table2[i]]
+\end{verbatim}
+
+Finally, we define a main function to tie it all together:
+
+\begin{verbatim}
+    def main():
+        table1 = readTable("salaries.1")
+        table2 = readTable("salaries.2")
+        mergedTable = merge(table1,table2,SALARY) #SALARY is the key
+        printTable(mergedTable)
+\end{verbatim}
+
+Notice how the main function follows the standard main
+pattern:
+
+\begin{itemize}
+\item
+        get the data
+\item
+        process the data
+\item
+        write the result
+\end{itemize}
+
+\section{Merge sort}

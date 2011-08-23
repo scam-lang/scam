@@ -1,0 +1,290 @@
+\chapter{Literals}
+\label{Literals}
+
+Scam works by figuring out the meaning or value of some code.
+This is true for the tiniest pieces of code to the largest
+programs. The process of finding out the meaning of code
+is known as {\it evaluation}.
+
+The things whose values are the things themselves are known as
+{\it literals}. The literals of Scam can be categorized by the following
+types:
+{\it integers}, {\it real} {\it numbers}, {\it strings}, {\sc booleans},
+and {\it lists}.
+
+Scam (or more correctly, the Scam interpreter) responds to literals
+by echoing back the literal itself.
+Here are examples of each of the types:
+
+\begin{verbatim}
+    (inspect 3)
+    -> 3 is 3
+     
+    (inspect -4.9
+    -> -4.900000 is -4.900000
+     
+    (inspect "hello")
+    -> hello is hello
+     
+    (inspect #t)
+    -> #t is #t
+
+    (inspect (list 3 -4.9 "hello"))
+    -> (list 3 -4.9 "hello") is (3, -4.9, "hello")
+\end{verbatim}
+Let's examine the
+five types in more detail.
+
+\section{Integers}
+
+Integers are numbers without any fractional parts.
+Examples of integers are:
+
+\begin{verbatim}
+    (inspect 3)
+    -> 3 is 3
+    
+    (inspect -5)
+    -> -5 is -5
+    
+    (inspect 0)
+    -> 0 is 0
+\end{verbatim}
+
+Integers must begin with a digit or a minus sign. The initial minus sign
+must immediately be followed by a digit.
+
+\section{Real Numbers}
+
+Reals are numbers that do have a fractional part (even if that fractional
+part is zero!). Examples of real numbers are:
+
+\begin{verbatim}
+    (inspect 3.2)
+    -> 3.200000 is 3.200000
+    
+    (inspect 4.0)
+    -> 4.000000 is 4.000000
+       
+    (inspect 5.)
+    -> 5.000000 is 5.000000
+       
+    (inspect 0.3)
+    -> 0.300000 is 0.300000
+       
+    (inspect .3)
+    -> 0.300000 is 0.300000
+    
+    (inspect 3.0e-4)
+    -> 0.000300 is 0.000300
+    
+    (inspect 3e4)
+    -> 30000.000000 is 30000.000000
+    
+    (inspect .000000987654321)
+    -> 0.000001 is 0.000001
+\end{verbatim}
+
+Real numbers must start with a digit or a minus sign or a decimal
+point. An initial minus sign must immediately be followed by a digit or a
+decimal point. An initial decimal point must immediately be followed by
+a digit. Scam accepts real numbers in scientific notation. For example,
+$3.0 * 10^{-11}$ would be entered as 3.0e-11. The `e' stands for exponent and
+the 10 is understood, so e-11 means multiply whatever precedes the
+e by $10^{-11}$.
+
+The Scam interpreter can hold huge numbers,
+limited by only the amount of memory available to the
+interpreter,
+but holds only 15 digits after the decimal point:
+
+\begin{verbatim}
+    (inspect 1.2345678987654329
+    -> 1.234568 is 1.234568
+\end{verbatim}
+
+Note that Scam rounds up or rounds down, as necessary.
+
+Numbers greater than $10^6$ and
+less than $10^{-6}$ are displayed in
+scientific notation.
+
+\section{Strings}
+
+Strings are sequences of characters delineated by double quotation marks:
+
+\begin{verbatim}
+    (inspect "hello, world!")
+    'hello, world!'
+    
+    (inspect "x\nx")
+    'x\nx'
+    
+    (inspect "\"z\"")
+    '"z"' 
+    
+    (inspect "")
+    ''
+\end{verbatim}
+
+Scam accepts both double quotes and single quotes to
+delineate strings. In this text, we will use the convention
+that double quotes are used for strings of multiple 
+characters and single quotes for strings consisting of
+a single character.
+
+Characters in a string can be {\it escaped} (or quoted)
+with the backslash character,
+which changes the meaning of some characters. For example, the character
+{\it n}, in a string refers to the letter {\it n} while the character sequence
+{\it $\backslash$n}
+refers
+to the {\it newline} character. A backslash also changes the meaning of the
+letter {\it t},
+converting it into a tab character.
+You can also quote single and double quotes with backslashes.
+When other characters are escaped,
+it is assumed the backslash is a character of the
+string and it is escaped (with a backslash) in the result:
+
+\begin{verbatim}
+    (inspect "\z")
+    '\\z'
+\end{verbatim}
+
+Note that Scam, when asked
+the value of strings that contain newline and tab characters, displays
+them as escaped characters. When newline and tab characters in a string
+are printed in a program, however, they are displayed as actual newline
+and tab characters, respectively.
+As already noted,
+double and single quotes can be embedded in a
+string by quoting them with backslashes. A string with no characters
+between the double quotes is known as an empty string.
+
+Unlike some languages, there is no character type in Scam. A single
+character {\verb+a+}, for example, is entered as the string
+{\verb+'a'+}.
+
+\section{True, False, and None}
+
+There are two special literals, \verb!True! and \verb!False!.
+These literals are known as the {\sc boolean} values
+and are used to guide the flow of a program.
+The term {\sc boolean} is derived from the last name of George Boole, who,
+in his 1854 paper {\it An Investigation of the Laws of Thought, on which are
+founded the Mathematical Theories of Logic and Probabilities}, laid one
+of the cornerstones of the modern digital computer. The so-called {\sc boolean}
+logic or {\sc boolean} algebra is concerned with the rules of combining truth
+values (i.e., true or false). As we will see, knowledge of such rules will
+be important for making Scam programs behave properly. In particular,
+{\sc boolean} expressions will be used to control conditionals and loops.
+
+Another special literal is \verb!None!.
+This literal is used to
+indicate the end of lists; it also is used
+to indicates something that has not yet been
+created. More on \verb!None! when we cover lists and
+objects.
+
+\section{Lists}
+
+Lists are just collections of values. One creates a list by
+enclosing a comma-separated listing of values in square brackets.
+The simplest list is empty:
+
+\begin{verbatim}
+    (inspect [])
+    []
+\end{verbatim}
+
+Lists can contain any values:
+
+\begin{verbatim}
+    (inspect [2, "help", len])
+    [2, 'help', <built-in function len>]
+\end{verbatim}
+
+The first value is an integer, the second a string,
+and the third is something known as a function. We will
+learn more about functions later, but the {\it len} function
+is used to tell us how many items are in a list:
+
+\begin{verbatim}
+    (inspect  len([2, "help", len]))
+    3
+\end{verbatim}
+
+As expected, the {\it len} function tells us that the list
+\verb![2, "help", len]! has three items in it.
+
+Lists can even contain lists!
+
+\begin{verbatim}
+    (inspect [0, [3, 2, 1] 4])
+    [0, [3, 2, 1] 4]
+\end{verbatim}
+
+A list is something known as a {\it data structure};
+data structures are extremely important in writing
+sophisticated programs.
+
+\section{Indexing into Lists}
+
+You can pull out an item from a list by using {\it bracket notation}.
+With bracket notation, you specify exactly which element (or elements)
+you wish to extract from the list. This specification is called an
+{\it index}. The first element of the list has index 0, the second
+index 1, and so on. This concept of having the first element having
+an index of zero is known as {\it zero-based counting}, a common concept
+in Computer Science. Here is some code that extracts the first element
+of a list:
+
+\begin{verbatim}
+    (inspect  items = ['a', True, 7])
+
+    (inspect  items[0])
+    'a'
+
+    (inspect  items[1])
+    True
+
+    (inspect  items[2])
+    7
+
+    (inspect  items)
+    ['a', True, 7]
+\end{verbatim}
+
+Note that extracting an item from a list leaves the list unchanged.
+What happens if our index is too large?
+
+\begin{verbatim}
+    (inspect  items[3])
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      IndexError: list index out of range
+\end{verbatim}
+
+Not surprisingly, we get an error.
+
+There is a special notation for extracting {\it all} the elements
+of a list {\it except} the first one. This is known as a {\it slice}:
+
+\begin{verbatim}
+    (inspect  items[1:])
+    [True, 7]
+\end{verbatim}
+
+This particular slice (you can slice a list many different ways) says,
+start extracting at the second item (which has index one) and go
+to the end. Here is a slice that says, start extracting at the first
+element (which has index 0) and go up to, but do not include, the
+element with index 2:
+
+\begin{verbatim}
+    (inspect  items[0:2])
+    ['a', True]
+\end{verbatim}
+
+We will see more of slicing when we study recursion in a later chapter.

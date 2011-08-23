@@ -1,0 +1,254 @@
+\chapter{More about Functions}
+\label{MoreAboutFunctions}
+
+We have already seen some examples of functions,
+some user-defined and some built-in.
+For example, we have used the built-in functions,
+such as 
+{\tt *} and defined our own functions,
+such as {\it square}.
+In reality, {\it square} is not a function, per se, but a variable
+that is bound to the function that multiplies two numbers
+together. It is tedious to say `the function bound to
+the variable {\it square}', however,
+so we say the more concise (but technically incorrect)
+phrase `the {\it square} function'.
+
+\section{Built-in Functions}
+
+Scam has many built-in, or {\it predefined}, functions.
+No one, however,
+can anticipate all possible tasks that someone might want to perform,
+so most programming languages allow the user to define new functions.
+Scam is no exception and provides
+for the creation of new and novel functions.
+Of course,
+to be useful,
+these functions should be able to call
+built-in functions as well as other programmer created
+functions.
+
+For example, a function that determines whether a given
+number is odd or even is not built into Scam but can be
+quite useful in certain situations.
+Here is a definition
+of a function named {\it isEven} which returns true if the
+given number is even, false otherwise:
+
+\begin{verbatim}
+    >>> def isEven(n):
+    ...     return n % 2 == 0
+    ...
+    >>>
+
+    >>> isEven(42)
+    True
+
+    >>> isEven(3)
+    False
+
+    >>> isEven(3 + 5)
+    True
+\end{verbatim}
+
+We could spend days talking about about what's going on in these
+interactions with the interpreter. First, let's talk
+about the syntax of a function definition. Later, we'll
+talk about the purpose of a function definition. Finally,
+will talk about the mechanics of a function definition
+and a function call.
+
+\section{Function syntax}
+
+Recall that the words of a programming language include its
+primitives, keywords and variables. A function definition
+corresponds to a sentence in the language in that it is
+built up from the words of the language. And like human
+languages, the sentences must follow a certain form. This
+specification of the form of a sentence is known as its
+{\it syntax}. Computer Scientists often use a special way
+of describing syntax of a programming language called the
+Backus-Naur form (or {\sc bnf}). Here is a high-level description
+of the syntax of a Scam function definition using {\sc bnf}:
+
+\begin{verbatim}
+    functionDefinition : signature ':' body
+
+    signature : 'def' variable '(' optionalParameterList ')'
+
+    body : block
+
+    optionalParameterList : *EMPTY*
+                          | parameterList
+    
+    parameterList : variable
+                  | variable ',' parameterList
+    
+    block:  definition 
+          | definition block
+          | statement
+          | statement block
+\end{verbatim}
+
+The first {\sc bnf} {\it rule} says that a function definition is
+composed of two pieces, a signature and a body, separated
+by the colon character
+(parts of the rule that appear verbatim appear within single quotes).
+The signature starts
+with the keyword {\it def}
+followed by a variable,
+followed by an open parenthesis, followed by something
+called an {\it optionalParameterList}, and finally followed by a close
+parenthesis.
+The body of a function 
+something called a {\it block},
+which is composed of {\it definitions} and {\it statements}.
+The {\it optionalParameterList} rule tells us that
+the list of formal parameters can possibly be empty,
+but if not, is composed of a list of variables
+separated by commas.
+
+As we can see from the {\sc bnf} rules,
+parameters are variables that will be bound
+to the values supplied in the function call.
+In the particular case of {\it isEven}, from the
+previous section,
+the variable {\it x} will be bound to the number whose
+evenness is to be determined. As noted earlier,
+it is customary to call {\it x}
+a {\it formal parameter} of the function {\it isEven}.
+In function calls, the values to be bound to the
+formal parameters are called {\it arguments}.
+
+\section{Function Objects}
+
+Let's look more closely at the body of {\it isEven}:
+
+\begin{verbatim}
+    def isEven(x):
+        return x % 2 == 0
+\end{verbatim}
+
+The \% operator is bound to the remainder or modulus
+function. The {\tt ==} operator is bound to the equality function
+and determines whether the value of the left operand
+expression is equal to the value of the right operand
+expression, yielding true or false as appropriate. The
+{\sc boolean} value produced by {\tt ==} is then immediately returned as the
+value of the function.
+
+When given a function definition like that above, Scam
+performs a couple of tasks. The first is to create the
+internal form of the function, known as a {\it function object},
+which holds the function's signature and body.
+The second task is to bind
+the function name to the function object so that it
+can be called at a later time.
+Thus, the name
+of the function is simply a variable that happens to be
+bound to a function object. As noted before, we often say
+'the function {\it isEven}' even though we really mean 'the
+function object bound to the variable {\it even}?'.
+
+The value of a function definition is the
+function object; you can see this by
+printing out the value of {\it isEven}:
+
+\begin{verbatim}
+    >>> print(isEven)
+    <function isEven at 0x9cbf2ac>
+
+    >>> isEven = 4
+    >>> print(isEven)
+    4
+
+\end{verbatim}
+
+Further interactions with the interpreter provide evidence
+that {\it isEven} is indeed a variable; we can reassign its value,
+even though it is considered in poor form to do so.
+
+\section{Calling Functions}
+
+Once a function is created,
+it is used by {\it calling} the
+function with {\it arguments}.
+A function is called by supplying
+the name of the function followed by a parenthesized,
+comma separated, list of expressions.
+The arguments are
+the values that the formal parameters will receive.
+In Computer Science speak, we say that the values
+of the arguments are to be bound to
+the
+formal parameters.
+In general, if there are {\it n} formal parameters,
+there should be {\it n} arguments.\footnote{
+For {\it variadic} functions, which Scam
+allows for, the number of arguments
+may be more or less than the number of formal parameters.
+}
+Furthermore, the value of the
+first argument is bound to the first formal parameter, the
+second argument is bound to the second formal parameter,
+and so on. Moreover, all the arguments are evaluated
+before being bound to any of the parameters.
+
+Once the evaluated arguments are bound to the parameters,
+then the body of the function is evaluated. Most times,
+the expressions in the body of the function will reference
+the parameters. If so, how does the interpreter find the
+values of those parameters? That question is answered in
+the next chapter.
+
+\section{Returning from functions}
+
+The return value of a function is the value of the expression
+following the {\tt return} keyword.
+For a function to return this  expression, however,
+the return has to be {\it reached}.
+Look at this example:
+
+\begin{verbatim}
+def test(x,y):
+    if (y == 0):
+        return 0
+    else:
+        print("good value for y!")
+        return x / y
+
+    print("What?")
+    return 1
+\end{verbatim}
+
+Note that the {\it ==} operator returns true if the
+two operands have the same value.
+In the function, if {\it y} is zero, then the
+\begin{verbatim}
+    return 0
+\end{verbatim}
+
+statement is reached.
+This causes an
+immediate return from the function and
+no other expressions in the function body are evaluated.
+The return value, in this case, is zero.
+If {\it y} is not equal to zero,
+a message is printed and 
+the second return is reached, again causing
+an immediate return. In this case,
+a quotient is returned.
+
+Since both parts of the if statement have
+returns, then the last two lines of the
+function:
+
+\begin{verbatim}
+    print("What?")
+    return 1
+\end{verbatim}
+
+are {\it unreachable}. Since they
+are unreachable, they cannot be
+executed under any conditions and
+thus serve no purpose and can be deleted.

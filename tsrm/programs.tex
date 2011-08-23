@@ -1,0 +1,199 @@
+\chapter{Scam Programs and Using Files}
+\label{ScamPrograms}
+
+After a while, it gets rather tedious to
+cut and paste into the Scam interpreter.
+A more efficient method is to store
+your program in a text file and then 
+load the file.
+
+I use {\it vim} as my text editor. {\it Vim} is
+an editor that was written by programmers
+for programmers ({\it emacs} is another such
+editor) and serious Computer Scientists
+and Programmers should learn {\it vim} (or {\it emacs}).
+
+\section{Your first program}
+
+Create a text file named {\it hello.py}. The
+name really doesn't matter and doesn't
+have to end in {\it .py} (the {\it .py} is a convention
+to remind us this file contains Scam source
+code). Place in the file:
+
+\begin{verbatim}
+print("hello, world!");
+\end{verbatim}
+
+Save your work and exit the text editor.
+
+Now execute the following command at the
+system prompt (not the Scam interpreter prompt!):
+
+\begin{verbatim}
+    python3 hello.py
+\end{verbatim}
+
+You should see the phrase:
+
+\begin{verbatim}
+    hello, world!
+\end{verbatim}
+
+displayed on your console. Here's a trace using Linux:
+
+\begin{verbatim}
+    lusth@warka:~$ python3 hello.py
+    hello, world!
+    lusth@warka:~$
+\end{verbatim}
+
+The {\tt lusth@warka:~\$} is my system prompt.
+
+\section{Vim and Scam}
+
+Move into your home directory and list the files found there
+with this command:
+
+\begin{verbatim}
+    ls -al
+\end{verbatim}
+
+If you see the file .exrc, then all is well and good.
+If you do not, then run the following command to
+retrieve it:
+
+\begin{verbatim}
+    (cd ; wget beastie.cs.ua.edu/cs150/.exrc)
+\end{verbatim}
+
+This configures {\tt vim} to understand Scam syntax and to color
+various primitives and keywords in a pleasing manner.
+
+\section{A Neat Macro}
+
+One of the more useful things you can do is set up a {\it vim} 
+macro. Edit the file {\it .exrc} in your home directory and
+find these lines:
+
+\begin{verbatim}
+    map @ :!python %^M
+    map # :!python % 
+    set ai sm sw=4
+\end{verbatim}
+
+If you were unable to download the file in the previous section,
+just enter the lines above in the {\it .exrc} file.
+
+The first line makes the {\tt '@'} key,
+when pressed,
+run the Scam interpreter on
+the file you are currently editing (save your work first before
+tapping the {\tt @} key). The \verb+^M+ part of the macro
+is not a two character sequence (\verb+^+ followed by {\tt M}),
+but a single character made by typing \verb+<Ctrl>-v+ followed by
+\verb+<Ctrl>-m+.
+It's just when you type \verb+<Ctrl>-v <Ctrl>-m+, it will display as
+\verb+^M+.
+The second line defines a similar macro that pauses to let you enter
+command-line arguments to your Scam program.
+The third line sets some useful parameters:
+{\it autoindent} and {\it showmatch}.
+The expression {\tt sw=4} sets the indentation to four spaces.
+
+\section{Writing Scam Programs}
+
+A typical Scam program is composed of two sections. The first
+section is composed of variable and function definitions.
+The next section is composed of statements, which are Scam
+expression. Usually the latter section is reduced to
+a single function call (we'll see an example in a bit).
+
+The {\it hello.py} file above was a program with no
+definitions and a single statement. A Scam program composed
+only of definitions will usually run with no output to the
+screen. Such programs are usually written for the express
+purpose of being included
+into other programs.
+
+Typically, one of the function definitions is a function
+named {\it main} (by convention); this function takes no
+arguments.  The last line of the program (by convention)
+is a call to {\it main}.
+Here is a rewrite of {\it hello.py} using that convention.
+
+\begin{verbatim}
+def main():
+    println("hello, world!")
+
+main()
+\end{verbatim}
+
+This version's output is exactly the same as the previous version.
+We also can see that {\it main} implements the {\it procedure patterrn} since
+it has no explicit return value.
+
+\section{Order of definitions}
+
+A function (or variable) must be created or defined\footnote{
+From now on, we will use the word defined.}
+before it is used. This 
+program will generate an error:
+
+\begin{verbatim}
+main()           #undefined variable error
+
+def main():
+    y = 3
+    x = y * y
+    print("x is",x)
+
+\end{verbatim}
+
+since {\it main} can't be called  until it is defined.
+This program is legal, however:
+
+\begin{verbatim}
+def main():
+    x = f(3)
+    print("x is",x)
+def f(z):
+    return z * z
+main()
+\end{verbatim}
+
+because even though the body of {\it main} refers to
+function {\it f} before function {\it f} is defined,
+function {\it f} is defined by the time
+function {\it main} is called (the last statement of the program).
+
+Don't be alarmed if you don't understand what is going on with
+this program. But you should be able to type this program into
+a file and then run it. If you do so, you should see the
+output:
+
+\begin{verbatim}
+    x is 9
+\end{verbatim}
+
+\section{Importing code}
+
+One can include one file of Scam code into another.
+The included file is known as a module. The {\it import}
+statement is used to include a module
+
+\begin{verbatim}
+from moduleX.py import *
+\end{verbatim}
+
+where {\it moduleX.py} is the name of the file containing the Scam definitions
+you wish to include.
+Usually import statements are placed at the top of the file.
+Including a module imports all the code
+in that module, as if you had written it 
+the file yourself.
+
+If {\it moduleX.py} has import statements, those modules will be
+included in the file as well.
+
+Import statements often are used include the standard Scam libraries.

@@ -1,0 +1,81 @@
+\section{Polynomial}
+
+The {\it polynomial} library uses no additional linux packages beyond 
+sway.
+
+Here is a simple polynomial program that merely forms the equation 
+x^2+x+1.
+
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+     include("polynomial");
+     var p = contant(1);
+     var x = variable("x");
+     p = poly(term(1,x,2),p);
+     p = poly(term(1,x,1),p);
+     inspect(p . toString());
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+The first line of the program causes the {\it polynomial} library to be 
+loaded. The second line of the program creates a polynomial variable and 
+stores a constant 1 in it. The second line creates a variable x that 
+represents the variable 'x'. the third and fourth lines add an x^2 and x 
+to the polynomial variable respectively. The final line outputs the 
+string product to standar output.
+
+The next section, in man page format, describes the public interface of 
+the {\it polynomial} library.
+
+\subsection*{The Sway Polynomial Library}
+
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+
+
+polynomial		Sway Polynomial Library
+
+
+NAME
+	polynomial - a Sway polynmial library
+
+SYNOPSIS
+	include("polynomial")
+
+DECRIPTION
+	polynomial is a library for sway that easily allows for the 
+	creation and use of polynomials as strings. These functions can 
+	be concatenated to form extremely long polynomials for use in 
+	other libraries and functions.
+
+POLYNOMIAL FUNCTIONS
+
+	function constant(value)
+		Creates a string that represents a constant that is 
+		passed.
+
+	function variable(name)
+		Creates a string that represents a variable with the 
+		name passed.
+	
+	function term(coeffecient,symbol,exponent)
+		Creates a string that represents a single term of a 
+		polynomial. This string is formatted such that the 
+		coeffecient is multiplied by the symbol and the symbol 
+		is raised to the power of the exponent.
+	
+	function poly(term1,term2)
+		Creates a larger polynomial object by concatonating two 
+		polynomial terms together.
+	
+	AUTHOR
+		Written by James M. Tacey, November, 2009
+
+
+1.0				29 November 2009
+\end{verbatim}
+\end{codesize}
+\color{black}
