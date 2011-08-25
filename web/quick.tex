@@ -1,0 +1,162 @@
+\documentclass{article}  
+\usepackage{hyperlatex}
+\usepackage{color}
+
+\htmlcss{steely.css}
+
+\htmldepth{1}
+\htmltitle{scam vs scheme}
+\htmladdress{lusth@cs.ua.edu}
+\T\oddsidemargin  -.1 true in       % Note that \oddsidemargin=\evensidemargin
+\T\evensidemargin -.1 true in
+\T\setlength\topmargin{+0.1in}
+\T\setlength\textheight{9.1 in}
+\T\setlength\textwidth{6.7 in}
+\T\setlength\parskip{6 pt}
+\T\setlength\parindent{0 in}
+
+\title{The Scam Programming Language\\
+Scam vs Scheme}
+
+\author{written by: John C. Lusth}
+
+\date{Revision Date: \today}
+
+\begin{document}
+
+\maketitle
+
+\W\xlink{Printable Version}{quick.pdf}
+
+Things to note for programmers who are trying Scam:
+
+\subsubsection*{variable names}
+
+    Scam variable/function names are case-sensitive.
+
+\subsubsection*{set!}
+
+    The Scam version of set! evaluates all its arguments. To set the variable
+    {\it x} to 5, one would call set! this way, quoting the variable to supress
+    evaluation:
+    
+\begin{verbatim}
+        (set! 'x 5)
+\end{verbatim}
+
+    This above can be accomplished as well with the assign function which 
+    does not evaluate its first argument:
+
+\begin{verbatim}
+        (assign x 5)
+\end{verbatim}
+
+    The set! function also takes an optional environment, where the predefined
+    variable this always points to the current environment. Thus, the following
+    three expressions are equivalent:
+
+\begin{verbatim}
+        (set! 'x 5)
+        (set! 'x 5 this)
+        (assign x 5)
+\end{verbatim}
+
+\subsubsection*{variadic functions}
+
+    If the last formal parameter in a function definition is the
+    symbol {\it @}, all remaining arguments not matched with 
+    preceding formal parameters are bundled up into a list, with
+    the variable @ set to point to that list. Here is a redefinition
+    of the built-in function println that has the same semantics:
+
+\begin{verbatim}
+        (define (println @)
+            (if (null? @)
+                (print "\n")
+                (begin (print (car @)) (apply println (cdr @)))
+                )
+            )
+\end{verbatim}
+
+\subsubsection*{special forms}
+
+    There are no special forms in Scam and all functions can be
+    redefined, including {\it if}, {\it and}, {\it or}, and {\it define}.
+
+\subsubsection*{objects}
+
+    Class and constructor are the same thing in Scam. Any function that
+    returns the pre-defined variable {\it this} is considered a class
+    definition and a constructor for that class. Here is an example
+    {\it Node} class:
+
+\begin{verbatim}
+        (define (Node value next)
+            this
+            )
+\end{verbatim}
+
+    There are two methods for extracting object components, \verb!.! and
+    {\it get}. The following expressions have identical semantics:
+
+\begin{verbatim}
+        (. value (Node 3 nil))
+        (get 'value (Node 3 nil))
+\end{verbatim}
+
+    Like {\it set!}, {\it get} evaluates all its arguments.
+
+    Note that environments are identified with objects in Scam.
+
+\subsubsection*{object methods}
+
+    Nested functions in a constructor are methods:
+
+\begin{verbatim}
+        (define (Node value next)
+            (define (toString)
+                (+ "Node(" (string value) "," (string next) ")")
+                )
+            this
+            )
+\end{verbatim}
+
+    Calling object methods proceeds as expected:
+
+\begin{verbatim}
+        ((get 'toString (Node 3 nil))
+\end{verbatim}
+
+
+\subsubsection*{inheritance}
+
+    Inheritance is not native to Scam, but is accomplished by 
+    including the inheritance library:
+    
+\begin{verbatim}
+        (include "inherit.lib")
+\end{verbatim}
+
+     Once included, the new function is used to perform
+     inheritance:
+
+\begin{verbatim}
+        (define (A)
+            (define parent nil)
+            this
+            )
+
+        (define (B)
+            (define parent (A))
+            this
+            )
+    
+        (define obj (new (B)))
+\end{verbatim}
+
+    Note that constructors in an inheritance hierarchy must, by
+    convention, define a {\it parent} variable.
+
+    Inheritance is similar to Java; every method is virtual.
+
+\end{document}

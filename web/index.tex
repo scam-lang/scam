@@ -1,0 +1,180 @@
+\documentclass{article}  
+\usepackage[margin=1.0in]{geometry}
+\usepackage{hyperlatex}
+\usepackage{color}
+
+\htmlcss{lusth.css}
+
+\htmldepth{1}
+\htmltitle{the scam home page}
+%\htmladdress{lusth@cs.ua.edu}
+
+\T\setlength\parskip{10 pt}
+\T\setlength\parindent{0 in}
+
+\title{The Scam Programming Language}
+
+\author{written by: John C. Lusth}
+
+\date{Revision Date: \today}
+
+\begin{document}
+
+\maketitle
+
+\W\xlink{Printable Version}{index.pdf}
+
+Scam is a nifty little language
+that looks a lot like Scheme, but is so much more.
+Scam is:
+
+\begin{itemize}
+    \item
+        an impure functional language with Scheme-like syntax
+    \item
+        a language where writing iterators like while and for
+        is possible purely through function definition
+    \item
+        a fully object-oriented language with trivial syntax and
+        easy-to-comprehend semantics
+    \item
+        a language with programmer-controlled delayed
+        evaluation
+    \item
+        a language with built-in garbage collection
+    \item
+        a that optimizes tail-recurion
+\end{itemize}
+
+\section*{Scam versus Scheme}
+
+For Scheme programmers, here is a list of important
+differences: \xlink{quick hits}{quick.html}.
+
+\section*{Downloads}
+
+Latest Scam versions:
+
+\begin{description}
+    \item
+        \xlink{scam-i386.tgz} {scam-i386.tgz}
+    \item
+        \xlink{scam-amd64.tgz}{scam-amd64.tgz}
+    \item
+        \xlink{scam-OSX.tgz}{scam-OSX.tgz}
+    \item
+        ~
+    \item
+        \xlink{scam-0.1.0\_i386.deb} {scam-0.1.0\_i386.deb}
+    %\item
+    %    \xlink{scam-0.1.0\_amd64.deb}{scam-0.1.01\_amd64.deb}
+\end{description}
+
+%Here is an experimental Microsoft Windows version: \xlink{scam.exe}{scam.exe}.
+%You will also need \xlink{readline5.dll}{readline5.dll} and
+%\xlink{history5.dll}{history5.dll}. Copy all three files to:
+%
+%\begin{verbatim}
+%    c:\windows\system32
+%\end{verbatim}
+%
+%and you should be good to go. You will need to run Scam in a DOS box (command
+%prompt).
+
+%If you want to use the set of Scam libraries (useful functions 
+%written in Scam) but don't know how to set up a path on Windows, install the 
+%\xlink{libraries}{lib/}
+%in same directory as your program, if you want to use any of them.
+
+\section*{Installation Notes}
+
+To install Scam from a deb package
+(using {\tt scam\_0.1.0\_i386.deb} as an example), run the command:
+
+\begin{verbatim}
+    sudo dpkg -i scam_0.1.0_i386.deb
+\end{verbatim}
+
+If you are on a system without {\it sudo}, run the above command
+as {\it root} without the {\it sudo} prefix.
+
+To install Scam from a tarball, perform the following steps
+(using {\tt scam-i386.tgz} as an example)...
+
+\begin{enumerate}
+
+    \item
+        Save the download to a file, noting where it was saved. For the rest 
+        of the steps, assume the tar file was saved in a Downloads directory
+        that hangs of the your home directory.
+    \item
+        Make a directory named {\it scam} that hangs off your home directory and then move into that directory
+
+
+\begin{verbatim}
+    mkdir ~/scam
+    cd ~/scam
+\end{verbatim}
+
+    \item
+        Untar the download in the {\it scam} directory:
+
+\begin{verbatim}
+    tar xvzf ~/Downloads/scam-i386.tgz
+\end{verbatim}
+
+    \item
+        copy the {\it scam} executable to a directory in your path:
+
+\begin{verbatim}
+    cp scam ~/bin                # if you have your own bin
+\end{verbatim}
+
+or
+
+\begin{verbatim}
+    sudo cp scam /usr/local/bin  #if you have sudo privleges
+\end{verbatim}
+
+or you can put \verb!~/scam! in your path.
+
+\end{enumerate}
+
+If you have trouble installing Scam, send a message to 
+\xlink{lusth@cs.ua.edu}{mailto:lusth@cs.ua.edu}.
+
+\section*{Learning more about Scam}
+
+There is an Open Source
+reference manual that delves into Scam in detail.
+It is called 
+\xlink
+    {The Scam Reference Manual}
+    {http://beastie.cs.ua.edu/scam/tsrm}
+
+The reference manual gives the nuts and bolts on the syntax
+and semantics of Scam.
+
+\section*{About this website}
+This website is rendered in the \emph{Old School} style.
+\emph{Old School} is known for its somewhat spartan,
+but clean and crisp, no-nonsense, get-down-to-brass-tacks
+appearance. \emph{Old School} was invented by
+Tim Berners-Lee during the latter part of the last 
+century. It is made a bit more flashy using a
+style sheet.
+
+\section*{Acknowledgements}
+
+This material is based upon work supported by the
+National Science Foundation, grant numbers \#00244269 and \#0633290.
+
+Any opinions, findings, and conclusions or recommendations
+expressed in this material are those of the author and
+do not necessarily reflect the views of the National Science Foundation.
+
+\xlink
+    {lusth@cs.ua.edu}
+    {mailto:lusth@cs.ua.edu}
+
+\end{document}
