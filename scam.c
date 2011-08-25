@@ -50,8 +50,10 @@ main(int argc,char **argv,char **envv)
 
     argIndex = ProcessOptions(argc, argv);
 
-    //if (argc-argIndex > 1)
-        //Fatal(USAGE_ERROR,"usage: %s [input_file]\n", PROGRAM_NAME);
+    if (argc-argIndex == 0 || argc-argIndex > 1)
+	{
+        Fatal("usage: %s [input_file]\n", PROGRAM_NAME);
+	}
 
     memoryInit(0);
 
