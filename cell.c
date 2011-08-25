@@ -201,7 +201,7 @@ cons(int a,int b)
     {
     assureMemory("cons",1,&a,&b,0);
 
-    return ucons(a,b);
+    return uconsfl(a,b,file(a),line(a));
     }
 
 int
@@ -213,7 +213,7 @@ ucons(int a,int b)
     spot->type = CONS;
     spot->ival = a;
     spot->line = line(a);
-    spot->file = line(b);
+    spot->file = file(a);
     spot->transferred = 0;
 
     the_cdrs[MemorySpot] = b;

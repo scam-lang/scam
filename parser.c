@@ -117,7 +117,7 @@ exprSeq(PARSER *p)
     e = pop();
     rethrow(b,0);
 
-    return cons(e,b);
+    return ucons(e,b);
     }
 
 static int
@@ -140,7 +140,7 @@ expr(PARSER *p)
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:quote",2,&r,0);
-        result = uconsfl(quoteSymbol,uconsfl(r,0,file(r),line(r)),
+        result = uconsfl(quoteSymbol,ucons(r,0),
             file(q),line(q));
         }
     else if (check(p,BACKQUOTE))
@@ -149,7 +149,7 @@ expr(PARSER *p)
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:backquote",2,&r,0);
-        result = uconsfl(backquoteSymbol,uconsfl(r,0,file(r),line(r)),
+        result = uconsfl(backquoteSymbol,ucons(r,0),
             file(q),line(q));
         }
     else if (check(p,COMMA))
@@ -158,7 +158,7 @@ expr(PARSER *p)
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:comma",2,&r,0);
-        result = uconsfl(commaSymbol,uconsfl(r,0,file(r),line(r)),
+        result = uconsfl(commaSymbol,ucons(r,0),
             file(q),line(q));
         }
     else if (check(p,OPEN_PARENTHESIS))

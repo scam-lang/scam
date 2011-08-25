@@ -68,7 +68,7 @@ extern int throwAgain(int,int);
 #define CLOSURE_PREDEFINED (OBJECT_PREDEFINED + 4)
 
 #define error_code(x)          (cadr(object_values(x)))
-#define error_value(x)        (caddr(object_values(x)))
+#define error_value(x)         (caddr(object_values(x)))
 #define error_trace(x)         (cadddr(object_values(x)))
 
 #define ERROR_CELLS (OBJECT_CELLS + 6)

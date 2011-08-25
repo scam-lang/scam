@@ -284,7 +284,9 @@ lexString(PARSER *p)
             SymbolTable[p->file],lineNumber);
         }
 
-    //printf("string is <%s>\n", buffer);
+    /* nil is the empty string */
+
+    if (buffer[0] == '\0') return 0;
 
     result = newString(buffer);
     //printf("line %d: indent of new string \"%s\" is %d\n",
@@ -292,6 +294,8 @@ lexString(PARSER *p)
 
     file(result) = p->file;
     line(result) = p->line;
+
+    debug("string",result);
 
     return result;
     }

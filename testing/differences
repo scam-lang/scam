@@ -135,212 +135,12 @@ bad.s
 ------------------------------------------
 block.s
 ------------------------------------------
-1,2d0
-< (include "scam.s")
-< 
 ------------------------------------------
 call.s
 ------------------------------------------
 ------------------------------------------
 catch.s
 ------------------------------------------
-4c4
-<          : attempted to call INTEGER as a function
----
-> file catch.s,line 1: attempted to call INTEGER as a function
-------------------------------------------
-ch01.s
-------------------------------------------
-1,8c1,3
-< /*
-<  *
-<  * Chapter 1 code
-<  *
-<  */
-< 
-< 
-< println("no code in chapter");
----
-> ;
-> ; Chapter 1 code
-> ;
-9a5
-> (println "no code in chapter")
-------------------------------------------
-ch02.s
-------------------------------------------
-1,6c1,15
-<     var x = 1000000;
-<     var f = 1.0 / 16;
-<     function smaller(amount,fraction)
-<         {
-<         inspect(amount * fraction);
-<         }
----
-> (define x 1000000)
-> (define f (/ 1.0 16))
-> (define (smaller amount fraction)
->         (inspect (* amount fraction))
->         )
-> 
-> ;/****************************************************/
-> 
-> (define (test)
->     (println "Chapter 2 test...\n")
->     (inspect x)
->     (inspect f)
->     (print "smaller(x,f)...\n    ")
->     (smaller x f)
->     )
-8,19c17
-< 
-< 
-< /****************************************************/
-< 
-< function test()
-<     {
-<     println("Chapter 2 test...\n");
-<     print("smaller(x,f)...\n    ");
-<     smaller(x,f);
-<     }
-< 
-< test();
----
-> (test)
-22a21,22
-> x is 1000000
-> f is 0.062500
-24c24
-<     amount * fraction is 62500.000000
----
->     (* amount fraction) is 62500.000000
-------------------------------------------
-ch03.s
-------------------------------------------
-26,32c26,27
-< ratio(40,0.0100000000,h) is 0.5000000000
-< ratio(40,0.0001000000,h) is 0.5000000000
-< ratio(20,0.0001000000,h) is 0.5000000000
-< ratio(100,1,g) is 201
-< ratio(100,0.1000000000,g) is 200.10000000
-< ratio(100,0.0100000000,g) is 200.01000000
-< ratio(100,0.0010000000,g) is 200.00100000
----
-> EXCEPTION: undefinedVariable
-> file ch03.s,line 1: variable function is undefined
-------------------------------------------
-ch04.s
-------------------------------------------
-58,71c58,59
-< for x = 10
-< ratio(x,dx,y) is 600.00059998
-< dy/dx(x) is 600.00000000
-< 
-< for x = 20
-< ratio(x,dx,y) is 2400.0023999
-< dy/dx(x) is 2400.0000000
-< 
-< for x = 30
-< ratio(x,dx,y) is 5400.0053999
-< dy/dx(x) is 5400.0000000
-< 
-< p . value(4) is 128.00000000
-< dp/dx . value(4) is 96.000000000
----
-> EXCEPTION: undefinedVariable
-> file ch04.s,line 1: variable /* is undefined
-------------------------------------------
-ch05.s
-------------------------------------------
-19,20c19,20
-< c . value(10) is 7.0000000000
-< c . value(1000) is 7.0000000000
----
-> EXCEPTION: undefinedVariable
-> file ch05.s,line 1: variable /* is undefined
-------------------------------------------
-ch06.s
-------------------------------------------
-82,86c82,83
-< a . value(3) + b . value(3) is -38.000000000
-< z . value(3) is -38.000000000
-< t . toString() is "3x^2"
-< cc . toString() is "4x^2 + 3x^1 + -5x^0"
-< dc/dx . toString() is "8x^1 + 3x^0 + 0x^-1"
----
-> EXCEPTION: syntaxException
-> file ch06.s,line 32: expecting END_OF_INPUT, found CONS instead
-------------------------------------------
-ch07.s
-------------------------------------------
-117,143c117,118
-< f' . toString() is "3x^0 + 0x^-1"
-< f' . value(0) is 3.0000000000
-< f' . value(5) is 3.0000000000
-< f'' . toString() is "0x^-1 + 0x^-2"
-< f'' . value(0) is 0
-< f'' . value(5) is 0
-< -------------------------------------
-< f . toString() is "3x + -5"
-< f' . toString() is "3 + 0"
-< f'' . toString() is "0 + 0"
-< f'' . value(0) is 0
-< f'' . value(5) is 0
-< -------------------------------------
-< f . toString() is "3x + -5"
-< f' . toString() is "3 + 0"
-< f'' . toString() is "0 + 0"
-< f'' . value(0) is 0
-< f'' . value(5) is 0
-< -------------------------------------
-< z . toString() is "4x^3 + 3x^2 + 2x + 1"
-< z' . toString() is "12x^2 + 6x + 2"
-< z'' . toString() is "24x + 6"
-< z''' . toString() is "24"
-< z'' . value(1) is 30.000000000
-< z'' . value(2) is 54.000000000
-< z''' . value(1) is 24.000000000
-< z''' . value(2) is 24.000000000
----
-> EXCEPTION: syntaxException
-> file ch07.s,line 4: expecting END_OF_INPUT, found CONS instead
-------------------------------------------
-ch08.s
-------------------------------------------
-38,40c38,39
-< t . toString() is "5w^3"
-< a . toString() is "15w^2"
-< b . toString() is "0"
----
-> EXCEPTION: syntaxException
-> file ch08.s,line 9: expecting END_OF_INPUT, found CONS instead
-------------------------------------------
-ch09.s
-------------------------------------------
-105,109c105,106
-< t . toString() is "4x^3"
-< t' . toString() is "12x^2"
-< s . toString() is "x^2 + 17"
-< w . toString() is "3(x^2 + 17)^2"
-< w' . toString() is "6(x^2 + 17) * 2x"
----
-> EXCEPTION: syntaxException
-> file ch09.s,line 4: expecting END_OF_INPUT, found CONS instead
-------------------------------------------
-ch10.s
-------------------------------------------
-122,129c122,123
-< y . value(2) is 2.0000000000
-< y . value(3) is 1.0000000000
-< y . value(4) is 2.0000000000
-< y' . value(2) is -2.0000000000
-< y' . value(3) is 0.000000e+00
-< y' . value(4) is 2.0000000000
-< y' . value(2.7500000000) is -0.5000000000
-< y' . value(3.2500000000) is 0.5000000000
----
-> EXCEPTION: syntaxException
-> file ch10.s,line 4: expecting END_OF_INPUT, found CONS instead
 ------------------------------------------
 common2.s
 ------------------------------------------
@@ -355,7 +155,7 @@ common2.s
 5c5
 < ((context,<OBJECT 966>),(dynamicContext,null),(callDepth,0),(constructor,null),(this,<OBJECT 2824>),(count,0))
 ---
-> ((label environment) (context <object 7749>) (level 0) (constructor nil) (this <object 7814>) (count 0))
+> ((label environment) (context <object 7540>) (level 0) (constructor nil) (this <object 7605>) (count 0))
 ------------------------------------------
 common3.s
 ------------------------------------------
@@ -697,68 +497,102 @@ env.s
 >     )
 10a9
 > ORBIT_SOCKETDIR
-12,14d10
+12d10
 < KDE_MULTIHEAD
-< GPG_AGENT_INFO
+14d11
 < TERM
-16,19c12,13
+16,17c13,14
 < GTK2_RC_FILES
 < GS_LIB
-< GTK_RC_FILES
-< HUSHLOGIN
 ---
 > TERM
 > XDG_SESSION_COOKIE
-21c15,16
+19d15
+< HUSHLOGIN
+21c17
 < KDE_FULL_SESSION
 ---
-> GNOME_KEYRING_CONTROL
 > GTK_MODULES
-24a20,21
-> DEFAULTS_PATH
+24a21,22
+> GNOME_KEYRING_SOCKET
 > USERNAME
-26,27c23,24
+26,27d23
 < KONSOLE_DCOP
 < MAIL
----
-> XDG_CONFIG_DIRS
+28a25
 > DESKTOP_SESSION
-30,31c27
+30c27
 < KONSOLE_DCOP_SESSION
-< EDITOR
 ---
 > GDM_KEYBOARD_LAYOUT
-33,36c29,34
+31a29
+> GNOME_KEYRING_PID
+33,34c31,32
 < KDE_SESSION_UID
 < SONGDIR
-< HISTCONTROL
+---
+> GDM_LANG
+> GDMSESSION
+36c34
 < SHLVL
 ---
-> GNOME_KEYRING_PID
-> MANDATORY_PATH
-> GDM_LANG
-> UBUNTU_MENUPROXY
-> GDMSESSION
 > SPEECHD_PORT
-38c36,38
+38c36,37
 < XCURSOR_THEME
 ---
 > SHLVL
-> LANGUAGE
 > GNOME_DESKTOP_SESSION_ID
-39a40,41
+39a39,40
 > DBUS_SESSION_BUS_ADDRESS
 > XDG_DATA_DIRS
-41c43,44
+41c42
 < VIMRUNTIME
 ---
 > EMAIL
-> WINDOWPATH
-43d45
+43d43
 < VIM
+45d44
+< XAUTHORITY
+46a46
+> XAUTHORITY
 ------------------------------------------
 error0.s
 ------------------------------------------
+0a1,34
+> 
+> include("fact.s");
+> 
+> function fib(n)
+>     {
+>     if (n < 2)
+>         {
+>         n;
+>         }
+>     else
+>         {
+>         fib(n - 1) + fib(n - 2);
+>         }
+>     }
+> var x = 0;
+> var result;
+> var t = time();
+> 
+> x = 26;
+> 
+> opt(fib . code,:<,3);
+> 
+> result = fib(x);
+> display("fib(");
+> display(x);
+> display(") is ");
+> display(result);
+> display("\n");
+> display(time() - t);
+> display(" seconds");
+> display("\n");
+> ------------------------------------------
+> EXCEPTION: nonFunction
+> file error0.s,line 2: attempted to call STRING as a function
 ------------------------------------------
 except2.s
 ------------------------------------------

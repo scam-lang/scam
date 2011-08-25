@@ -63,7 +63,9 @@ eval(int expr, int env)
         /* no need to assure memory here */
 
         push(env);
+        push(expr);
         result = evalCall(expr,env,NORMAL);
+        expr = pop();
         env = pop();
 
         if (isReturn(result))
@@ -80,7 +82,13 @@ eval(int expr, int env)
                 }
             }
 
-        if (isThrow(result)) break;
+        if (isThrow(result))
+            {
+            push(result);
+            error_trace(result) = cons(expr,error_trace(result));
+            result = pop();
+            break;
+            }
 
         if (!isThunk(result)) break;
 
@@ -323,9 +331,7 @@ unevaluatedArgList(args)
     if (args == 0)
         return 0;
     else
-        return uconsfl(car(args),unevaluatedArgList(cdr(args)),
-            file(car(args)),line(car(args)));
-
+        return ucons(car(args),unevaluatedArgList(cdr(args)));
     }
 
 static int
@@ -357,6 +363,6 @@ evaluatedArgList(args,env)
 
         rethrow(rest,0);
 
-        return uconsfl(first,rest,file(first),line(first));
+        return ucons(first,rest);
         }
     }

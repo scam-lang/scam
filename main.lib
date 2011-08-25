@@ -178,3 +178,12 @@
 (define (stream-car s) (car s))
 (define (stream-cdr s) ((cdr s)))
 (define (stream-null? s) (null? s))
+
+(define (string-cmp a b op)
+    (cond
+        ((eq? a "") (eq? b ""))
+        ((eq? b "") #f)
+        ((eq? (car a) (car b)) (string-cmp (cdr a) (cdr b) op))
+        (else (op (ascii (car a)) (ascii (car b))))
+        )
+    )

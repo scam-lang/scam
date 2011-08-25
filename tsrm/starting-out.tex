@@ -16,7 +16,43 @@ In a terminal window, simply type the command:
     scam <fileName>
 \end{verbatim}
 
-where <fileName> is replaced by the name of the file contining your
+where \verb!<fileName>! is replaced by the name of the file contining your
 Scam program ({\it i.e.} Scam source code).
 You should be rewarded with the output from your Scam program.
+
+For example, create a file named hello.s. In it, place the line:
+
+\begin{verbatim}
+    (println "hello, world!")
+\end{verbatim}
+
+Save the file and exit. Now run your program:
+
+\begin{verbatim}
+    $ scam hello.s
+    hello, world!
+    $
+\end{verbatim}
+
+The \verb!$! represents the system prompt.
+
+\section{Scam options}
+
+Scam takes a number of options:
+
+\begin{description}
+\item[-m NNN]
+    
+    set the memory size to {\it NNN}
+    
+\item[-v]
+
+    display the Scam version number
+
+\item[-t]
+
+    display a full error trace for an uncaught exception
+
+\end{description}
+
 At this point, you are ready to proceed to next chapter.

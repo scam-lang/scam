@@ -179,7 +179,8 @@ ppLevel(FILE *fp,int expr,int mode)
 void
 debug(char *s,int i)
     {
-    printf("%s: ",s);
+    if (s != 0)
+        printf("%s: ",s);
     ppLevel(stdout,i,0);
     printf("\n");
     }

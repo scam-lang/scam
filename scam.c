@@ -27,7 +27,7 @@ extern FILE *Input;
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
 char *PROGRAM_NAME = "scam";
-char *PROGRAM_VERSION = "0.2";
+char *PROGRAM_VERSION = "0.1.1";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
@@ -52,7 +52,7 @@ main(int argc,char **argv,char **envv)
 
     if (argc-argIndex == 0 || argc-argIndex > 1)
 	{
-        Fatal("usage: %s [input_file]\n", PROGRAM_NAME);
+        Fatal("usage: %s INPUT_FILE\n", PROGRAM_NAME);
 	}
 
     memoryInit(0);
@@ -144,24 +144,17 @@ ERROR:
     debug("EXCEPTION",error_code(result));
     pp(stdout,error_value(result));
     printf("\n");
-    /*
-    int last;
-    if (TraceBack) printf("EXCEPTION TRACE\n");
-    while (error_trace(result) != 0)
+    if (TraceBack)
         {
-        last = result;
-        result = error_trace(result);
-        if (TraceBack || error_trace(result) == 0)
+        int spot = error_trace(result);
+        while (spot != 0)
             {
-            printf("%s,line %d: ",
-                SymbolTable[file(error_code(last))],
-                line(error_code(last)));
-            pp(stdout,error_code(last));
-            printf("\n");
+            fprintf(stdout,"   from %s,line %d: ",
+                SymbolTable[file(spot)],line(spot));
+            debug(0,car(spot));
+            spot = cdr(spot);
             }
         }
-    printf("exception: %s\n",cellString(0,0,error_code(result)));
-    */
 
     return -1;
     }

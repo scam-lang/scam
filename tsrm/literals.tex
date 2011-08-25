@@ -9,8 +9,8 @@ is known as {\it evaluation}.
 The things whose values are the things themselves are known as
 {\it literals}. The literals of Scam can be categorized by the following
 types:
-{\it integers}, {\it real} {\it numbers}, {\it strings}, {\sc booleans},
-and {\it lists}.
+{\it integers}, {\it real} {\it numbers}, {\it strings}, {\sc Booleans},
+{\it symbols}, and {\it lists}.
 
 Scam (or more correctly, the Scam interpreter) responds to literals
 by echoing back the literal itself.
@@ -114,17 +114,18 @@ scientific notation.
 Strings are sequences of characters delineated by double quotation marks:
 
 \begin{verbatim}
-    (inspect "hello, world!")
-    'hello, world!'
+    (println "hello, world!")
+    -> hello, world!
     
-    (inspect "x\nx")
-    'x\nx'
+    (println "x\nx")
+    -> x
+       x
     
-    (inspect "\"z\"")
-    '"z"' 
+    (println "\"z\"")
+    -> "z" 
     
-    (inspect "")
-    ''
+    (println "")
+    -> 
 \end{verbatim}
 
 Scam accepts both double quotes and single quotes to
@@ -148,8 +149,8 @@ it is assumed the backslash is a character of the
 string and it is escaped (with a backslash) in the result:
 
 \begin{verbatim}
-    (inspect "\z")
-    '\\z'
+    (println "\z")
+    -> z
 \end{verbatim}
 
 Note that Scam, when asked
@@ -166,63 +167,98 @@ Unlike some languages, there is no character type in Scam. A single
 character {\verb+a+}, for example, is entered as the string
 {\verb+'a'+}.
 
-\section{True, False, and None}
+\section{Symbols}
 
-There are two special literals, \verb!True! and \verb!False!.
-These literals are known as the {\sc boolean} values
-and are used to guide the flow of a program.
-The term {\sc boolean} is derived from the last name of George Boole, who,
+A symbol is a set of characters, much like a string. Like strings,
+symbols evaluate to themselves. Unlike strings,
+symbols are not formed using a beginning quotation mark and an
+ending quotation mark. They are also limited
+in the characters that compose them. For example, a symbol cannot
+have a space character while a string can. A symbol is introduced
+with a single quotation mark:
+
+\begin{verbatim}
+    (print 'a)
+    -> a
+
+    (print 'hello)
+    -> hello
+\end{verbatim}
+
+We we learn more about symbols and their relationship to entities
+called variables in a later chapter.
+
+\section{True, False, and nil}
+
+There are two special literals, \verb!#t!
+and \verb!#f!.
+These literals are known as the {\sc Boolean} values;
+\verb!#t! is true and \verb!#f! is false.
+Boolean values are used to guide the flow of a program.
+The term {\sc Boolean} is derived from the last name of George Boole, who,
 in his 1854 paper {\it An Investigation of the Laws of Thought, on which are
 founded the Mathematical Theories of Logic and Probabilities}, laid one
-of the cornerstones of the modern digital computer. The so-called {\sc boolean}
-logic or {\sc boolean} algebra is concerned with the rules of combining truth
+of the cornerstones of the modern digital computer. The so-called {\sc Boolean}
+logic or {\sc Boolean} algebra is concerned with the rules of combining truth
 values (i.e., true or false). As we will see, knowledge of such rules will
 be important for making Scam programs behave properly. In particular,
-{\sc boolean} expressions will be used to control conditionals and loops.
+{\sc Boolean} expressions will be used to control conditionals and loops.
 
-Another special literal is \verb!None!.
+Another special literal is \verb!nil!.
 This literal is used to
-indicate the end of lists; it also is used
+indicate the empyt list; it also is used
 to indicates something that has not yet been
-created. More on \verb!None! when we cover lists and
+created. More on \verb!nil! when we cover lists and
 objects.
 
 \section{Lists}
 
-Lists are just collections of values. One creates a list by
-enclosing a comma-separated listing of values in square brackets.
-The simplest list is empty:
+Lists are just collections of entities.
+The simplest list is the empty list:
 
 \begin{verbatim}
-    (inspect [])
-    []
+    (inspect ())
+    -> nil
 \end{verbatim}
 
-Lists can contain any values:
+Since the empty list looks kind of strange, Scam uses the symbol \verb!nil!
+to represent an empty list.
+
+One creates non-empty list by
+using the built-in {\it list function}. 
+Here, we make a list containg the numbers
+10, 100, and 1000:
 
 \begin{verbatim}
-    (inspect [2, "help", len])
-    [2, 'help', <built-in function len>]
+    (list 10 100 1000)
+    -> (10 100 1000)
+\end{verbatim}
+
+Lists can contain values besides numbers:
+
+\begin{verbatim}
+    (list 'a "help me" length)
+    -> (a "help me" <built-in length(items)>)
 \end{verbatim}
 
 The first value is an integer, the second a string,
-and the third is something known as a function. We will
-learn more about functions later, but the {\it len} function
+and the third item is also a function. 
+The built-in {\it length} function
 is used to tell us how many items are in a list:
 
 \begin{verbatim}
-    (inspect  len([2, "help", len]))
-    3
+    (length (list 'a "help me" length))
+    -> 3
 \end{verbatim}
 
-As expected, the {\it len} function tells us that the list
-\verb![2, "help", len]! has three items in it.
+As expected, the {\it length} function tells us that the list
+\verb!('a, "help me", length)! has three items in it.
 
 Lists can even contain lists!
 
 \begin{verbatim}
-    (inspect [0, [3, 2, 1] 4])
-    [0, [3, 2, 1] 4]
+    (list 0 (list 3 2 1) 4)
+    -> (0, (3, 2, 1) 4)
 \end{verbatim}
 
 A list is something known as a {\it data structure};
@@ -231,8 +267,10 @@ sophisticated programs.
 
 \section{Indexing into Lists}
 
-You can pull out an item from a list by using {\it bracket notation}.
-With bracket notation, you specify exactly which element (or elements)
+You can pull out an item from a list by using another function
+named {\it getElement}.
+With the {\it getElement} function,
+you specify exactly which element (or elements)
 you wish to extract from the list. This specification is called an
 {\it index}. The first element of the list has index 0, the second
 index 1, and so on. This concept of having the first element having
@@ -241,50 +279,30 @@ in Computer Science. Here is some code that extracts the first element
 of a list:
 
 \begin{verbatim}
-    (inspect  items = ['a', True, 7])
+    (getElement (list "a" #t 7) 0)
+    -> "a"
 
-    (inspect  items[0])
-    'a'
+    (getElement (list "a" #t 7) 1)
+    -> #t
 
-    (inspect  items[1])
-    True
-
-    (inspect  items[2])
-    7
-
-    (inspect  items)
-    ['a', True, 7]
+    (getElement (list "a" #t 7) 2)
+    -> 7
 \end{verbatim}
 
-Note that extracting an item from a list leaves the list unchanged.
 What happens if our index is too large?
 
 \begin{verbatim}
-    (inspect  items[3])
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      IndexError: list index out of range
+    (getElement (list "a" #t 7) 2)
+    -> 7
+    EXCEPTION: generalException
+    index (3) is too large
 \end{verbatim}
 
 Not surprisingly, we get an error.
+In Scam, as with many programming languages, an error is known
+as an {\it exception}.
 
-There is a special notation for extracting {\it all} the elements
-of a list {\it except} the first one. This is known as a {\it slice}:
+As with Scheme, the built-in {\it car} and {\it cdr} functions
+returns the first item and the tail of a given list, respectively.
 
-\begin{verbatim}
-    (inspect  items[1:])
-    [True, 7]
-\end{verbatim}
-
-This particular slice (you can slice a list many different ways) says,
-start extracting at the second item (which has index one) and go
-to the end. Here is a slice that says, start extracting at the first
-element (which has index 0) and go up to, but do not include, the
-element with index 2:
-
-\begin{verbatim}
-    (inspect  items[0:2])
-    ['a', True]
-\end{verbatim}
-
-We will see more of slicing when we study recursion in a later chapter.
+We will see more of lists in a later chapter.

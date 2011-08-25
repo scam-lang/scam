@@ -1,3 +1,15 @@
+(inspect "" )
+(inspect (ascii "bc"))
+(inspect (int "bc"))
+(inspect (int "123"))
+(inspect (int 12.3))
+(inspect (int 5))
+(inspect (real 3))
+(inspect (real 3.2))
+(inspect (real "3.2"))
+
+
+;$
 (cond
     ('#f (println "oops"))
     ('#f (println "oops2"))

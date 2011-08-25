@@ -2588,6 +2588,69 @@ trim(int args)
     return start;
     }
         
+static int
+ascii(int args)
+    {
+    int a = car(args);
+
+    if (type(a) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "ascii: argument is type %s (should be %s)",
+            SymbolTable[file(args)],line(args),
+            type(a),STRING);
+        }
+
+    return newInteger(ival(a));
+    }
+        
+static int
+iint(int args)
+    {
+    int a = car(args);
+    char buffer[128];
+
+    if (type(a) == INTEGER) return a;
+    
+    if (type(a) == REAL) return newInteger((int) rval(a));
+
+    if (type(a) == STRING)
+        {
+        cellString(buffer,sizeof(buffer),a);
+        return newInteger(atoi(buffer));
+        }
+
+    return throw(exceptionSymbol,
+        "file %s,line %d: "
+        "int: argument is type %s (should be %s or %s)",
+        SymbolTable[file(args)],line(args),
+        type(a),REAL,STRING);
+    }
+        
+static int
+rreal(int args)
+    {
+    int a = car(args);
+    char buffer[128];
+
+    if (type(a) == REAL) return a;
+    
+    if (type(a) == INTEGER) return newReal((double) ival(a));
+
+    if (type(a) == STRING)
+        {
+        cellString(buffer,sizeof(buffer),a);
+        return newReal(atof(buffer));
+        }
+
+    return throw(exceptionSymbol,
+        "file %s,line %d: "
+        "int: argument is type %s (should be %s or %s)",
+        SymbolTable[file(args)],line(args),
+        type(a),INTEGER,STRING);
+    }
+
 /* (stack-depth) */
 
 static int
@@ -2659,6 +2722,30 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("trim"),
         ucons(newSymbol("str"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ascii;
+    b = makeBuiltIn(env,
+        newSymbol("ascii"),
+        ucons(newSymbol("str"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = iint;
+    b = makeBuiltIn(env,
+        newSymbol("int"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = rreal;
+    b = makeBuiltIn(env,
+        newSymbol("real"),
+        ucons(newSymbol("item"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
