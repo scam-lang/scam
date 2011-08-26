@@ -295,8 +295,6 @@ lexString(PARSER *p)
     file(result) = p->file;
     line(result) = p->line;
 
-    debug("string",result);
-
     return result;
     }
 
