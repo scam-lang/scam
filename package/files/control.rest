@@ -1,0 +1,8 @@
+Section: base
+Priority: optional
+Depends: 
+Suggests: 
+Maintainer: John C. Lusth <lusth@cs.ua.edu>
+Description: Scam Programming Language
+ This package contains the latest version of Scam, a Scheme-like
+ language with Sway features.
