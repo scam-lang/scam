@@ -1,5 +1,5 @@
-ARCH = OSX
-#ARCH = i386
+#ARCH = OSX
+ARCH = i386
 #ARCH = amd64
 
 install		:	
