@@ -1,3 +1,6 @@
+html
+    {margin-left:30px;}
+
 body
     {
     font-size:90%;
@@ -5,21 +8,16 @@ body
     font-family:"Palatino Linotype", "Book Antiqua", Palatino, serif;
     background-color:#FFFFFF;
     color:black;
-    margin:10px;
     }
 
 h1 {font-size:200%;}
 h2 {font-size:140%;}
 h3 {font-size:110%;}
 
-h1,h2,h3
+h1, h2
     {
     color:darkslategray;
-    }
-
-p, ul, ol, dl, dd, table, pre
-    {
-    margin-left: 20px;
+    margin-left:-20px;
     }
 
 th {background-color:#D3D3D3;}
@@ -29,6 +27,9 @@ a:link {color:red;text-decoration:none;}
 a:visited {color:maroon;text-decoration:none;}
 a:hover {color:red;font-weight:bold;text-decoration:underline;}
 
+h2 a:link {color:darkslategray;text-decoration:none;}
+h2 a:visited {color:darkslategray;text-decoration:none;}
+h2 a:hover {color:darkslategray;font-weight:bold;text-decoration:none;}
 code,tt,pre    {
     color: #006633;
     }
@@ -47,3 +48,8 @@ table {
     background: none;
     border: 1px solid black;
 	}	
+
+body hr
+    {
+    border:none
+    }

@@ -150,6 +150,7 @@
 (define (number? x) (or (integer? x) (real? x)))
 (define (string? x) (eq? (type x) 'STRING))
 (define (symbol? x) (eq? (type x) 'SYMBOL))
+(define (array? x) (eq? (type x) 'ARRAY))
 
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
@@ -161,11 +162,41 @@
 (define (equal? a b)
     (cond
         ((null? a)
+            ;(println "returning" (null? b))
             (null? b))
         ((pair? a)
+            ;(println "pair returning "
+            ;(and (pair? b) (equal? (car a) (car b)) (equal? (cdr a) (cdr b))))
             (and (pair? b) (equal? (car a) (car b)) (equal? (cdr a) (cdr b))))
+        ((string? a)
+            (string-equal? a b))
+        ((array? a)
+            (array-equal? a b))
         (else
+            ;(println "else returning "(eq? a b))
             (eq? a b))
+        )
+    )
+
+(define (array-equal? a b)
+    (cond
+        ((null? a) (null? b))
+        ((null? b) #f)
+        (else (and (equal? (car a) (car b)) (array-equal? (cdr a) (cdr b))))
+        )
+    )
+
+(define (string-compare a b)
+    (cond
+        ((and (null? a) (null? b)) 0)
+        ((null? a) (- 0 (ascii (getElement b 0))))
+        ((null? b) (ascii (getElement a 0)))
+        (else
+            (if (== (ascii (getElement a 0)) (ascii (getElement b 0)))
+                (string-compare (cdr a) (cdr b))
+                (- (ascii (getElement a 0)) (ascii (getElement b 0)))
+                )
+            )
         )
     )
 
@@ -178,12 +209,3 @@
 (define (stream-car s) (car s))
 (define (stream-cdr s) ((cdr s)))
 (define (stream-null? s) (null? s))
-
-(define (string-cmp a b op)
-    (cond
-        ((eq? a "") (eq? b ""))
-        ((eq? b "") #f)
-        ((eq? (car a) (car b)) (string-cmp (cdr a) (cdr b) op))
-        (else (op (ascii (car a)) (ascii (car b))))
-        )
-    )

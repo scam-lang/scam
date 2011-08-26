@@ -1124,15 +1124,23 @@ wwhile(int args)
 static int
 setCar(int args)
     {
-    if (type(car(args)) != CONS)
+    int a = car(args);
+    int b = cadr(args);
+
+    char *t = type(a);
+    if (t != CONS && t != STRING && t != ARRAY)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "attempt to set the car of type %s",
             SymbolTable[file(car(args))],line(car(args)),
-            type(car(args)));
+            t);
 
-    caar(args) = cadr(args);
-    return cadr(args);
+    if (t == STRING)
+        car(a) = ival(b);
+    else
+        car(a) = b;
+
+    return b;
     }
 
 /* (set-cdr! spot value) */
@@ -1403,16 +1411,25 @@ list(int args)
 static int
 ccar(int args)
     {
-    char *t = type(car(args));
+    int supply = car(args);
+    char *t = type(supply);
 
-    if (t != CONS && t != STRING && t != ARRAY)
+    if (t != CONS && t != ARRAY && t != STRING)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "attempt to take car of type %s",
-            SymbolTable[file(car(args))],line(car(args)),
-            type(car(args)));
+            SymbolTable[file(supply)],line(supply),
+            t);
 
-    return car(car(args));
+    if (type(supply) == STRING)
+        {
+        char buffer[2];
+        buffer[0] = ival(supply);
+        buffer[1] = '\0';
+        return newString(buffer);
+        }
+    else
+        return car(supply);
     }
 
 /* (cdr item) */
@@ -2255,7 +2272,15 @@ getElement(int args)
             supply = cdr(supply);
             --index;
             }
-        return car(supply);
+        if (type(supply) == STRING)
+            {
+            char buffer[2];
+            buffer[0] = ival(supply);
+            buffer[1] = '\0';
+            return newString(buffer);
+            }
+        else
+            return car(supply);
         }
     }
 
@@ -2309,8 +2334,13 @@ setElement(int args)
             supply = cdr(supply);
             --index;
             }
-        car(supply) = value;
-        return car(supply);
+
+        if (type(supply) == CONS)
+            car(supply) = value;
+        else
+            ival(supply) = ival(value);
+
+        return value;
         }
     }
 
@@ -2366,6 +2396,25 @@ tthrow(int args)
     }
 
 /* string manipulations */
+
+/* (string-equal a b) */
+
+static int
+string_equal(int args)
+    {
+    int a = car(args);
+    int b = cadr(args);
+
+    while (a != 0)
+        {
+        if (b == 0) return falseSymbol;
+        if (ival(car(a)) != ival(car(b))) return falseSymbol;
+        a = cdr(a);
+        b = cdr(b);
+        }
+
+    return scamBoolean(b == 0);
+    }
 
 /* (prefix str size) */
 
@@ -2673,6 +2722,15 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = string_equal;
+    b = makeBuiltIn(env,
+        newSymbol("string-equal?"),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = prefix;
     b = makeBuiltIn(env,
         newSymbol("prefix"),
@@ -2787,7 +2845,7 @@ loadBuiltIns(int env)
 
     BuiltIns[count] = setElement;
     b = makeBuiltIn(env,
-        newSymbol("setElement!"),
+        newSymbol("setElement"),
         ucons(newSymbol("item"),
             ucons(newSymbol("index"),
                 ucons(newSymbol("value"),0))),
