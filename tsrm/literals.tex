@@ -123,9 +123,6 @@ Strings are sequences of characters delineated by double quotation marks:
     
     (println "\"z\"")
     -> "z" 
-    
-    (println "")
-    -> 
 \end{verbatim}
 
 Scam accepts both double quotes and single quotes to
@@ -165,7 +162,7 @@ between the double quotes is known as an empty string.
 
 Unlike some languages, there is no character type in Scam. A single
 character {\verb+a+}, for example, is entered as the string
-{\verb+'a'+}.
+{\verb+"a"+}.
 
 \section{Symbols}
 
@@ -174,7 +171,7 @@ symbols evaluate to themselves. Unlike strings,
 symbols are not formed using a beginning quotation mark and an
 ending quotation mark. They are also limited
 in the characters that compose them. For example, a symbol cannot
-have a space character while a string can. A symbol is introduced
+contain a space character while a string can. A symbol is introduced
 with a single quotation mark:
 
 \begin{verbatim}
@@ -186,7 +183,7 @@ with a single quotation mark:
 \end{verbatim}
 
 We we learn more about symbols and their relationship to entities
-called variables in a later chapter.
+called {\it variables} in a later chapter.
 
 \section{True, False, and nil}
 
@@ -206,7 +203,7 @@ be important for making Scam programs behave properly. In particular,
 
 Another special literal is \verb!nil!.
 This literal is used to
-indicate the empyt list; it also is used
+indicate an empty list or an empty string; it also is used
 to indicates something that has not yet been
 created. More on \verb!nil! when we cover lists and
 objects.
@@ -252,13 +249,13 @@ is used to tell us how many items are in a list:
 \end{verbatim}
 
 As expected, the {\it length} function tells us that the list
-\verb!('a, "help me", length)! has three items in it.
+\verb!('a "help me" length)! has three items in it.
 
 Lists can even contain lists!
 
 \begin{verbatim}
     (list 0 (list 3 2 1) 4)
-    -> (0, (3, 2, 1) 4)
+    -> (0 (3 2 1) 4)
 \end{verbatim}
 
 A list is something known as a {\it data structure};
@@ -292,8 +289,7 @@ of a list:
 What happens if our index is too large?
 
 \begin{verbatim}
-    (getElement (list "a" #t 7) 2)
-    -> 7
+    (getElement (list "a" #t 7) 3)
     EXCEPTION: generalException
     index (3) is too large
 \end{verbatim}

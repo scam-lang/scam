@@ -1,0 +1,128 @@
+\chapter{Lists, Strings, and Arrays}
+\label{ListsStringsArrays}
+
+Recall that the built-in function {\it list} is used to construct a list.
+A similar function, called {\it array}, is used to construct an array populated
+with the given elements:
+
+\begin{verbatim}
+    (array 1 "two" 'three)
+    -> [1,"two",three]
+\end{verbatim}
+
+while a function named {\it allocate} is used to allocate an array
+of the given size:
+
+\begin{verbatim}
+    (allocate 5)
+    -> [nil,nil,nil,nil,nil]
+\end{verbatim}
+
+Note that the elements of an allocated array are initialized to {\it nil}.
+
+The functions for manipulating lists, arrays, and strings are quite
+similar. In the following sections, we will use the term {\it collection}
+to stand for lists, arrays, and strings.
+
+\section{Comparing collections}
+
+The {\it equal?} function is used to compare two collections of the same type:
+
+\begin{verbatim}
+    (equal? (list 1 (array "23" 'hello)) (list 1 (array "23" 'hello)))
+    -> #t
+
+    (eq? (list 1 (array "23" 'hello)) (list 1 (array "23" 'hello)))
+    -> #f
+\end{verbatim}
+
+Note that the {\it eq?} function tests for pointer equality and thus fails
+when comparing two separate lists, even though they look similar.
+
+Strings can be compared with the {\it string-compare} function.
+Assuming a lexigraphical ordering based upon the ASCII code,
+then a string compare of two strings, {\it a} and {\it b},
+returns a negative number if {\it a}
+appears lexigraphically before {\it b}, returns zero if a and
+b are lexigraphically equal,
+and returns a positive number otherwise.
+
+\begin{verbatim}
+    (string-compare "abc" "bbc")
+    -> -1
+\end{verbatim}
+
+\section{Extracting elements}
+
+You can pull out an item from a collection
+by using the
+{\it getElement} function.
+With {\it getElement},
+you specify exactly which element
+you wish to extract. This specification is called an
+{\it index}. The first element of a collection has index 0, the second
+index 1, and so on. This concept of having the first element having
+an index of zero is known as {\it zero-based counting}, a common concept
+in Computer Science. Here is some code that extracts the first element
+of a list:
+
+\begin{verbatim}
+    (getElement (list "a" #t 7) 0)
+    -> "a"
+
+    (getElement (array "b" #f 11) 1)
+    -> #f
+
+    (getElement "howdy" 2)
+    -> "w"
+\end{verbatim}
+
+What happens if the index is too large?
+
+\begin{verbatim}
+    (getElement (list "a" #t 7) 3)
+    EXCEPTION: generalException
+    index (3) is too large
+\end{verbatim}
+
+Not surprisingly, an error is generated.
+In Scam, as with many programming languages, an error is known
+as an {\it exception}.
+
+As with Scheme, the built-in {\it car} and {\it cdr} functions
+returns the first item and the tail of a collection, respectively:
+
+\begin{verbatim}
+    (car (list 3 5 7))
+    -> 3
+
+    (cdr "howdy")
+    -> "owdy"
+
+    (cdr (array 2 4 6))
+    -> [4,6]
+
+    (car "bon jour")
+    -> "b"
+\end{verbatim}
+
+\section{Setting elements of a collection}
+
+The {\it set-car!} function can be used to set the first element of
+a collection:
+
+\begin{verbatim}
+    (set-car! (list 3 5 7) 0 11)
+    -> (11 5 7)
+\end{verbatim}
+
+More generally, the {\it setElement} function can be used to set a new value
+at any legal index:
+
+\begin{verbatim}
+    (setElement collection index newValue)
+\end{verbatim}
+
+For strings, the new value must be a non-empty string. If the
+value is composed of multiple characters, the characters after
+the first character are ignored.
