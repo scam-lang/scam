@@ -151,6 +151,8 @@
 (define (string? x) (eq? (type x) 'STRING))
 (define (symbol? x) (eq? (type x) 'SYMBOL))
 (define (array? x) (eq? (type x) 'ARRAY))
+(define (true? x) x)
+(define (false? x) (not x))
 
 (define (caar x) (car (car x)))
 (define (cadr x) (car (cdr x)))
