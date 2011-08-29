@@ -1,6 +1,27 @@
 \chapter{Variables}
 \label{Variables}
 
+One defines variables with the {\it define} function:
+
+\begin{verbatim}
+    (define x 13)
+\end{verbatim}
+
+The above expression creates a variable named {\it x} in the current
+scope and initializes it to the value 13.
+
+\section{Defining Variables Programatically}
+
+The function addSymbol is used to define variables on the 
+fly. For example, to define a variable named x in the current
+scope and to initialized it to 13, one might use the
+following expression:
+
+\begin{verbatim}
+    (addSymbol 'x 13 this)
+\end{verbatim}
+
+
 Suppose you found an envelope lying on the street and on the front of
 the envelope was printed the name {\it numberOfDogsTeeth}.
 Suppose further
