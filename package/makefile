@@ -1,7 +1,7 @@
 SERVER=beastie.cs.ua.edu
 #SERVER=nixie.cs.ua.edu
 
-ver=0.1.1
+ver=0.1.3
 arch=i386
 #arch=amd64
 base=scam-$(ver)_$(arch)
@@ -32,7 +32,7 @@ $(base).deb	:
 	gzip --best debian/usr/share/doc/scam/changelog.Debian
 	(cd ..; touch *.c; make;)
 	cp ../scam debian/usr/bin
-	cp ../main.lib debian/usr/lib/scam/
+	cp ../*.lib debian/usr/lib/scam/
 
 	fakeroot dpkg-deb --build debian $(base).deb
 

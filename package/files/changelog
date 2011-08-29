@@ -1,6 +1,7 @@
 scam (0.1.3)
 
   * removed limit on number of statements per scope
+  * allowed function calls to generate symbols for assign, set!, and .
   * added inherit.lib
 
 scam (0.1.2)
