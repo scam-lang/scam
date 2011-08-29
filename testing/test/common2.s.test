@@ -2,4 +2,4 @@
 
 (println (bindings common))
 ------------------------------------------
-((label environment) (context <object 7540>) (level 0) (constructor nil) (this <object 7605>) (count 0))
+((label environment) (context <object 8321>) (level 0) (constructor nil) (this <object 8386>) (count 0))

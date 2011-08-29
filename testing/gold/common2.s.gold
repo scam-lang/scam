@@ -1,5 +1,7 @@
-var common = { var count = 0; this; };
+(define common (scope (define count 0) this))
 
-println(bindings(common));
+(println (bindings this))
+(println (bindings common))
 ------------------------------------------
-((context,<OBJECT 966>),(dynamicContext,null),(callDepth,0),(constructor,null),(this,<OBJECT 2824>),(count,0))
+((label environment) (context <object 4685>) (level 0) (constructor nil) (this <object 8372>) (common <object 8450>) (__included_common2.s #t))
+((label environment) (context <object 8372>) (level 0) (constructor nil) (this <object 8450>) (count 0))

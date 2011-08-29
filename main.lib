@@ -211,3 +211,5 @@
 (define (stream-car s) (car s))
 (define (stream-cdr s) ((cdr s)))
 (define (stream-null? s) (null? s))
+
+(define (code $s) $s)

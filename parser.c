@@ -101,6 +101,47 @@ parse(PARSER *p)
     return uconsfl(beginSymbol,result,file(result),line(result));
     }
 
+/* iterative version */
+
+static int
+exprSeq(PARSER *p)
+    {
+    int e,b;
+    int head,hook;
+
+    e = expr(p);
+    rethrow(e,0);
+    head = ucons(e,0);
+    hook = head;
+    //debug("head",head);
+
+    push(head);
+    push(hook);
+    while (isExprPending(p))
+        {
+        b = expr(p);
+        rethrow(b,2);
+        assureMemory("exprSeq",1,&b,0);
+        hook = pop();
+        cdr(hook) = ucons(b,0);
+        hook = cdr(hook);
+        //head = pop();
+        //debug("    added",head);
+        //push(head);
+        //getchar();
+        push(hook);
+        }
+
+    hook = pop();
+    head = pop();
+
+    return head;
+
+    return ucons(e,b);
+    }
+
+/* recursive version
+
 static int
 exprSeq(PARSER *p)
     {
@@ -119,6 +160,7 @@ exprSeq(PARSER *p)
 
     return ucons(e,b);
     }
+*/
 
 static int
 expr(PARSER *p)

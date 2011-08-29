@@ -1,37 +1,33 @@
-include("inherit.s");
+(include "inherit.lib");
 
-var z-common = { var count = 0; this; };
+(define z-common (scope (define count 0) this))
 
-function z()
-    {
-    var parent = null;
-    var common = z-common;
-    var uncommon = { var count = 0; this;};
-    this;
-    }
+(define (z)
+    (define parent nil)
+    (define common z-common)
+    (define uncommon (scope (define count 0) this))
+    this
+    )
 
-function code($x) { $x; }
-function x()
-    {
-    var parent = z();
-    parent . common . count = parent . common . count + 1;
-    parent . uncommon . count = parent . uncommon . count + 1;
-    this;
-    }
+(define (x)
+    (define parent (z))
+    (assign (. (. parent common) count) (+ (. (. parent common) count) 1))
+    (assign (. (. parent uncommon) count) (+ (. (. parent uncommon) count) 1))
+    this
+    )
 
-function y()
-    {
-    var parent = z();
-    parent . common . count = parent . common . count + 1;
-    parent . uncommon . count = parent . uncommon . count + 1;
-    this;
-    }
+(define (y)
+    (define parent (z))
+    (assign (. (. parent common) count) (+ (. (. parent common) count) 1))
+    (assign (. (. parent uncommon) count) (+ (. (. parent uncommon) count) 1))
+    this
+    )
 
-var xish = new(x());
-var yish = new(y());
-var zish = new(z());
+(define xish (new (x)))
+(define yish (new (y)))
+(define zish (new (z)))
 
-println("x's common count is ", xish . common . count);
-println("y's common count is ", yish . common . count);
-println("x's uncommon count is ", xish . uncommon . count);
-println("y's uncommon count is ", yish . uncommon . count);
+(println "x's common count is " (. (. xish common) count))
+(println "y's common count is " (. (. yish common) count))
+(println "x's uncommon count is " (. (. xish uncommon) count))
+(println "y's uncommon count is " (. (. yish uncommon) count))
