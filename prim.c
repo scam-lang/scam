@@ -1159,7 +1159,7 @@ setCdr(int args)
     return cadr(args);
     }
 
-/* (set! id value # @) */
+/* (set! $id value # @) */
 
 static int
 set(int args)
@@ -1168,6 +1168,14 @@ set(int args)
     int result;
     
     //printf("in set!...");
+    if (type(id) == CONS)
+        {
+        push(args);
+        id = eval(id,caddr(args));
+        args = pop();
+        rethrow(id,0);
+        }
+
     if (type(id) != SYMBOL)
         return throw(exceptionSymbol,
             "file %s,line %d: "
@@ -1190,7 +1198,7 @@ static int
 assign(int args)
     {
     int id = car(args);
-    int env;
+    int obj;
     int result;
     
     //printf("in assign...");
@@ -1205,24 +1213,35 @@ assign(int args)
             SymbolTable[file(car(args))],line(car(args)),
             type(id));
 
-    env = cadr(id);
+    obj = cadr(id);
     id = caddr(id);
 
-    push(id);
     push(args);
-    env = eval(env,caddr(args));
-    args = pop();
+    push(id);
+    obj = eval(obj,caddr(args));
     id = pop();
+    args = pop();
 
-    rethrow(env,0);
+    rethrow(obj,0);
 
-    result = setVariableValue(id,cadr(args),env);
+    if (type(id) == CONS)
+        {
+        //debug("calling",id);
+        push(args);
+        push(obj);
+        id = eval(id,caddr(args));
+        obj = pop();
+        args = pop();
+        //debug("id now is",id);
+        }
+
+    result = setVariableValue(id,cadr(args),obj);
 
     return result;
     }
 
 
-/* (get id & @) */
+/* (get $id # @) */
 
 static int 
 get(int args)
@@ -1230,6 +1249,14 @@ get(int args)
     int id = car(args);
 
     //printf("in get...");
+    if (type(id) == CONS)
+        {
+        push(args);
+        id = eval(id,cadr(args));
+        args = pop();
+        rethrow(id,0);
+        }
+
     if (type(id) != SYMBOL)
         return throw(exceptionSymbol,
             "file %s,line %d: "
@@ -2397,6 +2424,68 @@ tthrow(int args)
 
 /* string manipulations */
 
+/* (string+ a b) */
+
+static int
+string_plus(int args)
+    {
+    int a = car(args);
+    int b = cadr(args);
+    int i,amount,sizeA,sizeB,size,attach,spot,start;
+
+    if (a != 0 && type(a) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "prefix: first argument should be STRING, not %s",
+            SymbolTable[file(args)],line(args),
+            type(a));
+        }
+
+    if (b != 0 && type(b) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "prefix: first argument should be STRING, not %s",
+            SymbolTable[file(args)],line(args),
+            type(b));
+        }
+
+    if (a == 0 && b == 0) return 0;
+
+    sizeA = length(a);
+    sizeB = length(b);
+    size = sizeA + sizeB;
+
+    assureMemory("string_plus",size,0);
+
+    i = 0;
+    amount = size;
+    for (i = 0; i < size; ++i)
+        {
+        spot = cons(0,0);
+        type(spot) = STRING;
+        if (i < sizeA)
+            {
+            ival(spot) = ival(a);
+            a = cdr(a);
+            }
+        else
+            {
+            ival(spot) = ival(b);
+            b = cdr(b);
+            }
+        count(spot) = amount--;
+        if (i == 0)
+            start = spot;
+        else
+            cdr(attach) = spot;
+        attach = spot;
+        }
+
+    return start;
+    }
+
 /* (string-equal a b) */
 
 static int
@@ -2718,6 +2807,15 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("gc"),
         0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = string_plus;
+    b = makeBuiltIn(env,
+        newSymbol("string+"),
+        ucons(newSymbol("a"),
+            ucons(newSymbol("b"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -3461,7 +3559,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = get;
     b = makeBuiltIn(env,
         newSymbol("get"),
-        ucons(newSymbol("id"),
+        ucons(newSymbol("$id"),
             ucons(sharpSymbol,
                 ucons(atSymbol,0))),
         newInteger(count));
@@ -3471,7 +3569,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = set;
     b = makeBuiltIn(env,
         newSymbol("set!"),
-        ucons(newSymbol("id"),
+        ucons(newSymbol("$id"),
             ucons(valueSymbol,
                 ucons(sharpSymbol,
                     ucons(atSymbol,0)))),

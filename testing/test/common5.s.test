@@ -1,4 +1,4 @@
-(include "inherit.s")
+(include "inherit.lib")
 
 (define z
     (scope

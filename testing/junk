@@ -1,48 +1,41 @@
-var z-common = { var count = 0; this; };
+var z = 
+{
+var z_shared = { var shared_count = 0; this; };
 
 function z()
     {
-    var common = z-common;
-    var uncommon = { var count = 0; this;};
+    var count = 0;
+    extends(z_shared);
+    count = count + 1;
+    shared_count = shared_count + 1;
     this;
     }
+};
 
 function x()
     {
-    proxy(z());
-    ppObject(this);
-    common . count = common . count + 1;
-    uncommon . count = uncommon . count + 1;
-    this;
+    extends(z());
     }
 
 function y()
     {
-    proxy(z());
-    common . count = common . count + 1;
-    uncommon . count = uncommon . count + 1;
-    this;
+    extends(z());
     }
 
 var xish = x();
 var yish = y();
 var zish = z();
 
-println("x's common count is ", xish . common . count);
-println("y's common count is ", yish . common . count);
-println("x's uncommon count is ", xish . uncommon . count);
-println("y's uncommon count is ", yish . uncommon . count);
+println("x's common count is ", xish . shared_count);
+println("y's common count is ", yish . shared_count);
+println("z's common count is ", zish . shared_count);
+println("x's count is ", xish . count);
+println("y's count is ", yish . count);
+println("z's count is ", zish . count);
 ------------------------------------------
-<OBJECT 3300>:
-    context: <OBJECT 966>
-    dynamicContext: <OBJECT 966>
-    callDepth: 1
-    constructor: <function x()>
-    this: <OBJECT 3300>
-    constructor: <function z()>
-    uncommon: <OBJECT 3338>
-    common: <OBJECT 3221>
-x's common count is 2
-y's common count is 2
-x's uncommon count is 1
-y's uncommon count is 1
+x's common count is 3
+y's common count is 3
+z's common count is 3
+x's count is 1
+y's count is 1
+z's count is 1

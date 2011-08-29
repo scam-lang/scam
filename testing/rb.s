@@ -1,387 +1,351 @@
-include("debug");
+(define root nil)
+(define (assert # $x)
+    (if (not (eval $x #))
+        (throw 'assertionError $x)
+        )
+    )
 
-var root = :null;
+(define (node value left right)
+    (define parent nil)
+    (define color nil)
 
-function node(value,left,right)
-    {
-    var parent;
-    var color;
+    (define (display)
+        (println "value:  "  value)
+        (println "left:   "  left)
+        (println "right:  "  right)
+        (println "parent: "  parent)
+        (println "color:  "  color)
+        )
 
-    function display()
-        {
-	println("value:  ", value);
-	println("left:   ", left);
-	println("right:  ", right);
-	println("parent: ", parent);
-	println("color:  ", color);
-	}
+    this
+    )
 
-    this;
-    }
+(define (printTree t)
+    (define (iter r indent)
+        (if (null? r)
+            (println "null")
+            (begin
+                (println (. r value)  "("  (. r color)  ")")
+                (print indent "left:  ")
+                (iter (. r left) (string+ indent "    "))
+                (print indent  "right: ")
+                (iter (. r right) (string+ indent "    "))
+                )
+            )
+        )
 
-function printTree(t)
-    {
-    function iter(r, indent)
-        {
-	if (r == :null)
-	    {
-	    println("null");
-	    }
-	else
-	    {
-	    println(r . value, "(", r . color, ")");
-	    print(indent, "left:  ");
-	    iter(r . left,indent + "    ");
-	    print(indent, "right: ");
-	    iter(r . right,indent + "    ");
-	    }
-	}
+    (iter t "   ")
+    )
 
-    iter(t, "   ");
-    }
+(define (insert t v op)
+    (if (null? t)
+        (begin
+            (assign root (node v nil nil))
+            (assign (. root parent) root)
+            (insertionFixup root)
+            )
+        (begin
+            (define lessThan (op v (. t value)))
 
-function insert(t, v, op)
-    {
-    if (t == :null)
-	{
-	root = node(v,:null,:null);
-	root . parent = root;
-	insertionFixup(root);
-	}
-    else
-        {
-	var lessThan = v op t . value;
+            (cond
+                ((and lessThan (valid? (. t left)))
+                    (insert (. t left)  v  op)
+                    )
+                (lessThan
+                    (assign (. t left) (node v nil nil))
+                    (assign (. (. t left) parent) t)
+                    (insertionFixup (. t left))
+                    )
+                ((valid? (. t right))
+                    (insert (. t right)  v  op)
+                    )
+                (else
+                    (assign (. t right) (node v nil nil))
+                    (assign (. (. t right) parent) t)
+                    (insertionFixup (. t right))
+                    )
+                )
+            )
+        )
+    )
+(define (prune x)
+    (assert (leaf? x))
+    (cond
+        ((leftChild? x)
+            (assign (. (parent x) left) nil)
+            )
+        ((rightChild? x)
+            (assign (. (parent x) right) nil)
+            )
+        (else
+            (assign root nil)
+            )
+        )
+    )
 
-	if (lessThan && t . left != :null)
-	    {
-	    insert(t . left, v, op);
-	    }
-	else if (lessThan)
-	    {
-	    t . left = node(v,:null,:null);
-	    t . left . parent = t;
-	    insertionFixup(t . left);
-	    }
-	else if (t . right != :null)
-	    {
-	    insert(t . right, v, op);
-	    }
-	else
-	    {
-	    t . right = node(v, :null, :null);
-	    t . right . parent = t;
-	    insertionFixup(t . right);
-	    }
-	}
-    }
+(define (swapToLeaf x)
+    (if (not (leaf? x))
+        (begin
+            (define y nil)
+            (define temp nil)
 
-function prune(x)
-    {
-    assert(leaf?(x) == :true);
-    if (leftChild?(x))
-        {
-	parent(x) . left = :null;
-	}
-    else if (rightChild?(x))
-        {
-	parent(x) . right = :null;
-	}
-    else
-        {
-	root = :null;
-	}
-    }
+            (if (valid? (. x right))
+                (assign y (findMin (. x right)))
+                (assign y (findMax (. x left)))
+                )
 
-function swapToLeaf(x)
-    {
-    if (leaf?(x) == :false)
-        {
-	var y;
-	var temp;
+            (assign temp (. x value))
+            (assign (. x value) (. y value))
+            (assign (. y value) temp)
 
-	if (x . right != :null)
-	    {
-	    y = findMin(x . right);
-	    }
-	else
-	    {
-	    y = findMax(x . left);
-	    }
+            (swapToLeaf y)
+            )
+        x
+        )
+    )
 
-	temp = x . value;
-	x . value = y . value;
-	y . value = temp;
+(define (findMin x)
+    (while (valid? (. x left))
+        (assign x (. x left))
+        )
+    x
+    )
 
-	swapToLeaf(y);
-	}
-    else
-        {
-	x;
-	}
-    }
-function findMin(x)
-    {
-    while (x . left != :null)
-        {
-	x = x . left;
-	}
-    return x;
-    }
-function findMax(x)
-    {
-    while (x . right != :null)
-        {
-	x = x . right;
-	}
-    return x;
-    }
-function delete(x)
-    {
-    x = swapToLeaf(x);
-    deletionFixup(x);
-    //println("pruning ", x . value);
-    prune(x);
-    }
+(define (findMax x)
+    (while (valid? (. x right))
+        (assign x (. x right))
+        )
+    x
+    )
 
-function deletionFixup(x)
-    {
-    while (root?(x) == :false && x . color == :black)
-	{
-	if (red?(sibling(x)))
-	    {
-	    parent(x) . color = :red;
-	    sibling(x) . color = :black;
-	    rotate(sibling(x),parent(x));
-	    // should have black sibling now
-	    assert(sibling(x) . color == :black);
-	    }
-	else if (red?(nephew(x)))
-	    {
-	    sibling(x) . color = parent(x) . color;
-	    parent(x) . color = :black;
-	    nephew(x) . color = :black;
-	    rotate(sibling(x),parent(x));
-	    x = root;
-	    // subtree is bh balanced
-	    // with proper bh contribution
-	    }
-	else if (red?(niece(x)))
-	    {
-	    // nephew must be black
-	    niece(x) = :black;
-	    sibling(x) = :red;
-	    rotate(neice(x),sibling(x));
-	    // should have red nephew now
-	    assert(nephew(x) . color == :red);
-	    }
-	else
-	    {
-	    // sibling, niece, and nephew must be black
-	    sibling(x) . color = :red;
-	    x = parent(x);
-	    // subtree is bh balanced
-	    // but has deficit in bh contribution
-	    }
-	}
+(define (delete x)
+    (assign x (swapToLeaf x))
+    (deletionFixup x)
+    ; (println "pruning "  (. x value))
+    (prune x)
+    )
 
-    x . color = :black;
-    }
+(define (deletionFixup x)
+    (while (and (false? (root? x)) (eq? (. x color) 'black))
+        (cond
+            ((red? (sibling x))
+                (assign (. (parent x) color) 'red)
+                (assign (. (sibling x) color) 'black)
+                (rotate (sibling x) (parent x))
+                ; should have black sibling now
+                (assert (eq? (. (sibling x) color) 'black))
+                )
+            ((red? (nephew x))
+                (assign (. (sibling x) color) (. (parent x) color))
+                (assign (. (parent x) color) 'black)
+                (assign (. (nephew x) color) 'black)
+                (rotate (sibling x) (parent x))
+                (assign x root)
+                ; subtree is bh balanced
+                ; with proper bh contribution
+                )
+            ((red? (niece x))
+                ; nephew must be black
+                (assign (. (niece x) color) 'black)
+                (assign (. (sibling x) color) 'red)
+                (rotate (niece x) (sibling x))
+                ; should have red nephew now
+                (assert (eq? (. (nephew x) color) 'red))
+                )
+            (else
+                ; sibling  niece  and nephew must be black
+                (assign (. (sibling x) color) 'red)
+                (assign x (parent x))
+                ; subtree is bh balanced
+                ; but has deficit in bh contribution
+                )
+            )
 
-function insertionFixup(x)
-    {
-    x . color = :red;
+        (assign (. x color) 'black)
+        )
+    )
 
-    while (root?(x) == :false && x . parent . color == :red)
-	{
-	if (red?(uncle(x)))
-	    {
-	    parent(x) . color = :black;
-	    uncle(x) . color = :black;
-	    grandparent(x) . color = :red;
-	    x = grandparent(x);
-	    }
-	else
-	    {
-	    // uncle must be black
+(define (insertionFixup x)
+    (assign (. x color) 'red)
 
-	    if (linear?(x, parent(x), grandparent(x)) == :false)
-		{
-		var oldParent = parent(x);
-		rotate(x,parent(x));
-		x = oldParent;
-		}
+    (while (and (not (root? x)) (eq? (. (. x parent) color) 'red))
+        (if (red? (uncle x))
+            (begin
+                (assign (. (parent x) color) 'black)
+                (assign (. (uncle x) color) 'black)
+                (assign (. (grandparent x) color) 'red)
+                (assign x (grandparent x))
+                )
+            (begin
+                ; uncle must be black
 
-	    parent(x) . color = :black;
-	    assert(x . parent . color == :black);
-	    grandparent(x) . color = :red;
-	    rotate(parent(x),grandparent(x));
-	    }
-	}
+                (if (not (linear? x (parent x) (grandparent x)))
+                    (begin
+                        (define oldParent (parent x))
+                        (rotate x (parent x))
+                        (assign x oldParent)
+                        )
+                    )
 
-    root . color = :black;
-    }
+                (assign (. (parent x) color) 'black)
+                ;(inspect (. (parent x) color))
+                (assert (eq? (. (. x parent) color) 'black))
+                (assign (. (grandparent x) color) 'red)
+                (rotate (parent x) (grandparent x))
+                )
+            )
+        )
+    (assign (. root color) 'black)
+    )
 
-function root?(x) { x == x . parent; }
-function leftChild?(x) { return parent(x) . left == x; }
-function rightChild?(x) { return parent(x) . right == x; }
-function leaf?(x) { x . left == :null && x . right == :null; }
-function red?(x) { return x != :null && x . color == :red; }
-function black?(x) { return x == :null || x . color == :black; }
+(define (root? x) (eq? x (. x parent)))
+(define (leftChild? x) (eq? (. (parent x) left) x))
+(define (rightChild? x) (eq? (. (parent x) right) x))
+(define (leaf? x) (and (null? (. x left))(null? (. x right))))
+(define (red? x) (and (valid? x) (eq? (. x color) 'red)))
+(define (black? x) (or  (null? x) (eq? (. x color) 'black)))
 
-function sibling(x)
-    {
-    if (leftChild?(x))
-	{
-	x . parent . right;
-	}
-    else if (rightChild?(x))
-        {
-	x . parent . left;
-	}
-    else
-	{
-        :null;
-	}
-    }
-function niece(x)	//precondition: sibling exists
-    {
-    if (leftChild?(x))
-        {
-        sibling(x) . left;
-        }
-    else
-        {
-	sibling(x) . right;
-	}
-    }
-function nephew(x)	//precondition: sibling exists
-    {
-    if (leftChild?(x))
-        {
-        sibling(x) . right;
-        }
-    else
-        {
-	sibling(x) . left;
-	}
-    }
-function parent(x) { x . parent; }
-function grandparent(x) { parent(x) . parent; }
-function uncle(x)
-    {
-    if (leftChild?(parent(x)))
-        {
-	return grandparent(x) . right;
-	}
-    else if (rightChild?(parent(x)))
-        {
-	return grandparent(x) . left;
-	}
-    else
-        {
-	return :null;
-	}
-    }
-function linear?(x,y,z)
-    {
-    return
-        ((leftChild?(x)  && leftChild?(y)) ||
-	 (rightChild?(x) && rightChild?(y)));
-    }
+(define (sibling x)
+    (cond
+        ((leftChild? x)
+            (. (. x parent) right)
+            )
+        ((rightChild? x)
+            (. (. x parent) left)
+            )
+        (else
+            nil
+            )
+        )
+    )
 
+(define (niece x)       ; precondition: sibling exists
+    (if (leftChild? x)
+        (. (sibling x) left)
+        (. (sibling x) right)
+        )
+    )
 
-function rotate(x,p)
-    {
-    if (p . left == x) 
-        {
-	//rotate right
-	rotator(x,p,:right,:left);
-	}
-    else if (p . right == x)
-        {
-	//rotate left
-	rotator(x,p,:left,:right);
-	}
-    else
-        {
-	throw("rotate error");
-	}
-    }
-function rotator(x,p,direction,oppositeDirection)
-    {
-    var gp = parent(p);
-    var beta = x . (direction);
+(define (nephew x)      ; precondition: sibling exists
+    ;(inspect (sibling x))
+    (if (leftChild? x)
+        (. (sibling x) right)
+        (. (sibling x) left)
+        )
+    )
 
-    p . (oppositeDirection) = beta;
-    if (beta != :null) { beta . parent = p; }
+(define (parent x) (. x parent))
+(define (grandparent x) (parent (parent x)))
+(define (uncle x)
+    (cond
+        ((leftChild? (parent x))
+            (. (grandparent x) right))
+        ((rightChild? (parent x))
+            (. (grandparent x) left))
+        (else
+            nil)
+        )
+    )
 
-    x . (direction) = p;
-    p . parent = x;
+(define (linear? x y z)
+    (or
+        (and (leftChild? x) (leftChild? y))
+        (and (rightChild? x) (rightChild? y))
+        )
+    )
 
-    if (p == gp)
-        {
-	root = x;
-	x . parent = x;
-	}
-    else {
-        if (gp . (direction) == p) { gp . (direction) = x; }
-	else { gp . (oppositeDirection) = x; }
-	x . parent = gp;
-	}
-    }
+(define (rotate x p)
+    (cond
+        ((eq? (. p left) x) 
+            ; rotate right
+            (println "rotating right")
+            (rotator x p 'right 'left)
+            )
+        ((eq? (. p right) x)
+            ; rotate left
+            (println "rotating left")
+            (rotator x p 'left 'right)
+            )
+        (else
+            (throw 'redBlackException "rotate error")
+            )
+        )
+    )
 
-function findNode(t, v, op)
-    {
-    if (t == :null || v == t . value)
-	{
-	t;
-	}
-    else if (v op t . value)
-	{
-	findNode(t . left, v, op);
-	}
-    else
-	{
-	findNode(t . right, v, op);
-	}
-    }
+(define (id x) x)
 
-function main()
-    {
-    var i;
-    var num = :null;
-    var x;
-    var input = array(1, 2, 9, 3, 6, 4, 7, 8, 5);
+(define (rotator x p direction oppositeDirection)
+    (define gp (parent p))
+    (define beta (. x (id direction)))
 
-    i = 0;
-    while (i < length(input))
-        {
-	num = input . i;
-	println("inserting!");
-        insert(root, num, <);
-	print(num," inserted.\n");
-	printTree(root);
-	i = i + 1;
-	}
+    (assign (. p (id oppositeDirection)) beta)
+    (if (valid? beta) (assign (. beta parent) p))
+
+    (assign (. x (id direction)) p)
+    (assign (. p parent) x)
+
+    (if (eq? p gp)
+        (begin
+            (assign root x)
+            (assign (. x parent) x)
+            )
+        (begin
+            (if (eq? (. gp (id direction)) p)
+                (assign (. gp (id direction)) x)
+                (assign (. gp (id oppositeDirection)) x)
+                )
+            (assign (. x parent) gp)
+            )
+        )
+    )
+
+(define (findNode t v op)
+    (cond
+        ((or (null? t) (eq? v (. t value)))
+            t
+            )
+        ((op v (. t value))
+            (findNode (. t left) v op)
+            )
+        (else
+            (findNode (. t right) v op)
+            )
+        )
+    )
+
+(define (main)
+    (define i nil)
+    (define num nil)
+    (define x nil)
+    (define input (array 1  2  9  3  6  4  7  8  5))
+
+    (assign i 0)
+    (while (< i (length input))
+        (assign num (getElement input i))
+        (println "inserting!")
+        (insert root num <)
+        (println num " inserted.")
+        (printTree root)
+        (assign i (+ i 1))
+        )
     
-    println("insertion phase complete, tree is...");
-    printTree(root);
-    println("deletion phase begins...");
+    (println "insertion phase complete  tree is...")
+    (printTree root)
+    (println "deletion phase begins...")
 
-    i = 0;
-    while (i < length(input))
-        {
-	num = input . i;
-	x = findNode(root,num,<);
-	delete(x);
-	print(num," deleted.\n");
-	printTree(root);
-	i = i + 1;
-	}
+    (assign i 0)
+    (while (< i (length input))
+        (assign num (getElement input i))
+        (assign x (findNode root num <))
+        (delete x)
+        (println num " deleted.")
+        (printTree root)
+        (assign i (+ i 1))
+        )
 
-    println("deletion phase complete, tree is...");
-    print("good-bye!\n");
-    }
+    (println "deletion phase complete  tree is...")
+    (println "good-bye!")
+    )
 
-print("hello\n");
-main();
+(println "hello");
+(main)

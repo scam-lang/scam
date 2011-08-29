@@ -24,7 +24,5 @@
 (inspect (get 'uncommon (new (x))))
 (inspect (get 'uncommon (new (x))))
 ------------------------------------------
-(get (quote common) (new (x))) is 1
-(get (quote common) (new (x))) is 2
-(get (quote uncommon) (new (x))) is 1
-(get (quote uncommon) (new (x))) is 1
+EXCEPTION: undefinedVariable
+file object.s,line 1: variable var is undefined

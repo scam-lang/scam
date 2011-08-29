@@ -1,5 +1,7 @@
 (define common (scope (define count 0) this))
 
+(println (bindings this))
 (println (bindings common))
 ------------------------------------------
-((label environment) (context <object 8321>) (level 0) (constructor nil) (this <object 8386>) (count 0))
+((label environment) (context <object 4446>) (level 0) (constructor nil) (this <object 8344>) (common <object 8422>) (__included_common2.s #t))
+((label environment) (context <object 8344>) (level 0) (constructor nil) (this <object 8422>) (count 0))

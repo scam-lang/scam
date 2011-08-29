@@ -36,28 +36,31 @@ Things to note for programmers who are trying Scam:
 
 \subsubsection*{set!}
 
-    The Scam version of set! evaluates all its arguments. To set the variable
-    {\it x} to 5, one would call set! this way, quoting the variable to supress
-    evaluation:
+    The Scam version of {\it set}! has an additional mode, when compared to
+    Scheme. When its first argument is a function call, it evaluates the
+    call (it is expected that a symbol is returned).
+    Thus, these two calls are equivalent. 
     
 \begin{verbatim}
-        (set! 'x 5)
+        (set! x 5)
+        (set! ((lambda () 'x)) 5)
 \end{verbatim}
 
-    This above can be accomplished as well with the assign function which 
-    does not evaluate its first argument:
+    The {\it assign} function is equivalent to set!
 
 \begin{verbatim}
         (assign x 5)
 \end{verbatim}
 
-    The set! function also takes an optional environment, where the predefined
-    variable this always points to the current environment. Thus, the following
+    The {\it set!} function also takes an optional environment,
+    where the predefined
+    variable {\it this} always points to the current environment.
+    Thus, the following
     three expressions are equivalent:
 
 \begin{verbatim}
-        (set! 'x 5)
-        (set! 'x 5 this)
+        (set! x 5)
+        (set! x 5 this)
         (assign x 5)
 \end{verbatim}
 

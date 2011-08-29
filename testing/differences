@@ -1,82 +1,92 @@
 OLD vs. NEW
-common.s
+common5.s
 ------------------------------------------
-1c1
-< var z-common = { var count = 0; this; };
----
-> (include "inherit.lib");
-3,8c3
+1,34c1,38
+< var z = 
+< {
+< var z_shared = { var shared_count = 0; this; };
+< 
 < function z()
 <     {
-<     var common = z-common;
-<     var uncommon = { var count = 0; this;};
+<     var count = 0;
+<     extends(z_shared);
+<     count = count + 1;
+<     shared_count = shared_count + 1;
 <     this;
 <     }
----
-> (define z-common (scope (define count 0) this))
-10,17c5,10
+< };
+< 
 < function x()
 <     {
-<     proxy(z());
-<     ppObject(this);
-<     common . count = common . count + 1;
-<     uncommon . count = uncommon . count + 1;
-<     this;
+<     extends(z());
 <     }
----
-> (define (z)
->     (define parent nil)
->     (define common z-common)
->     (define uncommon (scope (define count 0) this))
->     this
->     )
-19,25c12,17
+< 
 < function y()
 <     {
-<     proxy(z());
-<     common . count = common . count + 1;
-<     uncommon . count = uncommon . count + 1;
-<     this;
+<     extends(z());
 <     }
----
-> (define (x)
->     (define parent (z))
->     (assign (. (. parent common) count) (+ (. (. parent common) count) 1))
->     (assign (. (. parent uncommon) count) (+ (. (. parent uncommon) count) 1))
->     this
->     )
-27,29c19,27
+< 
 < var xish = x();
 < var yish = y();
 < var zish = z();
+< 
+< println("x's common count is ", xish . shared_count);
+< println("y's common count is ", yish . shared_count);
+< println("z's common count is ", zish . shared_count);
+< println("x's count is ", xish . count);
+< println("y's count is ", yish . count);
+< println("z's count is ", zish . count);
 ---
-> (define (y)
->     (define parent (z))
->     (assign (. (. parent common) count) (+ (. (. parent common) count) 1))
->     (assign (. (. parent uncommon) count) (+ (. (. parent uncommon) count) 1))
->     this
+> (include "inherit.lib")
+> 
+> (define z
+>     (scope
+>         (define z_shared (scope (define shared-count 0) this))
+> 
+>         (define (z)
+>             (define count 0)
+>             (extend z_shared)
+>             this
+>             )
+>         )
 >     )
-> (define xish (new (x)))
-> (define yish (new (y)))
-> (define zish (new (z)))
-31,34c29,32
-< println("x's common count is ", xish . common . count);
-< println("y's common count is ", yish . common . count);
-< println("x's uncommon count is ", xish . uncommon . count);
-< println("y's uncommon count is ", yish . uncommon . count);
+> 
+> (define (x)
+>     (extend (z))
+>     )
+> 
+> (define (y)
+>     (extend (z))
+>     )
+> 
+> (define xish (x))
+> (define yish (y))
+> (define zish (z))
+> 
+> (set! 'count 1 yish)
+> (set! 'count 2 zish)
+> 
+> (set! 'shared-count 11 yish)
+> (set! 'shared-count 22 xish)
+> 
+> (println "x's count is " (get 'count xish))
+> (println "y's count is " (get 'count yish))
+> (println "z's count is " (get 'count zish))
+> (println "x's common count is " (get 'shared-count xish))
+> (println "y's common count is " (get 'shared-count yish))
+> (println "z's common count is " (get 'shared-count zish))
+36,39c40
+< x's common count is 3
+< y's common count is 3
+< z's common count is 3
+< x's count is 1
 ---
-> (println "x's common count is " (. (. xish common) count))
-> (println "y's common count is " (. (. yish common) count))
-> (println "x's uncommon count is " (. (. xish uncommon) count))
-> (println "y's uncommon count is " (. (. yish uncommon) count))
-36,44d33
-< <OBJECT 3300>:
-<     context: <OBJECT 966>
-<     dynamicContext: <OBJECT 966>
-<     callDepth: 1
-<     constructor: <function x()>
-<     this: <OBJECT 3300>
-<     constructor: <function z()>
-<     uncommon: <OBJECT 3338>
-<     common: <OBJECT 3221>
+> x's count is 0
+41c42,45
+< z's count is 1
+---
+> z's count is 2
+> x's common count is 22
+> y's common count is 22
+> z's common count is 22
 ------------------------------------------

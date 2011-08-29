@@ -1,3 +1,7 @@
+(define (id x) x)
+(define (__id x) x)
+(define nil? null?)
+(define (valid? x) (not (null? x)))
 (define (head x) (car x))
 (define (tail x) (cdr x))
 (define (join x,y) (cons x y))
@@ -12,9 +16,9 @@
 (define (for-each2 # $indexVar items $)
     (define result #f)
     (while (!= items nil)
-        (set! $indexVar (car items) #)
-        (set! 'result (evalList $ #))
-        (set! 'items (cdr items))
+        (set! (__id $indexVar) (car items) #)
+        (set! result (evalList $ #))
+        (set! items (cdr items))
         )
     result
     )
@@ -29,10 +33,10 @@
     (iter x)
     )
 
-(define (+= # $v value) (set! $v (+ (eval $v #) value) #))
-(define (-= # $v value) (set! $v (- (eval $v #) value) #))
-(define (*= # $v value) (set! $v (* (eval $v #) value) #))
-(define (/= # $v value) (set! $v (/ (eval $v #) value) #))
+(define (+= # $v value) (set! (__id $v) (+ (eval $v #) value) #))
+(define (-= # $v value) (set! (__id $v) (- (eval $v #) value) #))
+(define (*= # $v value) (set! (__id $v) (* (eval $v #) value) #))
+(define (/= # $v value) (set! (__id $v) (/ (eval $v #) value) #))
 
 ; object-related functions
 
@@ -40,12 +44,17 @@
 
 (define (type x)
     (if (and (eq? (old-type x) 'CONS) (eq? (car x) 'object))
-        (get 'label x)
+        (get label x)
         (old-type x)
         )
     )
 
-(define (. obj $field) (get $field obj))
+(define (. # obj $field)
+    (if (pair? $field)
+        (get (eval $field #) obj)
+        (get (__id $field) obj)
+        )
+    )
 
 (define scam.s-old-and and)
 (define (and # $)
@@ -75,7 +84,7 @@
 (define (let # $inits $)
     (define v nil)
     (define e (scope this))
-    (set! 'context # e)
+    (set! context # e)
     (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) #) e)
         ;(println "adding " (car v) " from " $inits)
@@ -88,7 +97,7 @@
 (define (let* # $inits $)
     (define v nil)
     (define e (scope this))
-    (set! 'context # e)
+    (set! context # e)
     (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) e) e)
         )

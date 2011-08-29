@@ -9,6 +9,72 @@ One defines variables with the {\it define} function:
 
 The above expression creates a variable named {\it x} in the current
 scope and initializes it to the value 13.
+If the initializer is missing:
+
+\begin{verbatim}
+    (define y)
+
+    (inspect y)
+    -> y is nil
+\end{verbatim}
+
+the variable is initialized to nil.
+
+\section{Defining functions}
+
+There are two ways to define a function. The first is through a 
+regular variable definition, where the initializer is a lambda
+expression:
+
+\begin{verbatim}
+    (define square (lambda (x) (* x x)))
+
+    (square 3)
+    -> 9
+
+    (inspect square)
+    -> square is <function square(x)>
+\end{verbatim}
+
+The above expression defines a function that returns the square of
+its argument. The second method uses a special syntax:
+
+\begin{verbatim}
+    (define (square x) (* x x))
+    
+    (inspect square)
+    -> square is <function square(x)>
+\end{verbatim}
+
+The two forms are equivalent, so regardless of the method, the
+name of the function is simply a variable. The only difference
+is its value.
+
+\section{Environments and Objects}
+
+When one defines a variable, the variable name and value are
+stored in a table called an {\it environment}. The predefined
+variable this always points to the current environment.
+For example, consider this interaction:
+
+\begin{verbatim}
+    (define n 10)
+
+    (inspect this)
+    -> this is <object 8393>
+                   label  : environment
+                 context  : <object 4495>
+                   level  : 0
+             constructor  : nil
+                    this  : <object 8393>
+                       n  : 10
+\end{verbatim}
+
+Among other information stored in the current environment,
+we see an entry for {\it n} and its value is indeed 10.
+
+The Scam object system is based upon environments. We will
+learn about objects in a later chapter.
 
 \section{Defining Variables Programatically}
 
@@ -21,305 +87,49 @@ following expression:
     (addSymbol 'x 13 this)
 \end{verbatim}
 
-
-Suppose you found an envelope lying on the street and on the front of
-the envelope was printed the name {\it numberOfDogsTeeth}.
-Suppose further
-that you opened the envelope and inside was a piece of paper with
-the number 42 written upon it.
-What might you conclude from such an
-encounter? Now suppose you kept walking and found another envelope
-labeled {\it meaningOfLifeUniverseEverything} and,
-again, upon opening it
-you found a slip of paper with the number 42 on it.
-Further down the
-road,
-you find two more envelopes,
-entitled {\it numberOfDotsOnPairOfDice} and
-{\it StatuteOfLibertyArmLength},
-both of which contain the number 42.
-
-Finally,
-you find one last envelope labeled {\it sixTimesNine} and inside you,
-yet again,
-find the number 42.
-At this point,
-you're probably thinking `somebody
-has an odd affection for the number 42' but then the times table that
-is stuck somewhere in the dim recesses of your brain begins yelling at
-you saying `54! It's 54!'.
-After this goes on for an embarrassingly long
-time,
-you realize that 6 * 9 is not 42, but 54.
-So you cross out the 42
-in the last envelope and write 54 instead and put the envelope back
-where you found it.
-
-This strange little story,
-believe it or not,
-has profound implications
-for writing programs that both humans and computers can understand.
-For
-programming languages,
-the envelope is a metaphor for something called
-a {\it variable},
-which can be thought of as a label for a place in memory
-where a literal value can reside.
-In many programming languages,
-one can change the value at that memory location,
-much like replacing
-the contents of an envelope.\footnote{
-Languages that do not allow changes to a variable are called
-{\it functional languages}.
-Scam is an `impure' functional language
-since it is {\it mostly} functional but allows for variable modification.
-}
-A variable is our first encounter with a
-concept known as {\it abstraction},
-a concept that is fundamental to the whole
-of computer science.\footnote{
-Another fundamental concept is analogy and if you understand the
-purpose of the envelope story after reading this section,
-you're well
-on your way to being a computer scientist!
-}
-
-\section{Variables}
-
-Most likely,
-you've encountered the term {\it variable} before.
-Consider the
-slope-intercept form of an algebraic equation of a particular line:
-
-    \[  y = 2x - 3 \]
-
-You probably can tell from this equation that the slope of this line
-is 2 and that it intercepts the {\it y}-axis at -3.
-But what role do
-the letters {\it y} and {\it x} actually play?  The names {\it x} and {\it y}
-are placeholders and stand for the {\it x}- and {\it y}-coordinates of any
-conceivable point on that line.
-Without placeholders,
-the line would
-have to be described by listing every point on the line.
-Since there
-are an infinite number of points,
-clearly an exhaustive list is not
-feasible.
-As you learned in your algebra class,
-the common name for a
-place holder for a specific value is the term {\it variable}.
-
-One can generalize the above line resulting in an equation that describes
-every line.\footnote{
-The third great fundamental concept in computer science
-is {\it generalization}.
-In particular,
-computer scientists are always trying to make things
-more abstract and more general (but not overly so).
-The reason is that
-software/systems/models exhibiting the proper levels of abstraction and
-generalization are much much easier to understand and modify.
-This is
-especially useful when you are required to make a last second
-change to the software/system/model.
-}
-
-    \[  y = mx + b \]
-
-Here,
-the variable {\it m} stands for the slope and {\it b} stands for the
-{\it y}-intercept.
-Clearly,
-this equation was not dreamed up by a computer
-scientist since a cardinal rule is to choose good names for variables,
-such as {\it s} for slope and {\it i} for intercept.
-But alas,
-for historical reasons,
-we are stuck with {\it m} and {\it b}.
-
-The term {\it variable} is also used in most programming languages,
-including
-Scam,
-and the term has roughly the equivalent meaning.
-The difference is
-programming languages use the envelope metaphor
-while algebraic meaning of variable is an equivalence to a value.\footnote{
-Even the envelope metaphor can be confusing since it
-implies that two variables having the same value must
-each have a copy of that value. Otherwise, how can one value
-be in two envelopes at the same time? For simple literals, copying is
-the norm.
-For more complex objects, the cost of copying would
-be prohibitive.
-The solution is to storing the {\it address} of the object,
-instead of the object itself, in the envelope. Two variables can
-now `hold' the same object since it is the address is copied.
-}
-The difference is purely philosophical and not worth going into at this
-time.
-Suppose you found three envelopes,
-marked {\it m}, {\it x}, and {\it b},
-and inside
-those three envelopes you found the numbers 6, 9, and -12 respectively.
-If
-you were asked to make a {\it y} envelope,
-what number should you put inside?
-If
-the number 42 in the {\it sixTimesNine} envelope in the previous story did not
-bother you ({\it e.g.}, your internal times table was nowhere to be found),
-perhaps you might need a little help in completing your task.
-We can
-have Scam calculate this number with the following dialog:
+You can also define functions this way:
 
 \begin{verbatim}
-    >>> m = 6
-    
-    >>> x = 9  
-    
-    >>> b = -12
-    
-    >>> y = m * x + b
-    
-    >>> y
-    42
+    (addSymbol 'square (lambda (x) (* x x)) this)
 \end{verbatim}
 
-The Scam interpreter,
-when asked to compute the value of an expression containing variables,
-goes to those envelopes (so to speak) and
-retrieves the values stored there.
-Note also that Scam
-requires the use of the multiplication sign
-to multiply the slope {\it m} by the {\it x} value.
-In the algebraic equation,
-the multiplication sign is elided,
-but is required here.
-
-One creates variables in Scam by simply assigning a value
-to the variable.\footnote{
-In many other languages, you have to declare a variable
-with a special syntax before you can assign a value
-to it}. If the variable does not exist, it is created;
-if it does exist, it's value is updated.
-Note that the interpreter does not give a response
-when a variable is created or updated.
-
-Here are some more examples of variable creation:
-
-\begin{verbatim}
-    >>> dots = 42
-
-    >>> bones = 206
-
-    >>> dots
-    42
-
-    >>> bones
-    206
-
-    >>> CLXIV = bones - dots
-    164
-\end{verbatim}
-
-After a variable is created/updated,
-the variable and its value can be used interchangeably.
-Thus,
-one use of variables is to set up constants that
-will be used over and over again.
-For example,
-it is an easy matter to
-set up an equivalence between the variable {\sf PI} and the real number 3.14159.
-
-\begin{verbatim}
-    PI = 3.14159
-    radius = 10
-    area = PI * radius * radius
-    circumference = 2 * PI * radius
-\end{verbatim}
-
-Notice how the expressions used to compute the values of the variables
-area and circumference are more readable than if 3.14159 was used
-instead of {\sf PI}.
-In fact,
-that is one of the main uses of variables,
-to
-make code more readable.
-The second is if the value of {\sf PI} should change
-(e.g. a more accurate value of {\sf PI} is desired,\footnote{
-The believed value of {\sf PI} has changed throughout the centuries and not
-always to be more accurate (see
-\xlink
-{http://en.wikipedia.org/wiki/History\_of\_Pi}
-{http://en.wikipedia.org/wiki/History\_of\_Pi}
-)
-}
-we would only need
-to change the definition of {\sf PI} (this assumes,
-of course,
-we can store
-those definitions for later retrieval and do not need to type them into
-the interpreter again).
+Since {\it addSymbol} evaluates all its arguments, the first
+argument can be any expression that resolves to a symbol,
+the second argument can be any expression that resolves
+to an appropriate value, and the third argument can
+be any expression that resolves to an environment or
+object.
 
 \section{Variable naming}
 
-Like many languages,
-Scam is quite restrictive in regards to legal variable names.
-A variable name must begin with a letter or an underscore
-and may be followed by any number of letters, digits, or
-underscores.
+Unlike many languages,
+Scam is quite liberal in regards to legal variable names.
+A variable can't begin with any of the these characters:
+\verb!0123456789;,'"()! nor whitespace and cannot contain any of these
+characters: \verb!;,'"()! nor whitespace. Typically,
+variable names start with a letter or underscore, but
+they do not have to. This flexibility allows Scam programmers
+to easily define new functions that have appropriate names.
+Here is a function that increments the value of its argument:
 
-Variables are the next layer in a programming languages,
-resting on
-the literal expressions and combinations of expressions (which are
-expressions themselves).
-In fact,
-variables can be thought of as an
-abstraction of the literals and collections of literals.
-As an analogy,
-consider your name.
-Your
-name is not you,
-but it is a convenient (and abstract) way of referring
-to you.
-In the same way,
-variables can be considered as the names of
-things.
-A variable isn't the thing itself,
-but a convenient way to referring
-to the thing.
+\begin{verbatim}
+    (define (+1 n) (+ n 1))
+\end{verbatim}
 
 While Scam lets you name variables in wild ways:
 
 \begin{verbatim}
-    >>> _1_2_3_iiiiii__ = 7
+    (assign $#1_2!3iiiiii@ 7)
 \end{verbatim}
 
 you should temper your
 creativity if it gets out of hand.
-For example,
-rather than use the
-variable {\it m} for the slope,
-we could use the name {\it slope} instead:
-
-\begin{verbatim}
-    slope = 6
-\end{verbatim}
-
-We could have also used a different name:
-
-\begin{verbatim}
-    _e_p_o_l_s_ = 6
-\end{verbatim}
-
-The name {\tt \_e\_p\_o\_l\_s\_}
+While the name \verb-$#1_2!3iiiiii@-
 is a perfectly good variable name from Scam's point of
-view.
-It is a particularly poor name from the point of making your Scam
+view,
+it is a particularly poor name from the point of making your Scam
 programs readable by you and others.
 It is important that your variable
 names reflect their purpose.
-In the example above,
-which is the better name: {\it m}, {\it slope}, or 
-{\tt \_e\_p\_o\_l\_s\_}
-to represent the slope of a line?
+
+

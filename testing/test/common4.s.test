@@ -23,11 +23,5 @@
 (inspect ((get 'getCommon (new (z)))))
 (inspect ((get 'getCommon (new (z)))))
 ------------------------------------------
-help!
-((get (quote getCommon) (new (x)))) is 1
-help!
-((get (quote getCommon) (new (x)))) is 1
-oops!
-((get (quote getCommon) (new (z)))) is 13
-oops!
-((get (quote getCommon) (new (z)))) is 14
+EXCEPTION: undefinedVariable
+file object.s,line 1: variable var is undefined
