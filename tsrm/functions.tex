@@ -73,16 +73,25 @@ is the code that will be evaluated (or executed) when the
 function is called. You must remember this: {\it the function body
 is not evaluated until the function is called}.
 
+Finally, the return value of a function is the value of the
+last expression evaluated. In the above case, the
+expression is:
+
+\begin{verbatim}
+    (+ (* m x) b)
+\end{verbatim}
+
 Once the function is defined, we can find the value of {\it y} repeatedly.
 
+\begin{verbatim}
     (y)
     -> 42
 
     (y)
     -> 42
+\end{verbatim}
 
-The parentheses after the {\it y} indicate that we wish to call
-the {\it y} function and get its value. Because we designed the
+Because we designed the
 function to take no values when called, we do not place any
 values between the parentheses.
 
@@ -110,33 +119,32 @@ The information that is passed into a function is collectively
 known as {\it arguments}.}, in this case, the value of {\it x}.
 
 \begin{verbatim}
-def y(x):
-    slope = 5
-    intercept = -3
-    return slope * x + intercept
+    (define (y x)
+        (define m 5)
+        (define b -3)
+        (+ (* m x) b)
+        )
 \end{verbatim}
 
 Note that we have moved {\it x} from the body of the function
-to between the parentheses. We have also refrained from
+to after the function name. We have also refrained from
 giving it a value since its value is to be sent to the function
 when the function is called.
 What we have done is to {\it parameterize} the function to make it more
 general and more useful. The variable {\it x} is now called a
-{\it formal parameter} since it sits between the parentheses in
-the first line of the function definition.
+{\it formal parameter}.
 
 Now we can compute {\it y} for an infinite number of {\it x}'s:
 
 \begin{verbatim}
-    >>> from line.py import *
-    >>> y(9)
-    42
+    (y 9)
+    -> 42
     
-    >>> y(0)
-    -3
+    (y 0)
+    -> -3
     
-    >>> y(-2)
-    -13
+    (y -2)
+    -> -13
 \end{verbatim}
 
 What if we wish to
@@ -145,19 +153,19 @@ line? One approach would be to pass in the {\it slope} and {\it intercept}
 as well as {\it x}:
 
 \begin{verbatim}
-def y(x,m,b):
-    return m * x + b
+ (define (y x m b)
+        (+ (* m x) b)
+        )
 \end{verbatim}
 
 Now we need to pass even more information to {\it y} when we call it:
     
 \begin{verbatim}
-    >>> from line.py import *
-    >>> y(9,5,-3)
-    42
+    (y 9 5 -3)
+    -> 42
      
-    >>> y(0,5,-3)
-    -3
+    (y 0 5 -3)
+    -> -3
 \end{verbatim}
 
 If we wish to calculate using a different line, we just pass in the
@@ -188,47 +196,47 @@ let's change the variable names {\it m} and {\it b} to {\it slope}
 and {\it intercept}, respectively:
 
 \begin{verbatim}
-def makeLine(slope,intercept):
-    def y(x):
-        return slope * x + intercept
-    return y    # the value of y is returned, y is NOT CALLED!
+    (define (createLine slope intercept)
+        (define (y x)
+            (+ (* slope x) intercept)
+            )
+        y    ; the value of y is returned, y is NOT CALLED!
+        )
 \end{verbatim}
 
-The {\it makeLine} function creates a {\it y} function
+The {\it createLine} function creates a {\it y} function
 and then returns it. Note that this returned function {\it y} takes
 one value when called, the value of {\it x}.
 
-So our creative {\it makeLine} function
+So our creative {\it createLine} function
 simply defines a {\it y} function and then
 returns it. Now we can create a bunch of different lines:
 
 \begin{verbatim}
-    >>> from line.py import *
-    >>> a = makeLine(5,-3)
-    >>> b = makeLine(6,2)
+    (define a (createLine 5 -3))
+    (define b (createLine 6 2))
 
-    >>> a(9)
-    42
+    (a 9)
+    -> 42
     
-    >>> b(9)
-    56
+    (b 9)
+    -> 56
 
-    >>> a(9)
-    42
+    (a 9)
+    -> 42
 \end{verbatim}
 
 Notice how lines {\it a} and {\it b} remember
 the slope and intercept supplied
 when they were created.\footnote{
 The local function {\it y} does not really remember these values,
-but for an introductory course, this is a good enough explanation.}.
-While this is decidedly cool, the problem is many languages (C, C++, and Java
-included\footnote{
+but at this point in time, this is a good enough explanation.}
+While this is decidedly cool, the problem is many languages (
+for example C, C++, and Java\footnote{
 C++ and Java, as well as Scam, give you another approach, {\it objects}.
-We will not go into objects in this course, but
-you will learn all about them in your next programming course.})
+We will discuss objects in a later chapter.})
 do not allow you to define functions that create other functions.
-Fortunately, Scam does allow this.
+Fortunately, Scam, Python, and most functional languages allow this.
 
 While this might seem a little mind-boggling, don't worry. The
 things you should take away from this are:
@@ -243,74 +251,3 @@ things you should take away from this are:
 \item
     functions return values
 \end{itemize}
-
-\section{The Function and Procedure Patterns}
-
-When a function calculates (or obtains) a value and returns it, we say
-that it implements the {\it function} pattern. If a function
-does not have a return value, we say it implements the
-{\it procedure} pattern.
-
-Here is an example of the {\it function} pattern:
-
-\begin{verbatim}
-def square(x):
-    return x * x
-\end{verbatim}
-
-This function takes a value, stores it in {\it x}, computes the square
-of {\it x} and return the result of the computation.
-
-Here is an example of the {\it procedure} pattern:
-
-\begin{verbatim}
-def greeting(name):
-    print("hello,",name)
-\end{verbatim}
-
-Almost always,
-a function that implements the {\it function} pattern does not print
-anything, while a function that implements the procedure
-pattern often does\footnote{Many times, the printing is
-done to a file, rather than  the console.}.
-A common function that implements the procedure pattern
-is the {\it main} function.
-A common mistake made by beginning programmers is
-to print a calculated value rather than to return it. So, when defining
-a function, you should ask yourself, should I implement the function
-pattern or the procedure pattern?
-
-Most of the function you implement in this class follow the function
-pattern.
-
-Another common mistake is to inadvertently implement a {\it procedure} pattern
-when a {\it function} pattern is called for. This happens when the {\it return}
-keyword is omitted.
-
-\begin{verbatim}
-def psquare(x):
-    x * x
-\end{verbatim}
-
-While the above code looks like the function pattern, it is actually
-a procedure pattern. What happens is the value $x * x$ is calculated,
-but since it is not returned, the newly calculated value is thrown
-away (remember the {\it throw-away} pattern?).
-
-Calling this kind of function yields a surprising result:
-
-\begin{verbatim}
-    >>> psquare(4)
-    >>>
-
-    >>>print(psquare(6))
-    None
-\end{verbatim}
-
-When you do not specify a return value, but you use
-the return value anyway (as in the printing example),
-the return value is set to {\it None}.
-
-Usually, the procedure pattern causes some side-effect to happen
-(like printing). A procedure like {\it psquare}, which has no side-effect
-is a useless function.

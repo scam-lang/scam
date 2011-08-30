@@ -57,9 +57,6 @@ ppArray(FILE *fp,char *open,int items,char *close,int mode)
 void
 ppObject(FILE *fp,int expr,int mode)
     {
-    int vars = object_variables(expr);
-    int vals = object_values(expr);
-
     if (sameSymbol(object_label(expr),thunkSymbol))
         fprintf(fp,"<thunk %d>",expr);
     else if (sameSymbol(object_label(expr),errorSymbol))
@@ -80,29 +77,38 @@ ppObject(FILE *fp,int expr,int mode)
         }
     else
         {
-        fprintf(fp,"<");
-        ppLevel(fp,car(expr),mode);
-        fprintf(fp," %d>",expr);
-        if (mode < 1)
+        ppTable(fp,expr,mode);
+        }
+    }
+
+void
+ppTable(FILE *fp,int expr,int mode)
+    {
+    int vars = object_variables(expr);
+    int vals = object_values(expr);
+
+    fprintf(fp,"<");
+    ppLevel(fp,car(expr),mode);
+    fprintf(fp," %d>",expr);
+    if (mode < 1)
+        {
+        fprintf(fp,"\n");
+        while (vars != 0)
             {
+            fprintf(fp,"%20s",SymbolTable[ival(car(vars))]);
+            if (transferred(car(vars)))
+                fprintf(fp,"* : ");
+            else
+                fprintf(fp,"  : ");
+            ppLevel(fp,car(vals),mode+1);
             fprintf(fp,"\n");
-            while (vars != 0)
+            if (transferred(vars) || transferred(vals))
                 {
-                fprintf(fp,"%20s",SymbolTable[ival(car(vars))]);
-                if (transferred(car(vars)))
-                    fprintf(fp,"* : ");
-                else
-                    fprintf(fp,"  : ");
-                ppLevel(fp,car(vals),mode+1);
-                fprintf(fp,"\n");
-                if (transferred(vars) || transferred(vals))
-                    {
-                    fprintf(fp,"xxxxxxxxxxxxxxxxxxxxx\n");
-                    return;
-                    }
-                vars = cdr(vars);
-                vals = cdr(vals);
+                fprintf(fp,"xxxxxxxxxxxxxxxxxxxxx\n");
+                return;
                 }
+            vars = cdr(vars);
+            vals = cdr(vals);
             }
         }
     }

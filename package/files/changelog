@@ -1,3 +1,7 @@
+scam (0.1.4)
+
+  * added the pp function to pretty print all objects in the system
+
 scam (0.1.3)
 
   * removed limit on number of statements per scope

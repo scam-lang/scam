@@ -1023,6 +1023,53 @@ println(int args)
     return result;
     }
 
+static int
+fmt(int args)
+    {
+    char buffer[512];
+    char spec[32];
+    int a = car(args);
+    int b = cadr(args);
+
+    if (type(a) != STRING)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "fmt given a non-string as format specifier: %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            type(a)
+            );
+        }
+
+    if (type(b) == INTEGER)
+        snprintf(buffer,sizeof(buffer),cellString(spec,sizeof(spec),a),ival(b));
+    else if (type(b) == REAL)
+        snprintf(buffer,sizeof(buffer),cellString(spec,sizeof(spec),a),rval(b));
+    else
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "fmt given a non-number to be formatted: %s",
+            SymbolTable[file(car(args))],line(car(args)),
+            type(a));
+        }
+
+    return newString(buffer);
+    }
+
+static int
+ppp(int args)
+    {
+    int a = car(args);
+    FILE *port = OpenPorts[CurrentOutputIndex];
+
+    if (type(a) == CONS && sameSymbol(car(a),objectSymbol))
+        ppTable(port,a,0);
+    else
+        pp(port,a);
+    return 0;
+    }
+
 /* (if # test $then $) */
 
 static int
@@ -1725,7 +1772,7 @@ checkPortForReading(FILE *fp,char *item,int args)
     }
 
 static int
-readChar(int args)
+readRawChar(int args)
     {
     int ch;
     char buffer[3];
@@ -1763,6 +1810,24 @@ readChar(int args)
     }
 
 static int
+readChar(int args)
+    {
+    char i;
+    FILE *fp;
+    char buffer[2];
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    rethrow(checkPortForReading(fp,"a character",args),0);
+
+    i = 0;
+    if (fscanf(fp," %c",&i) == EOF) return eofSymbol;
+    buffer[0] = i;
+    buffer[1] = '\0';
+    return newString(buffer);
+    }
+
+static int
 readInt(int args)
     {
     int i;
@@ -1773,7 +1838,7 @@ readInt(int args)
     rethrow(checkPortForReading(fp,"an integer",args),0);
 
     i = 0;
-    fscanf(fp," %d",&i);
+    if (fscanf(fp," %d",&i) == EOF) return eofSymbol;
     return newInteger(i);
     }
 
@@ -1788,7 +1853,7 @@ readReal(int args)
     rethrow(checkPortForReading(fp,"a real",args),0);
 
     r = 0;
-    fscanf(fp," %lf",&r);
+    if (fscanf(fp," %lf",&r) == EOF) return eofSymbol;
     return newReal(r);
     }
 
@@ -2007,6 +2072,24 @@ readUntil(int args)
     result = newString(buffer);
 
     return result;
+    }
+
+static int
+pushBack(int args)
+    {
+    int a = car(args);
+
+    if (type(a) == STRING)
+        {
+        ungetc(ival(a),OpenPorts[CurrentInputIndex]);
+        return a;
+        }
+
+    return throw(exceptionSymbol,
+        "file %s,line %d: "
+        "can only push back a one-character string",
+        SymbolTable[file(args)],line(args)
+        );
     }
 
 static int
@@ -3015,6 +3098,14 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = readRawChar;
+    b = makeBuiltIn(env,
+        newSymbol("readRawChar"),
+        ucons(sharpSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = readInt;
     b = makeBuiltIn(env,
         newSymbol("readInt"),
@@ -3066,6 +3157,14 @@ loadBuiltIns(int env)
     BuiltIns[count] = readUntil;
     b = makeBuiltIn(env,
         newSymbol("readUntil"),
+        ucons(newSymbol("string"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = pushBack;
+    b = makeBuiltIn(env,
+        newSymbol("pushBack"),
         ucons(newSymbol("string"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
@@ -3313,6 +3412,23 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("println"),
         ucons(atSymbol,0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = fmt;
+    b = makeBuiltIn(env,
+        newSymbol("fmt"),
+        ucons(newSymbol("format"),
+            ucons(valueSymbol,0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ppp;
+    b = makeBuiltIn(env,
+        newSymbol("pp"),
+        ucons(newSymbol("a"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

@@ -1,408 +1,263 @@
 \chapter{Input and Output}
 \label{InputAndOutput}
 
-Scam distinguishes between reading from the keyboard
-and writing to the console as opposed to reading and writing
-to a file. First we cover reading from the keyboard.
+Scam uses a {\it port} system for input and output.
+When Scam starts up, the current input port defaults to
+{\it stdin} (the keyboard) and the current output
+port defaults to {\it stdout} (the screen).
 
-\section{Reading from the keyboard}
-
-To read from the keyboard, one uses the
-{\it input} function:
-
-\begin{verbatim}
-    name = input("What is your name? ")
-\end{verbatim}
-
-The {\it input} function prints the given message to  the console
-(this message is known as a {\it prompt})
-and waits until a response is typed.
-The {\it input} function (as of Scam3) always returns a string.
-If you wish to read an {\it integer}, you can wrap the call to {\it input}
-in a call to {\it int}:
+To change these ports, one first creates new port
+and then sets the port.
+For example, to read from a file (say "data")
+instead of the keyboard,
+first create a file port:
 
 \begin{verbatim}
-    age = int(input("How old are you? "))
+    (define p (open "data" 'read))   ; p points to a port
+    (define oldInput (setPort p))
+    ...                              ; read stuff from the file data
+    (setPort oldInput)               ; restore the old input port
 \end{verbatim}
 
-Other conversion functions similar to {\it int} are {\it float}, which
-converts the string {\it input} returns to a real number, and
-{\it eval}, which converts a string into its Scam equivalent.
-For example, we could substitute {\it eval} for {\it int} or {\it float} and
-we would get the exact same result, {\it provided} an integer
-or a real number, respectively, were typed in response to
-{\it input} prompt. The {\it eval} function can even to some math for you:
+Once the port is set, all input will come from the new port.
+The {\it setPort} function, in addition to setting the port, returns
+the old port so that it eventually can be restored.
+
+To change the output port, the procedure is similar, except
+the symbol \verb!'write! is used instead.
 
 \begin{verbatim}
-    >>> eval("3 + 7")
-    10
+    (define p (open "data" 'write))   ; p points to a port
+    (define oldOutput (setPort p))
+    ...                               ; write stuff to the file data
+    (setPort oldOutput)               ; restore the old output port
 \end{verbatim}
 
-\section{Writing to the Console}
+Opening a file in \verb!'write! mode overwrites the file;
+to append content to an existing file, use the \verb!'append!
+symbol instead.
 
-One uses the {\it print} function to display text on the console:
-The {\it print} function is {\it variadic}, which means
-it can take a variable number
-of arguments.
-The {\it print} function has lots of options, but we will be
-interested in only two, {\it sep} and {\it end}.
-The {\it sep} (for separator) option specifies what
-is printed between the arguments
-sent to be printed. If the {\it sep} option is missing, a
-space is printed between the values received by {\it print}:
+Scam only allows a limited number of ports to be open at
+any given time. If you no longer need a port, close it with
+the built-in function {\it close}, which takes a port as its
+sole argument:
 
 \begin{verbatim}
-    >>> print(1,2,3)
-    1 2 3
-    >>>
+    (close p)
 \end{verbatim}
 
-If we wish to use commas as the separator, we would do this:
+\section{Reading}
+
+Scam supplies built-in functions for reading characters,
+integers, reals,
+strings, and whitespace delimited tokens:
 
 \begin{verbatim}
-    >>> print(1,2,3,sep=",")
-    1,2,3
-    >>>
+    (assign s (readChar))
+    (assign i (readInt))
+    (assign r (readReal))
+    (assign s (readString))
+    (assign t (readToken))
+    (assign s (readRawChar))
+    (assign u (readUntil stopCharacterString))
+    (assign w (readWhile continueCharacterString))
 \end{verbatim}
 
-If we wish to have no separator, we bind {\it sep} to an empty string:
+The first five functions listed skip any whitespace preceeding the
+entity they are to read. The last three functions do not skip whitespace.
+
+Both the {\it readChar} and the {\it readToken} functions return strings.
+Scam uses the same rules as the C programming language
+for what characters constitute an integer and a real.
+None of these functions take an argument; they use the current
+input port.
+
+To read a symbol, use the {\it symbol} function in conjunction
+with the {\it readToken} function:
 
 \begin{verbatim}
-    >>> print(1,2,3,sep="")
-    123
-    >>>
+    s = symbol(readToken());
 \end{verbatim}
 
-The {\it end} option specifies what be printed after the arguments
-are printed. If you don't supply a {\it end} option, a newline
-is printed by default. This call to {\it print} prints an exclamation
-point and then a newline at the end:
+To read a line of text, use the built-in {\it readLine} function:
 
 \begin{verbatim}
-    >>> print(1,2,3,end="!\n")
-    1 2 3!
-    >>>
+    (assign l (readLine))
 \end{verbatim}
 
-If you don't want anything printed at the end, bind {\it end} to an
-empty string:
+The {\it readLine} function reads up to, and including, the next
+newline character, but the newline is not part of the
+returned string.
+
+The {\it pause} function always reads from {\it stdin},
+regardless of the current input port.
+It reads (and discards) a line of text (up to and including the newline).
+Its purpose is to pause execution of a program for debugging
+purposes.
+
+Three other reading functions are useful for scanning text.
+The first is {\it readRawChar}, which returns a string containing
+the next character in the file, regardless of whether that
+character is whitespace or not.
+The second is {\it readUntil}, which is passed a string of characters
+that is used to control the read. For example,
 
 \begin{verbatim}
-    >>> print(1,2,3,end="")
-    1 2 3>>>
+    (readUntil " \t\n")
 \end{verbatim}
 
-Notice how the Scam prompt ends up on the same line as
-the values printed.
+will start reading at the current point in the file
+and return a string of all characters read up to point
+where a character in a given string is encountered.
+The character that caused the read to stop is pushed
+back into the input stream and will be the next character
+read.
 
-You can combine the {\it sep} and {\it end} options.
+The {\it readWhile} function is analogous, stopping when
+a character not in the given string is encountered.
 
-\section{Reading from the Command Line}
+\section{Writing}
 
-The command line is the line typed in a terminal window
-that runs a python program (or any other program).
-Here is a typical command line on a Linux system:
+Most output functions write to the current output port.
+
+The simplest output function is {\it display}. It takes a single
+argument, which can be any Scam object:
 
 \begin{verbatim}
-    lusth@sprite:~/l1/activities$ python3 prog3.py
+    (display "Hello, world!\n")
 \end{verbatim}
 
-Everything up to and including the dollar sign is
-the system prompt. As with all prompts, it is used
-to signify that the system is waiting for input.
-The user of the system (me) has typed in the command:
+The character sequence \verb!\! followed by
+\verb!n! indicate that
+a newline is to be displayed.
+
+More useful than display are the functions {\it print} and
+{\it println} in that they take any number of arguments:
 
 \begin{verbatim}
-    python3 prog3.py
+    (print "(f x) is " (f x) "\n")
+    (println "(f x) is " (f x))
 \end{verbatim}
 
-in response to the prompt. Suppose {\it prog3.py} is a file
-with the following code:
+The {\it println} function is just like {\it print}, except it
+outputs a newline after the displaying the last argument.
+Thus, the two calls above produce the same output.
+
+When a string is printed, the quote marks are not displayed.
+Likewise, when a symbol is printed, the quote mark is not displayed.
+
+The {\it inspect} function 
+prints out the unevaluated
+version of its argument followed by the arguments evaluation value:
 
 \begin{verbatim}
-    import sys
-
-    def main():
-        print("command-line arguments:")
-        print("    ",sys.argv)
-
-    main()
+    (inspect (f x))
+    -> (f x) is 3
 \end{verbatim}
 
-In this case, the output of this program would be:
+The {\it inspect} function always prints to {\it stdout},
+regardless of the current output port.
+
+\section{Pretty printing}
+
+The function {\it pp} acts much like {\it display}, unless it is
+passed an environment/object. In such cases, it prints out a table
+listing the variables defined in that scope.
+Since functions, thunks, exceptions, and errors are all encoded
+as objects, pp can be used to inspect them in greater detail.
+For example, consider this definition of square:
 
 \begin{verbatim}
-    command-line arguments:
-        ['prog3.py']
+    (define (square x)
+        (* x x)
+        )
 \end{verbatim}
 
-Note that the program imports the {\it sys} module and when
-the value of the variable {\it sys.argv} is printed, we
-see its value is:
+Printing the value of square using \verb!(print square)! yields:
 
 \begin{verbatim}
-    ['prog3.py']
+    <function square(x)>
 \end{verbatim}
 
-This tells us that {\it sys.argv} points to a list (because of the
-square brackets) and that the program file name, as a string,
-is found in this list.
-
-\section*{Command-line arguments}
-
-The second way to pass information to a program is
-through {\it command-line arguments}.
-Any whitespace-delimited tokens following
-the program file name are stored in {\it sys.argv} 
-along with the name of the program being run
-by the Scam interpreter.
-For example, suppose we run {\it prog3.py} with the this
-command:
+In contrast, using \verb!(pp square)! yields:
 
 \begin{verbatim}
-    python3 prog3.py 123 123.4 True hello, world
+    <object 8573>
+               label  : closure
+             context  : <object 8424>
+                name  : square
+          parameters  : (x)
+                code  : (begin (* x x))
 \end{verbatim}
 
-Then the output would be:
+\section{Formatting}
+
+The {\it fmt} function can be used to format numbers and strings
+if the default formatting is not acceptable. It uses the C
+programming language formatting scheme, taking a formatting
+specification as a string, and the item to be formatted.
+The function returns a string.
+
+For example,
 
 \begin{verbatim}
-    command-line arguments:
-        ['prog3.py', '123', '123.4', 'True', 'hello,', 'world']
+    sway>"<" + fmt("%6d",3) + ">";
+    STRING: "<     3>"
+
+    sway>"<" + fmt("%-6d",3) + ">";
+    STRING: "<3     >"
 \end{verbatim}
 
-From this result, we can see that all of the tokens are stored
-in {\it sys.argv} and that they are stored as strings, {\it regardless} of
-whether they look like some other entity, such as integer,
-real number, or Boolean.
+A format specification begins with a percent sign and is usually followed
+by a number representing the width (in number of characters)
+of the resulting string. If the width is positive, the
+item is right justified in the resulting string. If the width
+is negative, the item is left justified.
+After any width specification is a character specifying the
+type of the item to be formatted:
+\verb!d! for an integer,
+\verb!f! for a real number, and
+\verb!s! for a string.
 
-If we wish for {\tt "hello, world"} to be a single token,
-we would need to enclose the tokens in quotes:
+The format specification is quite a bit more sophisticated
+than shown here. You can read more on a Linux system by
+typing the command \verb!man 3 printf! at the system prompt.
+
+\section{Testing for end of file}
+
+The {\it eof?} function can be used to test whether the last
+read was successful or not. The function is NOT used to
+test if the {\it next} read would be successful. Here is a typical
+use of {\it eof?} in tokenizing a file:
 
 \begin{verbatim}
-    python3 prog3.py 123 123.4 True "hello, world"
+    (define t (readToken))
+    (while (not(eof?))
+        (store t)
+        (assign t (readToken))
+        )
 \end{verbatim}
 
-In this case, the output is:
+\section{Pushing back a character}
+
+Sometimes, it is necessary to read one character too
+many from the input. This happens in cases like
+advancing past whitespace in the input.
+Here is a typical whitespace-clearing loop:
 
 \begin{verbatim}
-    command-line arguments:
-        ['prog3.py', '123', '123.4', 'True', 'hello, world']
+    (define ch (readRawChar))
+    (while (space? ch))
+        (assign ch (readRawChar))
+        )
+
+    ; last character read wasn't whitespace
+    ; so push it back to be read again later
+
+    (pushBack ch)
 \end{verbatim}
 
-There are certain characters that have special meaning to
-the system. A couple of these are '*' and ';'. To include
-these characters in a command-line argument, they need to
-be {\it escaped} by inserting a backslash prior to the 
-character.
-Here is an example:
-
-\begin{verbatim}
-    python3 prog.py \; \* \\
-\end{verbatim}
-
-To insert a backslash, one escapes it with a backslash.
-The output from this command is:
-
-\begin{verbatim}
-    command-line arguments:
-        ['prog3.py', ';', '*', '\\']
-\end{verbatim}
-
-Although it looks as if there are two backslashes in the last
-token, there is but a single backslash. Scam uses two
-backslashes to indicate a single backslash.
-
-\subsection*{Counting the command line arguments}
-
-The number of command-line arguments (including the program file name)
-can be found by using the {\it len} (length) function. If we modify
-{\it prog3.py}'s main function to be:
-
-\begin{verbatim}
-    def main():
-        print("command-line argument count:",len(sys.argv))
-        print("command-line arguments:")
-        print("    ",sys.argv)
-\end{verbatim}
-
-and enter the following command at the system prompt:
-
-\begin{verbatim}
-    python3 prog3.py 123 123.4 True hello world
-\end{verbatim}
-
-we get this output:
-
-\begin{verbatim}
-    command-line argument count: 6
-    command-line arguments:
-         ['prog3.py', '123', '123.4', 'True', 'hello', 'world']
-\end{verbatim}
-
-As expected, we see that there are six command-line arguments,
-including the program file name.
-
-\section*{Accessing individual arguments}
-
-As with most programming languages and with Scam lists,
-the individual tokens in {\it sys.argv} are accessed with
-zero-based indexing. To access the program file name, we would
-use the expression:
-
-\begin{verbatim}
-    sys.argv[0]
-\end{verbatim}
-
-To access the first command-line argument after the program
-file name, we would use the expression:
-
-\begin{verbatim}
-    sys.argv[1]
-\end{verbatim}
-
-Let's now modify {\it prog3.py} so that it prints out each argument
-individually. We will using a construct called a loop to do this. You
-will learn about looping later, but for now, the statement
-starting with {\tt for} generates all the legal indices for
-{\it sys.argv}, from zero to the length of {\it sys.argv} minus one.
-Each index, stored in the variable {\it i}, is then used to print the argument
-stored at that location in sys.argv:
-
-\begin{verbatim}
-    def main():
-        print("command-line argument count:",len(sys.argv))
-        print("command-line arguments:")
-        for i in range(0,len(sys.argv),1):
-            print("   ",i,":",sys.argv[i])
-\end{verbatim}
-    
-Given this command:
-
-\begin{verbatim}
-    python3 prog3.py 123 123.4 True hello world
-\end{verbatim}
-
-we get the following output:
-
-\begin{verbatim}
-    command-line argument count: 6
-    command-line arguments:
-        0 : prog3.py
-        1 : 123
-        2 : 123.4
-        3 : True
-        4 : hello
-        5 : world
-\end{verbatim}
-
-This code works no matter how many command line arguments are sent.
-The superior student will ascertain that this is true.
-
-\subsection{What command-line arguments are}
-
-The command line arguments  are stored as strings.
-Therefore, you must use the {\it int}, {\it float}, or {\it eval} functions
-if you
-wish to use any of the command line arguments as numbers.
-
-\section{Reading from Files}
-
-The third way to get data to a program is to read the
-data that has been previously stored in a file.
-
-Scam uses a {\it file pointer} system in reading from a
-file. To read from a file, the first
-step is to obtain a pointer to the file. This is
-known as {\it opening} a file. Suppose
-we wish to read from a file named {\it data}. We
-would open the file like this:
-
-\begin{verbatim}
-    fp = open("data","r")
-\end{verbatim}
-
-The {\it open} command takes two arguments, the name of the
-file and the kind of file pointer to return. In this
-case, we wish for a {\it reading} file pointer, so we pass
-the string {\tt "r"}.
-
-Next, we can read the entire file into a single string with
-the {\it read} method:
-
-\begin{verbatim}
-    text = fp.read()
-\end{verbatim}
-
-After this statement is evaluated, the variable {\it text} would
-point to a string containing every character in the file {\it data}.
-We call {\it read} a method, rather than a function (which it is), to
-indicate that it is a function that belongs to a file pointer
-object, which {\it fp} is. You will learn about objects 
-in a later class, but the `dot' operator is a clue that
-the thing to the left of the dot is an object and the
-thing to the right is a method (or simple variable) that
-belongs to the object.
-
-When we are done reading a file, we {\it close} it:
-
-\begin{verbatim}
-    fp.close()
-\end{verbatim}
-
-\section{Writing to a File}
-
-Scam also requires a file pointer to write to 
-a file. The {\it open} function is again used to obtain
-a file pointer, but this time we desire a {\it writing}
-file pointer, so we send the string {\tt "w"} as the
-second argument to {\it open}:
-
-\begin{verbatim}
-    fp = open("data.save","w")
-\end{verbatim}
-
-Now the variable {\it fp} points to a writing file object, which
-has a method named {\it write}. The only argument {\it write} takes
-is a string. That string is then written to the file. Here is
-a function that copies the text from one file into another:
-
-\begin{verbatim}
-    def copyFile(inFile,outFile):
-        in = open(inFile,"r")
-        out = open(outFile,"w")
-        text = in.read();
-        out.write(text);
-        in.close()
-        out.close()
-\end{verbatim}
-            
-Opening a file in order to write to
-it has the effect of emptying the file of its contents
-soon as it is opened.
-The following code deletes
-the {\it contents} of a file (which is different than
-deleting the file):
-
-\begin{verbatim}
-    # delete the contents
-    fp = open(fileName,"w")
-    fp.close()
-\end{verbatim}
-
-We can get rid of the variable {\it fp} by simply treating the
-call to {\it open} as the object {\it open} returns, as in:
-
-\begin{verbatim}
-    # delete the contents
-    open(fileName,"w").close()
-\end{verbatim}
-
-If you wish to start writing to a file, but save what was
-there previously, call the {\it open} function to obtain
-an {\it appending} file pointer:
-
-\begin{verbatim}
-    fp = open(fileName,"a")
-\end{verbatim}
-
-Subsequent writes to {\it fp} will append text to what is already there.
+The {\it pushBack} function takes a string as its
+sole argument, but only pushes back the first
+character of the string; subsequent characters in
+the string are ignored.
