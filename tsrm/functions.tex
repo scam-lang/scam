@@ -1,9 +1,9 @@
 \chapter{Functions}
 \label{Functions}
 
-Recall from 
-\link*{the chapter on assignment}[Chapter~\Ref]{Assignment}
-the series of expressions we evaluated to find
+%Recall from 
+%\link*{the chapter on assignment}[Chapter~\Ref]{Assignment}
+Consider the equation to find
 the {\it y}-value of a point on the line:
 
 \begin{verbatim}
@@ -14,19 +14,19 @@ First, we assigned values to the slope,
 the {\it x}-value, and the {\it y}-intercept:
 
 \begin{verbatim}
-    >>> m = 5
-    >>> x = 9  
-    >>> b = -3
+    (define m 5)
+    (define x 9)
+    (define b -3)
 \end{verbatim}
 
-Once those variables have been assigned,
+Once those variables have been created,
 we can compute the value of {\it y}:
 
 \begin{verbatim}
-    >>> y = m * x + b
+    (define y (+ (* m x) b))
 
-    >>> y
-    42
+    (inspect y)
+    -> y is 42
 \end{verbatim}
 
 Now, suppose we wished to find the {\it y}-value corresponding to
@@ -46,54 +46,41 @@ the sequence of operations above.
 The return value of this function is the computed {\it y} value:
 
 \begin{verbatim}
-def y():
-    m = 5
-    x = 9
-    b = -3
-    return m * x + b
+    (define (y)
+        (define m 5)
+        (define x 9)
+        (define b -3)
+        (+ (* m x) b)
+        )
 \end{verbatim}
 
-There are a few things to note. The keyword {\tt def} indicates
-that a function definition is occurring. The name of this
-particular function is {\it y}. The names of the things
-being sent to the function are given between the parentheses;
-since there is nothing between the parentheses, we don't
+There are a few things to note. The call to the {\it define}
+function indicates
+that a variable definition is occurring. The fact that the first
+argument to {\it define} looks like a list indicates that the variable
+being defined will be bound to a function and that the variable/function
+name is {\it y}, as it is the first member of that list.
+The formal parameters of the function follow the function name;
+since there is nothing after the {\it y}, we don't
 need to send any information to this function when we call it.
 Together, the first line is known as the {\it function signature},
 which tells you the name of the function and how many values
 it expects to be sent when called.
 
-The stuff indented from the first line of the function definition
-is called the {\it function body} and
+The expressions after the function name and formal parameters
+are called the {\it function body}; the body
 is the code that will be evaluated (or executed) when the
 function is called. You must remember this: {\it the function body
 is not evaluated until the function is called}.
 
 Once the function is defined, we can find the value of {\it y} repeatedly.
-Let's assume the function was entered into the file named
-{\it line.py}.
 
-First we import the code in {\it line.py} with the from statement:
+    (y)
+    -> 42
 
-\begin{verbatim}
-    >>> from line import *   # not line.py!
-\end{verbatim}
+    (y)
+    -> 42
 
-This makes the python interpreter behave as if we had typed
-in the function definition residing in {\it line.py} directly into
-the interpreter. Note, we omit the {\it .py} extension in the import
-statement.
-
-After importing the {\it y} function, the next thing we do
-is call it:
-
-\begin{verbatim}
-    >>> y()
-    42
-    >>> y()
-    42
-\end{verbatim}
-    
 The parentheses after the {\it y} indicate that we wish to call
 the {\it y} function and get its value. Because we designed the
 function to take no values when called, we do not place any
