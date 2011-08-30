@@ -6,6 +6,7 @@
 \usepackage[margin=1.0in]{geometry}
 \usepackage[compact,small]{titlesec}
 \usepackage{booktabs}
+\usepackage{makeidx}
 
 \include{hypersymbols}
 
@@ -31,6 +32,7 @@
 
 \author{by John C. Lusth}
 
+\makeindex
 \begin{document}
 
 \maketitle
@@ -133,4 +135,7 @@ Linux or the Mac OS.
 %\include{ch21}
 %\include{ch22}
 
+\T\printindex
+\W\chapter*{Index}
+\W\htmlprintindex
 \end{document}
