@@ -1,0 +1,14 @@
+#!/bin/bash
+if [ $2server == server ] ; then
+    SERVER=beastie.cs.ua.edu;
+    echo putting to beastie;
+else
+    SERVER=nixie.cs.ua.edu;
+    echo putting to $2;
+fi
+pdflatex index.tex
+hyperlatex index.tex
+makeindex index.idx
+cp index.pdf book.pdf
+echo sending scam tar file to $SERVER...
+scp index*.html book.pdf $SERVER:/var/www/scam/tsrm/
