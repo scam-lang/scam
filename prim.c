@@ -556,14 +556,16 @@ isNotEq(int args)
     return result;
     }
 
-/* (+ a b) */
+/* (+ @) */
 
 static int
 plus(int args)
     {
-    int a,b;
-    char *aType,*bType;
     int fi,li;
+    int a,b,result;
+    int itotal = 0;
+    double rtotal = 0;
+    char *oldType,*newType;
 
     args = car(args);
 
@@ -575,220 +577,279 @@ plus(int args)
     fi = file(a);
     li = line(a);
 
+    oldType = type(a);
+    itotal = ival(a);
+    rtotal = rval(a);
+
     while (args != 0)
         {
-        aType = type(a);
         b = car(args);
-        bType = type(b);
+        newType = type(b);
 
-        if (aType == INTEGER && bType == INTEGER)
-            a = newInteger(ival(a) + ival(b));
-        else if (aType == INTEGER && bType == REAL)
-            a = newReal(ival(a) + rval(b));
-        else if (aType == REAL && bType == INTEGER)
-            a = newReal(rval(a) + ival(b));
-        else if (aType == REAL && bType == REAL)
-            a = newReal(rval(a) + rval(b));
+        if (oldType == INTEGER && newType == INTEGER)
+            itotal += ival(b);
+        else if (oldType == INTEGER && newType == REAL)
+            {
+            rtotal = itotal + rval(b);
+            oldType = REAL;
+            }
+        else if (oldType == REAL && newType == INTEGER)
+            rtotal += ival(b);
+        else if (oldType == REAL && newType == REAL)
+            rtotal += rval(b);
         else
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '+': %s and %s",
                 SymbolTable[fi],li,
-                aType,bType);
-
-        file(a) = fi;
-        line(a) = li;
+                oldType,newType);
 
         args = cdr(args);
         }
 
-    return a;
+    if (oldType == INTEGER)
+        result = newInteger(itotal);
+    else
+        result = newReal(rtotal);
+
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
-/* (- a b) */
+/* (- @) */
 
 static int
 minus(int args)
     {
-    int a,b;
-    char *aType,*bType;
     int fi,li;
+    int a,b,result;
+    int itotal = 0;
+    double rtotal = 0;
+    char *oldType,*newType;
 
     args = car(args);
 
     if (args == 0) return newInteger(0);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
-    while (cdr(args) != 0)
-        {
-        aType = type(a);
-        b = cadr(args);
-        bType = type(b);
+    oldType = type(a);
+    itotal = ival(a);
+    rtotal = rval(a);
 
-        if (aType == INTEGER && bType == INTEGER)
-            a = newInteger(ival(a) - ival(b));
-        else if (aType == INTEGER && bType == REAL)
-            a = newReal(ival(a) - rval(b));
-        else if (aType == REAL && bType == INTEGER)
-            a = newReal(rval(a) - ival(b));
-        else if (aType == REAL && bType == REAL)
-            a = newReal(rval(a) - rval(b));
+    while (args != 0)
+        {
+        b = car(args);
+        newType = type(b);
+
+        if (oldType == INTEGER && newType == INTEGER)
+            itotal -= ival(b);
+        else if (oldType == INTEGER && newType == REAL)
+            {
+            rtotal = itotal - rval(b);
+            oldType = REAL;
+            }
+        else if (oldType == REAL && newType == INTEGER)
+            rtotal -= ival(b);
+        else if (oldType == REAL && newType == REAL)
+            rtotal -= rval(b);
         else
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '-': %s and %s",
                 SymbolTable[fi],li,
-                aType,bType);
-
-        file(a) = fi;
-        line(a) = li;
+                oldType,newType);
 
         args = cdr(args);
         }
 
-    return a;
+    if (oldType == INTEGER)
+        result = newInteger(itotal);
+    else
+        result = newReal(rtotal);
+
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
-/* (* a b) */
+/* (* @) */
 
 static int
 times(int args)
     {
-    int a,b;
-    char *aType,*bType;
     int fi,li;
+    int a,b,result;
+    int itotal = 0;
+    double rtotal = 0;
+    char *oldType,*newType;
 
     args = car(args);
 
     if (args == 0) return newInteger(0);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
-    while (cdr(args) != 0)
-        {
-        aType = type(a);
-        b = cadr(args);
-        bType = type(b);
+    oldType = type(a);
+    itotal = ival(a);
+    rtotal = rval(a);
 
-        if (aType == INTEGER && bType == INTEGER)
-            a = newInteger(ival(a) * ival(b));
-        else if (aType == INTEGER && bType == REAL)
-            a = newReal(ival(a) * rval(b));
-        else if (aType == REAL && bType == INTEGER)
-            a = newReal(rval(a) * ival(b));
-        else if (aType == REAL && bType == REAL)
-            a = newReal(rval(a) * rval(b));
+    while (args != 0)
+        {
+        b = car(args);
+        newType = type(b);
+
+        if (oldType == INTEGER && newType == INTEGER)
+            itotal *= ival(b);
+        else if (oldType == INTEGER && newType == REAL)
+            {
+            rtotal = itotal * rval(b);
+            oldType = REAL;
+            }
+        else if (oldType == REAL && newType == INTEGER)
+            rtotal *= ival(b);
+        else if (oldType == REAL && newType == REAL)
+            rtotal *= rval(b);
         else
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '*': %s and %s",
                 SymbolTable[fi],li,
-                aType,bType);
-
-        file(a) = fi;
-        line(a) = li;
+                oldType,newType);
 
         args = cdr(args);
         }
 
-    return a;
+    if (oldType == INTEGER)
+        result = newInteger(itotal);
+    else
+        result = newReal(rtotal);
+
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
-/* (/ a b) */
+/* (/ @) */
 
 static int
 divides(int args)
     {
-    int a,b;
-    char *aType,*bType;
     int fi,li;
+    int a,b,result;
+    int itotal = 0;
+    double rtotal = 0;
+    char *oldType,*newType;
 
     args = car(args);
 
     if (args == 0) return newInteger(0);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
-    while (cdr(args) != 0)
-        {
-        aType = type(a);
-        b = cadr(args);
-        bType = type(b);
+    oldType = type(a);
+    itotal = ival(a);
+    rtotal = rval(a);
 
-        if (aType == INTEGER && bType == INTEGER)
-            a = newInteger(ival(a) / ival(b));
-        else if (aType == INTEGER && bType == REAL)
-            a = newReal(ival(a) / rval(b));
-        else if (aType == REAL && bType == INTEGER)
-            a = newReal(rval(a) / ival(b));
-        else if (aType == REAL && bType == REAL)
-            a = newReal(rval(a) / rval(b));
+    while (args != 0)
+        {
+        b = car(args);
+        newType = type(b);
+
+        if (oldType == INTEGER && newType == INTEGER)
+            itotal /= ival(b);
+        else if (oldType == INTEGER && newType == REAL)
+            {
+            rtotal = itotal / rval(b);
+            oldType = REAL;
+            }
+        else if (oldType == REAL && newType == INTEGER)
+            rtotal /= ival(b);
+        else if (oldType == REAL && newType == REAL)
+            rtotal /= rval(b);
         else
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '/': %s and %s",
                 SymbolTable[fi],li,
-                aType,bType);
-
-        file(a) = fi;
-        line(a) = li;
+                oldType,newType);
 
         args = cdr(args);
         }
 
-    return a;
+    if (oldType == INTEGER)
+        result = newInteger(itotal);
+    else
+        result = newReal(rtotal);
+
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
-/* (% a b) */
+/* (% @) */
 
 static int
 mod(int args)
     {
-    int a,b;
-    char *aType,*bType;
     int fi,li;
+    int a,b,result;
+    int itotal = 0;
+    char *oldType,*newType;
 
     args = car(args);
 
     if (args == 0) return newInteger(0);
 
     a = car(args);
+    args = cdr(args);
 
     fi = file(a);
     li = line(a);
 
-    while (cdr(args) != 0)
-        {
-        aType = type(a);
-        b = cadr(args);
-        bType = type(b);
+    oldType = type(a);
+    itotal = ival(a);
 
-        if (aType == INTEGER && bType == INTEGER)
-            a = newInteger(ival(a) % ival(b));
+    while (args != 0)
+        {
+        b = car(args);
+        newType = type(b);
+
+        if (oldType == INTEGER && newType == INTEGER)
+            itotal %= ival(b);
         else
             return throw(exceptionSymbol,
                 "file %s,line %d: "
-                "wrong types for '%': %s and %s",
+                "wrong types for '/': %s and %s",
                 SymbolTable[fi],li,
-                aType,bType);
-
-        file(a) = fi;
-        line(a) = li;
+                oldType,newType);
 
         args = cdr(args);
         }
 
-    return a;
+    result = newInteger(itotal);
+
+    file(result) = fi;
+    line(result) = li;
+
+    return result;
     }
 
 /* (exp a) */

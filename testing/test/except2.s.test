@@ -45,5 +45,5 @@
 (println (g))
 ------------------------------------------
 starting
-EXCEPTION: hiy
-ouch
+EXCEPTION: generalException
+file except2.s,line 5: variable $error is undefined

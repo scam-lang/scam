@@ -1,4 +1,383 @@
 OLD vs. NEW
+adders.s
+------------------------------------------
+1,47c1,42
+< include("basics");
+< include("wire.s");
+< include("logic.s");
+< include("agenda.s");
+< 
+< function half-adder(a, b, sum, carry, simulator)
+<     {
+<     var or->and = wire();
+<     var not->and = wire();
+< 
+<     AND(a,b,carry,simulator);
+<     OR(a,b,or->and,simulator);
+<     NOT(carry,not->and,simulator);
+<     AND(or->and,not->and,sum,simulator);
+<     }
+< 
+< function full-adder(a, b, carry-in, sum, carry-out, agenda)
+<     {
+<     var ha1->ha2 = wire();
+<     var ha1->or = wire();
+<     var ha2->or = wire();
+< 
+<     half-adder(b,carry-in,ha1->ha2,ha1->or,agenda);
+<     half-adder(a,ha1->ha2,sum,ha2->or,agenda);
+<     OR(ha1->or,ha2->or,carry-out,agenda);
+<     }
+< 
+< function simulateHalfAdder()
+<     {
+<     var i;
+<     var a = wire();
+<     var b = wire();
+<     var sum = wire();
+<     var carry = wire();
+<     var simulator = agenda();
+<     var inputs = array(array(0,0), array(0,1), array(1,0), array(1,1));
+< 
+<     println("a\t\b\tsum\t\carry");
+< 
+<     half-adder(a, b, sum, carry, simulator);
+< 
+<     for (i = 0, i < length(inputs), i = i + 1)
+<         {
+<         a . set(inputs . i . 0);
+<         b . set(inputs . i . 1);
+<         simulator . run();
+<         println(inputs . i . 0, "\t", inputs . i . 1,
+---
+> (include "wire.s")
+> (include "logic.s")
+> (include "agenda.s")
+> 
+> (define (half-adder a b sum carry simulator)
+>     (define or->and (wire))
+>     (define not->and (wire))
+> 
+>     (AND a b carry simulator)
+>     (OR a b or->and simulator)
+>     (NOT carry not->and simulator)
+>     (AND or->and not->and sum simulator)
+>     )
+> 
+> (define (full-adder a b carry-in sum carry-out agenda)
+>     (define ha1->ha2 (wire))
+>     (define ha1->or (wire))
+>     (define ha2->or (wire))
+> 
+>     (half-adder b carry-in ha1->ha2,ha1->or agenda)
+>     (half-adder a ha1->ha2 sum ha2->or agenda)
+>     (OR ha1->or ha2->or carry-out agenda)
+>     )
+> 
+> (define (simulateHalfAdder)
+>     (define i)
+>     (define a (wire))
+>     (define b (wire))
+>     (define sum (wire))
+>     (define carry (wire))
+>     (define simulator (agenda))
+>     (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+> 
+>     (println "a\t\b\tsum\t\carry")
+> 
+>     (half-adder a b sum carry simulator)
+> 
+>     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+>         (a . set(inputs . i . 0);
+>         (b . set(inputs . i . 1);
+>             ((. simulator run))
+>             (println (getElement (. inputs i) 0) "\t", inputs . i . 1,
+49,50c44,45
+<         }
+<     }
+---
+>             )
+>     )
+87,101c82,83
+< a       b       sum     carry
+< 0       0       0       0
+< 0       1       1       0
+< 1       0       1       0
+< 1       1       0       1
+< 
+< a       b       c-in    sum     c-out
+< 0       0       0       0       0
+< 0       0       1       1       0
+< 0       1       0       1       0
+< 0       1       1       0       1
+< 1       0       0       1       0
+< 1       0       1       0       1
+< 1       1       0       0       1
+< 1       1       1       1       1
+---
+> EXCEPTION: syntaxException
+> file adders.s,line 81: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+------------------------------------------
+agenda.s
+------------------------------------------
+23a24,25
+> EXCEPTION: nonFunction
+> file agenda.s,line 1: attempted to call STRING as a function
+------------------------------------------
+apply.s
+------------------------------------------
+------------------------------------------
+a.s
+------------------------------------------
+------------------------------------------
+assign1.s
+------------------------------------------
+0a1,98
+> (define (run1)
+>     (println "need lazy evaluation!")
+>     )
+> 
+> (define (run2)
+>     (inspect (zeno_cost 20 150 0.25))
+>     )
+> 
+> (define (zeno_cost d c f)
+>     (cond
+>         ((<= (* c f) (/ 1 12.)) c)
+>         ((<= (/ d 2.) (/ 1 9600.)) (+ c 5))
+>         (else (+ c (zeno_cost (/ d 2.) (* c f) f)))
+>         )
+>     )
+> 
+> (define (run3)
+>     (println "I'm to tired to test!")
+>     )
+> 
+> (define (min2 a b) (if (< a b) a b))
+> (define (min3 a b c) (if (< a b) (min2 a c) (min2 b c)))
+> (define (min4 a b c d) (if (< a b) (min3 a c d) (min3 b c d)))
+> (define (min5 a b c d e) (if (< a b) (min4 a c d e) (min4 b c d e)))
+> (define (min6 a b c d e f) (if (< a b) (min5 a c d e f) (min5 b c d e f)))
+> (define (min7 a b c d e f g) (if (< a b) (min6 a c d e f g) (min6 b c d e f g)))
+> (define (min8 a b c d e f g h)
+>     (if (< a b) (min7 a c d e f g h) (min7 b c d e f g h))
+>     )
+>         
+> (define (run4)
+>     (inspect (min8 1 2 3 4 5 6 7 8))
+>     (inspect (min8 2 1 3 4 5 6 7 8))
+>     (inspect (min8 2 3 1 4 5 6 7 8))
+>     )
+> 
+> (define (run5)
+>     (inspect (root3 8.0))
+>     (inspect (root3 27.0))
+>     )
+> 
+> (define (root3 x)
+>     (define (iter lower upper)
+>         (define guess (/ (+ upper lower) 2))
+>         (define try (* guess guess guess))
+>         (cond
+>             ((= try x) guess)
+>             ((> try x) (iter lower guess))
+>             (else (iter guess upper))
+>             )
+>         )
+>     (iter 1 x)
+>     )
+> 
+> (define (run6)
+>     (println "I'm to tired to test!")
+>     )
+> 
+> (define (run7)
+>     (println "I'm to tired to test!")
+>     )
+> 
+> (define (run8)
+>     (println "I'm to tired to test!")
+>     )
+> 
+> (define (run9)
+>     (println "I'm to tired to test!")
+>     )
+> 
+> (define (run10)
+>     (println "I'm to tired to test!")
+>     )
+> 
+> (run1)
+> (run2)
+> (run3)
+> (run4)
+> (run5)
+> (run6)
+> (run7)
+> (run8)
+> (run9)
+> (run10)
+> ------------------------------------------
+> need lazy evaluation!
+> (zeno_cost 20 150 0.250000) is 199.951172
+> I'm to tired to test!
+> (min8 1 2 3 4 5 6 7 8) is 1
+> (min8 2 1 3 4 5 6 7 8) is 1
+> (min8 2 3 1 4 5 6 7 8) is 1
+> (root3 8.000000) is 2.000000
+> (root3 27.000000) is 3.000000
+> I'm to tired to test!
+> I'm to tired to test!
+> I'm to tired to test!
+> I'm to tired to test!
+> I'm to tired to test!
+------------------------------------------
+bad.s
+------------------------------------------
+------------------------------------------
+block.s
+------------------------------------------
+------------------------------------------
+call.s
+------------------------------------------
+------------------------------------------
+catch.s
+------------------------------------------
+------------------------------------------
+common2.s
+------------------------------------------
+6,7c6,7
+< ((label environment) (context <object 4685>) (level 0) (constructor nil) (this <object 8372>) (common <object 8450>) (__included_common2.s #t))
+< ((label environment) (context <object 8372>) (level 0) (constructor nil) (this <object 8450>) (count 0))
+---
+> ((label environment) (context <object 4731>) (level 0) (constructor nil) (this <object 8629>) (common <object 8707>) (__included_common2.s #t))
+> ((label environment) (context <object 8629>) (level 0) (constructor nil) (this <object 8707>) (count 0))
+------------------------------------------
+common3.s
+------------------------------------------
+1c1
+< include("basics");
+---
+> (include "inherit.s")
+3c3,5
+< var common = 0;
+---
+> (define (+= # $v value)
+>     (set! $v (+ (eval $v #) value) #)
+>     )
+5,11c7
+< function z()
+<     {
+<     var uncommon = 0;
+<     common += 1;
+<     uncommon += 1;
+<     this;
+<     }
+---
+> (define common 0)
+13,17c9,15
+< function x()
+<     {
+<     proxy(z());
+<     this;
+<     }
+---
+> (define (z)
+>     (define parent nil)
+>     (define uncommon 0)
+>     (+= common 1)
+>     (+= uncommon 1)
+>     this
+>     )
+19,21c17,25
+< inspect(x() . common);
+< inspect(x() . uncommon);
+< inspect(x() . common);
+---
+> (define (x)
+>     (define parent (z))
+>     this
+>     )
+> 
+> (inspect (get 'common (new (x))))
+> (inspect (get 'common (new (x))))
+> (inspect (get 'uncommon (new (x))))
+> (inspect (get 'uncommon (new (x))))
+23,25c27,28
+< x() . common is 1
+< x() . uncommon is 1
+< x() . common is 3
+---
+> EXCEPTION: undefinedVariable
+> file object.s,line 1: variable var is undefined
+------------------------------------------
+common4.s
+------------------------------------------
+1c1
+< include("basics");
+---
+> (include "inherit.s")
+3,7c3
+< function helper() { println("oops!"); }
+< var z =
+< {
+< var common = 0;
+< function helper() { println("oops!"); }
+---
+> (define (helper) (println "oops!"))
+9,17c5
+< function z()
+<     {
+<     var uncommon = 0;
+<     function getCommon() { helper(); common; }
+<     common += 1;
+<     uncommon += 1;
+<     this;
+<     }
+< };
+---
+> (define common 10)
+19,25c7,12
+< function x()
+<     {
+<     var common = 4;
+<     function helper() { println("help!"); }
+<     proxy(z());
+<     this;
+<     }
+---
+> (define (z)
+>     (define parent nil)
+>     (define (getCommon) (helper) common)
+>     (set! 'common (+ common 1))
+>     this
+>     )
+27,29c14,24
+< inspect(x() . getCommon());
+< inspect(x() . uncommon);
+< inspect(x() . getCommon());
+---
+> (define (x)
+>     (define parent (z))
+>     (define common 1)
+>     (define (helper) (println "help!"))
+>     this
+>     )
+> 
+> (inspect ((get 'getCommon (new (x)))))
+> (inspect ((get 'getCommon (new (x)))))
+> (inspect ((get 'getCommon (new (z)))))
+> (inspect ((get 'getCommon (new (z)))))
+31,35c26,27
+< help!
+< x() . getCommon() is 4
+< x() . uncommon is 1
+< help!
+< x() . getCommon() is 4
+---
+> EXCEPTION: undefinedVariable
+> file object.s,line 1: variable var is undefined
+------------------------------------------
 common5.s
 ------------------------------------------
 1,34c1,38
@@ -89,4 +468,454 @@ common5.s
 > x's common count is 22
 > y's common count is 22
 > z's common count is 22
+------------------------------------------
+common.s
+------------------------------------------
+35,38c35,36
+< x's common count is 2
+< y's common count is 2
+< x's uncommon count is 1
+< y's uncommon count is 1
+---
+> EXCEPTION: undefinedVariable
+> file reflection.s,line 26: variable $field is undefined
+------------------------------------------
+defined.s
+------------------------------------------
+1c1
+< var methods = array(symbol("++"),:+);
+---
+> (include "reflection.s")
+3c3,5
+< var i = 0;
+---
+> (define methods (array (symbol "-") '+ (symbol "++")))
+> (inspect (length methods))
+> (inspect methods)
+5,16c7,16
+< while (i < length(methods))
+<     {
+<     if (defined?(methods . i,this))
+<         {
+<         println(methods . i, " is defined!");
+<         }
+<     else
+<         {
+<         println(methods . i, " is not defined");
+<         }
+<     i = i + 1;
+<     }
+---
+> (define i 0)
+> 
+> (while (< i (length methods))
+>     (define item (getElement methods i))
+>     (if (defined? item this)
+>         (println item " is defined!")
+>         (println item " is not defined.")
+>         )
+>     (set! 'i (+ i 1))
+>     )
+18c18,20
+< ++ is not defined
+---
+> (length methods) is 3
+> methods is [-,+,++]
+> - is defined!
+19a22
+> ++ is defined!
+------------------------------------------
+env.s
+------------------------------------------
+1,8c1
+< var spot = SwayEnv;
+< 
+< while (spot != :null)
+<     {
+<     var s = head(spot);
+<     println(prefix(s,stringUntil(s,"=")));
+<     spot = tail(spot);
+<     }
+---
+> (define spot ScamEnv)
+9a3,7
+> (while (!= spot nil)
+>     (define s (car spot))
+>     (println (prefix s (stringUntil s "=")))
+>     (set! 'spot (cdr spot))
+>     )
+10a9
+> ORBIT_SOCKETDIR
+12,14d10
+< KDE_MULTIHEAD
+< GPG_AGENT_INFO
+< TERM
+16,19c12,13
+< GTK2_RC_FILES
+< GS_LIB
+< GTK_RC_FILES
+< HUSHLOGIN
+---
+> TERM
+> XDG_SESSION_COOKIE
+21c15,16
+< KDE_FULL_SESSION
+---
+> GNOME_KEYRING_CONTROL
+> GTK_MODULES
+24a20,21
+> DEFAULTS_PATH
+> USERNAME
+26,27c23,24
+< KONSOLE_DCOP
+< MAIL
+---
+> XDG_CONFIG_DIRS
+> DESKTOP_SESSION
+30,31c27
+< KONSOLE_DCOP_SESSION
+< EDITOR
+---
+> GDM_KEYBOARD_LAYOUT
+33,36c29,34
+< KDE_SESSION_UID
+< SONGDIR
+< HISTCONTROL
+< SHLVL
+---
+> GNOME_KEYRING_PID
+> MANDATORY_PATH
+> GDM_LANG
+> UBUNTU_MENUPROXY
+> GDMSESSION
+> SPEECHD_PORT
+38c36,38
+< XCURSOR_THEME
+---
+> SHLVL
+> LANGUAGE
+> GNOME_DESKTOP_SESSION_ID
+39a40,41
+> DBUS_SESSION_BUS_ADDRESS
+> XDG_DATA_DIRS
+41c43,44
+< VIMRUNTIME
+---
+> EMAIL
+> WINDOWPATH
+43d45
+< VIM
+------------------------------------------
+error0.s
+------------------------------------------
+------------------------------------------
+except2.s
+------------------------------------------
+1,13c1,10
+< function try($error,$a,$b)
+<     {
+<     var result = catch(force($a));
+<     if (type(result) == :ERROR)
+<         {
+<         $error = result;
+<         force($b);
+<         }
+<     else
+<         {
+<         result;
+<         }
+<     }
+---
+> (define (try # $error $a $b)
+>     (define result (catch (eval $a #)))
+>     (if (== (type result) 'error)
+>         (begin
+>             (set! $error result #)
+>             (set! 'result (eval $b #))
+>             )
+>         )
+>     result
+>     )
+15,18c12,14
+< function normalize(a,b)
+<     {
+<     return (a + b) * (a + b);
+<     }
+---
+> (define (normalize a b)
+>     (* (+ a b) (+ a b))
+>     )
+20,23c16,18
+< function g()
+<     {
+<     var result;
+<     var error;
+---
+> (define (g)
+>     (define result)
+>     (define error)
+25,47c20,42
+<     try(error) 
+<         {
+<         throw(:hiy,"ouch"); // comment this line out and a 2 should result
+<         result = normalize(1,2);
+<         }
+<     else if (error . type == :nonFunction)
+<         {
+<         result = 2;
+<         }
+<     else if (error . type == :hey)
+<         {
+<         result = 100;
+<         }
+<     else if (error . type == :hay)
+<         {
+<         result = 33;
+<         }
+<     else
+<         {
+<         throw(error);
+<         }
+<     result;
+<     }
+---
+>     (try error 
+>         (begin
+>             (println "starting")
+>             ; comment the next uncommented line out and a 2 should result
+>             ; change hiy to hey in the next uncommented line and you get 100
+>             ; change hiy to hay in the next uncommented line and you get 33
+>             (throw 'hiy "ouch")
+>             (set! 'result (normalize 1 2))
+>             )
+>         (if (== (get 'code error) 'nonFunction)
+>             (begin
+>                 (println "not a function!")
+>                 (set! 'result 2)
+>                 )
+>         (if (== (get 'code error) 'hey)
+>             (set! 'result 100)
+>         (if (== (get 'code error) 'hay)
+>             (set! 'result 33)
+>             (throw error)
+>             )))
+>         )
+>     result
+>     )
+49,50c44,45
+< var + = 3;
+< println(g());
+---
+> (define + 3)
+> (println (g))
+52,53c47,49
+< EVALUATION ERROR: :hiy
+< except2.s,line 27: ouch
+---
+> starting
+> EXCEPTION: generalException
+> file except2.s,line 5: variable $error is undefined
+------------------------------------------
+except3.s
+------------------------------------------
+1,4c1,3
+< function f()
+<     {
+<     g() + 0;
+<     }
+---
+> (define (f)
+>     (+ (g) 0)
+>     )
+6,12c5,10
+< function g()
+<     {
+<     var error;
+<     error = catch(h());
+<     println("rethrowing error");
+<     throw(error);
+<     }
+---
+> (define (g)
+>     (define error)
+>     (set! 'error (catch (h)))
+>     (println "rethrowing error")
+>     (throw error);
+>     )
+14,18c12,15
+< function h()
+<     {
+<     throw(:ouch,"hey!");
+<     2;
+<     }
+---
+> (define (h)
+>     (throw 'ouch "hey!")
+>     2
+>     )
+20,21c17,18
+< f() + 0;
+< :ok;
+---
+> (+ (f) 0)
+> 'ok
+23,24d19
+< EVALUATION ERROR: :ouch
+< except3.s,line 16: hey!
+25a21,22
+> EXCEPTION: ouch
+> hey!
+------------------------------------------
+except4.s
+------------------------------------------
+1,32c1,26
+< var mnemon = 10;
+< function f(x)
+<     {
+<     var result;
+<     println("beginning f(",x,").");
+<     result = catch(g(2 * x));
+<     if (type(result) == :ERROR)
+<         {
+<         if (result . type == :undefinedVariable)
+<             {
+<             result = x;
+<             }
+<         else
+<             {
+<             println("rethrowing the error");
+<             throw(result);
+<             }
+<         }
+<     println("done with f(",x,").");
+<     return result;
+<     }
+< function g(y)
+<     {
+<     var result;
+<     println("beginning g(",y,").");
+< 
+<     throw(:myError,"take that!");
+<     result = mnenom * y;
+<     println("done with g(",y,").");
+<     return result;
+<     }
+< println(f(4));
+---
+> (define (f x)
+>     (define result nil)
+>     (println "beginning f(" x ").")
+>     (set! 'result (catch (g (* 2 x))))
+>     (if (== (type result) 'error)
+>         (if (== (get 'code result) 'undefinedVariable)
+>             (set! 'result x)
+>             (begin
+>                 (println "rethrowing the error");
+>                 (throw result)
+>                 )
+>             )
+>         )
+>     (println "done with f(" x ").")
+>     result
+>     )
+> (define (g y)
+>     (define result nil)
+>     (println "beginning g(" y ").")
+>     //(throw 'undefinedVariable "take that!")
+>     (throw 'myError "take that!")
+>     (set! 'result (* mnenom y))
+>     (println "done with g(" y ").")
+>     result
+>     )
+> (println (f 4))
+34,35d27
+< EVALUATION ERROR: :myError
+< except4.s,line 27: take that!
+38c30,31
+< rethrowing the error
+---
+> done with f(4).
+> 4
+------------------------------------------
+except.s
+------------------------------------------
+1,12c1,7
+< function try($a,$b)
+<     {
+<     var result = catch(force($a));
+<     if (type(result) == :ERROR)
+<         {
+<         force($b);
+<         }
+<     else
+<         {
+<         result;
+<         }
+<     }
+---
+> (define (try # $a $b)
+>     (define result (catch (eval $a #)))
+>     (if (== (type result) 'error)
+>         (eval $b #)
+>         result
+>         )
+>     )
+14,32c9,20
+< function fact(n)
+<     {
+<     if (n == 0)
+<         {
+<         try ()
+<             {
+<             zzz;
+<             }
+<         else
+<             {
+<             println("[ERROR]");
+<             1;
+<             }
+<         }
+<     else
+<         {
+<         return n * fact(n - 1);
+<         }
+<     }
+---
+> (define (fact n)
+>     (if (== n 0)
+>         (try
+>             zzz ;change this line to 1
+>             (begin
+>                 (println "[ERROR]")
+>                 1
+>                 )
+>             )
+>         (* n (fact (- n 1)))
+>         )
+>     )
+34c22
+< print("fact(5) is ", fact(5), "\n");
+---
+> (print "fact(5) is "  (fact 5) "\n")
+------------------------------------------
+extend.s
+------------------------------------------
+35,38c35,36
+< wow() is wow, wow, wow!
+< obj . wow() is 16
+< obj . yow() is 256
+< obj . zow() is 65536
+---
+> EXCEPTION: undefinedVariable
+> file extend.s,line 1: variable function is undefined
+------------------------------------------
+extension.s
+------------------------------------------
+20,22c20,21
+< z = y(); z . a is 3
+< (y()) . a is 3
+< .(y(),a) is 3
+---
+> EXCEPTION: undefinedVariable
+> file extension.s,line 1: variable function is undefined
 ------------------------------------------

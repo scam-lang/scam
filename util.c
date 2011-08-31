@@ -118,6 +118,13 @@ ProcessOptions(int argc, char **argv)
              *         PrintActions = 1;
              *         break;
              */
+            case 'M':
+                {
+                extern int MemorySize;
+                printf("MemorySize = %d\n",MemorySize);
+                exit(0);
+                }
+                break;
             case 'm':
                 {
                 extern int MemorySize;
