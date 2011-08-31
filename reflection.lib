@@ -1,0 +1,49 @@
+(define (class x) (get __label x))
+(define (is? x y)
+    (cond
+        ((null? x) #f)
+        ((eq? (class x) y) #t)
+        (else (and (local? parent x) (is? (. x parent) y)))
+        )
+    )
+
+(define (object? x)
+    (and (pair? x) (eq? (car x) 'object))
+    )
+
+(define (closure? x)
+    (and (object? x) (eq? (class x) 'closure))
+    )
+
+(define (thunk? x)
+    (and (object? x) (eq? (class x) 'thunk))
+    )
+
+(define (error? x)
+    (and (object? x) (eq? (class x) 'error))
+    )
+
+(define (environment? x)
+    (and (object? x) (eq? (class x) 'environment))
+    )
+
+(define (local? # $id env)
+    (if (pair? $id)
+        (member? (eval $id #) (locals env))
+        (member? $id (locals env))
+        )
+    )
+
+(define (defined? # $id env)
+    (if (pair $id)
+        (define result (catch (get (eval $id #) env)))
+        (define result (catch (get $id env)))
+        )
+
+    (!= (type result) 'ERROR)
+    )
+
+(define (locals env)
+    (cadr env)
+    )
+

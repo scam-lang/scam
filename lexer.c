@@ -205,7 +205,7 @@ lexSymbol(PARSER *p,int ch)
     index = 1;
 
     while ((ch = getNextCharacter(p)) && ch != EOF
-    && !isspace(ch) && strchr("();,'",ch) == 0)
+    && !isspace(ch) && strchr("();,`'",ch) == 0)
         {
         //printf("symbol: %c\n", ch);
             buffer[index++] = ch;

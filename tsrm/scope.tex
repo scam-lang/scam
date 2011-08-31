@@ -2,17 +2,60 @@
 \label{Scope}
 
 A {\it scope} holds the current set of variables and their values.
-In Scam, there is something called the {\it global scope}.
-The global scope holds all the values of the built-in variables
-and functions (remember, a function name is just a variable).
+As with Scheme, Scam implements scopes using environments.
+For all Scam programs, the built-in functions are stored
+in the outermost scope, while the functions defined
+in the main library, main.lib, are stored in the next-to-the-outermost
+scope.
 
-When you enter the Scam interpreter, either by running it
-interactively or by using it to evaluate a program in
-a file, you start out in the global scope.
-As you define variables, they and their values are added
-to the global scope.
+One can write a very simple scam program to see these scopes:
 
-This interaction adds the variable {\it x} to the global scope:
+\begin{verbatim}
+    (print "CURRENT SCOPE: ")
+    (pp this)
+    (print "LIBRARY SCOPE: ")
+    (pp (. this __context)
+    (print "BUILT-IN SCOPE: ")
+    (pp (. (. this __context) __context))
+\end{verbatim}
+
+Running this program yields the following output:
+
+\begin{verbatim}
+    CURRENT SCOPE: <object 8675>
+                   __label  : environment
+                 __context  : <object 4777>
+                   __level  : 0
+             __constructor  : nil
+                    this  : <object 8675>
+                     ...
+    LIBRARY SCOPE: <object 4777>
+                 __label  : environment
+               __context  : <object 62>
+                 __level  : 0
+           __constructor  : nil
+                    this  : <object 4777>
+                    code  : <function code($s)>
+            stream-null?  : <function stream-null?(s)>
+              stream-cdr  : <function stream-cdr(s)>
+              stream-car  : <function stream-car(s)>
+             cons-stream  : <function cons-stream(# a $b)>
+                     ...
+    BUILT-IN SCOPE: <object 62>
+                 __label  : environment
+               __context  : nil
+                 __level  : 0
+           __constructor  : nil
+                    this  : <object 62>
+                 ScamEnv  : [ORBIT_SOCKETDIR=/tmp/orbit-lusth,...]
+                ScamArgs  : [scam,scope.s]
+             stack-depth  : <builtIn stack-depth()>
+                set-cdr!  : <builtIn set-cdr!(spot value)>
+                set-car!  : <builtIn set-car!(spot value)>
+                     ...
+\end{verbatim}
+
+interaction adds the variable {\it x} to the global scope:
 
 \begin{verbatim}
     >>> x = 3

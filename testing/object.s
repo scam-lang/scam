@@ -1,23 +1,29 @@
-var x =
-    {
-    var a = 2, b = "hello";
-    print("the shared environment was made!\n");
-    function()
-        {
-	var c = 5;
-	print("an object was made!\n");
-	this;
-	};
-    };
+(define x
+    (scope
+        (define a 2)
+        (define b "hello")
+        (println "the shared environment was made!")
+        (lambda ()
+            (define c 5)
+            (println "an object was made!\n")
+            this
+            )
+        )
+    )
 
-var y = x();
-var z = x();
+(define y (x))
+(define z (x))
 
-print("y:(a,b,c) is ", y . a, ",", y . b, ",", y . c, "\n");
+(inspect z)
 
-y . a = 3;
-y . c = 4;
+(println "y:(a,b,c) is " (. y a) "," (. y b) ","  (. y c))
+(println "z:(a,b,c) is " (. z a) "," (. z b) ","  (. z c))
 
-println("a and b should stay the same, c should change");
-print("y:(a,b,c) is ", y . a, ",", y . b, ",", y . c, "\n");
-print("z:(a,b,c) is ", z . a, ",", z . b, ",", z . c, "\n");
+(println "changing a and c for y")
+
+(assign (. y a) 3)
+(assign (. y c) 4)
+
+(println "y:(a,b,c) is " (. y a) "," (. y b) "," (. y c))
+(println "only a should have changed for z")
+(println "z:(a,b,c) is " (. z a) "," (. z b) "," (. z c))

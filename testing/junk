@@ -1,22 +1,68 @@
-function x()
-    {
-    var a = 3;
+(include "inherit.lib")
 
-    this;
-    }
+(define (alpha x)
+    (define parent nil)
+    this
+    )
+(define (beta y)
+    (define parent (alpha (+ y y)))
+    this
+    )
 
-function y()
-    {
-    var b = 5;
+(define a (new (alpha 4)))
+(define b (new ((. a __constructor) 5)))
+(define c (new (beta 6)))
+(define x nil)
 
-    proxy(x());
-    }
-
-var z = y();
-println("z = y(); z . a is ", z . a);
-println("(y()) . a is ", (y()) . a);
-println(".(y(),a) is ", .(y(),a));
+(inspect (class this))
+(inspect (class alpha))
+(inspect (class a))
+(inspect (class c))
+(inspect (class (. c __context)))
+(inspect (object? this))
+(inspect (closure? this))
+(inspect (environment? this))
+(inspect (locals b))
+(inspect (local? parent b))
+(inspect (local? Parent b))
+(println "a . x is " (. a x))
+(inspect (. a x))
+(pp (. a __constructor))
+(inspect (. (. a __constructor) name))
+(inspect (. b x))
+(inspect (. (. b __constructor) name))
+(inspect (is? a 'alpha))
+(inspect (is? b 'alpha))
+(inspect (is? b 'beta))
+(inspect (is? c 'beta))
+(inspect (is? c 'alpha))
+(inspect (is? c 'gamma))
 ------------------------------------------
-z = y(); z . a is 3
-(y()) . a is 3
-.(y(),a) is 3
+(class this) is environment
+(class alpha) is closure
+(class a) is alpha
+(class c) is beta
+(class (. c __context)) is alpha
+(object? this) is #t
+(closure? this) is #f
+(environment? this) is #t
+(locals b) is (__label __context __level __constructor this parent x)
+(local? parent b) is #t
+(local? Parent b) is #f
+a . x is 4
+(. a x) is 4
+<object 10983>
+             __label  : closure
+           __context  : <object 9029>
+                name  : alpha
+          parameters  : (x)
+                code  : (begin (define parent nil) this)
+(. (. a __constructor) name) is alpha
+(. b x) is 5
+(. (. b __constructor) name) is alpha
+(is? a (quote alpha)) is #t
+(is? b (quote alpha)) is #t
+(is? b (quote beta)) is #f
+(is? c (quote beta)) is #t
+(is? c (quote alpha)) is #t
+(is? c (quote gamma)) is #f

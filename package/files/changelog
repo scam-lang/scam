@@ -1,3 +1,7 @@
+scam (0.1.5)
+
+  * changed environment predefineds to __context, __level, __label, etc.
+
 scam (0.1.4)
 
   * added the pp function to pretty print all objects in the system

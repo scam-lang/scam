@@ -1,28 +1,39 @@
-include("basics");
+(include "inherit.lib")
 
-function alpha(x)
-    {
-    this;
-    }
-function beta(y)
-    {
-    extends(alpha(y + y));
-    }
+(define (alpha x)
+    (define parent nil)
+    this
+    )
+(define (beta y)
+    (define parent (alpha (+ y y)))
+    this
+    )
 
-var a = alpha(4);
-var b = a . constructor(5);
-var c = beta(6);
-var x;
+(define a (new (alpha 4)))
+(define b (new ((. a __constructor) 5)))
+(define c (new (beta 6)))
+(define x nil)
 
-println("a . x is ",a . x);
-inspect(a . x);
-pp(a . constructor);
-inspect(a . constructor . name);
-inspect(b . x);
-inspect(b . constructor . name);
-inspect(a is :alpha);
-inspect(b is :alpha);
-inspect(b is :beta);
-inspect(c is :beta);
-inspect(c is :alpha);
-inspect(c is :gamma);
+(inspect (class this))
+(inspect (class alpha))
+(inspect (class a))
+(inspect (class c))
+(inspect (class (. c __context)))
+(inspect (object? this))
+(inspect (closure? this))
+(inspect (environment? this))
+(inspect (locals b))
+(inspect (local? parent b))
+(inspect (local? Parent b))
+(println "a . x is " (. a x))
+(inspect (. a x))
+(pp (. a __constructor))
+(inspect (. (. a __constructor) name))
+(inspect (. b x))
+(inspect (. (. b __constructor) name))
+(inspect (is? a 'alpha))
+(inspect (is? b 'alpha))
+(inspect (is? b 'beta))
+(inspect (is? c 'beta))
+(inspect (is? c 'alpha))
+(inspect (is? c 'gamma))

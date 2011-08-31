@@ -44,7 +44,7 @@
 
 (define (type x)
     (if (and (eq? (old-type x) 'CONS) (eq? (car x) 'object))
-        (get label x)
+        (get __label x)
         (old-type x)
         )
     )
@@ -84,7 +84,7 @@
 (define (let # $inits $)
     (define v nil)
     (define e (scope this))
-    (set! context # e)
+    (set! __context # e)
     (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) #) e)
         ;(println "adding " (car v) " from " $inits)
@@ -97,7 +97,7 @@
 (define (let* # $inits $)
     (define v nil)
     (define e (scope this))
-    (set! context # e)
+    (set! __context # e)
     (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) e) e)
         )
@@ -170,6 +170,11 @@
 (define (caddddr x) (car (cdr (cdr (cdr (cdr x))))))
 (define (cadddddr x) (car (cdr (cdr (cdr (cdr (cdr x)))))))
 
+(define (cddr x) (cdr (cdr x)))
+(define (cdddr x) (cdr (cdr (cdr x))))
+(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
+(define (cdddddr x) (cdr (cdr (cdr (cdr (cdr x))))))
+
 (define (equal? a b)
     (cond
         ((null? a)
@@ -222,3 +227,22 @@
 (define (stream-null? s) (null? s))
 
 (define (code $s) $s)
+
+(define (member? x items)
+    (valid? (member x items))
+    )
+
+(define (member x items)
+    (cond
+        ((null? items)
+            nil
+            )
+        ((eq? x (car items))
+            items
+            )
+        (else
+            (member x (cdr items))
+            )
+        )
+    )
+

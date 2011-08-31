@@ -125,7 +125,10 @@ memoryInit(int memsize)
     zero = newInteger(0);
     one = newInteger(1);
 
-    contextSymbol        = newSymbol("context");
+    labelSymbol          = newSymbol("__label");
+    contextSymbol        = newSymbol("__context");
+    levelSymbol          = newSymbol("__level");
+    constructorSymbol    = newSymbol("__constructor");
     codeSymbol           = newSymbol("code");
     thisSymbol           = newSymbol("this");
     parametersSymbol     = newSymbol("parameters");
@@ -134,10 +137,8 @@ memoryInit(int memsize)
     envSymbol            = newSymbol("environment");
     closureSymbol        = newSymbol("closure");
     builtInSymbol        = newSymbol("builtIn");
-    constructorSymbol    = newSymbol("constructor");
     objectSymbol         = newSymbol("object");
     typeSymbol           = newSymbol("type");
-    labelSymbol          = newSymbol("label");
     valueSymbol          = newSymbol("value");
     traceSymbol          = newSymbol("trace");
     throwSymbol          = newSymbol("throw");
@@ -174,7 +175,6 @@ memoryInit(int memsize)
     syntaxExceptionSymbol = newSymbol("syntaxException");
     nonFunctionSymbol    = newSymbol("nonFunction");
     returnSymbol         = newSymbol("return");
-    levelSymbol          = newSymbol("level");
     eqSymbol             = newSymbol("=");
     dotSymbol            = newSymbol(".");
     assignSymbol         = newSymbol("assign");
