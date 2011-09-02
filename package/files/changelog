@@ -1,6 +1,7 @@
 scam (0.1.5)
 
   * changed environment predefineds to __context, __level, __label, etc.
+  * detects formal parameters that are not symbols
 
 scam (0.1.4)
 

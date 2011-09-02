@@ -77,6 +77,7 @@ defineIdentifier(int name,int init,int env)
 static int
 defineFunction(int name,int parameters,int body,int env)
     {
+    int spot;
     int closure;
     
     //printf("defining a function...\n");
@@ -84,6 +85,21 @@ defineFunction(int name,int parameters,int body,int env)
     //debug("    params:",parameters);
     //debug("    body:",body);
     assureMemory("defineFunction",CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,0);
+
+    spot = parameters;
+    while (spot != 0)
+        {
+        int sym = car(spot);
+        if (type(sym) != SYMBOL)
+            {
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "only SYMBOLS can be parameters, not type %s",
+                SymbolTable[file(name)],line(name),
+                type(sym));
+            }
+        spot = cdr(spot);
+        }
 
     closure = makeClosure(env,name,parameters,body,ADD_BEGIN);
 
@@ -107,7 +123,7 @@ define(int args)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "can only define SYMBOLS, not type %s",
-            SymbolTable[args],line(args),
+            SymbolTable[file(args)],line(args),
             type(first));
     }
 

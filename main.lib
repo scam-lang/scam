@@ -4,7 +4,7 @@
 (define (valid? x) (not (null? x)))
 (define (head x) (car x))
 (define (tail x) (cdr x))
-(define (join x,y) (cons x y))
+(define (join x y) (cons x y))
 
 (define (for # init $test $increment $)
     (while (eval $test #)
