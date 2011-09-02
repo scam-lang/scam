@@ -246,3 +246,12 @@
         )
     )
 
+(define (getElement items @)
+    (define __getElement (get getElement (get __context __context)))
+    (while (valid? @)
+        (assign items (__getElement items (car @)))
+        (assign @ (cdr @))
+        )
+    items
+    )
+

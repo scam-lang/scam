@@ -94,7 +94,7 @@ defineFunction(int name,int parameters,int body,int env)
             {
             return throw(exceptionSymbol,
                 "file %s,line %d: "
-                "only SYMBOLS can be parameters, not type %s",
+                "only SYMBOLS can be parameters, found type %s",
                 SymbolTable[file(name)],line(name),
                 type(sym));
             }
