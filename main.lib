@@ -49,11 +49,16 @@
         )
     )
 
-(define (. # obj $field)
-    (if (pair? $field)
-        (get (eval $field #) obj)
-        (get (__id $field) obj)
+(define (. # obj $)
+    (while (valid? $)
+        (define field (car $))
+        (if (pair? field)
+            (assign obj (get (eval field #) obj))
+            (assign obj (get (__id field) obj))
+            )
+        (assign $ (cdr $))
         )
+    obj
     )
 
 (define scam.s-old-and and)

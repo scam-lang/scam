@@ -625,8 +625,14 @@ plus(int args)
 
     if (oldType == INTEGER)
         result = newInteger(itotal);
-    else
+    else if (oldType == REAL)
         result = newReal(rtotal);
+    else
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong types for '+': %s",
+            SymbolTable[fi],li,
+            oldType);
 
     file(result) = fi;
     line(result) = li;
@@ -652,12 +658,19 @@ minus(int args)
     a = car(args);
     args = cdr(args);
 
+
     fi = file(a);
     li = line(a);
 
     oldType = type(a);
     itotal = ival(a);
     rtotal = rval(a);
+
+    if (args == 0) 
+        {
+        if (oldType == INTEGER) return newInteger(0 - itotal);
+        if (oldType == REAL) return newReal(0 - rtotal);
+        }
 
     while (args != 0)
         {
@@ -687,8 +700,14 @@ minus(int args)
 
     if (oldType == INTEGER)
         result = newInteger(itotal);
-    else
+    else if (oldType == REAL)
         result = newReal(rtotal);
+    else
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong types for '-': %s",
+            SymbolTable[fi],li,
+            oldType);
 
     file(result) = fi;
     line(result) = li;
@@ -709,7 +728,7 @@ times(int args)
 
     args = car(args);
 
-    if (args == 0) return newInteger(0);
+    if (args == 0) return newInteger(1);
 
     a = car(args);
     args = cdr(args);
@@ -749,8 +768,14 @@ times(int args)
 
     if (oldType == INTEGER)
         result = newInteger(itotal);
-    else
+    else if (oldType == REAL)
         result = newReal(rtotal);
+    else
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong types for '*': %s",
+            SymbolTable[fi],li,
+            oldType);
 
     file(result) = fi;
     line(result) = li;
@@ -771,7 +796,7 @@ divides(int args)
 
     args = car(args);
 
-    if (args == 0) return newInteger(0);
+    if (args == 0) return newInteger(1);
 
     a = car(args);
     args = cdr(args);
@@ -811,8 +836,14 @@ divides(int args)
 
     if (oldType == INTEGER)
         result = newInteger(itotal);
-    else
+    else if (oldType == REAL)
         result = newReal(rtotal);
+    else
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "wrong types for '/': %s",
+            SymbolTable[fi],li,
+            oldType);
 
     file(result) = fi;
     line(result) = li;

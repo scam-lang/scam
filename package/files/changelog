@@ -2,6 +2,8 @@ scam (0.1.5)
 
   * changed environment predefineds to __context, __level, __label, etc.
   * detects formal parameters that are not symbols
+  * (- 3) now returns -3, for example
+  * dot operator now chains, as in (. obj x y z) equals (. (. (. obj x) y) z)
 
 scam (0.1.4)
 

@@ -36,11 +36,15 @@
     (half-adder a b sum carry simulator)
 
     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-        (a . set(inputs . i . 0);
-        (b . set(inputs . i . 1);
+        ((. a set) (getElement inputs i 0))
+        ((. b set) (getElement inputs i 1))
 	    ((. simulator run))
-	    (println (getElement (. inputs i) 0) "\t"  inputs . i . 1 
-            "\t" sum . get()  "\t"  carry . get());
+	    (println
+            (getElement inputs i 0) "\t" 
+            (getElement inputs i 1) "\t" 
+            ((. sum get)) "\t"
+            ((. carry get))
+            )
 	    )
     )
 
@@ -61,18 +65,18 @@
 
     (full-adder a  b  carry-in  sum  carry-out  simulator)
 
-    for (= i 0) (< i (length inputs)) (assign i (+ i 1))
-        (a . set(inputs . i . 0);
-        (b . set(inputs . i . 1);
-        ((. carry-in set) (getElement inputs . i . 2);
+    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+        ((. a set) (getElement inputs i 0))
+        ((. b set) (getElement inputs i 1))
+        ((. carry-in set) (getElement inputs i 2))
         ((. simulator run))
-        (println(
-            inputs . i . 0  "\t"  inputs . i . 1  "\t"  inputs . i . 2  "\t" 
-            sum . get()  "\t"  carry-out . get()
-            );
+        (println 
+            (getElement inputs i 0)  "\t"  (getElement inputs i 1)  "\t"  (getElement inputs i 2)  "\t" 
+            ((. sum get))  "\t"  ((. carry-out get))
+            )
         )
     )
 
-simulateHalfAdder();
-println();
-simulateFullAdder();
+(simulateHalfAdder)
+(println)
+(simulateFullAdder)
