@@ -1,68 +1,66 @@
-(include "inherit.lib")
+function cons($a, $b)
+    {
+    return array($a,$b);
+    }
 
-(define (alpha x)
-    (define parent nil)
-    this
-    )
-(define (beta y)
-    (define parent (alpha (+ y y)))
-    this
-    )
+function car(x)
+    {
+    //force is a primitive for evaluating
+    //a delayed object
+    return force(x . 0);
+    }
 
-(define a (new (alpha 4)))
-(define b (new ((. a __constructor) 5)))
-(define c (new (beta 6)))
-(define x nil)
+function cdr(x)
+    {
+    return force(x . 1);
+    }
 
-(inspect (class this))
-(inspect (class alpha))
-(inspect (class a))
-(inspect (class c))
-(inspect (class (. c __context)))
-(inspect (object? this))
-(inspect (closure? this))
-(inspect (environment? this))
-(inspect (locals b))
-(inspect (local? parent b))
-(inspect (local? Parent b))
-(println "a . x is " (. a x))
-(inspect (. a x))
-(pp (. a __constructor))
-(inspect (. (. a __constructor) name))
-(inspect (. b x))
-(inspect (. (. b __constructor) name))
-(inspect (is? a 'alpha))
-(inspect (is? b 'alpha))
-(inspect (is? b 'beta))
-(inspect (is? c 'beta))
-(inspect (is? c 'alpha))
-(inspect (is? c 'gamma))
+function numbersStartingFrom(start)
+    {
+    return cons(start, numbersStartingFrom(start + 1));
+    }
+
+function sieve(primes)
+    {
+    function predicate(x)
+        {
+        return (x % car(primes)) == 0;
+        }
+
+    return cons(car(primes),sieve(remove(predicate,cdr(primes))));
+    }
+
+function remove(pred, items)
+    {
+    if (pred(car(items)))
+        {
+        return pred remove cdr(items);
+        }
+    else
+        {
+        return car(items) cons (pred remove cdr(items));
+        }
+    }
+
+function displayStream(str, count)
+    {
+    print("[ ");
+    while (count > 0)
+        {
+        //if (car(str) == 211) { defines(); }
+        print(car(str), " ");
+        str = cdr(str);
+        count = count - 1;
+        }
+    print("]");
+    }
+
+
+var primes = sieve(numbersStartingFrom(2));
+
+println("this takes a while...");
+displayStream(primes,50);
+print("\n");
 ------------------------------------------
-(class this) is environment
-(class alpha) is closure
-(class a) is alpha
-(class c) is beta
-(class (. c __context)) is alpha
-(object? this) is #t
-(closure? this) is #f
-(environment? this) is #t
-(locals b) is (__label __context __level __constructor this parent x)
-(local? parent b) is #t
-(local? Parent b) is #f
-a . x is 4
-(. a x) is 4
-<object 10983>
-             __label  : closure
-           __context  : <object 9029>
-                name  : alpha
-          parameters  : (x)
-                code  : (begin (define parent nil) this)
-(. (. a __constructor) name) is alpha
-(. b x) is 5
-(. (. b __constructor) name) is alpha
-(is? a (quote alpha)) is #t
-(is? b (quote alpha)) is #t
-(is? b (quote beta)) is #f
-(is? c (quote beta)) is #t
-(is? c (quote alpha)) is #t
-(is? c (quote gamma)) is #f
+this takes a while...
+[ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101 103 107 109 113 127 131 137 139 149 151 157 163 167 173 179 181 191 193 197 199 211 223 227 229 ]

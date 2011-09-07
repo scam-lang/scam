@@ -33,10 +33,5 @@ x-obj . a();
 println("y-obj . a() yields...");
 y-obj . a();
 ------------------------------------------
-x-obj . a() yields...
-x:a() -> hello
-x:b() -> goodbye
-y-obj . a() yields...
-x:a() -> hello
-y:b() -> au revoir
-run the old version of b, via prior: x:b() -> goodbye
+EXCEPTION: undefinedVariable
+file variation3.s,line 1: variable function is undefined

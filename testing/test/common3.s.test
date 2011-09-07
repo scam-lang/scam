@@ -1,7 +1,7 @@
-(include "inherit.s")
+(include "inherit.lib")
 
 (define (+= # $v value)
-    (set! $v (+ (eval $v #) value) #)
+    (set! (__id $v) (+ (eval $v #) value) #)
     )
 
 (define common 0)
@@ -24,5 +24,7 @@
 (inspect (get 'uncommon (new (x))))
 (inspect (get 'uncommon (new (x))))
 ------------------------------------------
-EXCEPTION: undefinedVariable
-file object.s,line 1: variable var is undefined
+(get (quote common) (new (x))) is 1
+(get (quote common) (new (x))) is 2
+(get (quote uncommon) (new (x))) is 1
+(get (quote uncommon) (new (x))) is 1

@@ -13,5 +13,5 @@ show("goodbye, ", "cruel", " world");
 print("\n");
 fatal("goodbye, ", "cruel", " world");
 ------------------------------------------
-goodbye, cruel world
-goodbye, cruel world
+EXCEPTION: undefinedVariable
+file variadic.s,line 1: variable function is undefined

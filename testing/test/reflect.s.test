@@ -35,15 +35,5 @@ n . b = 10;
 println(m . toString());
 println(n . toString());
 ------------------------------------------
-x: a is 2, b is 3, c is 5
-n is constructed via m's constructor
-x: a is 2, b is 3, c is 8
-
-m . constructor . name is x
-n . constructor . name is x
-
-changing m . a to 10
-changing n . b to 10
-
-x: a is 10, b is 3, c is 5
-x: a is 2, b is 10, c is 8
+EXCEPTION: nonFunction
+file reflect.s,line 1: attempted to call STRING as a function

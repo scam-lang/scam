@@ -11,6 +11,5 @@ function f()
     y == x;
     }
 ------------------------------------------
-EVALUATION ERROR: :styleViolation
-tyro.s,line 8: 
-next line continues this line, perhaps a missing semicolon?
+EXCEPTION: nonFunction
+file tyro.s,line 1: attempted to call STRING as a function

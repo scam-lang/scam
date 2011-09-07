@@ -19,6 +19,5 @@ z = f();
 print("f() returns ",z,"\n");
 println("done");
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-return.s,line 2: expecting CLOSE_PARENTHESIS, found OPEN_PARENTHESIS instead
-error occurred prior to: define x)[END OF LINE]
+EXCEPTION: syntaxException
+file return.s,line 21: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead

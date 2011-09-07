@@ -31,12 +31,5 @@ println("a is ", a);
 obj . getField() = 6;
 println("a now is ", a);
 ------------------------------------------
-obj's a was 2 (should be 2)
-obj's a is hello (should be hello)
-obj's a now is 3.2000000000 (should be 3.2)
-separate calls to symbol("a") compare equal
-a was wow
-type is SYMBOL
-a is 5
-type is SYMBOL
-a now is 6
+EXCEPTION: undefinedVariable
+file symbol.s,line 1: variable var is undefined

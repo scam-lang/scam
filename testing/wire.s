@@ -10,8 +10,10 @@
         )
     (define (set newValue)
         (if (!= newValue value)
-            (assign value newValue)
-            (map inform downstream)
+            (begin
+                (assign value newValue)
+                (map inform downstream)
+                )
             )
         )
     (define (get) value)

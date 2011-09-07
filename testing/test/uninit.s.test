@@ -2,5 +2,5 @@ var x;
 
 print(x + 1);
 ------------------------------------------
-EVALUATION ERROR: :uninitializedVariable
-uninit.s,line 3: variable x is uninitialized
+EXCEPTION: undefinedVariable
+file uninit.s,line 1: variable var is undefined

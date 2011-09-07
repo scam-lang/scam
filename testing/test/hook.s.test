@@ -12,7 +12,5 @@ function greeting()
 println("about to greet...");
 greeting();
 ------------------------------------------
-EVALUATION ERROR: :undefinedVariable
-hook.s,line 9: variable println is undefined
-Intercepted!
-about to greet...
+EXCEPTION: undefinedVariable
+file hook.s,line 1: variable function is undefined

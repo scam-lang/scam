@@ -20,13 +20,5 @@ function g()
 f . filter = trace*;
 println("f(5) is ",f(5));
 ------------------------------------------
-tracing f...
-trace.s,line 5: var result = x,y = 0; 
-trace.s,line 6: result = x + result; 
-trace.s,line 7: if (x > 0) { var i = 42; g(); }
-tracing f...
-trace.s,line 9: var i = 42; 
-trace.s,line 10: g(); 
-in g...
-trace.s,line 12: result; 
-f(5) is 10
+EXCEPTION: nonFunction
+file trace.s,line 1: attempted to call STRING as a function

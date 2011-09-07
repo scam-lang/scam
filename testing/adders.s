@@ -71,7 +71,9 @@
         ((. carry-in set) (getElement inputs i 2))
         ((. simulator run))
         (println 
-            (getElement inputs i 0)  "\t"  (getElement inputs i 1)  "\t"  (getElement inputs i 2)  "\t" 
+            (getElement inputs i 0)  "\t" 
+            (getElement inputs i 1)  "\t" 
+            (getElement inputs i 2)  "\t" 
             ((. sum get))  "\t"  ((. carry-out get))
             )
         )

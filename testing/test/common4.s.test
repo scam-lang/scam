@@ -1,27 +1,38 @@
-(include "inherit.s")
+(include "inherit.lib")
 
 (define (helper) (println "oops!"))
+(define common 3)
 
-(define common 10)
+(define z
+    (scope
+        (define common 0)
+        (define (helper) (println "oopsy!"))
 
-(define (z)
-    (define parent nil)
-    (define (getCommon) (helper) common)
-    (set! 'common (+ common 1))
-    this
+        (define (z)
+            (define parent nil)
+            (define uncommon 0)
+            (define (getCommon) (helper) common)
+            (assign common (+ common 1))
+            (assign uncommon (+ uncommon 1))
+            this
+            )
+        )
     )
 
 (define (x)
     (define parent (z))
-    (define common 1)
+    ;(define parent nil)
+    (define common 4)
     (define (helper) (println "help!"))
     this
     )
 
-(inspect ((get 'getCommon (new (x)))))
-(inspect ((get 'getCommon (new (x)))))
-(inspect ((get 'getCommon (new (z)))))
-(inspect ((get 'getCommon (new (z)))))
+(inspect ((. (new (x)) getCommon)))
+(inspect (. (new (x)) uncommon))
+(inspect ((. (new (x)) getCommon)))
 ------------------------------------------
-EXCEPTION: undefinedVariable
-file object.s,line 1: variable var is undefined
+help!
+((. (new (x)) getCommon)) is 4
+(. (new (x)) uncommon) is 1
+help!
+((. (new (x)) getCommon)) is 4

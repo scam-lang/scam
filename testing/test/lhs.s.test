@@ -27,8 +27,5 @@ getObject() . a = symbol("q");
 print("z now is ", z, " (should be 5)\n");
 print("xobj's a now is ", xobj . a, " (should be q)\n");
 ------------------------------------------
-z is 3 (should be 3)
-xobj's a is z (should be z)
-type is SYMBOL
-z now is 5 (should be 5)
-xobj's a now is q (should be q)
+EXCEPTION: undefinedVariable
+file lhs.s,line 1: variable var is undefined

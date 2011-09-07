@@ -1,37 +1,43 @@
-var z = 
-{
-var z_shared = { var shared_count = 0; this; };
+(include "inherit.lib")
 
-function z()
-    {
-    var count = 0;
-    extends(z_shared);
-    count = count + 1;
-    shared_count = shared_count + 1;
-    this;
-    }
-};
+(define z
+    (scope
+        (define z_shared
+            (scope
+                (define parent nil)
+                (define shared-count 0)
+                this
+                )
+            )
 
-function x()
-    {
-    extends(z());
-    }
+        (define (z)
+            (define parent z_shared)
+            (define count 0)
+            (assign count (+ count 1))
+            (assign (. parent shared-count) (+ (. parent shared-count) 1))
+            this
+            )
+        )
+    )
 
-function y()
-    {
-    extends(z());
-    }
+(define (x)
+    (define parent (z))
+    )
 
-var xish = x();
-var yish = y();
-var zish = z();
+(define (y)
+    (define parent (z))
+    )
 
-println("x's common count is ", xish . shared_count);
-println("y's common count is ", yish . shared_count);
-println("z's common count is ", zish . shared_count);
-println("x's count is ", xish . count);
-println("y's count is ", yish . count);
-println("z's count is ", zish . count);
+(define xish (new (x)))
+(define yish (new (y)))
+(define zish (new (z)))
+
+(println "x's common count is " (get 'shared-count xish))
+(println "y's common count is " (get 'shared-count yish))
+(println "z's common count is " (get 'shared-count zish))
+(println "x's count is " (get 'count xish))
+(println "y's count is " (get 'count yish))
+(println "z's count is " (get 'count zish))
 ------------------------------------------
 x's common count is 3
 y's common count is 3

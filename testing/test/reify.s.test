@@ -26,6 +26,5 @@ var s = subclass();
 println("calling superclass:a");
 s . a();
 ------------------------------------------
-calling superclass:a
-superclass:a: calling virtual function b
-subclass:b
+EXCEPTION: undefinedVariable
+file reify.s,line 1: variable function is undefined

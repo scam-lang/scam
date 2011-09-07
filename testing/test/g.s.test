@@ -13,6 +13,4 @@
 
 (print "g(" x ") is " (g x) "\n")
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-g.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-error occurred prior to: [END OF LINE]
+g(10) is 3628800

@@ -10,6 +10,7 @@
 
 (f 3)
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-gc.s,line 1: an expression was expected, found CLOSE_PARENTHESIS instead
-error occurred prior to: [END OF LINE]
+gc:1, 5764 cells
+f is <function f(x)>
+x is 3
+y is 9

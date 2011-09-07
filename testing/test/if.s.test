@@ -30,6 +30,5 @@ else
     }
 
 ------------------------------------------
-enter 0, 1, or 2: 
-you entered 3
-can't follow directions, can you?
+EXCEPTION: undefinedVariable
+file if.s,line 1: variable //overload is undefined

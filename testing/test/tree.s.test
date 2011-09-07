@@ -109,12 +109,5 @@ function main()
 print("hello\n");
 main();
 ------------------------------------------
-hello
-1 inserted.
-2 inserted.
-3 inserted.
-insertion phase complete, tree is (1 () (2 () (3 () ()))).
-looking for 4: not found!
-looking for 2: it's an interior node!
-looking for 3: it's a leaf!
-good-bye!
+EXCEPTION: undefinedVariable
+file tree.s,line 1: variable var is undefined

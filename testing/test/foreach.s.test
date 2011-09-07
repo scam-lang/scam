@@ -22,11 +22,5 @@ foreach(a[2],array(1,2,3,4))
     }
     
 ------------------------------------------
-i is 1
-i is 2
-i is 3
-i is 4
-a[2] is 1
-a[2] is 2
-a[2] is 3
-a[2] is 4
+EXCEPTION: undefinedVariable
+file foreach.s,line 1: variable function is undefined

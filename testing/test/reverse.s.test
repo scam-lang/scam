@@ -32,15 +32,5 @@ var y = reverse(x);
 print("reverse(", x, ") is ", reverse(x), "\n");
 print("reverse2(", x, ") is ", reverse2(x), "\n");
 ------------------------------------------
-reversing hello
-reversing ello
-reversing llo
-reversing lo
-reversing o
-reversing hello
-reversing ello
-reversing llo
-reversing lo
-reversing o
-reverse(hello) is olleh
-reverse2(hello) is olleh
+EXCEPTION: undefinedVariable
+file reverse.s,line 1: variable function is undefined

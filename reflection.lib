@@ -15,21 +15,26 @@
 
 (define (local? # $id env)
     (if (pair? $id)
-        (member? (eval $id #) (locals env))
-        (member? $id (locals env))
+        (member? (eval $id #) (localNames env))
+        (member? $id (localNames env))
         )
     )
 
-(define (defined? # $id env)
-    (if (pair $id)
-        (define result (catch (get (eval $id #) env)))
-        (define result (catch (get $id env)))
+(define (defined? # id env)
+    (define item id)
+    (if (pair? id) 
+        (define item (eval id #))
+        (define item id)
         )
-
-    (!= (type result) 'ERROR)
+    (define result (catch (get (__id id) env)))
+    (not (error? result))
     )
 
-(define (locals env)
+(define (localNames env)
     (cadr env)
+    )
+
+(define (localValues env)
+    (caddr env)
     )
 

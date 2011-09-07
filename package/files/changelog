@@ -3,6 +3,7 @@ scam (0.1.6)
   * can now parse an empty file
   * added the string coercion function
   * removed non-variadic versions of and, or
+  * updated inherit.lib to reflect new object organization
 
 scam (0.1.5)
 

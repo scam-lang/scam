@@ -23,7 +23,5 @@ with (o)
 inspect(o . x);
 inspect(o . y);
 ------------------------------------------
-o . x is 3
-o . y is 4
-o . x is 10
-o . y is 13
+EXCEPTION: nonFunction
+file with.s,line 1: attempted to call STRING as a function

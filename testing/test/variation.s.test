@@ -29,9 +29,5 @@ println("(x()) . a() yields...");
 println("(y()) . a() yields...");
 (y()) . a();
 ------------------------------------------
-(x()) . a() yields...
-x:a() -> hello
-x:b() -> goodbye
-(y()) . a() yields...
-x:a() -> hello
-y:b() -> au revoir
+EXCEPTION: undefinedVariable
+file variation.s,line 1: variable function is undefined

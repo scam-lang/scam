@@ -34,8 +34,5 @@ o . z = 55;
 println(o . x());
 
 ------------------------------------------
-EVALUATION ERROR: :restrictedAssignment
-hide.s,line 7: you are only allowed to assign to simple variables
-4
-13
-13
+EXCEPTION: nonFunction
+file hide.s,line 1: attempted to call STRING as a function

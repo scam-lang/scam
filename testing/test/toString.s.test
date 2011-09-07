@@ -31,22 +31,5 @@ println("----------------");
 map(function (i) {println("map: ",i);},a);
 println("----------------");
 ------------------------------------------
-list(1,2) is [1,2]
-----------------
-"array" + string(array(1,2,3)) is "array[1,2,3]"
-----------------
-fo is <f x:20>
-----------------
-fa is [<f x:20>,<f x:20>]
-----------------
-a is [<f x:1>,<f x:2>,<f x:<f x:20>>,<f x:[<f x:20>,<f x:20>]>]
-----------------
-map(string,a) is ("<f x:1>","<f x:2>","<f x:<f x:20>>","<f x:[<f x:20>,<f x:20>]>")
-----------------
-[<f x:1>,<f x:2>,<f x:<f x:20>>,<f x:[<f x:20>,<f x:20>]>]
-----------------
-map: <f x:1>
-map: <f x:2>
-map: <f x:<f x:20>>
-map: <f x:[<f x:20>,<f x:20>]>
-----------------
+EXCEPTION: syntaxException
+file toString.s,line 33: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead

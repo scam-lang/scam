@@ -1412,21 +1412,6 @@ get(int args)
         return getVariableValue(id,car(caddr(args)));
     }
 
-/* (force $thunk) */
-
-static int
-force(int args)
-    {
-    if (!isThunk(car(args)))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "cannot force type %s",
-            SymbolTable[file(args)],line(args),
-            type(car(args)));
-
-    return car(args);
-    }
-
 /* (inspect # $item) */
 
 static int
@@ -3487,14 +3472,6 @@ loadBuiltIns(int env)
         newSymbol("inspect"),
         ucons(sharpSymbol,
             ucons(newSymbol("$expr"),0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = force;
-    b = makeBuiltIn(env,
-        newSymbol("force"),
-        ucons(newSymbol("$thunk"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

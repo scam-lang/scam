@@ -39,20 +39,5 @@ println(g());
 println("done");
 
 ------------------------------------------
-g executing...
-r is <ERROR 11011>
-i is 0 and j is 1
-i is 0 and j is 2
-i is 0 and j is 3
-i is 0 and j is 4
-i is 1 and j is 1
-i is 1 and j is 2
-i is 1 and j is 3
-i is 1 and j is 4
-i is 2 and j is 1
-i is 2 and j is 2
-trying to leave f...
-g's z is 6
-g done.
-6
-done
+EXCEPTION: nonFunction
+file return3.s,line 1: attempted to call STRING as a function

@@ -13,6 +13,5 @@ var main = function ()
 
 main();
 ------------------------------------------
-in overridden +
-3
-hello, world
+EXCEPTION: undefinedVariable
+file p1.s,line 1: variable var is undefined

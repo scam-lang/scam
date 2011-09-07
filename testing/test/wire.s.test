@@ -1,30 +1,24 @@
-function wire()
-    {
-    var value = 0;  //initial (nonsensical) value
-    var downstream = :null;
-    function register(object)
-        {
-        downstream = object join downstream;
-        object . recalculate();
-        }
-    function inform(object)
-        {
-        object . recalculate();
-        }
-    function set(newValue)
-        {
-        if (newValue != value)
-            {
-            value = newValue;
-            map(inform, downstream);
-            }
-        }
-    function get()
-        {
-        return(value);
-        }
+(define (wire )
+    (define value 0)  ;initial (nonsensical) value
+    (define downstream nil)
+    (define (register object)
+        (assign downstream (cons object downstream))
+        ((. object recalculate))
+        )
+    (define (inform object)
+        ((. object recalculate))
+        )
+    (define (set newValue)
+        (if (!= newValue value)
+            (begin
+                (assign value newValue)
+                (map inform downstream)
+                )
+            )
+        )
+    (define (get) value)
 
-    this;
-    }
+    this
+    )
 
 ------------------------------------------

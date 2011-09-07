@@ -23,7 +23,7 @@
         )
     (define (peekItem) (. items next data))
     (define (peekRank) (. items next rank))
-    (define (empty)    (valid? (. items next)))
+    (define (empty)    (null? (. items next)))
 
     (assign items (bundle nil nil nil))  ;dummy head node
     this

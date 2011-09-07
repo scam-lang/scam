@@ -42,15 +42,5 @@ print("\n");
 printSequence(modified);
 print("\n");
 ------------------------------------------
-mapping [ 1 2 3 4 ] 
-mapping [ 2 3 4 ] 
-mapping [ 3 4 ] 
-mapping [ 4 ] 
-mapping [ ] 
-returning null
-joining 16 with null
-joining 9 with (16)
-joining 4 with (9,16)
-joining 1 with (4,9,16)
-[ 1 2 3 4 ] 
-[ 1 4 9 16 ] 
+EXCEPTION: undefinedVariable
+file map.s,line 1: variable var is undefined

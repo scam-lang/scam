@@ -13,6 +13,5 @@ function greeting()
 println("about to greet...");
 greeting();
 ------------------------------------------
-about to greet...
-intercepted! initializer is hello, world!
-hello, world!
+EXCEPTION: undefinedVariable
+file hook2.s,line 1: variable function is undefined

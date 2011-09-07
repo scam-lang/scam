@@ -13,6 +13,5 @@ var z;
     y == x;
     }
 ------------------------------------------
-EVALUATION ERROR: :styleViolation
-tyro2.s,line 6: 
-indentation is not properly aligned, should be 4 spaces, not 0
+EXCEPTION: nonFunction
+file tyro2.s,line 1: attempted to call STRING as a function

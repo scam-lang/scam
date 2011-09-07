@@ -1,8 +1,7 @@
 (println "starting fib.s")
+(println "including fact.s")
 
 (include "fact.s")
-
-(println "done including fact.s")
 
 (define (fib n)
     (if (< n 2)
@@ -14,11 +13,16 @@
 (define result nil)
 (define t (time))
 
-(set! 'x 26)
+(set! 'x 10)
 (set! 'result (fib x))
 (println "fib: fib(" x ") is " result)
 (println (- (time) t) " seconds")
+
+(println "fib.s included - SHOULD ONLY SEE THIS ONCE");
 ------------------------------------------
-SYNTAX ERROR: :syntaxError
-fib.s,line 1: expecting CLOSE_PARENTHESIS, found STRING instead
-error occurred prior to: )[END OF LINE]
+starting fib.s
+including fact.s
+starting fact.s
+including fib.s
+EXCEPTION: undefinedVariable
+file fact.s,line 13: variable fib is undefined

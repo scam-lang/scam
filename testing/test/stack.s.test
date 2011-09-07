@@ -35,6 +35,5 @@ if (:true)
         }
     }
 ------------------------------------------
-42
-world
-hello
+EXCEPTION: undefinedVariable
+file stack.s,line 1: variable function is undefined

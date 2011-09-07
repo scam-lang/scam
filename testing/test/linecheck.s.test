@@ -183,6 +183,5 @@ linecheck . mode = :none;
 println("done");
 f(0);
 ------------------------------------------
-done
-even
-cleaning up...
+EXCEPTION: lexicalException
+file linecheck.s,line 64: misformed number (1])

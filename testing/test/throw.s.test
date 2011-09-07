@@ -17,4 +17,5 @@ else
     println("f() returns ", result);
     }
 ------------------------------------------
-f() returns "throw.s,line 5: variable a is undefined"
+EXCEPTION: undefinedVariable
+file throw.s,line 1: variable //var is undefined

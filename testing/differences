@@ -1,4 +1,3711 @@
 OLD vs. NEW
+adders.s
+------------------------------------------
+------------------------------------------
+agenda.s
+------------------------------------------
+------------------------------------------
+apply.s
+------------------------------------------
+------------------------------------------
+a.s
+------------------------------------------
+------------------------------------------
+assign1.s
+------------------------------------------
+------------------------------------------
+bad.s
+------------------------------------------
+------------------------------------------
+block.s
+------------------------------------------
+------------------------------------------
+call.s
+------------------------------------------
+------------------------------------------
+catch.s
+------------------------------------------
+------------------------------------------
+chain.s
+------------------------------------------
+------------------------------------------
+common2.s
+------------------------------------------
+6,7c6,7
+< ((label environment) (context <object 4685>) (level 0) (constructor nil) (this <object 8372>) (common <object 8450>) (__included_common2.s #t))
+< ((label environment) (context <object 8372>) (level 0) (constructor nil) (this <object 8450>) (count 0))
+---
+> ((__label environment) (__context <object 4747>) (__level 0) (__constructor nil) (this <object 10563>) (common <object 10641>) (__included_common2.s #t))
+> ((__label environment) (__context <object 10563>) (__level 0) (__constructor nil) (this <object 10641>) (count 0))
+------------------------------------------
+common3.s
+------------------------------------------
+------------------------------------------
+common4.s
+------------------------------------------
+------------------------------------------
+common5.s
+------------------------------------------
+------------------------------------------
+common.s
+------------------------------------------
+------------------------------------------
+defined.s
+------------------------------------------
+------------------------------------------
+env.s
+------------------------------------------
+11d10
+< TERM
+12a12
+> TERM
+20,21d19
+< SESSION_MANAGER
+< USERNAME
+22a21,22
+> USERNAME
+> SESSION_MANAGER
+24d23
+< PATH
+25a25
+> PATH
+28d27
+< GNOME_KEYRING_PID
+30c29
+< GDM_LANG
+---
+> GNOME_KEYRING_PID
+31a31
+> GDM_LANG
+35d34
+< SHLVL
+36a36
+> SHLVL
+40d39
+< XDG_DATA_DIRS
+41a41
+> XDG_DATA_DIRS
+44d43
+< VIMRUNTIME
+47d45
+< VIM
+49d46
+< COLORTERM
+50a48
+> COLORTERM
+------------------------------------------
+error0.s
+------------------------------------------
+------------------------------------------
+except2.s
+------------------------------------------
+1,13c1,10
+< function try($error,$a,$b)
+<     {
+<     var result = catch(force($a));
+<     if (type(result) == :ERROR)
+<         {
+<         $error = result;
+<         force($b);
+<         }
+<     else
+<         {
+<         result;
+<         }
+<     }
+---
+> (define (try # $error $a $b)
+>     (define result (catch (eval $a #)))
+>     (if (== (type result) 'error)
+>         (begin
+>             (set! $error result #)
+>             (set! 'result (eval $b #))
+>             )
+>         )
+>     result
+>     )
+15,18c12,14
+< function normalize(a,b)
+<     {
+<     return (a + b) * (a + b);
+<     }
+---
+> (define (normalize a b)
+>     (* (+ a b) (+ a b))
+>     )
+20,23c16,18
+< function g()
+<     {
+<     var result;
+<     var error;
+---
+> (define (g)
+>     (define result)
+>     (define error)
+25,47c20,42
+<     try(error) 
+<         {
+<         throw(:hiy,"ouch"); // comment this line out and a 2 should result
+<         result = normalize(1,2);
+<         }
+<     else if (error . type == :nonFunction)
+<         {
+<         result = 2;
+<         }
+<     else if (error . type == :hey)
+<         {
+<         result = 100;
+<         }
+<     else if (error . type == :hay)
+<         {
+<         result = 33;
+<         }
+<     else
+<         {
+<         throw(error);
+<         }
+<     result;
+<     }
+---
+>     (try error 
+>         (begin
+>             (println "starting")
+>             ; comment the next uncommented line out and a 2 should result
+>             ; change hiy to hey in the next uncommented line and you get 100
+>             ; change hiy to hay in the next uncommented line and you get 33
+>             (throw 'hiy "ouch")
+>             (set! 'result (normalize 1 2))
+>             )
+>         (if (== (get 'code error) 'nonFunction)
+>             (begin
+>                 (println "not a function!")
+>                 (set! 'result 2)
+>                 )
+>         (if (== (get 'code error) 'hey)
+>             (set! 'result 100)
+>         (if (== (get 'code error) 'hay)
+>             (set! 'result 33)
+>             (throw error)
+>             )))
+>         )
+>     result
+>     )
+49,50c44,45
+< var + = 3;
+< println(g());
+---
+> (define + 3)
+> (println (g))
+52,53c47,49
+< EVALUATION ERROR: :hiy
+< except2.s,line 27: ouch
+---
+> starting
+> EXCEPTION: generalException
+> file except2.s,line 5: variable $error is undefined
+------------------------------------------
+except3.s
+------------------------------------------
+1,4c1,3
+< function f()
+<     {
+<     g() + 0;
+<     }
+---
+> (define (f)
+>     (+ (g) 0)
+>     )
+6,12c5,10
+< function g()
+<     {
+<     var error;
+<     error = catch(h());
+<     println("rethrowing error");
+<     throw(error);
+<     }
+---
+> (define (g)
+>     (define error)
+>     (set! 'error (catch (h)))
+>     (println "rethrowing error")
+>     (throw error);
+>     )
+14,18c12,15
+< function h()
+<     {
+<     throw(:ouch,"hey!");
+<     2;
+<     }
+---
+> (define (h)
+>     (throw 'ouch "hey!")
+>     2
+>     )
+20,21c17,18
+< f() + 0;
+< :ok;
+---
+> (+ (f) 0)
+> 'ok
+23,24d19
+< EVALUATION ERROR: :ouch
+< except3.s,line 16: hey!
+25a21,22
+> EXCEPTION: ouch
+> hey!
+------------------------------------------
+except4.s
+------------------------------------------
+1,32c1,26
+< var mnemon = 10;
+< function f(x)
+<     {
+<     var result;
+<     println("beginning f(",x,").");
+<     result = catch(g(2 * x));
+<     if (type(result) == :ERROR)
+<         {
+<         if (result . type == :undefinedVariable)
+<             {
+<             result = x;
+<             }
+<         else
+<             {
+<             println("rethrowing the error");
+<             throw(result);
+<             }
+<         }
+<     println("done with f(",x,").");
+<     return result;
+<     }
+< function g(y)
+<     {
+<     var result;
+<     println("beginning g(",y,").");
+< 
+<     throw(:myError,"take that!");
+<     result = mnenom * y;
+<     println("done with g(",y,").");
+<     return result;
+<     }
+< println(f(4));
+---
+> (define (f x)
+>     (define result nil)
+>     (println "beginning f(" x ").")
+>     (set! 'result (catch (g (* 2 x))))
+>     (if (== (type result) 'error)
+>         (if (== (get 'code result) 'undefinedVariable)
+>             (set! 'result x)
+>             (begin
+>                 (println "rethrowing the error");
+>                 (throw result)
+>                 )
+>             )
+>         )
+>     (println "done with f(" x ").")
+>     result
+>     )
+> (define (g y)
+>     (define result nil)
+>     (println "beginning g(" y ").")
+>     //(throw 'undefinedVariable "take that!")
+>     (throw 'myError "take that!")
+>     (set! 'result (* mnenom y))
+>     (println "done with g(" y ").")
+>     result
+>     )
+> (println (f 4))
+34,35d27
+< EVALUATION ERROR: :myError
+< except4.s,line 27: take that!
+38c30,31
+< rethrowing the error
+---
+> done with f(4).
+> 4
+------------------------------------------
+except.s
+------------------------------------------
+1,12c1,7
+< function try($a,$b)
+<     {
+<     var result = catch(force($a));
+<     if (type(result) == :ERROR)
+<         {
+<         force($b);
+<         }
+<     else
+<         {
+<         result;
+<         }
+<     }
+---
+> (define (try # $a $b)
+>     (define result (catch (eval $a #)))
+>     (if (== (type result) 'error)
+>         (eval $b #)
+>         result
+>         )
+>     )
+14,32c9,20
+< function fact(n)
+<     {
+<     if (n == 0)
+<         {
+<         try ()
+<             {
+<             zzz;
+<             }
+<         else
+<             {
+<             println("[ERROR]");
+<             1;
+<             }
+<         }
+<     else
+<         {
+<         return n * fact(n - 1);
+<         }
+<     }
+---
+> (define (fact n)
+>     (if (== n 0)
+>         (try
+>             zzz ;change this line to 1
+>             (begin
+>                 (println "[ERROR]")
+>                 1
+>                 )
+>             )
+>         (* n (fact (- n 1)))
+>         )
+>     )
+34c22
+< print("fact(5) is ", fact(5), "\n");
+---
+> (print "fact(5) is "  (fact 5) "\n")
+------------------------------------------
+extend.s
+------------------------------------------
+35,38c35,36
+< wow() is wow, wow, wow!
+< obj . wow() is 16
+< obj . yow() is 256
+< obj . zow() is 65536
+---
+> EXCEPTION: undefinedVariable
+> file extend.s,line 1: variable function is undefined
+------------------------------------------
+extension.s
+------------------------------------------
+20,22c20,21
+< z = y(); z . a is 3
+< (y()) . a is 3
+< .(y(),a) is 3
+---
+> EXCEPTION: undefinedVariable
+> file extension.s,line 1: variable function is undefined
+------------------------------------------
+fact.s
+------------------------------------------
+1c1,2
+< include("fib.s");
+---
+> (println "starting fact.s")
+> (println "including fib.s")
+3,6c4
+< function fact(n)
+<     {
+<     if (n < 2,n,n * fact(n - 1));
+<     }
+---
+> (include "fib.s")
+8,9c6,11
+< println("fib(5) is ",fib(5));
+< println("fact(5) is ",fact(5));
+---
+> (define (fact n)
+>     (if (< n 2)
+>         1
+>         (* n (fact (- n 1)))
+>         )
+>     )
+10a13,16
+> (println "fact: fib(5) is " (fib 5))
+> (println "fact: fact(5) is " (fact 5))
+> 
+> (println "fact.s included - SHOULD ONLY SEE THIS ONCE");
+12,13c18,27
+< fib(5) is 5
+< fact(5) is 120
+---
+> starting fact.s
+> including fib.s
+> starting fib.s
+> including fact.s
+> fib: fib(10) is 55
+> 0 seconds
+> fib.s included - SHOULD ONLY SEE THIS ONCE
+> fact: fib(5) is 5
+> fact: fact(5) is 120
+> fact.s included - SHOULD ONLY SEE THIS ONCE
+------------------------------------------
+fib-opt.s
+------------------------------------------
+18c18
+< x = 22;
+---
+> x = 26;
+36,37c36,37
+< fib(22) is 17711
+< 1 seconds
+---
+> EXCEPTION: nonFunction
+> file fib-opt.s,line 1: attempted to call STRING as a function
+------------------------------------------
+fib.s
+------------------------------------------
+1c1,2
+< include("fact.s");
+---
+> (println "starting fib.s")
+> (println "including fact.s")
+3,16c4
+< function fib(n)
+<     {
+<     if (n < 2)
+<         {
+<         n;
+<         }
+<     else
+<         {
+<         fib(n - 1) + fib(n - 2);
+<         }
+<     }
+< var x = 0;
+< var result;
+< var t = time();
+---
+> (include "fact.s")
+18,27c6,21
+< x = 22;
+< result = fib(x);
+< display("fib(");
+< display(x);
+< display(") is ");
+< display(result);
+< display("\n");
+< display(time() - t);
+< display(" seconds");
+< display("\n");
+---
+> (define (fib n)
+>     (if (< n 2)
+>         n
+>         (+ (fib (- n 1)) (fib (- n 2)))
+>         )
+>     )
+> (define x 0)
+> (define result nil)
+> (define t (time))
+> 
+> (set! 'x 10)
+> (set! 'result (fib x))
+> (println "fib: fib(" x ") is " result)
+> (println (- (time) t) " seconds")
+> 
+> (println "fib.s included - SHOULD ONLY SEE THIS ONCE");
+29,30c23,28
+< fib(22) is 17711
+< 2 seconds
+---
+> starting fib.s
+> including fact.s
+> starting fact.s
+> including fib.s
+> EXCEPTION: undefinedVariable
+> file fact.s,line 13: variable fib is undefined
+------------------------------------------
+foreach.s
+------------------------------------------
+25,32c25,26
+< i is 1
+< i is 2
+< i is 3
+< i is 4
+< a[2] is 1
+< a[2] is 2
+< a[2] is 3
+< a[2] is 4
+---
+> EXCEPTION: undefinedVariable
+> file foreach.s,line 1: variable function is undefined
+------------------------------------------
+for.s
+------------------------------------------
+35,44c35,36
+< the value of i is 1
+< the value of i is 3
+< the value of i is 5
+< the value of i is 7
+< the value of i is 9
+< the value of i is 1
+< the value of i is 3
+< the value of i is 5
+< the value of i is 7
+< the value of i is 9
+---
+> EXCEPTION: undefinedVariable
+> file for.s,line 1: variable var is undefined
+------------------------------------------
+f.s
+------------------------------------------
+23,24c23,24
+< f(10) is 3628800
+< g(10) is 3628800
+---
+> EXCEPTION: nonFunction
+> file f.s,line 1: attempted to call STRING as a function
+------------------------------------------
+function.s
+------------------------------------------
+1,55c1,36
+< function parameterListMaker($)
+<     {
+<     var vars = :null;
+< 
+<     while ($ != :null)
+<         {
+<         vars = vars + list($ . 0 . code);
+<         $ = tail($);
+<         }
+< 
+<     vars;
+<     }
+< 
+< function named-lambda($name,params,$body)
+<     {
+<     var $p = thunk(0,$name . context);
+< 
+<     $p . code = params;
+< 
+<     __function__($name,$p,$body);
+<     }
+< 
+< function loadAndgo($name,params,values,$body)
+<     {
+<     var f = named-lambda($name,params,$body);
+< 
+<     apply(f,values);
+<     }
+< 
+< loadAndgo(countdown,parameterListMaker(a),list(4))
+<     {
+<     inspect(a);
+<     if (a > 0)
+<         {
+<         countdown(a - 1);
+<         }
+<     }
+< 
+< loadAndgo(countdown,list(:a),list(4))
+<     {
+<     inspect(a);
+<     if (a > 0)
+<         {
+<         countdown(a - 1);
+<         }
+<     }
+< 
+< (named-lambda(countdown,list(:a),
+<     {
+<     inspect(a);
+<     if (a > 0)
+<         {
+<         countdown(a - 1);
+<         }
+<     }))(4);
+---
+> (define (define-function name params body env)
+>     (define donor (lambda () 1))
+>     (set! 'name name donor)
+>     (set! 'parameters params donor)
+>     (set! 'code body donor)
+>     (addSymbol name donor env)
+>     )
+> 
+> (define (loadAndgo # $name params values $body)
+>     (define f (define-function $name params $body #))
+>     (apply f values)
+>     )
+> 
+> (println "first load and go...");
+> (loadAndgo countdown '(a) '(4)
+>     (begin
+>         (inspect a)
+>         (if (> a 0) (countdown (- a 1)))
+>         )
+>     )
+> 
+> (println "second load and go...")
+> (loadAndgo countdown '(b) '(3)
+>     (begin
+>         (inspect b)
+>         (if (> b 0) (countdown (- b 1)))
+>         )
+>     )
+> 
+> (println "calling define-function directly...")
+> ((define-function 'countdown '(a)
+>     '(begin
+>         (inspect a)
+>         (if (> a 0) (countdown (- a 1)))
+>         )
+>     this) 4)
+56a38
+> first load and go...
+62,66c44,49
+< a is 4
+< a is 3
+< a is 2
+< a is 1
+< a is 0
+---
+> second load and go...
+> b is 3
+> b is 2
+> b is 1
+> b is 0
+> calling define-function directly...
+------------------------------------------
+gc.s
+------------------------------------------
+1,3c1,2
+< function f(x)
+<     {
+<     var y = x * x;
+---
+> (define (f x)
+>     (define y (* x x))
+5c4
+<     gc();
+---
+>     (gc)
+7,10c6,9
+<     println("f is ", f);
+<     println("x is ", x);
+<     println("y is ", y);
+<     }
+---
+>     (inspect f)
+>     (inspect x)
+>     (inspect y)
+>     )
+12c11
+< f(3);
+---
+> (f 3)
+13a13
+> gc:1, 5764 cells
+------------------------------------------
+g.s
+------------------------------------------
+1,3c1,2
+< function g(n)
+<     {
+<     var total = 1;
+---
+> (define (g n)
+>     (define total 1)
+5,9c4,7
+<     while (n > 1)
+<         {
+<         total = total * n;
+<         n = n - 1;
+<         }
+---
+>     (while (> n 1)
+>         (set! 'total (* total n))
+>         (set! 'n (- n 1))
+>         )
+11,12c9,10
+<     total;
+<     }
+---
+>     total
+>     )
+14c12
+< var x = 10;
+---
+> (define x 10)
+16c14
+< print("g(",x,") is ", g(x), "\n");
+---
+> (print "g(" x ") is " (g x) "\n")
+------------------------------------------
+heapsort.s
+------------------------------------------
+1c1,2
+< include("basics");
+---
+> (define (heap items op)
+>     (define size (length items))
+3,21c4,17
+< function heap(items,op)
+<     {
+<     var size = length(items);
+< 
+<     function leftChild(x) { 2 * x + 1; }
+<     function rightChild(x) { 2 * x + 2; }
+<     function deleteMin()
+<         {
+<         var temp = items[0];
+<         items[0] = items[size - 1];
+<         items[size - 1] = temp;
+<         size = size - 1;
+<         heapify(0);
+<         temp;
+<         }
+<     function heapify(root)
+<         {
+<         var extreme;
+<         var newRoot;
+---
+>     (define (leftChild x) (+ (* 2 x) 1))
+>     (define (rightChild x) (+ (* 2 x) 2))
+>     (define (deleteExtreme)
+>         (define temp (getElement items 0))
+>         (setElement! items 0 (getElement items (- size 1)))
+>         (setElement! items (- size 1) temp)
+>         (set! 'size (- size 1))
+>         (heapify 0)
+>         temp
+>         )
+> 
+>     (define (heapify root)
+>         (define extreme nil)
+>         (define newRoot nil)
+23c19
+<         if (leaf?(root)) { return :ok; }
+---
+>         (if (leaf? root) (return 'ok))
+25c21
+<         extreme = findExtremalChild(root);
+---
+>         (set! 'extreme (findExtremalChild root))
+27c23
+<         if (extreme == items[root]) { return :ok; }
+---
+>         (if (== extreme (getElement items root)) (return 'ok))
+29,92c25,79
+<         if (extreme == items[leftChild(root)])
+<             {
+<             newRoot = leftChild(root);
+<             }
+<         else
+<             {
+<             newRoot = rightChild(root);
+<             }
+<         items[newRoot] = items[root];
+<         items[root] = extreme;
+<         heapify(newRoot);
+<         }
+<     function findExtremalChild(root)
+<         {
+<         var extreme;
+< 
+<         extreme = extremal(op,items[root],items[leftChild(root)]);
+< 
+<         if (rightChild(root) >= size)
+<             {
+<             extreme;
+<             }
+<         else
+<             {
+<             extremal(op,extreme,items[rightChild(root)]);
+<             }
+<         }
+<     function build-heap()
+<         {
+<         var i;
+< 
+<         for (i = size - 1, i >= 0, i = i - 1)
+<             {
+<             heapify(i);
+<             }
+<         }
+< 
+<     function leaf?(x)
+<         {
+<         leftChild(x) >= size;
+<         }
+< 
+<     build-heap();
+<     this;
+<     }
+< 
+< function heap-sort(items,op)
+<     {
+<     var i;
+<     var h;
+< 
+<     h = heap(items,op);
+< 
+<     while (h . size > 0)
+<         {
+<         print(h . deleteMin());
+<         if (h . size > 0,print(" "));
+<         }
+<     }
+< 
+< function extremal(op,a,b)
+<     {
+<     if (a op b,a,b);
+<     }
+---
+>         (if (== extreme (getElement items (leftChild root)))
+>             (set! 'newRoot (leftChild root))
+>             (set! 'newRoot (rightChild root))
+>             )
+> 
+>         (setElement! items newRoot (getElement items root))
+>         (setElement! items root extreme)
+>         (heapify newRoot)
+>         )
+> 
+>     (define (findExtremalChild root)
+>         (define extreme nil)
+>         (set! 'extreme 
+>             (extremal op
+>                 (getElement items root)
+>                 (getElement items (leftChild root))))
+> 
+>         (if (>= (rightChild root) size)
+>             extreme
+>             (extremal op extreme (getElement items (rightChild root)))
+>             )
+>         )
+> 
+>     (define (build-heap)
+>         (define i nil)
+>         (for (set! 'i (- size 1)) (>= i 0) (set! 'i (- i 1))
+>             (println "heapifying element " i)
+>             (heapify i)
+>             (println "element " i " has been heapified")
+>             )
+>         )
+> 
+>     (define (leaf? x) (>= (leftChild x) size))
+> 
+>     (println "about to build-heap...")
+>     (build-heap)
+>     this
+>     )
+> 
+> (define (heap-sort items op)
+>     (define i nil)
+>     (define h nil)
+> 
+>     (set! 'h (heap items op))
+> 
+>     (while (> (get 'size h) 0)
+>         (print ((get 'deleteExtreme h)))
+>         (if (> (get 'size h) 0) (print " "))
+>         )
+>     (println "\n")
+>     )
+> 
+> (define (extremal op a b)
+>     (if (op a b) a b)
+>     )
+94c81
+< var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
+---
+> (define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
+96,97c83
+< heap-sort(a,>);
+< println("\n");
+---
+> (heap-sort a >)
+99,100c85,86
+< inspect(a);
+< inspect(extremal . parameters);
+---
+> (inspect a)
+> (inspect (get 'parameters extremal))
+102,105c88,124
+< 88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
+< 
+< a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
+< extremal . parameters is (op,a,b)
+---
+> about to build-heap...
+> heapifying element 16
+> element 16 has been heapified
+> heapifying element 15
+> element 15 has been heapified
+> heapifying element 14
+> element 14 has been heapified
+> heapifying element 13
+> element 13 has been heapified
+> heapifying element 12
+> element 12 has been heapified
+> heapifying element 11
+> element 11 has been heapified
+> heapifying element 10
+> element 10 has been heapified
+> heapifying element 9
+> element 9 has been heapified
+> heapifying element 8
+> element 8 has been heapified
+> heapifying element 7
+> element 7 has been heapified
+> heapifying element 6
+> element 6 has been heapified
+> heapifying element 5
+> element 5 has been heapified
+> heapifying element 4
+> element 4 has been heapified
+> heapifying element 3
+> element 3 has been heapified
+> heapifying element 2
+> element 2 has been heapified
+> heapifying element 1
+> element 1 has been heapified
+> heapifying element 0
+> element 0 has been heapified
+> EXCEPTION: undefinedVariable
+> file heapsort.s,line 8: variable setElement! is undefined
+------------------------------------------
+hide.s
+------------------------------------------
+37,41c37,38
+< EVALUATION ERROR: :restrictedAssignment
+< hide.s,line 7: you are only allowed to assign to simple variables
+< 4
+< 13
+< 13
+---
+> EXCEPTION: nonFunction
+> file hide.s,line 1: attempted to call STRING as a function
+------------------------------------------
+hook2.s
+------------------------------------------
+16,18c16,17
+< about to greet...
+< intercepted! initializer is hello, world!
+< hello, world!
+---
+> EXCEPTION: undefinedVariable
+> file hook2.s,line 1: variable function is undefined
+------------------------------------------
+hook.s
+------------------------------------------
+15,17c15,16
+< Intercepted!
+< about to greet...
+< hello, world!
+---
+> EXCEPTION: undefinedVariable
+> file hook.s,line 1: variable function is undefined
+------------------------------------------
+if2.s
+------------------------------------------
+27c27,28
+< three *is* less than 4!
+---
+> EXCEPTION: undefinedVariable
+> file if2.s,line 1: variable var is undefined
+------------------------------------------
+if3.s
+------------------------------------------
+47,63c47,48
+< EVALUATION ERROR: :argumentCountError
+< if3.s,line 8: too many arguments to if
+< the test is true
+< naughts!
+< the test is false
+< the test is true
+< onesies!
+< the test is false
+< the test is false
+< the test is true
+< binary!
+< the test is false
+< the test is false
+< the test is false
+< the test is true
+< trinary!
+< call if with too many arguments
+---
+> EXCEPTION: undefinedVariable
+> file if3.s,line 1: variable var is undefined
+------------------------------------------
+if4.s
+------------------------------------------
+26,45c26,27
+< function (test,$tBranch,$fBranch)
+<     {
+<     var oldIf = context . context . if;
+<     print("the test is ",test,"
+< ");
+<     oldIf (test)
+<         {
+<         while (:false)
+<             {
+<             println("huh");
+<             }
+<         force($tBranch);
+<         }
+<     else
+<         {
+<         force($fBranch);
+<         }
+<     }
+< the test is true
+< three *is* less than 4!
+---
+> EXCEPTION: undefinedVariable
+> file if4.s,line 1: variable var is undefined
+------------------------------------------
+if5.s
+------------------------------------------
+24c24,25
+< 3 is less than 4!
+---
+> EXCEPTION: undefinedVariable
+> file if5.s,line 1: variable var is undefined
+------------------------------------------
+if.s
+------------------------------------------
+33,35c33,34
+< enter 0, 1, or 2: 
+< you entered 3
+< can't follow directions, can you?
+---
+> EXCEPTION: undefinedVariable
+> file if.s,line 1: variable //overload is undefined
+------------------------------------------
+lhs.s
+------------------------------------------
+30,33c30,31
+< z is 3 (should be 3)
+< xobj's a is z (should be z)
+< z now is 5 (should be 5)
+< xobj's a now is q (should be q)
+---
+> EXCEPTION: undefinedVariable
+> file lhs.s,line 1: variable var is undefined
+------------------------------------------
+linecheck.s
+------------------------------------------
+186,188c186,187
+< done
+< even
+< cleaning up...
+---
+> EXCEPTION: lexicalException
+> file linecheck.s,line 64: misformed number (1])
+------------------------------------------
+list.s
+------------------------------------------
+98,113c98,99
+< [ ]
+< [ 4 ]
+< [ 3 ]
+< [ 3 4 ]
+< [ 2 ]
+< [ 2 4 ]
+< [ 2 3 ]
+< [ 2 3 4 ]
+< [ 1 ]
+< [ 1 4 ]
+< [ 1 3 ]
+< [ 1 3 4 ]
+< [ 1 2 ]
+< [ 1 2 4 ]
+< [ 1 2 3 ]
+< [ 1 2 3 4 ]
+---
+> EXCEPTION: syntaxException
+> file list.s,line 97: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+------------------------------------------
+logic.s
+------------------------------------------
+1,62c1,42
+< function AND(in1, in2, out, agenda)
+<     {
+<     var delay = 4; //milliseconds
+<     function recalculate()
+<         {
+<         if (in1 . get() == 1 && in2 . get() == 1)
+<             {
+<             agenda . schedule(out . set(1), delay);
+<             }
+<         else
+<             {
+<             agenda . schedule(out . set(0), delay);
+<             }
+<         }
+< 
+<     in1 . register(this);
+<     in2 . register(this);
+<     recalculate();
+<     this;
+<     }
+< 
+< 
+< function OR(in1, in2, out, agenda)
+<     {
+<     var delay = 3; //milliseconds
+<     function recalculate()
+<         {
+<         if (in1 . get() == 1 || in2 . get() == 1)
+<             {
+<             agenda . schedule(out . set(1), delay);
+<             }
+<         else
+<             {
+<             agenda . schedule(out . set(0), delay);
+<             }
+<         }
+< 
+<     in1 . register(this);
+<     in2 . register(this);
+<     this;
+<     }
+< 
+< 
+< function NOT(in, out, agenda)
+<     {
+<     var delay = 1; //milliseconds
+<     function recalculate()
+<         {
+<         if (in . get() == 0)
+<             {
+<             agenda . schedule(out . set(1), delay);
+<             }
+<         else
+<             {
+<             //println("output is 0");
+<             agenda . schedule(out . set(0), delay);
+<             }
+<         }
+< 
+<     in . register(this);
+<     this;
+<     }
+---
+> (define (AND in1 in2 out agenda)
+>     (define delay 4)  ;milliseconds
+>     (define (recalculate)
+>         (if (and (== ((. in1 get)) 1) (== ((. in2 get)) 1))
+>             ((. agenda schedule) ((. out set) 1) delay)
+>             ((. agenda schedule) ((. out set) 0) delay)
+>             )
+>         )
+> 
+>     ((. in1 register) this)
+>     ((. in2 register) this)
+>     (recalculate)
+>     this
+>     )
+> 
+> 
+> (define (OR in1 in2 out agenda)
+>     (define delay 3) ;milliseconds
+>     (define (recalculate)
+>         (if (or (== ((. in1 get)) 1) (== ((. in2 get)) 1))
+>             ((. agenda schedule) ((. out set) 1) delay)
+>             ((. agenda schedule) ((. out set) 0) delay)
+>             )
+>         )
+> 
+>     ((. in1 register) this)
+>     ((. in2 register) this)
+>     this
+>     )
+> 
+> (define (NOT in out agenda)
+>     (define delay 1)  ;milliseconds
+>     (define (recalculate)
+>         (if (== ((. in get)) 0)
+>             ((. agenda schedule) ((. out set) 1) delay)
+>             ((. agenda schedule) ((. out set) 0) delay)
+>             )
+>         )
+> 
+>     ((. in register) this)
+>     this
+>     )
+------------------------------------------
+map.s
+------------------------------------------
+45,56c45,46
+< mapping [ 1 2 3 4 ] 
+< mapping [ 2 3 4 ] 
+< mapping [ 3 4 ] 
+< mapping [ 4 ] 
+< mapping [ ] 
+< returning null
+< joining 16 with null
+< joining 9 with (16)
+< joining 4 with (9,16)
+< joining 1 with (4,9,16)
+< [ 1 2 3 4 ] 
+< [ 1 4 9 16 ] 
+---
+> EXCEPTION: undefinedVariable
+> file map.s,line 1: variable var is undefined
+------------------------------------------
+matrixproblem.s
+------------------------------------------
+27,28c27,28
+< length(mat) is 10
+< length(mat) is 20
+---
+> EXCEPTION: nonFunction
+> file matrixproblem.s,line 1: attempted to call STRING as a function
+------------------------------------------
 object3.s
 ------------------------------------------
+49,68c49,56
+< (locals b) is (__label __context __level __constructor this parent x)
+< (local? parent b) is #t
+< (local? Parent b) is #f
+< a . x is 4
+< (. a x) is 4
+< <object 10983>
+<              __label  : closure
+<            __context  : <object 9029>
+<                 name  : alpha
+<           parameters  : (x)
+<                 code  : (begin (define parent nil) this)
+< (. (. a __constructor) name) is alpha
+< (. b x) is 5
+< (. (. b __constructor) name) is alpha
+< (is? a (quote alpha)) is #t
+< (is? b (quote alpha)) is #t
+< (is? b (quote beta)) is #f
+< (is? c (quote beta)) is #t
+< (is? c (quote alpha)) is #t
+< (is? c (quote gamma)) is #f
+---
+> (locals b) is <object 21310>
+>              __label  : throw
+>                 code  : undefinedVariable
+>                value  : "file object3.s,line 25: variable locals is undefined"
+>                trace  : ((locals b))
+> 
+> EXCEPTION: undefinedVariable
+> file object3.s,line 25: variable locals is undefined
+------------------------------------------
+object.s
+------------------------------------------
+36c36
+< z is <object 9629>
+---
+> z is <object 11163>
+38c38
+<            __context  : <object 9516>
+---
+>            __context  : <object 11050>
+41c41
+<                 this  : <object 9629>
+---
+>                 this  : <object 11163>
+------------------------------------------
+obj.s
+------------------------------------------
+------------------------------------------
+overlay.s
+------------------------------------------
+------------------------------------------
+overload.s
+------------------------------------------
+15,19c15,16
+< local + is <function +(x,y)>
+< non-local + is <function +(x,y)>
+< non-non-local + is <function +(a,b)>
+< shadowed + is <function +(a,b)>
+< x is 7
+---
+> EXCEPTION: nonFunction
+> file overload.s,line 1: attempted to call STRING as a function
+------------------------------------------
+p1.s
+------------------------------------------
+16,18c16,17
+< in overridden +
+< 3
+< hello, world
+---
+> EXCEPTION: undefinedVariable
+> file p1.s,line 1: variable var is undefined
+------------------------------------------
+pp.s
+------------------------------------------
+54,99c54,55
+< function f(a,b,c)
+<     {
+<     var x;
+<     if (true)
+<         {
+<         var x = 3;
+<         var y = 4;
+<         print(x);
+<         print(y);
+<         while (x > y)
+<             {
+<             x = x - 1;
+<             y = y + 1;
+<             }
+<         }
+<     else if (false)
+<         {
+<         :ok;
+<         }
+<     else if (true)
+<         {
+<         :ok;
+<         }
+<     else
+<         {
+<         print("huh?");
+<         }
+<     return :oops;
+<     }
+< function mv(m,v)
+<     {
+<     function q()
+<         {
+<         x;
+<         }
+<     function h()
+<         {
+<         3 * 3;
+<         }
+<     map(function (r) { r dot-product v; },m);
+<     }
+< ["pp.s"]
+< <THUNK 7272>:
+<     context: <OBJECT 984>
+<     code: hello + goodbye
+< 
+---
+> EXCEPTION: syntaxException
+> file pp.s,line 53: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+------------------------------------------
+pq.s
+------------------------------------------
+32,52c32,33
+< enqueueing: 3
+<     first item is 3
+<     first rank is 6
+< enqueueing: 2
+<     first item is 2
+<     first rank is 4
+< enqueueing: 0
+<     first item is 0
+<     first rank is 0
+< enqueueing: 1
+<     first item is 0
+<     first rank is 0
+< enqueueing: 4
+<     first item is 0
+<     first rank is 0
+< 
+< dequeueing: 0
+< dequeueing: 1
+< dequeueing: 2
+< dequeueing: 3
+< dequeueing: 4
+---
+> EXCEPTION: nonFunction
+> file pq.s,line 1: attempted to call STRING as a function
+------------------------------------------
+priorityQueue.s
+------------------------------------------
+1,7c1,5
+< function priorityQueue()
+<     {
+<     var items;
+<     function bundle(data,rank,next) { return this; }
+<     function dequeue()
+<         {
+<         var item;
+---
+> (define (priorityQueue)
+>     (define items)
+>     (define (bundle data rank next) this)
+>     (define (dequeue)
+>         (define item)
+9,17c7,14
+<         item = items . next . data;
+<         items . next = items . next . next;
+<         return item;
+<         }
+<     function enqueue(item,rank)
+<         {
+<         var prefix = items;
+<         var suffix = items . next;
+<         var package = bundle(item,rank,:null);
+---
+>         (assign item (. items next data))
+>         (assign (. items next) (. items next next))
+>         item
+>         )
+>     (define (enqueue item rank)
+>         (define prefix items)
+>         (define suffix (. items next))
+>         (define package (bundle item rank nil))
+19,23c16,19
+<         while (suffix != :null && rank >= suffix . rank)
+<             {
+<             prefix = suffix;
+<             suffix = suffix . next;
+<             }
+---
+>         (while (and (valid? suffix) (>= rank (. suffix rank)))
+>             (assign prefix suffix)
+>             (assign suffix (. suffix next))
+>             )
+25,30c21,26
+<         prefix . next = package;
+<         package . next = suffix;
+<         }
+<     function peekItem() { return items . next . data; }
+<     function peekRank() { return items . next . rank; }
+<     function empty()    { return items . next == :null; }
+---
+>         (assign (. prefix next) package)
+>         (assign (. package next) suffix)
+>         )
+>     (define (peekItem) (. items next data))
+>     (define (peekRank) (. items next rank))
+>     (define (empty)    (null? (. items next)))
+32,34c28,30
+<     items = bundle(:null,:null,:null); //dummy head node
+<     this;
+<     }
+---
+>     (assign items (bundle nil nil nil))  ;dummy head node
+>     this
+>     )
+------------------------------------------
+prior.s
+------------------------------------------
+19,20c19,20
+< well, hello there!
+< hi,all!
+---
+> EXCEPTION: undefinedVariable
+> file prior.s,line 1: variable function is undefined
+------------------------------------------
+rb.s
+------------------------------------------
+1,365c1,330
+< include("debug");
+< 
+< var root = :null;
+< 
+< function node(value,left,right)
+<     {
+<     var parent;
+<     var color;
+< 
+<     function display()
+<         {
+<         println("value:  ", value);
+<         println("left:   ", left);
+<         println("right:  ", right);
+<         println("parent: ", parent);
+<         println("color:  ", color);
+<         }
+< 
+<     this;
+<     }
+< 
+< function printTree(t)
+<     {
+<     function iter(r, indent)
+<         {
+<         if (r == :null)
+<             {
+<             println("null");
+<             }
+<         else
+<             {
+<             println(r . value, "(", r . color, ")");
+<             print(indent, "left:  ");
+<             iter(r . left,indent + "    ");
+<             print(indent, "right: ");
+<             iter(r . right,indent + "    ");
+<             }
+<         }
+< 
+<     iter(t, "   ");
+<     }
+< 
+< function insert(t, v, op)
+<     {
+<     if (t == :null)
+<         {
+<         root = node(v,:null,:null);
+<         root . parent = root;
+<         insertionFixup(root);
+<         }
+<     else
+<         {
+<         var lessThan = v op t . value;
+< 
+<         if (lessThan && t . left != :null)
+<             {
+<             insert(t . left, v, op);
+<             }
+<         else if (lessThan)
+<             {
+<             t . left = node(v,:null,:null);
+<             t . left . parent = t;
+<             insertionFixup(t . left);
+<             }
+<         else if (t . right != :null)
+<             {
+<             insert(t . right, v, op);
+<             }
+<         else
+<             {
+<             t . right = node(v, :null, :null);
+<             t . right . parent = t;
+<             insertionFixup(t . right);
+<             }
+<         }
+<     }
+< 
+< function prune(x)
+<     {
+<     assert(leaf?(x) == :true);
+<     if (leftChild?(x))
+<         {
+<         parent(x) . left = :null;
+<         }
+<     else if (rightChild?(x))
+<         {
+<         parent(x) . right = :null;
+<         }
+<     else
+<         {
+<         root = :null;
+<         }
+<     }
+< 
+< function swapToLeaf(x)
+<     {
+<     if (leaf?(x) == :false)
+<         {
+<         var y;
+<         var temp;
+< 
+<         if (x . right != :null)
+<             {
+<             y = findMin(x . right);
+<             }
+<         else
+<             {
+<             y = findMax(x . left);
+<             }
+< 
+<         temp = x . value;
+<         x . value = y . value;
+<         y . value = temp;
+< 
+<         swapToLeaf(y);
+<         }
+<     else
+<         {
+<         x;
+<         }
+<     }
+< function findMin(x)
+<     {
+<     while (x . left != :null)
+<         {
+<         x = x . left;
+<         }
+<     return x;
+<     }
+< function findMax(x)
+<     {
+<     while (x . right != :null)
+<         {
+<         x = x . right;
+<         }
+<     return x;
+<     }
+< function delete(x)
+<     {
+<     x = swapToLeaf(x);
+<     deletionFixup(x);
+<     //println("pruning ", x . value);
+<     prune(x);
+<     }
+< 
+< function deletionFixup(x)
+<     {
+<     while (root?(x) == :false && x . color == :black)
+<         {
+<         if (red?(sibling(x)))
+<             {
+<             parent(x) . color = :red;
+<             sibling(x) . color = :black;
+<             rotate(sibling(x),parent(x));
+<             // should have black sibling now
+<             assert(sibling(x) . color == :black);
+<             }
+<         else if (red?(nephew(x)))
+<             {
+<             sibling(x) . color = parent(x) . color;
+<             parent(x) . color = :black;
+<             nephew(x) . color = :black;
+<             rotate(sibling(x),parent(x));
+<             x = root;
+<             // subtree is bh balanced
+<             // with proper bh contribution
+<             }
+<         else if (red?(niece(x)))
+<             {
+<             // nephew must be black
+<             niece(x) = :black;
+<             sibling(x) = :red;
+<             rotate(neice(x),sibling(x));
+<             // should have red nephew now
+<             assert(nephew(x) . color == :red);
+<             }
+<         else
+<             {
+<             // sibling, niece, and nephew must be black
+<             sibling(x) . color = :red;
+<             x = parent(x);
+<             // subtree is bh balanced
+<             // but has deficit in bh contribution
+<             }
+<         }
+< 
+<     x . color = :black;
+<     }
+< 
+< function insertionFixup(x)
+<     {
+<     x . color = :red;
+< 
+<     while (root?(x) == :false && x . parent . color == :red)
+<         {
+<         if (red?(uncle(x)))
+<             {
+<             parent(x) . color = :black;
+<             uncle(x) . color = :black;
+<             grandparent(x) . color = :red;
+<             x = grandparent(x);
+<             }
+<         else
+<             {
+<             // uncle must be black
+< 
+<             if (linear?(x, parent(x), grandparent(x)) == :false)
+<                 {
+<                 var oldParent = parent(x);
+<                 rotate(x,parent(x));
+<                 x = oldParent;
+<                 }
+< 
+<             parent(x) . color = :black;
+<             assert(x . parent . color == :black);
+<             grandparent(x) . color = :red;
+<             rotate(parent(x),grandparent(x));
+<             }
+<         }
+< 
+<     root . color = :black;
+<     }
+< 
+< function root?(x) { x == x . parent; }
+< function leftChild?(x) { return parent(x) . left == x; }
+< function rightChild?(x) { return parent(x) . right == x; }
+< function leaf?(x) { x . left == :null && x . right == :null; }
+< function red?(x) { return x != :null && x . color == :red; }
+< function black?(x) { return x == :null || x . color == :black; }
+< 
+< function sibling(x)
+<     {
+<     if (leftChild?(x))
+<         {
+<         x . parent . right;
+<         }
+<     else if (rightChild?(x))
+<         {
+<         x . parent . left;
+<         }
+<     else
+<         {
+<         :null;
+<         }
+<     }
+< function niece(x)       //precondition: sibling exists
+<     {
+<     if (leftChild?(x))
+<         {
+<         sibling(x) . left;
+<         }
+<     else
+<         {
+<         sibling(x) . right;
+<         }
+<     }
+< function nephew(x)      //precondition: sibling exists
+<     {
+<     if (leftChild?(x))
+<         {
+<         sibling(x) . right;
+<         }
+<     else
+<         {
+<         sibling(x) . left;
+<         }
+<     }
+< function parent(x) { x . parent; }
+< function grandparent(x) { parent(x) . parent; }
+< function uncle(x)
+<     {
+<     if (leftChild?(parent(x)))
+<         {
+<         return grandparent(x) . right;
+<         }
+<     else if (rightChild?(parent(x)))
+<         {
+<         return grandparent(x) . left;
+<         }
+<     else
+<         {
+<         return :null;
+<         }
+<     }
+< function linear?(x,y,z)
+<     {
+<     return
+<         ((leftChild?(x)  && leftChild?(y)) ||
+<          (rightChild?(x) && rightChild?(y)));
+<     }
+< 
+< 
+< function rotate(x,p)
+<     {
+<     if (p . left == x) 
+<         {
+<         //rotate right
+<         rotator(x,p,:right,:left);
+<         }
+<     else if (p . right == x)
+<         {
+<         //rotate left
+<         rotator(x,p,:left,:right);
+<         }
+<     else
+<         {
+<         throw("rotate error");
+<         }
+<     }
+< function rotator(x,p,direction,oppositeDirection)
+<     {
+<     var gp = parent(p);
+<     var beta = x . (direction);
+< 
+<     p . (oppositeDirection) = beta;
+<     if (beta != :null) { beta . parent = p; }
+< 
+<     x . (direction) = p;
+<     p . parent = x;
+< 
+<     if (p == gp)
+<         {
+<         root = x;
+<         x . parent = x;
+<         }
+<     else {
+<         if (gp . (direction) == p) { gp . (direction) = x; }
+<         else { gp . (oppositeDirection) = x; }
+<         x . parent = gp;
+<         }
+<     }
+< 
+< function findNode(t, v, op)
+<     {
+<     if (t == :null || v == t . value)
+<         {
+<         t;
+<         }
+<     else if (v op t . value)
+<         {
+<         findNode(t . left, v, op);
+<         }
+<     else
+<         {
+<         findNode(t . right, v, op);
+<         }
+<     }
+< 
+< function main()
+<     {
+<     var i;
+<     var num = :null;
+<     var x;
+<     var input = array(1, 2, 9, 3, 6, 4, 7, 8, 5);
+< 
+<     i = 0;
+<     while (i < length(input))
+<         {
+<         num = input . i;
+<         println("inserting!");
+<         insert(root, num, <);
+<         print(num," inserted.\n");
+<         printTree(root);
+<         i = i + 1;
+<         }
+---
+> (define root nil)
+> (define (assert # $x)
+>     (if (not (eval $x #))
+>         (throw 'assertionError $x)
+>         )
+>     )
+> 
+> (define (node value left right)
+>     (define parent nil)
+>     (define color nil)
+> 
+>     (define (display)
+>         (println "value:  "  value)
+>         (println "left:   "  left)
+>         (println "right:  "  right)
+>         (println "parent: "  parent)
+>         (println "color:  "  color)
+>         )
+> 
+>     this
+>     )
+> 
+> (define (printTree t)
+>     (define (iter r indent)
+>         (if (null? r)
+>             (println "null")
+>             (begin
+>                 (println (. r value)  "("  (. r color)  ")")
+>                 (print indent "left:  ")
+>                 (iter (. r left) (string+ indent "    "))
+>                 (print indent  "right: ")
+>                 (iter (. r right) (string+ indent "    "))
+>                 )
+>             )
+>         )
+> 
+>     (iter t "   ")
+>     )
+> 
+> (define (insert t v op)
+>     (if (null? t)
+>         (begin
+>             (assign root (node v nil nil))
+>             (assign (. root parent) root)
+>             (insertionFixup root)
+>             )
+>         (begin
+>             (define lessThan (op v (. t value)))
+> 
+>             (cond
+>                 ((and lessThan (valid? (. t left)))
+>                     (insert (. t left)  v  op)
+>                     )
+>                 (lessThan
+>                     (assign (. t left) (node v nil nil))
+>                     (assign (. (. t left) parent) t)
+>                     (insertionFixup (. t left))
+>                     )
+>                 ((valid? (. t right))
+>                     (insert (. t right)  v  op)
+>                     )
+>                 (else
+>                     (assign (. t right) (node v nil nil))
+>                     (assign (. (. t right) parent) t)
+>                     (insertionFixup (. t right))
+>                     )
+>                 )
+>             )
+>         )
+>     )
+> (define (prune x)
+>     (assert (leaf? x))
+>     (cond
+>         ((leftChild? x)
+>             (assign (. (parent x) left) nil)
+>             )
+>         ((rightChild? x)
+>             (assign (. (parent x) right) nil)
+>             )
+>         (else
+>             (assign root nil)
+>             )
+>         )
+>     )
+> 
+> (define (swapToLeaf x)
+>     (if (not (leaf? x))
+>         (begin
+>             (define y nil)
+>             (define temp nil)
+> 
+>             (if (valid? (. x right))
+>                 (assign y (findMin (. x right)))
+>                 (assign y (findMax (. x left)))
+>                 )
+> 
+>             (assign temp (. x value))
+>             (assign (. x value) (. y value))
+>             (assign (. y value) temp)
+> 
+>             (swapToLeaf y)
+>             )
+>         x
+>         )
+>     )
+> 
+> (define (findMin x)
+>     (while (valid? (. x left))
+>         (assign x (. x left))
+>         )
+>     x
+>     )
+> 
+> (define (findMax x)
+>     (while (valid? (. x right))
+>         (assign x (. x right))
+>         )
+>     x
+>     )
+> 
+> (define (delete x)
+>     (assign x (swapToLeaf x))
+>     (deletionFixup x)
+>     ; (println "pruning "  (. x value))
+>     (prune x)
+>     )
+> 
+> (define (deletionFixup x)
+>     (while (and (false? (root? x)) (eq? (. x color) 'black))
+>         (cond
+>             ((red? (sibling x))
+>                 (assign (. (parent x) color) 'red)
+>                 (assign (. (sibling x) color) 'black)
+>                 (rotate (sibling x) (parent x))
+>                 ; should have black sibling now
+>                 (assert (eq? (. (sibling x) color) 'black))
+>                 )
+>             ((red? (nephew x))
+>                 (assign (. (sibling x) color) (. (parent x) color))
+>                 (assign (. (parent x) color) 'black)
+>                 (assign (. (nephew x) color) 'black)
+>                 (rotate (sibling x) (parent x))
+>                 (assign x root)
+>                 ; subtree is bh balanced
+>                 ; with proper bh contribution
+>                 )
+>             ((red? (niece x))
+>                 ; nephew must be black
+>                 (assign (. (niece x) color) 'black)
+>                 (assign (. (sibling x) color) 'red)
+>                 (rotate (niece x) (sibling x))
+>                 ; should have red nephew now
+>                 (assert (eq? (. (nephew x) color) 'red))
+>                 )
+>             (else
+>                 ; sibling  niece  and nephew must be black
+>                 (assign (. (sibling x) color) 'red)
+>                 (assign x (parent x))
+>                 ; subtree is bh balanced
+>                 ; but has deficit in bh contribution
+>                 )
+>             )
+> 
+>         (assign (. x color) 'black)
+>         )
+>     )
+> 
+> (define (insertionFixup x)
+>     (assign (. x color) 'red)
+> 
+>     (while (and (not (root? x)) (eq? (. (. x parent) color) 'red))
+>         (if (red? (uncle x))
+>             (begin
+>                 (assign (. (parent x) color) 'black)
+>                 (assign (. (uncle x) color) 'black)
+>                 (assign (. (grandparent x) color) 'red)
+>                 (assign x (grandparent x))
+>                 )
+>             (begin
+>                 ; uncle must be black
+> 
+>                 (if (not (linear? x (parent x) (grandparent x)))
+>                     (begin
+>                         (define oldParent (parent x))
+>                         (rotate x (parent x))
+>                         (assign x oldParent)
+>                         )
+>                     )
+> 
+>                 (assign (. (parent x) color) 'black)
+>                 ;(inspect (. (parent x) color))
+>                 (assert (eq? (. (. x parent) color) 'black))
+>                 (assign (. (grandparent x) color) 'red)
+>                 (rotate (parent x) (grandparent x))
+>                 )
+>             )
+>         )
+>     (assign (. root color) 'black)
+>     )
+> 
+> (define (root? x) (eq? x (. x parent)))
+> (define (leftChild? x) (eq? (. (parent x) left) x))
+> (define (rightChild? x) (eq? (. (parent x) right) x))
+> (define (leaf? x) (and (null? (. x left))(null? (. x right))))
+> (define (red? x) (and (valid? x) (eq? (. x color) 'red)))
+> (define (black? x) (or  (null? x) (eq? (. x color) 'black)))
+> 
+> (define (sibling x)
+>     (cond
+>         ((leftChild? x)
+>             (. (. x parent) right)
+>             )
+>         ((rightChild? x)
+>             (. (. x parent) left)
+>             )
+>         (else
+>             nil
+>             )
+>         )
+>     )
+> 
+> (define (niece x)       ; precondition: sibling exists
+>     (if (leftChild? x)
+>         (. (sibling x) left)
+>         (. (sibling x) right)
+>         )
+>     )
+> 
+> (define (nephew x)      ; precondition: sibling exists
+>     ;(inspect (sibling x))
+>     (if (leftChild? x)
+>         (. (sibling x) right)
+>         (. (sibling x) left)
+>         )
+>     )
+> 
+> (define (parent x) (. x parent))
+> (define (grandparent x) (parent (parent x)))
+> (define (uncle x)
+>     (cond
+>         ((leftChild? (parent x))
+>             (. (grandparent x) right))
+>         ((rightChild? (parent x))
+>             (. (grandparent x) left))
+>         (else
+>             nil)
+>         )
+>     )
+> 
+> (define (linear? x y z)
+>     (or
+>         (and (leftChild? x) (leftChild? y))
+>         (and (rightChild? x) (rightChild? y))
+>         )
+>     )
+> 
+> (define (rotate x p)
+>     (cond
+>         ((eq? (. p left) x) 
+>             ; rotate right
+>             (println "rotating right")
+>             (rotator x p 'right 'left)
+>             )
+>         ((eq? (. p right) x)
+>             ; rotate left
+>             (println "rotating left")
+>             (rotator x p 'left 'right)
+>             )
+>         (else
+>             (throw 'redBlackException "rotate error")
+>             )
+>         )
+>     )
+> 
+> (define (id x) x)
+> 
+> (define (rotator x p direction oppositeDirection)
+>     (define gp (parent p))
+>     (define beta (. x (id direction)))
+> 
+>     (assign (. p (id oppositeDirection)) beta)
+>     (if (valid? beta) (assign (. beta parent) p))
+> 
+>     (assign (. x (id direction)) p)
+>     (assign (. p parent) x)
+> 
+>     (if (eq? p gp)
+>         (begin
+>             (assign root x)
+>             (assign (. x parent) x)
+>             )
+>         (begin
+>             (if (eq? (. gp (id direction)) p)
+>                 (assign (. gp (id direction)) x)
+>                 (assign (. gp (id oppositeDirection)) x)
+>                 )
+>             (assign (. x parent) gp)
+>             )
+>         )
+>     )
+> 
+> (define (findNode t v op)
+>     (cond
+>         ((or (null? t) (eq? v (. t value)))
+>             t
+>             )
+>         ((op v (. t value))
+>             (findNode (. t left) v op)
+>             )
+>         (else
+>             (findNode (. t right) v op)
+>             )
+>         )
+>     )
+> 
+> (define (main)
+>     (define i nil)
+>     (define num nil)
+>     (define x nil)
+>     (define input (array 1  2  9  3  6  4  7  8  5))
+> 
+>     (assign i 0)
+>     (while (< i (length input))
+>         (assign num (getElement input i))
+>         (println "inserting!")
+>         (insert root num <)
+>         (println num " inserted.")
+>         (printTree root)
+>         (assign i (+ i 1))
+>         )
+367,384c332,348
+<     println("insertion phase complete, tree is...");
+<     printTree(root);
+<     println("deletion phase begins...");
+< 
+<     i = 0;
+<     while (i < length(input))
+<         {
+<         num = input . i;
+<         x = findNode(root,num,<);
+<         delete(x);
+<         print(num," deleted.\n");
+<         printTree(root);
+<         i = i + 1;
+<         }
+< 
+<     println("deletion phase complete, tree is...");
+<     print("good-bye!\n");
+<     }
+---
+>     (println "insertion phase complete  tree is...")
+>     (printTree root)
+>     (println "deletion phase begins...")
+> 
+>     (assign i 0)
+>     (while (< i (length input))
+>         (assign num (getElement input i))
+>         (assign x (findNode root num <))
+>         (delete x)
+>         (println num " deleted.")
+>         (printTree root)
+>         (assign i (+ i 1))
+>         )
+> 
+>     (println "deletion phase complete  tree is...")
+>     (println "good-bye!")
+>     )
+386,387c350,351
+< print("hello\n");
+< main();
+---
+> (println "hello");
+> (main)
+402a367
+> rotating left
+422a388,389
+> rotating left
+> rotating right
+467a435,436
+> rotating left
+> rotating right
+486a456
+> rotating left
+507c477
+< insertion phase complete, tree is...
+---
+> insertion phase complete  tree is...
+527a498,499
+> rotating left
+> rotating left
+575a548,549
+> rotating right
+> rotating left
+577,588d550
+< 6(black)
+<    left:  4(black)
+<        left:  null
+<        right: 5(red)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: null
+< 6 deleted.
+590,592c552,553
+<    left:  4(black)
+<        left:  null
+<        right: 5(red)
+---
+>    left:  6(black)
+>        left:  4(black)
+594c555,558
+<            right: null
+---
+>            right: 5(red)
+>                left:  null
+>                right: null
+>        right: null
+598c562
+< 4 deleted.
+---
+> 6 deleted.
+601c565,567
+<        left:  null
+---
+>        left:  4(black)
+>            left:  null
+>            right: null
+606,619c572,573
+< 7 deleted.
+< 8(black)
+<    left:  5(red)
+<        left:  null
+<        right: null
+<    right: null
+< 8 deleted.
+< 5(black)
+<    left:  null
+<    right: null
+< 5 deleted.
+< null
+< deletion phase complete, tree is...
+< good-bye!
+---
+> EXCEPTION: undefinedVariable
+> file rb.s,line 232: variable right is undefined
+------------------------------------------
+recur.s
+------------------------------------------
+32c32,33
+< 5050
+---
+> EXCEPTION: undefinedVariable
+> file recur.s,line 1: variable function is undefined
+------------------------------------------
+recursion.s
+------------------------------------------
+23,423c23,24
+< 399
+< 398
+< 397
+< 396
+< 395
+< 394
+< 393
+< 392
+< 391
+< 390
+< 389
+< 388
+< 387
+< 386
+< 385
+< 384
+< 383
+< 382
+< 381
+< 380
+< 379
+< 378
+< 377
+< 376
+< 375
+< 374
+< 373
+< 372
+< 371
+< 370
+< 369
+< 368
+< 367
+< 366
+< 365
+< 364
+< 363
+< 362
+< 361
+< 360
+< 359
+< 358
+< 357
+< 356
+< 355
+< 354
+< 353
+< 352
+< 351
+< 350
+< 349
+< 348
+< 347
+< 346
+< 345
+< 344
+< 343
+< 342
+< 341
+< 340
+< 339
+< 338
+< 337
+< 336
+< 335
+< 334
+< 333
+< 332
+< 331
+< 330
+< 329
+< 328
+< 327
+< 326
+< 325
+< 324
+< 323
+< 322
+< 321
+< 320
+< 319
+< 318
+< 317
+< 316
+< 315
+< 314
+< 313
+< 312
+< 311
+< 310
+< 309
+< 308
+< 307
+< 306
+< 305
+< 304
+< 303
+< 302
+< 301
+< 300
+< 299
+< 298
+< 297
+< 296
+< 295
+< 294
+< 293
+< 292
+< 291
+< 290
+< 289
+< 288
+< 287
+< 286
+< 285
+< 284
+< 283
+< 282
+< 281
+< 280
+< 279
+< 278
+< 277
+< 276
+< 275
+< 274
+< 273
+< 272
+< 271
+< 270
+< 269
+< 268
+< 267
+< 266
+< 265
+< 264
+< 263
+< 262
+< 261
+< 260
+< 259
+< 258
+< 257
+< 256
+< 255
+< 254
+< 253
+< 252
+< 251
+< 250
+< 249
+< 248
+< 247
+< 246
+< 245
+< 244
+< 243
+< 242
+< 241
+< 240
+< 239
+< 238
+< 237
+< 236
+< 235
+< 234
+< 233
+< 232
+< 231
+< 230
+< 229
+< 228
+< 227
+< 226
+< 225
+< 224
+< 223
+< 222
+< 221
+< 220
+< 219
+< 218
+< 217
+< 216
+< 215
+< 214
+< 213
+< 212
+< 211
+< 210
+< 209
+< 208
+< 207
+< 206
+< 205
+< 204
+< 203
+< 202
+< 201
+< 200
+< 199
+< 198
+< 197
+< 196
+< 195
+< 194
+< 193
+< 192
+< 191
+< 190
+< 189
+< 188
+< 187
+< 186
+< 185
+< 184
+< 183
+< 182
+< 181
+< 180
+< 179
+< 178
+< 177
+< 176
+< 175
+< 174
+< 173
+< 172
+< 171
+< 170
+< 169
+< 168
+< 167
+< 166
+< 165
+< 164
+< 163
+< 162
+< 161
+< 160
+< 159
+< 158
+< 157
+< 156
+< 155
+< 154
+< 153
+< 152
+< 151
+< 150
+< 149
+< 148
+< 147
+< 146
+< 145
+< 144
+< 143
+< 142
+< 141
+< 140
+< 139
+< 138
+< 137
+< 136
+< 135
+< 134
+< 133
+< 132
+< 131
+< 130
+< 129
+< 128
+< 127
+< 126
+< 125
+< 124
+< 123
+< 122
+< 121
+< 120
+< 119
+< 118
+< 117
+< 116
+< 115
+< 114
+< 113
+< 112
+< 111
+< 110
+< 109
+< 108
+< 107
+< 106
+< 105
+< 104
+< 103
+< 102
+< 101
+< 100
+< 99
+< 98
+< 97
+< 96
+< 95
+< 94
+< 93
+< 92
+< 91
+< 90
+< 89
+< 88
+< 87
+< 86
+< 85
+< 84
+< 83
+< 82
+< 81
+< 80
+< 79
+< 78
+< 77
+< 76
+< 75
+< 74
+< 73
+< 72
+< 71
+< 70
+< 69
+< 68
+< 67
+< 66
+< 65
+< 64
+< 63
+< 62
+< 61
+< 60
+< 59
+< 58
+< 57
+< 56
+< 55
+< 54
+< 53
+< 52
+< 51
+< 50
+< 49
+< 48
+< 47
+< 46
+< 45
+< 44
+< 43
+< 42
+< 41
+< 40
+< 39
+< 38
+< 37
+< 36
+< 35
+< 34
+< 33
+< 32
+< 31
+< 30
+< 29
+< 28
+< 27
+< 26
+< 25
+< 24
+< 23
+< 22
+< 21
+< 20
+< 19
+< 18
+< 17
+< 16
+< 15
+< 14
+< 13
+< 12
+< 11
+< 10
+< 9
+< 8
+< 7
+< 6
+< 5
+< 4
+< 3
+< 2
+< 1
+< 0
+< bottom
+---
+> EXCEPTION: undefinedVariable
+> file recursion.s,line 1: variable var is undefined
+------------------------------------------
+reflect.s
+------------------------------------------
+0a1,39
+> include("basics");
+> include("objects");
+> 
+> function x(c)
+>     {
+>     var a = 2,b = 3;
+>     function toString()
+>         {
+>         "x: a is " + a + ", b is " + b + ", c is " + c;
+>         }
+>     this;
+>     }
+> 
+> var m = x(5);
+> var n = m . constructor(8);
+> 
+> println(m . toString());
+> println("n is constructed via m's constructor");
+> println(n . toString());
+> println();
+> 
+> inspect(m . constructor . name);
+> inspect(n . constructor . name);
+> 
+> println();
+> 
+> println("changing m . a to 10");
+> println("changing n . b to 10");
+> 
+> println();
+> 
+> m . a = 10;
+> n . b = 10;
+> 
+> println(m . toString());
+> println(n . toString());
+> ------------------------------------------
+> EXCEPTION: nonFunction
+> file reflect.s,line 1: attempted to call STRING as a function
+------------------------------------------
+reify.s
+------------------------------------------
+29,31c29,30
+< calling superclass:a
+< superclass:a: calling virtual function b
+< subclass:b
+---
+> EXCEPTION: undefinedVariable
+> file reify.s,line 1: variable function is undefined
+------------------------------------------
+return3.s
+------------------------------------------
+42,58c42,43
+< g executing...
+< r is <ERROR 5300>
+< i is 0 and j is 1
+< i is 0 and j is 2
+< i is 0 and j is 3
+< i is 0 and j is 4
+< i is 1 and j is 1
+< i is 1 and j is 2
+< i is 1 and j is 3
+< i is 1 and j is 4
+< i is 2 and j is 1
+< i is 2 and j is 2
+< trying to leave f...
+< g's z is 6
+< g done.
+< 6
+< done
+---
+> EXCEPTION: nonFunction
+> file return3.s,line 1: attempted to call STRING as a function
+------------------------------------------
+return.s
+------------------------------------------
+1,10c1,9
+< function f()
+<     {
+<     var x;
+<     print("entering f\n");
+<     x = {
+<         print("entering block\n");
+<         return 3;
+<         print("leaving block (this should not be displayed)\n");
+<         5;
+<         };
+---
+> (define (f)
+>     (define x)
+>     (println "entering f...")
+>     (if #t
+>         (print("entering block")
+>         //(return 3)
+>         (println "leaving block (this should not be displayed)")
+>         5
+>         }
+11a11,12
+>     //return 22;
+>     print("really leaving f (this should not be displayed)\n");
+14a16
+> var z = 0;
+16c18,20
+< print("f() returns ",f(),"\n");
+---
+> z = f();
+> print("f() returns ",z,"\n");
+> println("done");
+18,21c22,23
+< f() should return 3
+< entering f
+< entering block
+< f() returns 3
+---
+> EXCEPTION: syntaxException
+> file return.s,line 21: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+------------------------------------------
+reverse.s
+------------------------------------------
+35,46c35,36
+< reversing hello
+< reversing ello
+< reversing llo
+< reversing lo
+< reversing o
+< reversing hello
+< reversing ello
+< reversing llo
+< reversing lo
+< reversing o
+< reverse(hello) is olleh
+< reverse2(hello) is olleh
+---
+> EXCEPTION: undefinedVariable
+> file reverse.s,line 1: variable function is undefined
+------------------------------------------
+right.s
+------------------------------------------
+33,35c33,34
+< items . item is 1
+< items . item is 2
+< items . item is 3
+---
+> EXCEPTION: nonFunction
+> file right.s,line 1: attempted to call STRING as a function
+------------------------------------------
+sicp1.s
+------------------------------------------
+848c848
+< (- 21) is 21
+---
+> (- 21) is -21
+912,915c912,915
+< (sqrt 9) is 1.000000
+< (sqrt (+ 100 37)) is 1.000000
+< (sqrt (+ (sqrt 2) (sqrt 3))) is 1.000000
+< (square (sqrt 1000)) is 1.000000
+---
+> (sqrt 9) is 3.000092
+> (sqrt (+ 100 37)) is 11.704700
+> (sqrt (+ (sqrt 2) (sqrt 3))) is 1.773928
+> (square (sqrt 1000)) is 1000.000370
+951c951
+< (stack-depth) is 14
+---
+> (stack-depth) is 20
+953c953
+< (stack-depth) is 18
+---
+> (stack-depth) is 25
+955c955
+< (stack-depth) is 22
+---
+> (stack-depth) is 30
+957c957
+< (stack-depth) is 26
+---
+> (stack-depth) is 35
+959c959
+< (stack-depth) is 30
+---
+> (stack-depth) is 40
+961c961
+< (stack-depth) is 34
+---
+> (stack-depth) is 45
+963c963
+< (stack-depth) is 35
+---
+> (stack-depth) is 46
+965c965
+< (stack-depth) is 39
+---
+> (stack-depth) is 51
+967c967
+< (stack-depth) is 40
+---
+> (stack-depth) is 52
+969c969
+< (stack-depth) is 44
+---
+> (stack-depth) is 57
+971c971
+< (stack-depth) is 45
+---
+> (stack-depth) is 58
+973c973
+< (stack-depth) is 49
+---
+> (stack-depth) is 63
+975c975
+< (stack-depth) is 50
+---
+> (stack-depth) is 64
+977c977
+< (stack-depth) is 54
+---
+> (stack-depth) is 69
+979c979
+< (stack-depth) is 55
+---
+> (stack-depth) is 70
+981c981
+< (stack-depth) is 59
+---
+> (stack-depth) is 75
+983c983
+< (stack-depth) is 60
+---
+> (stack-depth) is 76
+985c985
+< (stack-depth) is 64
+---
+> (stack-depth) is 81
+987c987
+< (stack-depth) is 65
+---
+> (stack-depth) is 82
+989c989
+< (stack-depth) is 69
+---
+> (stack-depth) is 87
+991c991
+< (stack-depth) is 70
+---
+> (stack-depth) is 88
+993c993
+< (stack-depth) is 74
+---
+> (stack-depth) is 93
+995c995
+< (stack-depth) is 75
+---
+> (stack-depth) is 94
+997c997
+< (stack-depth) is 79
+---
+> (stack-depth) is 99
+999c999
+< (stack-depth) is 80
+---
+> (stack-depth) is 100
+1001c1001
+< (stack-depth) is 31
+---
+> (stack-depth) is 41
+1003c1003
+< (stack-depth) is 35
+---
+> (stack-depth) is 46
+1005c1005
+< (stack-depth) is 39
+---
+> (stack-depth) is 51
+1007c1007
+< (stack-depth) is 40
+---
+> (stack-depth) is 52
+1009c1009
+< (stack-depth) is 44
+---
+> (stack-depth) is 57
+1011c1011
+< (stack-depth) is 45
+---
+> (stack-depth) is 58
+1013c1013
+< (stack-depth) is 49
+---
+> (stack-depth) is 63
+1015c1015
+< (stack-depth) is 50
+---
+> (stack-depth) is 64
+1017c1017
+< (stack-depth) is 54
+---
+> (stack-depth) is 69
+1019c1019
+< (stack-depth) is 55
+---
+> (stack-depth) is 70
+1021c1021
+< (stack-depth) is 59
+---
+> (stack-depth) is 75
+1023c1023
+< (stack-depth) is 60
+---
+> (stack-depth) is 76
+1025c1025
+< (stack-depth) is 36
+---
+> (stack-depth) is 47
+1027c1027
+< (stack-depth) is 27
+---
+> (stack-depth) is 36
+1029c1029
+< (stack-depth) is 23
+---
+> (stack-depth) is 31
+1031c1031
+< (stack-depth) is 19
+---
+> (stack-depth) is 26
+1093c1093
+< (half-interval-method <lambda (context)> 1.000000 2.000000) is 1.500000
+---
+> (half-interval-method <lambda (__label)> 1.000000 2.000000) is 1.893066
+1098,1099c1098,1099
+< (fixed-point cos 1.000000) is 0.857553
+< (fixed-point <lambda ()> 1.000000) is 1.381773
+---
+> (fixed-point cos 1.000000) is 0.739082
+> (fixed-point <lambda ()> 1.000000) is 1.258732
+------------------------------------------
+sicp2.s
+------------------------------------------
+1981c1981
+< (map abs (list -10 2.500000 -11.600000 17)) is (-10 2.500000 -11.600000 17)
+---
+> (map abs (list -10 2.500000 -11.600000 17)) is (10 2.500000 11.600000 17)
+------------------------------------------
+sicp2-support.s
+------------------------------------------
+------------------------------------------
+sicp3.s
+------------------------------------------
+1758,1759c1758,1759
+< (define new-withdraw (let ((balance 100)) <lambda (gc . "nsufficient funds")>)) is <function anonymous(amount)>
+< (define (make-withdraw balance) <lambda (gc . "nsufficient funds")>) is <function make-withdraw(balance)>
+---
+> (define new-withdraw (let ((balance 100)) <lambda (0 . "nsufficient funds")>)) is <function anonymous(amount)>
+> (define (make-withdraw balance) <lambda (0 . "nsufficient funds")>) is <function make-withdraw(balance)>
+1832c1832
+< (catch (sum-of-squares (+ a 1) (* a 2))) is <error 24046>
+---
+> (catch (sum-of-squares (+ a 1) (* a 2))) is <error 26875>
+1836c1836
+< (define (make-withdraw balance) <lambda (gc . "nsufficient funds")>) is <function make-withdraw(balance)>
+---
+> (define (make-withdraw balance) <lambda (0 . "nsufficient funds")>) is <function make-withdraw(balance)>
+1841c1841
+< (define (make-withdraw initial-amount) (let ((balance initial-amount)) <lambda (gc . "nsufficient funds")>)) is <function make-withdraw(initial-amount)>
+---
+> (define (make-withdraw initial-amount) (let ((balance initial-amount)) <lambda (0 . "nsufficient funds")>)) is <function make-withdraw(initial-amount)>
+------------------------------------------
+sicp3-support.s
+------------------------------------------
+------------------------------------------
+sine.s
+------------------------------------------
+37,86c37,38
+< # x     y
+< -2.0000000000   -0.9092974268
+< -1.7500000000   -0.9839859469
+< -1.5000000000   -0.9974949866
+< -1.2500000000   -0.9489846194
+< -1.0000000000   -0.8414709848
+< -0.7500000000   -0.6816387600
+< -0.5000000000   -0.4794255386
+< -0.2500000000   -0.2474039593
+< 0.000000e+00    0.000000e+00
+< 0.2500000000    0.2474039593
+< 0.5000000000    0.4794255386
+< 0.7500000000    0.6816387600
+< 1.0000000000    0.8414709848
+< 1.2500000000    0.9489846194
+< 1.5000000000    0.9974949866
+< 1.7500000000    0.9839859469
+< 2.0000000000    0.9092974268
+< 2.2500000000    0.7780731969
+< 2.5000000000    0.5984721441
+< 2.7500000000    0.3816609921
+< 3.0000000000    0.1411200081
+< 3.2500000000    -0.1081951345
+< 3.5000000000    -0.3507832277
+< 3.7500000000    -0.5715613187
+< 4.0000000000    -0.7568024953
+< 4.2500000000    -0.8949893582
+< 4.5000000000    -0.9775301177
+< 4.7500000000    -0.9992927890
+< 5.0000000000    -0.9589242747
+< 5.2500000000    -0.8589344934
+< 5.5000000000    -0.7055403256
+< 5.7500000000    -0.5082790775
+< 6.0000000000    -0.2794154982
+< 6.2500000000    -0.0331792165
+< 6.5000000000    0.2151199881
+< 6.7500000000    0.4500440738
+< 7.0000000000    0.6569865987
+< 7.2500000000    0.8230808790
+< 7.5000000000    0.9379999768
+< 7.7500000000    0.9945987791
+< 8.0000000000    0.9893582466
+< 8.2500000000    0.9226042102
+< 8.5000000000    0.7984871126
+< 8.7500000000    0.6247239538
+< 9.0000000000    0.4121184852
+< 9.2500000000    0.1738894854
+< 9.5000000000    -0.0751511205
+< 9.7500000000    -0.3195191936
+< 10.0000000000   -0.5440211109
+---
+> EXCEPTION: nonFunction
+> file sine.s,line 1: attempted to call STRING as a function
+------------------------------------------
+stack2.s
+------------------------------------------
+33,37c33,34
+< EVALUATION ERROR: :stackError
+< stack2.s,line 10: pop on empty stack
+< 42
+< world
+< hello
+---
+> EXCEPTION: nonFunction
+> file stack2.s,line 1: attempted to call STRING as a function
+------------------------------------------
+stack.s
+------------------------------------------
+38,40c38,39
+< 42
+< world
+< hello
+---
+> EXCEPTION: undefinedVariable
+> file stack.s,line 1: variable function is undefined
+------------------------------------------
+stream.s
+------------------------------------------
+40c40,41
+< [ 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 ]
+---
+> EXCEPTION: undefinedVariable
+> file stream.s,line 1: variable function is undefined
+------------------------------------------
+subset.s
+------------------------------------------
+61,68c61,62
+< [ ] 
+< [ 3 ] 
+< [ 2 ] 
+< [ 2 3 ] 
+< [ 1 ] 
+< [ 1 3 ] 
+< [ 1 2 ] 
+< [ 1 2 3 ] 
+---
+> EXCEPTION: undefinedVariable
+> file subset.s,line 1: variable function is undefined
+------------------------------------------
+super.s
+------------------------------------------
+32,34c32,33
+< hello, there
+< hello, goodbye
+< hello, world
+---
+> EXCEPTION: undefinedVariable
+> file super.s,line 1: variable function is undefined
+------------------------------------------
+swap.s
+------------------------------------------
+15c15,16
+< a is b and b is a
+---
+> EXCEPTION: undefinedVariable
+> file swap.s,line 1: variable function is undefined
+------------------------------------------
+symbol2.s
+------------------------------------------
+26,42c26,27
+< created a thunk...
+< thunk is <THUNK 3237>
+< changing a thunk...
+< sqr is <function sqr(x)>
+< thunk . code = head(sqr . parameters) is x
+< <THUNK 3237>:
+<     context: <OBJECT 966>
+<     code: x
+< forcing thunk, x is ID, x is declared globally with value 10...
+< force(thunk) is 10
+< changing a thunk...
+< thunk . code = symbol("x") is :x
+< <THUNK 3237>:
+<     context: <OBJECT 966>
+<     code: :x
+< forcing thunk, x is SYMBOL...
+< force(thunk) is :x
+---
+> EXCEPTION: undefinedVariable
+> file symbol2.s,line 1: variable function is undefined
+------------------------------------------
+symbol.s
+------------------------------------------
+34,40c34,35
+< obj's a was 2 (should be 2)
+< obj's a is hello (should be hello)
+< obj's a now is 3.2000000000 (should be 3.2)
+< separate calls to symbol("a") compare equal
+< a was wow
+< a is 5
+< a now is 6
+---
+> EXCEPTION: undefinedVariable
+> file symbol.s,line 1: variable var is undefined
+------------------------------------------
+tailassign.s
+------------------------------------------
+27,50c27,28
+< a is (1,2,3,4,5)
+< after set a to its tail, a is (2,3,4,5)
+< length(a) is 4
+< type(a) is :LIST
+< b was set to the original a
+< b is (1,2,3,4,5)
+< length(b) is 5
+< type(b) is :LIST
+< a is (2,3,4 # [11,12,13,14])
+< a is (3,4 # [11,12,13,14])
+< a is (4 # [11,12,13,14])
+< a is [11,12,13,14]
+< a is [12,13,14]
+< a is [13,14]
+< a is [14]
+< 
+< b is (1,2,3,4 # [11,12,13,14])
+< b is (2,3,4 # [11,12,13,14])
+< b is (3,4 # [11,12,13,14])
+< b is (4 # [11,12,13,14])
+< b is [11,12,13,14]
+< b is [12,13,14]
+< b is [13,14]
+< b is [14]
+---
+> EXCEPTION: nonFunction
+> file tailassign.s,line 1: attempted to call STRING as a function
+------------------------------------------
+throw.s
+------------------------------------------
+20c20,21
+< f() returns "throw.s,line 5: variable a is undefined"
+---
+> EXCEPTION: undefinedVariable
+> file throw.s,line 1: variable //var is undefined
+------------------------------------------
+toString.s
+------------------------------------------
+34,52c34,35
+< list(1,2) is [1,2]
+< ----------------
+< "array" + string(array(1,2,3)) is "array[1,2,3]"
+< ----------------
+< fo is <f x:20>
+< ----------------
+< fa is [<f x:20>,<f x:20>]
+< ----------------
+< a is [<f x:1>,<f x:2>,<f x:<f x:20>>,<f x:[<f x:20>,<f x:20>]>]
+< ----------------
+< map(string,a) is ("<f x:1>","<f x:2>","<f x:<f x:20>>","<f x:[<f x:20>,<f x:20>]>")
+< ----------------
+< [<f x:1>,<f x:2>,<f x:<f x:20>>,<f x:[<f x:20>,<f x:20>]>]
+< ----------------
+< map: <f x:1>
+< map: <f x:2>
+< map: <f x:<f x:20>>
+< map: <f x:[<f x:20>,<f x:20>]>
+< ----------------
+---
+> EXCEPTION: syntaxException
+> file toString.s,line 33: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+------------------------------------------
+trace.s
+------------------------------------------
+23,32c23,24
+< tracing f...
+< trace.s,line 5: var result = x,y = 0; 
+< trace.s,line 6: result = x + result; 
+< trace.s,line 7: if (x > 0) { var i = 42; g(); }
+< tracing f...
+< trace.s,line 9: var i = 42; 
+< trace.s,line 10: g(); 
+< in g...
+< trace.s,line 12: result; 
+< f(5) is 10
+---
+> EXCEPTION: nonFunction
+> file trace.s,line 1: attempted to call STRING as a function
+------------------------------------------
+tree2.s
+------------------------------------------
+111,117c111,112
+< inserting 2
+< inserting 3
+< inserting 1
+< looking for 4: not found!
+< looking for 2: it's an interior node!
+< looking for 1: it's a leaf!
+< good-bye!
+---
+> EXCEPTION: undefinedVariable
+> file tree2.s,line 1: variable function is undefined
+------------------------------------------
+tree3.s
+------------------------------------------
+90,96c90,91
+< inserting 2
+< inserting 3
+< inserting 1
+< looking for 4: not found!
+< looking for 2: it's an interior node!
+< looking for 1: it's a leaf!
+< good-bye!
+---
+> EXCEPTION: undefinedVariable
+> file tree3.s,line 1: variable function is undefined
+------------------------------------------
+tree.s
+------------------------------------------
+112,120c112,113
+< hello
+< 1 inserted.
+< 2 inserted.
+< 3 inserted.
+< insertion phase complete, tree is (1 () (2 () (3 () ()))).
+< looking for 4: not found!
+< looking for 2: it's an interior node!
+< looking for 3: it's a leaf!
+< good-bye!
+---
+> EXCEPTION: undefinedVariable
+> file tree.s,line 1: variable var is undefined
+------------------------------------------
+try.s
+------------------------------------------
+28,30c28,29
+< ERROR OBJECT: :mathError
+< try.s,line 17: division: cannot divide by zero
+< try block has a divide error
+---
+> EXCEPTION: undefinedVariable
+> file try.s,line 1: variable function is undefined
+------------------------------------------
+tyro2.s
+------------------------------------------
+16,18c16,17
+< EVALUATION ERROR: :styleViolation
+< tyro2.s,line 6: 
+< indentation is not properly aligned, should be 4 spaces, not 0
+---
+> EXCEPTION: nonFunction
+> file tyro2.s,line 1: attempted to call STRING as a function
+------------------------------------------
+tyro.s
+------------------------------------------
+14,16c14,15
+< EVALUATION ERROR: :styleViolation
+< tyro.s,line 8: 
+< next line continues this line, perhaps a missing semicolon?
+---
+> EXCEPTION: nonFunction
+> file tyro.s,line 1: attempted to call STRING as a function
+------------------------------------------
+uninit.s
+------------------------------------------
+5,6c5,6
+< EVALUATION ERROR: :uninitializedVariable
+< uninit.s,line 3: variable x is uninitialized
+---
+> EXCEPTION: undefinedVariable
+> file uninit.s,line 1: variable var is undefined
+------------------------------------------
+variadic.s
+------------------------------------------
+16,17c16,17
+< goodbye, cruel world
+< goodbye, cruel world
+\ No newline at end of file
+---
+> EXCEPTION: undefinedVariable
+> file variadic.s,line 1: variable function is undefined
+------------------------------------------
+variation2.s
+------------------------------------------
+34,39c34,35
+< (x()) . a() yields...
+< x:a() -> hello
+< x:b() -> goodbye
+< (y()) . a() yields...
+< x:a() -> hello
+< y:b() -> au revoir
+---
+> EXCEPTION: undefinedVariable
+> file variation2.s,line 1: variable function is undefined
+------------------------------------------
+variation3.s
+------------------------------------------
+36,42c36,37
+< x-obj . a() yields...
+< x:a() -> hello
+< x:b() -> goodbye
+< y-obj . a() yields...
+< x:a() -> hello
+< y:b() -> au revoir
+< run the old version of b, via prior: x:b() -> goodbye
+---
+> EXCEPTION: undefinedVariable
+> file variation3.s,line 1: variable function is undefined
+------------------------------------------
+variation.s
+------------------------------------------
+32,37c32,33
+< (x()) . a() yields...
+< x:a() -> hello
+< x:b() -> goodbye
+< (y()) . a() yields...
+< x:a() -> hello
+< y:b() -> au revoir
+---
+> EXCEPTION: undefinedVariable
+> file variation.s,line 1: variable function is undefined
+------------------------------------------
+virtual2.s
+------------------------------------------
+21,23c21,22
+< a: x is 0
+< b: x is 1
+< a: x is 1
+---
+> EXCEPTION: undefinedVariable
+> file virtual2.s,line 1: variable function is undefined
+------------------------------------------
+virtual.s
+------------------------------------------
+62,83c62,63
+< number of x objects created: 2
+< 5: x's a, calling b
+<    x's b, calling a
+< 4: x's a, calling b
+<    x's b, calling a
+< 3: x's a, calling b
+<    x's b, calling a
+< 2: x's a, calling b
+<    x's b, calling a
+< 1: x's a, calling b
+<    x's b, calling a
+< 0: x's a
+< ------------------------------
+< y's a, calling b
+< y's b, calling x's version of a
+< 3: x's a, calling b
+< y's b, calling x's version of a
+< 2: x's a, calling b
+< y's b, calling x's version of a
+< 1: x's a, calling b
+< y's b, calling x's version of a
+< 0: x's a
+---
+> EXCEPTION: undefinedVariable
+> file virtual.s,line 1: variable var is undefined
+------------------------------------------
+while2.s
+------------------------------------------
+55,65c55,56
+< before calling f(0)
+< in while, returning!
+< after calling f(0)
+< before calling f(1)
+< in fwhile, returning!
+< after calling f(1)
+< before calling g()
+<     calling function r()
+<     in function r
+<     done calling function r()
+< after calling g()
+---
+> EXCEPTION: undefinedVariable
+> file while2.s,line 1: variable function is undefined
+------------------------------------------
+while3.s
+------------------------------------------
+36,57c36,37
+< run through i and j, stopping when i * j is 9
+< 0 * 0 is 0
+< 0 * 1 is 0
+< 0 * 2 is 0
+< 0 * 3 is 0
+< 0 * 4 is 0
+< 0 * 5 is 0
+< 0 * 6 is 0
+< 0 * 7 is 0
+< 0 * 8 is 0
+< 0 * 9 is 0
+< 1 * 0 is 0
+< 1 * 1 is 1
+< 1 * 2 is 2
+< 1 * 3 is 3
+< 1 * 4 is 4
+< 1 * 5 is 5
+< 1 * 6 is 6
+< 1 * 7 is 7
+< 1 * 8 is 8
+< 1 * 9 is 9
+< done
+---
+> EXCEPTION: undefinedVariable
+> file while3.s,line 1: variable function is undefined
+------------------------------------------
+while-else.s
+------------------------------------------
+39,44c39,40
+< i is 0
+< i is 1
+< i is 2
+< i is 3
+< i is 4
+< i was too large!
+---
+> EXCEPTION: undefinedVariable
+> file while-else.s,line 1: variable var is undefined
+------------------------------------------
+while.s
+------------------------------------------
+33,58c33,34
+< while as imperative statement
+< i is 0
+< i is 1
+< i is 2
+< i is 3
+< i is 4
+< i is 5
+< i is 6
+< i is 7
+< i is 8
+< i is 9
+< while as a function call
+< i is 9
+< i is 8
+< i is 7
+< i is 6
+< i is 5
+< i is 4
+< i is 3
+< i is 2
+< i is 1
+< i is 0
+< user while that returns from global scope
+< forcing test
+< forcing body
+< returning!
+---
+> EXCEPTION: undefinedVariable
+> file while.s,line 1: variable function is undefined
+------------------------------------------
+wire.s
+------------------------------------------
+1,25c1,19
+< function wire()
+<     {
+<     var value = 0;  //initial (nonsensical) value
+<     var downstream = :null;
+<     function register(object)
+<         {
+<         downstream = object join downstream;
+<         object . recalculate();
+<         }
+<     function inform(object)
+<         {
+<         object . recalculate();
+<         }
+<     function set(newValue)
+<         {
+<         if (newValue != value)
+<             {
+<             value = newValue;
+<             map(inform, downstream);
+<             }
+<         }
+<     function get()
+<         {
+<         return(value);
+<         }
+---
+> (define (wire )
+>     (define value 0)  ;initial (nonsensical) value
+>     (define downstream nil)
+>     (define (register object)
+>         (assign downstream (cons object downstream))
+>         ((. object recalculate))
+>         )
+>     (define (inform object)
+>         ((. object recalculate))
+>         )
+>     (define (set newValue)
+>         (if (!= newValue value)
+>             (begin
+>                 (assign value newValue)
+>                 (map inform downstream)
+>                 )
+>             )
+>         )
+>     (define (get) value)
+27,28c21,22
+<     this;
+<     }
+---
+>     this
+>     )
+------------------------------------------
+with.s
+------------------------------------------
+26,29c26,27
+< o . x is 3
+< o . y is 4
+< o . x is 10
+< o . y is 13
+---
+> EXCEPTION: nonFunction
+> file with.s,line 1: attempted to call STRING as a function
+------------------------------------------
+x.s
+------------------------------------------
+10c10,11
+< this is defined!
+---
+> EXCEPTION: nonFunction
+> file x.s,line 1: attempted to call STRING as a function
+------------------------------------------
+z.s
+------------------------------------------
+16,18c16,17
+< obj . a is 4
+< obj . a is 4
+< obj . a is 4
+---
+> EXCEPTION: undefinedVariable
+> file z.s,line 1: variable function is undefined
+------------------------------------------
+zsieve.s
+------------------------------------------
+65,66c65,66
+< this takes a while...
+< [ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101 103 107 109 113 127 131 137 139 149 151 157 163 167 173 179 181 191 193 197 199 211 223 227 229 ]
+---
+> EXCEPTION: undefinedVariable
+> file zsieve.s,line 1: variable function is undefined
 ------------------------------------------

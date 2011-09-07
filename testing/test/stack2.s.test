@@ -30,8 +30,5 @@ if (:true)
     println(s . pop());
     }
 ------------------------------------------
-EVALUATION ERROR: :stackError
-stack2.s,line 10: pop on empty stack
-42
-world
-hello
+EXCEPTION: nonFunction
+file stack2.s,line 1: attempted to call STRING as a function

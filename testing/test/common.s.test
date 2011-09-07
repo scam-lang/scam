@@ -32,5 +32,7 @@
 (println "x's uncommon count is " (. (. xish uncommon) count))
 (println "y's uncommon count is " (. (. yish uncommon) count))
 ------------------------------------------
-EXCEPTION: undefinedVariable
-file reflection.s,line 26: variable $field is undefined
+x's common count is 2
+y's common count is 2
+x's uncommon count is 1
+y's uncommon count is 1

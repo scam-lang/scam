@@ -4,7 +4,7 @@
     (define time 0)
     (define actions (priorityQueue))
     (define (schedule # $action delay)          ;action is delayed!
-        ((. actions enqueue) $action  (+ time delay))
+        ((. actions enqueue) (thunk $action #)  (+ time delay))
         )
     (define (run)
         (while (not((. actions empty)))

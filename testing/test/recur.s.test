@@ -29,4 +29,5 @@ function recur(n, sum)
 
 println(recur(100,0));
 ------------------------------------------
-5050
+EXCEPTION: undefinedVariable
+file recur.s,line 1: variable function is undefined

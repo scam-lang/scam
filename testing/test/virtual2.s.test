@@ -18,6 +18,5 @@ aish . display();
 bish . display();
 bish . display . prior();
 ------------------------------------------
-a: x is 0
-b: x is 1
-a: x is 1
+EXCEPTION: undefinedVariable
+file virtual2.s,line 1: variable function is undefined

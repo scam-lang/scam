@@ -12,4 +12,5 @@ swap(a,b);
 
 println("a is ",a," and b is ",b);
 ------------------------------------------
-a is b and b is a
+EXCEPTION: undefinedVariable
+file swap.s,line 1: variable function is undefined

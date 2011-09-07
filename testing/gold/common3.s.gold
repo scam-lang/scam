@@ -1,25 +1,30 @@
-include("basics");
+(include "inherit.lib")
 
-var common = 0;
+(define (+= # $v value)
+    (set! (__id $v) (+ (eval $v #) value) #)
+    )
 
-function z()
-    {
-    var uncommon = 0;
-    common += 1;
-    uncommon += 1;
-    this;
-    }
+(define common 0)
 
-function x()
-    {
-    proxy(z());
-    this;
-    }
+(define (z)
+    (define parent nil)
+    (define uncommon 0)
+    (+= common 1)
+    (+= uncommon 1)
+    this
+    )
 
-inspect(x() . common);
-inspect(x() . uncommon);
-inspect(x() . common);
+(define (x)
+    (define parent (z))
+    this
+    )
+
+(inspect (get 'common (new (x))))
+(inspect (get 'common (new (x))))
+(inspect (get 'uncommon (new (x))))
+(inspect (get 'uncommon (new (x))))
 ------------------------------------------
-x() . common is 1
-x() . uncommon is 1
-x() . common is 3
+(get (quote common) (new (x))) is 1
+(get (quote common) (new (x))) is 2
+(get (quote uncommon) (new (x))) is 1
+(get (quote uncommon) (new (x))) is 1

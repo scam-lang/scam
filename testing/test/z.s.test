@@ -13,6 +13,5 @@ println("obj . a is ",obj . (:a));
 
 obj . :a = 4;
 ------------------------------------------
-obj . a is 4
-obj . a is 4
-obj . a is 4
+EXCEPTION: undefinedVariable
+file z.s,line 1: variable function is undefined

@@ -23,23 +23,5 @@ else
     print("oops!\n");
     }
 ------------------------------------------
-function (test,$tBranch,$fBranch)
-    {
-    var oldIf = context . context . if;
-    print("the test is ",test,"
-");
-    oldIf (test)
-        {
-        while (:false)
-            {
-            println("huh");
-            }
-        force($tBranch);
-        }
-    else
-        {
-        force($fBranch);
-        }
-    }
-the test is true
-three *is* less than 4!
+EXCEPTION: undefinedVariable
+file if4.s,line 1: variable var is undefined

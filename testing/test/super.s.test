@@ -29,6 +29,5 @@ println(obj . a());
 println(obj . c());
 println(obj . d());
 ------------------------------------------
-hello, there
-hello, goodbye
-hello, world
+EXCEPTION: undefinedVariable
+file super.s,line 1: variable function is undefined

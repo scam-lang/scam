@@ -52,14 +52,5 @@ println("before calling g()");
 g();
 println("after calling g()");
 ------------------------------------------
-before calling f(0)
-in while, returning!
-after calling f(0)
-before calling f(1)
-in fwhile, returning!
-after calling f(1)
-before calling g()
-    calling function r()
-    in function r
-    done calling function r()
-after calling g()
+EXCEPTION: undefinedVariable
+file while2.s,line 1: variable function is undefined

@@ -44,20 +44,5 @@ println("call if with too many arguments");
 
 if (:true,1,1,1);
 ------------------------------------------
-EVALUATION ERROR: :argumentCountError
-if3.s,line 8: too many arguments to if
-the test is true
-naughts!
-the test is false
-the test is true
-onesies!
-the test is false
-the test is false
-the test is true
-binary!
-the test is false
-the test is false
-the test is false
-the test is true
-trinary!
-call if with too many arguments
+EXCEPTION: undefinedVariable
+file if3.s,line 1: variable var is undefined

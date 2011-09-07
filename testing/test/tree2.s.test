@@ -108,10 +108,5 @@ function main()
 
 main();
 ------------------------------------------
-inserting 2
-inserting 3
-inserting 1
-looking for 4: not found!
-looking for 2: it's an interior node!
-looking for 1: it's a leaf!
-good-bye!
+EXCEPTION: undefinedVariable
+file tree2.s,line 1: variable function is undefined

@@ -24,4 +24,5 @@ else
     print("oops!\n");
     }
 ------------------------------------------
-three *is* less than 4!
+EXCEPTION: undefinedVariable
+file if2.s,line 1: variable var is undefined

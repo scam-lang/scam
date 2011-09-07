@@ -59,25 +59,5 @@ xish . a();
 println("------------------------------");
 yish . a();
 ------------------------------------------
-number of x objects created: 2
-5: x's a, calling b
-   x's b, calling a
-4: x's a, calling b
-   x's b, calling a
-3: x's a, calling b
-   x's b, calling a
-2: x's a, calling b
-   x's b, calling a
-1: x's a, calling b
-   x's b, calling a
-0: x's a
-------------------------------
-y's a, calling b
-y's b, calling x's version of a
-3: x's a, calling b
-y's b, calling x's version of a
-2: x's a, calling b
-y's b, calling x's version of a
-1: x's a, calling b
-y's b, calling x's version of a
-0: x's a
+EXCEPTION: undefinedVariable
+file virtual.s,line 1: variable var is undefined

@@ -30,6 +30,5 @@ include("basics");
         items = items . next;
         }
 ------------------------------------------
-items . item is 1
-items . item is 2
-items . item is 3
+EXCEPTION: nonFunction
+file right.s,line 1: attempted to call STRING as a function

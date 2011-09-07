@@ -2,37 +2,39 @@
 
 (define z
     (scope
-        (define z_shared (scope (define shared-count 0) this))
+        (define z_shared
+            (scope
+                (define parent nil)
+                (define shared-count 0)
+                this
+                )
+            )
 
         (define (z)
+            (define parent z_shared)
             (define count 0)
-            (extend z_shared)
+            (assign count (+ count 1))
+            (assign (. parent shared-count) (+ (. parent shared-count) 1))
             this
             )
         )
     )
 
 (define (x)
-    (extend (z))
+    (define parent (z))
     )
 
 (define (y)
-    (extend (z))
+    (define parent (z))
     )
 
-(define xish (x))
-(define yish (y))
-(define zish (z))
+(define xish (new (x)))
+(define yish (new (y)))
+(define zish (new (z)))
 
-(set! 'count 1 yish)
-(set! 'count 2 zish)
-
-(set! 'shared-count 11 yish)
-(set! 'shared-count 22 xish)
-
-(println "x's count is " (get 'count xish))
-(println "y's count is " (get 'count yish))
-(println "z's count is " (get 'count zish))
 (println "x's common count is " (get 'shared-count xish))
 (println "y's common count is " (get 'shared-count yish))
 (println "z's common count is " (get 'shared-count zish))
+(println "x's count is " (get 'count xish))
+(println "y's count is " (get 'count yish))
+(println "z's count is " (get 'count zish))

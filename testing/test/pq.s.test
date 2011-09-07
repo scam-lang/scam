@@ -29,24 +29,5 @@ function main()
 
 main();
 ------------------------------------------
-enqueueing: 3
-    first item is 3
-    first rank is 6
-enqueueing: 2
-    first item is 2
-    first rank is 4
-enqueueing: 0
-    first item is 0
-    first rank is 0
-enqueueing: 1
-    first item is 0
-    first rank is 0
-enqueueing: 4
-    first item is 0
-    first rank is 0
-
-dequeueing: 0
-dequeueing: 1
-dequeueing: 2
-dequeueing: 3
-dequeueing: 4
+EXCEPTION: nonFunction
+file pq.s,line 1: attempted to call STRING as a function

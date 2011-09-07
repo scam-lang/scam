@@ -4,11 +4,16 @@
 (include "reflection.lib")
 
 (define (resetClosures static obj)
+    ;(println "reifying " obj " to " static)
     (define (update current rest)
-        (if (closure? current) (set! __context static current))
-        (if (neq? rest nil) (update (car rest) (cdr rest)))
+        (if (closure? current)
+            (begin
+                ;(println "setting context of " (. current name) " to " static)
+                (set! __context static current))
+                )
+        (if (valid? rest) (update (car rest) (cdr rest)))
         )
-    (define values (locals obj))
+    (define values (localValues obj))
     ;(println "locals are " values)
     (if (!= values nil) (update (car values) (cdr values)))
     obj
@@ -24,7 +29,9 @@
               child
               )
         )
-    (set! __label (. (. child __constructor) name) child)
+    (if (valid? (. child __constructor))
+        (set! __label (. child __constructor name) child)
+        )
     child
     )
 

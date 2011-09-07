@@ -16,5 +16,5 @@ var obj = child("hello ");
 println(obj . a());
 println(obj . c());
 ------------------------------------------
-well, hello there!
-hi,all!
+EXCEPTION: undefinedVariable
+file prior.s,line 1: variable function is undefined

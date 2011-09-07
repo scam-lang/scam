@@ -25,6 +25,5 @@
         println("try block has a divide error");
         }
 ------------------------------------------
-ERROR OBJECT: :mathError
-try.s,line 17: division: cannot divide by zero
-try block has a divide error
+EXCEPTION: undefinedVariable
+file try.s,line 1: variable function is undefined
