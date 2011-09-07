@@ -150,27 +150,6 @@ lambda(int args)
     return  makeClosure(car(args),name,params,body,ADD_BEGIN);
     }
 
-/* (or # a $b) */
-
-static int
-or(int args)
-    {
-    if (cadr(args) == trueSymbol) return trueSymbol;
-
-    return makeThunk(caddr(args),car(args));
-    }
-
-/* (and # a $b) */
-
-static int
-and(int args)
-    {
-    if (cadr(args) == falseSymbol) return falseSymbol;
-    //debug("and",caddr(args));
-
-    return makeThunk(caddr(args),car(args));
-    }
-
 static int
 not(int args)
     {
@@ -812,6 +791,14 @@ divides(int args)
         {
         b = car(args);
         newType = type(b);
+
+        if ((newType == INTEGER && ival(b) == 0)
+        ||  (newType == REAL && rval(b) == 0.0))
+            return throw(mathExceptionSymbol,
+                "file %s,line %d: "
+                "divide by zero",
+                SymbolTable[fi],li
+                );
 
         if (oldType == INTEGER && newType == INTEGER)
             itotal /= ival(b);
@@ -2980,6 +2967,48 @@ rreal(int args)
         type(a),INTEGER,STRING);
     }
 
+static int
+sstring(int args)
+    {
+    int a = car(args);
+    char buffer[1024];
+
+    if (type(a) == STRING) return a;
+    
+    if (type(a) == INTEGER)
+        {
+        snprintf(buffer,sizeof(buffer),"%d",ival(a));
+        return newString(buffer);
+        }
+
+    if (type(a) == SYMBOL)
+        {
+        snprintf(buffer,sizeof(buffer),"%s",SymbolTable[ival(a)]);
+        return newString(buffer);
+        }
+
+    if (type(a) == REAL)
+        {
+        snprintf(buffer,sizeof(buffer),"%f",rval(a));
+        return newString(buffer);
+        }
+
+    return throw(exceptionSymbol,
+        "file %s,line %d: "
+        "int: argument is type %s (should be %s or %s)",
+        SymbolTable[file(args)],line(args),
+        type(a),REAL,STRING);
+    }
+        
+
+/* (address item) */
+
+static int
+address(int args)
+    {
+    return newInteger(car(args));
+    }
+
 /* (stack-depth) */
 
 static int
@@ -3092,6 +3121,14 @@ loadBuiltIns(int env)
     BuiltIns[count] = rreal;
     b = makeBuiltIn(env,
         newSymbol("real"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = sstring;
+    b = makeBuiltIn(env,
+        newSymbol("string"),
         ucons(newSymbol("item"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
@@ -3680,22 +3717,10 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = and;
+    BuiltIns[count] = address;
     b = makeBuiltIn(env,
-        newSymbol("and"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("a"),
-                ucons(newSymbol("$b"),0))),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = or;
-    b = makeBuiltIn(env,
-        newSymbol("or"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("a"),
-                ucons(newSymbol("$b"),0))),
+        newSymbol("address"),
+        ucons(newSymbol("item"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

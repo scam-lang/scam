@@ -134,6 +134,7 @@ extern int messageSymbol;
 extern int spacerSymbol;
 extern int defineSymbol;
 extern int exceptionSymbol;
+extern int mathExceptionSymbol;
 extern int lexicalExceptionSymbol;
 extern int syntaxExceptionSymbol;
 extern int nonFunctionSymbol;

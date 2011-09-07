@@ -1,3 +1,5 @@
+(include "reflection.lib")
+
 (define (id x) x)
 (define (__id x) x)
 (define nil? null?)
@@ -40,12 +42,12 @@
 
 ; object-related functions
 
-(define old-type type)
+(define __type type)
 
 (define (type x)
-    (if (and (eq? (old-type x) 'CONS) (eq? (car x) 'object))
+    (if (and (eq? (__type x) 'CONS) (eq? (car x) 'object))
         (get __label x)
-        (old-type x)
+        (__type x)
         )
     )
 
@@ -61,7 +63,6 @@
     obj
     )
 
-(define scam.s-old-and and)
 (define (and # $)
     (define (iter items)
         (cond
@@ -72,7 +73,6 @@
         )
     (iter $)
     )
-(define scam.s-old-or or)
 (define (or # $)
     (define (iter items)
         (cond
@@ -260,3 +260,42 @@
     items
     )
 
+(define __string+ string+)
+(define (string+ str @)
+    (while (valid? @)
+        (assign str (__string+ str (string (car @))))
+        (assign @ (cdr @))
+        )
+    str
+    )
+
+(define __string string)
+(define (string x)
+    (cond
+        ((pair? x) (list-to-string x))
+        (else (__string x))
+        )
+    )
+(define (list-to-string x)
+    (define (iter z)
+        (cond
+            ((null? (cdr z))
+                (string+ (string (car z)) ")")
+                )
+            ((pair? (cdr z))
+                (string+ (string (car z)) " " (iter (cdr z)))
+                )
+            (else
+                (string+ (string (car z)) " . " (string (cdr z)))
+                )
+            )
+        )
+    (cond
+        ((thunk? x) (string+ "<thunk " (address x) ">"))
+        ((closure? x) (string+ "<closure " (address x) ">"))
+        ((error? x) (string+ "<error " (address x) ">"))
+        ((environment? x) (string+ "<environment " (address x) ">"))
+        ((object? x) (string+ "<object " (address x) ">"))
+        (else (string+ "(" (iter x)))
+        )
+    )

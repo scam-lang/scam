@@ -92,6 +92,8 @@ parse(PARSER *p)
     {
     int result,end;
 
+    if (check(p,END_OF_INPUT)) return 0;
+
     result = exprSeq(p);
     rethrow(result,0);
     end = match(p,END_OF_INPUT);

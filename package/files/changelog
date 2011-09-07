@@ -1,3 +1,9 @@
+scam (0.1.6)
+
+  * can now parse an empty file
+  * added the string coercion function
+  * removed non-variadic versions of and, or
+
 scam (0.1.5)
 
   * changed environment predefineds to __context, __level, __label, etc.
