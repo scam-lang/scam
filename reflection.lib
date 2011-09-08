@@ -2,7 +2,9 @@
 (define (is? x y)
     (cond
         ((null? x) #f)
-        ((eq? (class x) y) #t)
+        ((not (environment? x)) (eq? (type x) y))
+        ((and (environment? x) (or (eq? y 'environment) (eq? y 'object))) #t)
+        ((and (valid? (. x __constructor)) (eq? (. x __constructor name) y)) #t)
         (else (and (local? parent x) (is? (. x parent) y)))
         )
     )

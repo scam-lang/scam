@@ -1348,7 +1348,8 @@ assign(int args)
         return set(args);
 
     //printf("type of id is %s\n",type(id));
-    if (type(id) != CONS || !sameSymbol(car(id),dotSymbol))
+    if (type(id) != CONS
+    || !(sameSymbol(car(id),dotSymbol) || sameSymbol(car(id),DOTSymbol)))
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "cannot assign to type %s",

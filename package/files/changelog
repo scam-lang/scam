@@ -4,6 +4,7 @@ scam (0.1.6)
   * added the string coercion function
   * removed non-variadic versions of and, or
   * updated inherit.lib to reflect new object organization
+  * added ++ and -- operators
 
 scam (0.1.5)
 

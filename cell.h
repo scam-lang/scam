@@ -142,6 +142,7 @@ extern int returnSymbol;
 extern int levelSymbol;
 extern int eqSymbol;
 extern int dotSymbol;
+extern int DOTSymbol;
 extern int assignSymbol;
 extern int undefinedVariableSymbol;
 extern int uninitializedVariableSymbol;

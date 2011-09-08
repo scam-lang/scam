@@ -39,6 +39,8 @@
 (define (-= # $v value) (set! (__id $v) (- (eval $v #) value) #))
 (define (*= # $v value) (set! (__id $v) (* (eval $v #) value) #))
 (define (/= # $v value) (set! (__id $v) (/ (eval $v #) value) #))
+(define (++ # $v) (set! (__id $v) (+ (eval $v #) 1) #))
+(define (-- # $v) (set! (__id $v) (- (eval $v #) 1) #))
 
 ; object-related functions
 
@@ -302,3 +304,4 @@
 
 (define (thunk code env) this)
 (define (force item) (eval (. item code) (. item env)))
+(define dot .)

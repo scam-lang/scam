@@ -1,0 +1,314 @@
+\chapter{Objects}
+\label{Objects}
+
+In the Scam world, an object is a simple a collection of related variables.
+You've already been exposed to objects, although you may not
+have realized it. When you created a variable, you modified
+the environment, which is an object. When you defined a
+function, you created 
+an object. To view an object, we use the predefined function
+{\it pp}.\footnote{
+The {\it pp} in the function names stands for {\it pretty print} which
+means to print out something so it is 'pretty looking'.
+} Evaluating the code:
+
+\begin{verbatim}
+    (define (square x)
+        (* x x)
+        )
+    
+    (pp square)
+\end{verbatim}
+
+yields something similar to the following output:
+
+\begin{verbatim}
+    <object 10435>
+             __label  : closure
+           __context  : <object 10381>
+                name  : square
+          parameters  : (x)
+                code  : (begin (* x x))
+\end{verbatim}
+
+We see that the {\it square} function is made up of five {\it fields}.\footnote{
+Some people use the term {\it component} or {\it instance variable} instead
+of {\it field}.
+Also, if you try this, you may see different numbers than 10435 and 10381.
+These numbers represent the address of the object in memory.
+}
+These fields are: {\it __label}, {\it __context}, {\it name}, \it parameters},
+and {\it code}.
+
+Usually, an object lets you look at its individual components.
+For example:
+
+\begin{verbatim}
+    (println "square's formal parameters are: " (dot square parameters))
+\end{verbatim}
+
+yields:
+
+\begin{verbatim}
+    square's formal parameters are: (x)
+\end{verbatim}
+    
+We use the function {\it dot} (usually called the {\it dot operator}) to extract
+the fields of an object.
+
+It is easy to create your own objects. First you must make a
+{\it constructor}. A constructor is just a function that returns 
+the predefined variable {\it this}. Suppose you want a constructor to
+create an object with fields {\it name} and {\it age}. Here is 
+one possibility:
+
+\begin{verbatim}
+    (define (person)
+        (define name)
+        (define age)
+        this
+        )
+\end{verbatim}
+
+We can create an object simply by calling the constructor:
+
+\begin{verbatim}
+    (define p (person))
+\end{verbatim}
+
+The variable {\it p} now points to a {\it person} object and we
+can use {\it p} and the {\it dot} operator to
+set the fields of the person object:
+
+\begin{verbatim}
+    (assign (dot p name) "Boris")
+    (assign (dot p age) 33)
+    (inspect (dot p name))
+\end{verbatim}
+
+Evaluating this code yields the following output:
+
+\begin{verbatim}
+    (dot p name) is Boris
+\end{verbatim}
+
+It is often convenient to give initial values to the fields of
+an object. Here is another version of {\it person} that allows us
+to do just that when we create the object:
+
+\begin{verbatim}
+    (define (person name age) this)
+        
+    (define p (person "Boris" 33))
+        
+    (inspect (dot p name))
+\end{verbatim}
+
+The output is the same:
+
+\begin{verbatim}
+    (dot p name) is Boris
+\end{verbatim}
+
+In general, if a field is to be initialized when the object
+is constructed, make that field a formal parameter. If not,
+make the field a locally declared variable.
+
+\section{Adding Methods}
+
+Objects can have methods as well.\footnote{
+A method is just another name for a local function.
+}
+Here's a version of the
+{\it person} constructor that has a {\it birthday} method.
+
+\begin{verbatim}
+    (define (person name age)
+        (define (birthday)
+            (println "Happy Birthday, " name "!")
+            (++ age)
+            )
+        this
+        )
+        
+    (define p (person "Boris" 33))
+    ((dot p birthday))
+    (inspect (dot p age))
+\end{verbatim}
+
+The output of this code is:
+
+\begin{verbatim}
+    Happy Birthday, Boris!
+    (dot p age) is 34
+\end{verbatim}
+
+In summary, one turns a function into a constructor by making returning
+
+\begin{verbatim}
+    this
+\end{verbatim}
+
+from a function. The local variables, including
+formal parameters, become the fields of the function while
+any local functions serve as methods.
+
+\section{Objects and Types}
+
+If you were to ask an object, "What are you?", most
+would respond, "I am an environment!". The {\it type} function is
+used to ask such questions:
+
+\begin{verbatim}
+    (define p (person "betty" 19))
+    (inspect (type p))
+\end{verbatim}
+
+yields:
+
+\begin{verbatim}
+    (type p) is environment
+\end{verbatim}
+
+This is because the predifined variable {\it this} always points to
+the current environment and when we return this from a function
+we are returning an environment. Since environments are objects
+and vice versa, this is how making objects in Scam is so easy.
+
+While the type function is often useful, we sometimes 
+would like to know what kind of specific object an object is.
+For example, we might like to 
+know whether or not {\it p} is a person object. One way to do this
+is to ask the constructor of the object if it is the person function.
+Luckily, all objects carry along a pointer to the function
+that constructed them:
+
+\begin{verbatim}
+    (define p (person "veronica" 20))
+    (inspect (dot p __constructor name))
+\end{verbatim}
+
+yields:
+
+\begin{verbatim}
+    (dot p __constructor name) is person
+\end{verbatim}
+
+So, to ask if {\it p} is a person, we would use the following
+expression:
+
+\begin{verbatim}
+    (if (and (eq? (type p) 'environment)
+             (eq? (dot p __constructor name) 'person)) ...
+\end{verbatim}
+
+Since this construct is rather wordy, there
+is a simple function, named {\it is?}, that you can use instead:
+
+\begin{verbatim}
+    (if (is? p 'person) ...
+\end{verbatim}
+
+The {\it is} function works for non-objects too. All of the following
+expressions are true:
+
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    (is? 3 'INTEGER)
+    (is? 3.4 'REAL)
+    (is? "hello" 'STRING)
+    (is? 'blue 'SYMBOL)
+    (is? (list 1 2 3) 'CONS)
+    (is? (array "a" "b" "c") 'ARRAY)
+    (is? (array "a" "b" "c") 'ARRAY)
+    (is? (person 'veronica 20) 'object)
+    (is? (person 'veronica 20) 'environment)
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+\section{A formal view of object-orientation}
+
+Scam is a fully-featured object-oriented language. What does
+that mean exactly? Well, to begin with, a programming language
+is considered object-oriented if it has these
+three features:
+
+\begin{enumerate}
+\item
+    encapsulation
+\item
+    inheritance
+\item
+    polymorphism
+\end{enumerate}
+
+Encapsulation in this sense means that a programmer
+can bundle {\it data} and {\it methods} into a single entity.
+We've seen that a Scam function can
+have local variables and local functions.
+So, if we consider local variables (including the formal
+parameters) as data and local
+functions as methods, we see that Scam can encapsulate
+in the object-oriented sense.
+
+Inheritance is the ability to use the data and methods
+of one kind of object by another as if they were defined
+in the other object to begin with.
+
+Polymorphism means that an object that inherits appears
+to be both kinds of object, the kind of object it is
+itself and the kind of object from which it inherits.
+We will learn more about inheritance and
+polymorphism in a later chapter.
+
+\section{Using the {\it objects} library}
+
+If you include the {\it objects} library,
+you can add {\it toString} methods to your objects.
+Then when you display the objects, the {\it toString}
+method is called to help generate the output.
+Here is an example:
+
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    function person(name,age)
+        {
+        function birthday()
+            {
+            println("Happy Birthday, ",name,"!");
+            age = age + 1;
+            }
+        function toString()
+            {
+            name + "(age " + age + ")";
+            }
+        this;
+        }
+
+    var p = person("boris",33);
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+Given the above definition of {\it person}, printing the value of {\it p}:
+
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    println(p);
+\end{verbatim}
+\end{codesize}
+\color{black}
+
+yields:
+
+\color{CodeGreen}
+\begin{codesize}
+\begin{verbatim}
+    boris (age 33)
+\end{verbatim}
+\end{codesize}
+\color{black}

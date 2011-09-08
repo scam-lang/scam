@@ -71,6 +71,7 @@ int returnSymbol;
 int levelSymbol;
 int eqSymbol;
 int dotSymbol;
+int DOTSymbol;
 int assignSymbol;
 int undefinedVariableSymbol;
 int uninitializedVariableSymbol;
@@ -179,6 +180,7 @@ memoryInit(int memsize)
     returnSymbol         = newSymbol("return");
     eqSymbol             = newSymbol("=");
     dotSymbol            = newSymbol(".");
+    DOTSymbol            = newSymbol("dot");
     assignSymbol         = newSymbol("assign");
     undefinedVariableSymbol = newSymbol("undefinedVariable");
     uninitializedVariableSymbol = newSymbol("uninitializedVariable");
