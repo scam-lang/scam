@@ -4,9 +4,9 @@
 
 (define (g)
     (define error)
-    (set! 'error (catch (h)))
+    (set! error (catch (h)))
     (println "rethrowing error")
-    (throw error);
+    (throw error)
     )
 
 (define (h)

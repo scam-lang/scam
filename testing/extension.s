@@ -1,18 +1,17 @@
-function x()
-    {
-    var a = 3;
+(include "inherit.lib")
 
-    this;
-    }
+(define (x)
+    (define parent nil)
+    (define a 3)
+    this
+    )
 
-function y()
-    {
-    var b = 5;
+(define (y)
+    (define parent (x))
+    (define b 5)
+    this
+    )
 
-    proxy(x());
-    }
-
-var z = y();
-println("z = y(); z . a is ", z . a);
-println("(y()) . a is ", (y()) . a);
-println(".(y(),a) is ", .(y(),a));
+(define z (new (y)))
+(println "z = y(); z . a is " (. z a))
+(println "new(y()) . a is " (. (new (y)) a))

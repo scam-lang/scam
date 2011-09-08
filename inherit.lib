@@ -1,8 +1,6 @@
 ; Java style inheritance in three functions (really two, super is not needed)
 ; linear time
 
-(include "reflection.lib")
-
 (define (resetClosures static obj)
     ;(println "reifying " obj " to " static)
     (define (update current rest)

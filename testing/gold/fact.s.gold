@@ -1,13 +1,27 @@
-include("fib.s");
+(println "starting fact.s")
+(println "including fib.s")
 
-function fact(n)
-    {
-    if (n < 2,n,n * fact(n - 1));
-    }
+(include "fib.s")
 
-println("fib(5) is ",fib(5));
-println("fact(5) is ",fact(5));
+(define (fact n)
+    (if (< n 2)
+        1
+        (* n (fact (- n 1)))
+        )
+    )
 
+(println "fact: fib(5) is " (fib 5))
+(println "fact: fact(5) is " (fact 5))
+
+(println "fact.s included - SHOULD ONLY SEE THIS ONCE");
 ------------------------------------------
-fib(5) is 5
-fact(5) is 120
+starting fact.s
+including fib.s
+starting fib.s
+including fact.s
+fib: fib(10) is 55
+0 seconds
+fib.s included - SHOULD ONLY SEE THIS ONCE
+fact: fib(5) is 5
+fact: fact(5) is 120
+fact.s included - SHOULD ONLY SEE THIS ONCE

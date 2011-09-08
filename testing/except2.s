@@ -1,9 +1,9 @@
 (define (try # $error $a $b)
     (define result (catch (eval $a #)))
-    (if (== (type result) 'error)
+    (if (error? result)
         (begin
-            (set! $error result #)
-            (set! 'result (eval $b #))
+            (set! (__id $error) result #)
+            (set! result (eval $b #))
             )
         )
     result
@@ -24,9 +24,9 @@
             ; change hiy to hey in the next uncommented line and you get 100
             ; change hiy to hay in the next uncommented line and you get 33
             (throw 'hiy "ouch")
-            (set! 'result (normalize 1 2))
+            (set! result (normalize 1 2))
             )
-        (if (== (get 'code error) 'nonFunction)
+        (if (== (get code error) 'nonFunction)
             (begin
                 (println "not a function!")
                 (set! 'result 2)

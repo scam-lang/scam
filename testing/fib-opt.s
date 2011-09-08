@@ -1,19 +1,13 @@
-include("fact.s");
-
 function fib(n)
-    {
-    if (n < 2)
-	{
-	n;
-	}
-    else
-	{
-	fib(n - 1) + fib(n - 2);
-	}
-    }
-var x = 0;
-var result;
-var t = time();
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        )
+    )
+
+(define x 0)
+(define result)
+(define t (time))
 
 x = 26;
 

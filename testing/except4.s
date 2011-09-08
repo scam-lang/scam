@@ -1,10 +1,10 @@
 (define (f x)
     (define result nil)
     (println "beginning f(" x ").")
-    (set! 'result (catch (g (* 2 x))))
-    (if (== (type result) 'error)
-        (if (== (get 'code result) 'undefinedVariable)
-            (set! 'result x)
+    (set! result (catch (g (* 2 x))))
+    (if (error? result)
+        (if (== (get code result) 'undefinedVariable)
+            (set! result x)
             (begin
                 (println "rethrowing the error");
                 (throw result)
@@ -17,9 +17,9 @@
 (define (g y)
     (define result nil)
     (println "beginning g(" y ").")
-    //(throw 'undefinedVariable "take that!")
+    ;(throw 'undefinedVariable "take that!")
     (throw 'myError "take that!")
-    (set! 'result (* mnenom y))
+    (set! result (* mnenom y))
     (println "done with g(" y ").")
     result
     )

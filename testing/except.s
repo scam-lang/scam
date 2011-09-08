@@ -1,6 +1,6 @@
 (define (try # $a $b)
     (define result (catch (eval $a #)))
-    (if (== (type result) 'error)
+    (if (error? result)
         (eval $b #)
         result
         )

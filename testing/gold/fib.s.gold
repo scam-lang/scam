@@ -1,30 +1,28 @@
-include("fact.s");
+(println "starting fib.s")
+(println "including fact.s")
 
-function fib(n)
-    {
-    if (n < 2)
-        {
-        n;
-        }
-    else
-        {
-        fib(n - 1) + fib(n - 2);
-        }
-    }
-var x = 0;
-var result;
-var t = time();
+(include "fact.s")
 
-x = 22;
-result = fib(x);
-display("fib(");
-display(x);
-display(") is ");
-display(result);
-display("\n");
-display(time() - t);
-display(" seconds");
-display("\n");
+(define (fib n)
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        )
+    )
+(define x 0)
+(define result nil)
+(define t (time))
+
+(set! 'x 10)
+(set! 'result (fib x))
+(println "fib: fib(" x ") is " result)
+(println (- (time) t) " seconds")
+
+(println "fib.s included - SHOULD ONLY SEE THIS ONCE");
 ------------------------------------------
-fib(22) is 17711
-2 seconds
+starting fib.s
+including fact.s
+starting fact.s
+including fib.s
+EXCEPTION: undefinedVariable
+file fact.s,line 13: variable fib is undefined
