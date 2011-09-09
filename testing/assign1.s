@@ -58,6 +58,11 @@
     (inspect (r-zorp 3 (lambda (x) (* x x))))
     (inspect (r-zorp 4 (lambda (x) (* x x))))
     (inspect (r-zorp 5 (lambda (x) (* x x))))
+    (inspect (zorp 1 (lambda (x) (* x x))))
+    (inspect (zorp 2 (lambda (x) (* x x))))
+    (inspect (zorp 3 (lambda (x) (* x x))))
+    (inspect (zorp 4 (lambda (x) (* x x))))
+    (inspect (zorp 5 (lambda (x) (* x x))))
     )
 
 (define (my-square x) (* x x))
@@ -82,16 +87,66 @@
         (cond
             ((= store 0) a)
             (else
-                (iter b c 
-                    (+ 
+                (iter
+                    b c (+ c (/ (my-square (- c b)) (+ a (* -2 b) c)))
+                    (- store 1)
+                    )
+                )
+            )
+        )
+    (iter (f 0) (f 1) (f 2) i)
+    )
+
 
 (define (run7)
-    (println "I'm to tired to test!")
+    (inspect (square 5))
+    (inspect (halve 6))
+    (inspect (halve 5))
+    (inspect (halve 4))
+    (inspect (babyl* 7 8))
+    (inspect (babyl* 9 9))
+    )
+
+(define (square n)
+    (define (iter result store)
+        (cond
+            ((= store 1) result)
+            (else (iter (+ result store store -1) (- store 1)))
+            )
+        )
+    (iter 1 n)
+    )
+
+(define (halve n)
+    (define (iter result store)
+        (cond
+            ((= store 0) result)
+            ((= (% store 2) 0) (iter (+ result 1) (- store 1)))
+            (else (iter result (- store 1)))
+            )
+        )
+    (iter 0 n)
+    )
+
+(define (babyl* a b)
+    (/ (- (square (+ a b)) (square a) (square b)) 2)
     )
 
 (define (run8)
     (println "I'm to tired to test!")
     )
+
+(define (ecf terms)
+    (cond
+        ((= terms 0) 2)
+        (else
+            (+ (ecf (- terms 1))
+               (/ 1.0 (+ (* 2 terms) 1))
+               )
+            )
+        )
+    )
+
 
 (define (run9)
     (println "I'm to tired to test!")
