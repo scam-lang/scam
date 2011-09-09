@@ -53,8 +53,37 @@
     )
 
 (define (run6)
-    (println "I'm to tired to test!")
+    (inspect (r-zorp 1 (lambda (x) (* x x))))
+    (inspect (r-zorp 2 (lambda (x) (* x x))))
+    (inspect (r-zorp 3 (lambda (x) (* x x))))
+    (inspect (r-zorp 4 (lambda (x) (* x x))))
+    (inspect (r-zorp 5 (lambda (x) (* x x))))
     )
+
+(define (my-square x) (* x x))
+(define (r-zorp i f)
+    (cond
+        ((< i 3) (f i))
+        (else
+            (+  (r-zorp (- i 1) f)
+                (/  (my-square (- (r-zorp (- i 1) f) (r-zorp (- i 2) f)))
+                    (+  (r-zorp (- i 3) f)
+                        (* -2 (r-zorp (- i 2) f))
+                        (r-zorp (- i 1) f)
+                        )
+                    )
+                )
+            )
+        )
+    )
+
+(define (zorp i f)
+    (define (iter a b c store)
+        (cond
+            ((= store 0) a)
+            (else
+                (iter b c 
+                    (+ 
 
 (define (run7)
     (println "I'm to tired to test!")
