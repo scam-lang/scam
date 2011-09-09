@@ -5,6 +5,7 @@ scam (0.1.6)
   * removed non-variadic versions of and, or
   * updated inherit.lib to reflect new object organization
   * added ++ and -- operators
+  * added pretty.lib for pretty printing code
 
 scam (0.1.5)
 

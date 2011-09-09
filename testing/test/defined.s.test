@@ -18,5 +18,5 @@
 methodList is [-,+,++]
 - is defined!
 + is defined!
-++ is not defined.
+++ is defined!
 (defined? (quote defined?) this) is #t
