@@ -2283,7 +2283,7 @@ oopen(int args)
             type(mode));
         }
 
-    debug("new port",result);
+    //debug("new port",result);
     return result;
     }
 

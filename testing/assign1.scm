@@ -20,13 +20,13 @@
     (inspect (min8 2 3 1 4 5 6 7 8))
     )
 
+(define (min8 a b c d e f g h)
 (define (min2 a b) (if (< a b) a b))
 (define (min3 a b c) (if (< a b) (min2 a c) (min2 b c)))
 (define (min4 a b c d) (if (< a b) (min3 a c d) (min3 b c d)))
 (define (min5 a b c d e) (if (< a b) (min4 a c d e) (min4 b c d e)))
 (define (min6 a b c d e f) (if (< a b) (min5 a c d e f) (min5 b c d e f)))
 (define (min7 a b c d e f g) (if (< a b) (min6 a c d e f g) (min6 b c d e f g)))
-(define (min8 a b c d e f g h)
     (if (< a b) (min7 a c d e f g h) (min7 b c d e f g h))
     )
         

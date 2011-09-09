@@ -23,12 +23,7 @@
     )
 
 (define (defined? # id env)
-    (define item id)
-    (if (pair? id) 
-        (define item (eval id #))
-        (define item id)
-        )
-    (define result (catch (get (__id id) env)))
+    (define result (catch (eval id #)))
     (not (error? result))
     )
 

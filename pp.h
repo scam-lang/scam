@@ -5,6 +5,7 @@ extern void ppList(FILE *,char *,int,char *,int);
 extern void ppArray(FILE *,char *,int,char *,int);
 extern void ppCons(FILE *,int,int);
 extern void ppTable(FILE *,int,int);
+extern void ppFunction(FILE *,int,int);
 extern void debug(char *,int);
 
 extern int ppQuoting;

@@ -12,10 +12,10 @@
         run1
         run2
         run3
-        ;run4
-        ;run5
-        ;run6
-        ;run7
+        run4
+        run5
+        run6
+        run7
         ;run8
         )
     )
@@ -43,7 +43,7 @@
                 (iter (cdr stuff))
                 )
             (else
-                (ignore-errors (lambda () (eval (car stuff) env)))
+                (catch (eval (car stuff) env))
                 (iter (cdr stuff))
                 )
             )
@@ -61,7 +61,7 @@
                 )
             (else
                 (println "test: " (car stuff))
-                (ignore-errors (lambda () (eval (car stuff) env)))
+                (catch (eval (car stuff) env))
                 (iter (cdr stuff))
                 )
             )
@@ -74,7 +74,7 @@
         (define answer
              (if (null? stuff)
                  nil
-                 ;(ignore-errors (lambda () (eval (car stuff) env)))
+                 ;(catch (eval (car stuff) env))
                  (eval (car stuff) env)
                  )
              )
@@ -137,48 +137,60 @@
 
 (define (jcl-run4)
     (define tests '(
-        ((curry + 1) 1)
+        (root3 8.0)
+        (root3 27.0)
         ))
 
-    (prettyPrinter '(curry) (lambda () #t))
+    (prettyPrinter '(root3) __context)
 
-    (functionTester tests (lambda () #t))
+    (functionTester tests this)
     )
 
 ;;;;; exercise 5 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (jcl-run5)
     (define tests '(
-        (egypt/ 56 1960)
+        (pt 8)
+        (pt 15)
         ))
 
-    (prettyPrinter '(egypt/) (lambda () #t))
+    (prettyPrinter '(pt) __context)
 
-    (functionTester tests (lambda () #t))
+    (procedureTester tests this)
     )
 
 ;;;;; exercise 6 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (jcl-run6)
     (define tests '(
-        (mystery 0)
+        (zorp 0 (lambda (x) (* x x)))
+        (zorp 1 (lambda (x) (* x x)))
+        (zorp 2 (lambda (x) (* x x)))
+        (zorp 3 (lambda (x) (* x x)))
+        (zorp 4 (lambda (x) (* x x)))
         ))
 
-    (prettyPrinter '(mystery) (lambda () #t))
+    (prettyPrinter '(zorp) __context)
 
-    (functionTester tests (lambda () #t))
+    (functionTester tests this)
     )
+
 
 ;;;;; exercise 7 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (jcl-run7)
     (define tests '(
-        (mystery2 0)
+        (halve 2)
+        (halve 16)
+        (square 3)
+        (square 5)
+        (babyl* 9 8)
+        (babyl* 8 9)
         ))
 
-    (prettyPrinter '(mystery2) (lambda () #t))
+    (prettyPrinter '(halve square babyl*) __context)
 
-    (functionTester tests (lambda () #t))
+    (functionTester tests this)
     )
 
 ;;;;; exercise 8 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

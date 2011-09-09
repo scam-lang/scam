@@ -84,9 +84,12 @@ eval(int expr, int env)
 
         if (isThrow(result))
             {
-            push(result);
-            error_trace(result) = cons(expr,error_trace(result));
-            result = pop();
+            if (!(type(expr) == CONS) || !(sameSymbol(car(expr),beginSymbol)))
+                {
+                push(result);
+                error_trace(result) = cons(expr,error_trace(result));
+                result = pop();
+                }
             break;
             }
 
