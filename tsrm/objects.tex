@@ -349,6 +349,7 @@ To do so would be a scope violation.
 We solve this problem by {\it cloning} the two printing functions.
 The process of cloning produces new closures with 
 the local environment as the definition environment.
+In all other respects, the cloned function is identical.
 Thus, when the new {\it print} calls {\it display}, the new, local version 
 will be found.
 
