@@ -37,7 +37,8 @@ of {\it field}.
 Also, if you try this, you may see different numbers than 10435 and 10381.
 These numbers represent the address of the object in memory.
 }
-These fields are: {\it __label}, {\it __context}, {\it name}, \it parameters},
+These fields are: {\it \_\_label}, {\it \_\_context}, {\it name},
+{\it parameters},
 and {\it code}.
 
 Usually, an object lets you look at its individual components.
@@ -54,7 +55,8 @@ yields:
 \end{verbatim}
     
 We use the function {\it dot} (usually called the {\it dot operator}) to extract
-the fields of an object.
+the fields of an object. The first argument to dot is the object, while
+the second is the field name. The field name does not have to be quoted.
 
 It is easy to create your own objects. First you must make a
 {\it constructor}. A constructor is just a function that returns 
@@ -170,7 +172,7 @@ yields:
     (type p) is environment
 \end{verbatim}
 
-This is because the predifined variable {\it this} always points to
+This is because the predefined variable {\it this} always points to
 the current environment and when we return this from a function
 we are returning an environment. Since environments are objects
 and vice versa, this is how making objects in Scam is so easy.
@@ -178,7 +180,10 @@ and vice versa, this is how making objects in Scam is so easy.
 While the type function is often useful, we sometimes 
 would like to know what kind of specific object an object is.
 For example, we might like to 
-know whether or not {\it p} is a person object. One way to do this
+know whether or not {\it p} is a {\it person} object.
+That is to say,
+was {\it p} created by the {\it person} function/constructor?.
+One way to do this
 is to ask the constructor of the object if it is the person function.
 Luckily, all objects carry along a pointer to the function
 that constructed them:
@@ -194,6 +199,10 @@ yields:
     (dot p __constructor name) is person
 \end{verbatim}
 
+Note that:
+\verb!(dot p __constructor name)!
+is equivalent to
+\verb!(dot (dot p __constructor) name)!.
 So, to ask if {\it p} is a person, we would use the following
 expression:
 
@@ -212,8 +221,6 @@ is a simple function, named {\it is?}, that you can use instead:
 The {\it is} function works for non-objects too. All of the following
 expressions are true:
 
-\color{CodeGreen}
-\begin{codesize}
 \begin{verbatim}
     (is? 3 'INTEGER)
     (is? 3.4 'REAL)
@@ -221,12 +228,10 @@ expressions are true:
     (is? 'blue 'SYMBOL)
     (is? (list 1 2 3) 'CONS)
     (is? (array "a" "b" "c") 'ARRAY)
-    (is? (array "a" "b" "c") 'ARRAY)
     (is? (person 'veronica 20) 'object)
     (is? (person 'veronica 20) 'environment)
+    (is? (person 'veronica 20) 'person)
 \end{verbatim}
-\end{codesize}
-\color{black}
 
 \section{A formal view of object-orientation}
 
@@ -256,59 +261,110 @@ in the object-oriented sense.
 Inheritance is the ability to use the data and methods
 of one kind of object by another as if they were defined
 in the other object to begin with.
+The next chapter deals with inheritance.
 
 Polymorphism means that an object that inherits appears
 to be both kinds of object, the kind of object it is
 itself and the kind of object from which it inherits.
-We will learn more about inheritance and
-polymorphism in a later chapter.
+We will learn more about
+polymorphism in the next chapter as well.
 
-\section{Using the {\it objects} library}
+\section{Other objects in Scam}
 
-If you include the {\it objects} library,
-you can add {\it toString} methods to your objects.
-Then when you display the objects, the {\it toString}
-method is called to help generate the output.
+While environments constitute the bulk of objects in
+Scam, two other object types are built into Scam. They are closures
+(seen the the first section) and error objects. The
+main library adds in a third object type known as a thunk.
+
+An error object is generated when an exception is caught.
+The fields of an error object are code, value, and trace.
+A thunk is an expression and an environment bundled
+together. Thunks are used to delay evaluation of
+an expression for a later time. The fields of a thunk
+are {\it code} and {\it \_\_context}.
+You can learn more about error objects and thunks
+in subsequent chapters.
+
+\section{Fun with {\it objects}}
+
+Because of the flexibility of Scam, one can
+add Java-like display behavior to objects.
+In Java, if an object has a method named {\it toString},
+then if one attempts to print the object, the {\it toString}
+method is called to generate the print value of the object.
+
 Here is an example:
 
-\color{CodeGreen}
-\begin{codesize}
 \begin{verbatim}
-    function person(name,age)
-        {
-        function birthday()
-            {
-            println("Happy Birthday, ",name,"!");
-            age = age + 1;
-            }
-        function toString()
-            {
-            name + "(age " + age + ")";
-            }
-        this;
-        }
+    (define (person name age)
+        (define (birthday)
+            (println "Happy Birthday, " name "!")
+            (++ age)
+            )
+        (define (toString)
+            (string+ name "(age " age ")")
+            )
+        this
+        )
 
-    var p = person("boris",33);
+    (define p (person "boris" 33))
 \end{verbatim}
-\end{codesize}
-\color{black}
 
 Given the above definition of {\it person}, printing the value of {\it p}:
 
-\color{CodeGreen}
-\begin{codesize}
 \begin{verbatim}
-    println(p);
+    (println p)
 \end{verbatim}
-\end{codesize}
-\color{black}
 
 yields:
 
-\color{CodeGreen}
-\begin{codesize}
+\begin{verbatim}
+    <object 23452>
+\end{verbatim}
+
+Uh oh. The {\it toString} method wasn't called! This is because
+the current version of {\it println}, defined in {\it main.lib},
+does not understand the {\it toString}
+method. No problem here, we'll just reassign {\it display},
+since {\it println} calls {\it print} and {\it print} calls {\it display}
+to do the actual printing:
+
+\begin{verbatim}
+    (define (display  item)
+        (if (and (object? item) (local? 'toString item))
+            (__display ((dot item toString)))
+            (__display item)
+            )
+        )
+\end{verbatim}
+
+The main library binds the original version of {\it display}
+to the symbol {\it \_\_display} for
+safe-keeping.
+
+Note that this new version of {\it display} is only found in the local
+environment, so the current versions of {\it println} and {\it print}, defined
+in an outer scope, cannot see the new version of.
+To do so would be a scope violation.
+We solve this problem by {\it cloning} the two printing functions.
+The process of cloning produces new closures with 
+the local environment as the definition environment.
+Thus, when the new {\it print} calls {\it display}, the new, local version 
+will be found.
+
+\begin{verbatim}
+    (include "clone.lib")
+
+    (define print (clone print))
+    (define println (clone println))
+
+    (println p)
+\end{verbatim}
+
+The clone library must be included to access the {\it clone} function.
+
+Now, printing the object {\it p} yields:
+
 \begin{verbatim}
     boris (age 33)
 \end{verbatim}
-\end{codesize}
-\color{black}

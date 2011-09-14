@@ -1,5 +1,7 @@
 (include "reflection.lib")
 
+(define __builtin __context)
+(define __main-lib this)
 (define (id x) x)
 (define (__id x) x)
 (define nil? null?)
@@ -88,6 +90,21 @@
 (define (dec x) (- x 1))
 (define (inc x) (+ x 1))
 
+(define __display display)
+(define display __display)
+(define (print @)
+    (while (valid? @)
+        (display (car @))
+        (assign @ (cdr @))
+        )
+    'print-done
+    )
+
+(define (println @)
+    (apply print @)
+    (print "\n")
+    )
+
 (define (let # $inits $)
     (define v nil)
     (define e (scope this))
@@ -115,7 +132,6 @@
 (define (positive? n) (> n 0))
 
 (define (newline) (println))
-(define (display x) (print x))
 (define remainder %)
 (define (append a b)
     (cond
@@ -302,7 +318,7 @@
         )
     )
 
-(define (thunk code env) this)
+(define (thunk code __context) this)
+(define (thunk? item) (is item 'thunk))
 (define (force item) (eval (. item code) (. item env)))
 (define dot .)
-

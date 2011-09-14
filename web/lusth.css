@@ -34,6 +34,10 @@ code,tt,pre    {
     color: #006633;
     }
 
+ul,li {
+    padding-bottom: 10px;
+    }
+
 table {
     padding-top: 10px;
     padding-bottom: 10px;

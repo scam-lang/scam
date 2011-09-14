@@ -1089,33 +1089,16 @@ scope(int args)
     return evalList(cadr(args),env,ALLBUTLAST);
     }
 
-/* (print @) */
+/* (display item) */
 
 static int
-print(int args)
-    {
-    int last = 0;
-    FILE *port = OpenPorts[CurrentOutputIndex];
-
-    args = car(args);
-
-    while (args != 0)
-        {
-        last = car(args);
-        pp(port,car(args));
-        args = cdr(args);
-        }
-
-    return last;
-    }
-
-static int
-println(int args)
+display(int args)
     {
     FILE *port = OpenPorts[CurrentOutputIndex];
-    int result = print(args);
-    fprintf(port,"\n");
-    return result;
+
+    pp(port,car(args));
+
+    return car(args);
     }
 
 static int
@@ -3523,18 +3506,10 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = print;
+    BuiltIns[count] = display;
     b = makeBuiltIn(env,
-        newSymbol("print"),
-        ucons(atSymbol,0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = println;
-    b = makeBuiltIn(env,
-        newSymbol("println"),
-        ucons(atSymbol,0),
+        newSymbol("display"),
+        ucons(newSymbol("item"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

@@ -10,7 +10,6 @@
     )
 (define (object? x) (and (pair? x) (eq? (car x) 'object)))
 (define (closure? x) (and (object? x) (eq? (class x) 'closure)))
-(define (thunk? x) (and (object? x) (eq? (class x) 'thunk)))
 (define (error? x) (and (object? x) (eq? (class x) 'error)))
 (define (environment? x) (and (object? x) (eq? (class x) 'environment)))
 
