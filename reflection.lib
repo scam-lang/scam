@@ -5,7 +5,7 @@
         ((not (environment? x)) (eq? (type x) y))
         ((and (environment? x) (or (eq? y 'environment) (eq? y 'object))) #t)
         ((and (valid? (. x __constructor)) (eq? (. x __constructor name) y)) #t)
-        (else (and (local? parent x) (is? (. x parent) y)))
+        (else (and (local? 'parent x) (is? (. x parent) y)))
         )
     )
 (define (object? x) (and (pair? x) (eq? (car x) 'object)))
@@ -14,11 +14,8 @@
 (define (environment? x) (and (object? x) (eq? (class x) 'environment)))
 
 
-(define (local? # $id env)
-    (if (pair? $id)
-        (member? (eval $id #) (localNames env))
-        (member? $id (localNames env))
-        )
+(define (local? id env)
+    (member? id (localNames env))
     )
 
 (define (defined? # id env)
@@ -32,5 +29,49 @@
 
 (define (localValues env)
     (caddr env)
+    )
+
+(define (prior #)
+    (define f (dot # __constructor))
+    (cond
+        ((and (valid? f) (local? '__prior f))
+            (get __prior f)
+            )
+        ((valid? f)
+            (define name (dot f name))
+            (define denv (dot f __context))
+            (define vars (localNames denv))
+            (define vals (localValues denv))
+            (define started #f)
+            (define found #f)
+            (define result nil)
+            (while (and (not found) (valid? vars))
+                (cond
+                    ((and started (eq? name (car vars)))
+                        (assign found #t)
+                        (assign result (car vals))
+                        )
+                    ((and (eq? name (car vars)) (eq? f (car vals)))
+                        (assign started #t)
+                        )
+                    )
+                (assign vars (cdr vars))
+                (assign vals (cdr vals))
+                )
+            result
+            )
+        (else nil)
+        )
+    )
+
+(define (setPrior f g)
+    (cond
+        ((local? '__prior f)
+            (set! __prior g)
+            )
+        (else
+            (addSymbol '__prior g f)
+            )
+        )
     )
 
