@@ -58,3 +58,6 @@
     (set! __context parent #)
     #
     )
+
+(define (setEnclosingScope a b) (assign (dot a __context) b))
+(define (getEnclosingScope a) (dot a __context))
