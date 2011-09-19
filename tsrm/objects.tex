@@ -344,7 +344,8 @@ safe-keeping.
 
 Note that this new version of {\it display} is only found in the local
 environment, so the current versions of {\it println} and {\it print}, defined
-in an outer scope, cannot see the new version of.
+in an outer scope, cannot see the new version of {\it display} in the current
+scope.
 To do so would be a scope violation.
 We solve this problem by {\it cloning} the two printing functions.
 The process of cloning produces new closures with 
