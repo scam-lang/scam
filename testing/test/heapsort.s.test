@@ -86,39 +86,5 @@
 (inspect (get 'parameters extremal))
 ------------------------------------------
 about to build-heap...
-heapifying element 16
-element 16 has been heapified
-heapifying element 15
-element 15 has been heapified
-heapifying element 14
-element 14 has been heapified
-heapifying element 13
-element 13 has been heapified
-heapifying element 12
-element 12 has been heapified
-heapifying element 11
-element 11 has been heapified
-heapifying element 10
-element 10 has been heapified
-heapifying element 9
-element 9 has been heapified
-heapifying element 8
-element 8 has been heapified
-heapifying element 7
-element 7 has been heapified
-heapifying element 6
-element 6 has been heapified
-heapifying element 5
-element 5 has been heapified
-heapifying element 4
-element 4 has been heapified
-heapifying element 3
-element 3 has been heapified
-heapifying element 2
-element 2 has been heapified
-heapifying element 1
-element 1 has been heapified
-heapifying element 0
-element 0 has been heapified
-EXCEPTION: undefinedVariable
-file heapsort.s,line 8: variable setElement! is undefined
+EXCEPTION: generalException
+file heapsort.s,line 50: set identifier resolved to type CONS, not SYMBOL

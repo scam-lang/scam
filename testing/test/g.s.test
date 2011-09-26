@@ -13,4 +13,5 @@
 
 (print "g(" x ") is " (g x) "\n")
 ------------------------------------------
-g(10) is 3628800
+EXCEPTION: generalException
+file g.s,line 5: set identifier resolved to type CONS, not SYMBOL

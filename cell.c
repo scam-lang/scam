@@ -13,8 +13,8 @@
 int MemorySpot;
 int MemorySize =  2 * 2 * 2 * 2 * 4 * 16 * 32 * 64; 
 int StackPtr = 0;
-int Stack[1000];
-int StackSize = sizeof(Stack) / sizeof(int);
+int StackSize = STACKSIZE;
+int *Stack;
 
 int zero;
 int one;
@@ -98,6 +98,10 @@ static int rootBottom;
 void
 memoryInit(int memsize)
     {
+    Stack = (int *) malloc(sizeof(int) * StackSize);
+    if (Stack == 0)
+        Fatal("could not allocate Stack\n");
+
     SymbolTable = (char **) malloc(MaxSymbols * sizeof(char *));
     if (SymbolTable == 0)
         Fatal("could not allocate Symbol table\n");
@@ -483,6 +487,56 @@ void push(int i)
     }
 
 static int
+transferBackbone(int old,int limit)
+    {
+    int size;
+    char *t = type(old);
+
+    if (t != STRING && t != ARRAY)
+        {
+        //debug("transferring",old);
+        assert(transferred(old) == 0);
+        new_cars[limit] = the_cars[old];
+        new_cdrs[limit] = the_cdrs[old];
+        //printf("placing it at %d\n",limit);
+        //getchar();
+        transferred(old) = 1;
+        cdr(old) = limit;
+        return limit + 1;
+        }
+
+    /* must be array or string */
+
+    /* first, find the start of the contiguous region */
+    //printf("array start was %d\n",old);
+    //debug("before",old);
+    while (type(old-1) == t && cdr(old-1) == old)
+        --old;
+    //printf("array start now is %d\n",old);
+    //debug("after",old);
+    size = count(old);
+    //printf("size is %d\n",size);
+    //getchar();
+
+    while (size != 0)
+        {
+        //debug("transferring",old);
+        assert(transferred(old) == 0);
+        new_cars[limit] = the_cars[old];
+        new_cdrs[limit] = the_cdrs[old];
+        //printf("placing it at %d\n",limit);
+        //getchar();
+        transferred(old) = 1;
+        cdr(old) = limit;
+        ++limit;
+        ++old;
+        --size;
+        }
+
+    return limit;
+    }
+
+static int
 transfer(int limit)
     {
     int spot = 1;
@@ -490,23 +544,33 @@ transfer(int limit)
         {
         int old;
 
-        /* only need to transfer over conses */
+        /* only need to transfer over conses, strings, and arrays */
 
         //printf("spot %d: ",spot);
         if (new_cars[spot].type == CONS)
             {
+            /* transfer over the cdr, if necessary */
+
+            old = new_cdrs[spot];
+            if (!transferred(old))
+                {
+                //debug("transferring",old);
+                limit = transferBackbone(old,limit);
+                }
+            //else
+                //debug("TRANSFERRED ",old);
+
+            /* update the cdr to the transferred locaiion */
+
+            new_cdrs[spot] = cdr(old);
+
             /* transfer over the car, if necessary */
 
             old = new_cars[spot].ival;
             if (!transferred(old))
                 {
                 //debug("transferring",old);
-                new_cars[limit] = the_cars[old];
-                new_cdrs[limit] = the_cdrs[old];
-                //printf("placing it at %d\n",limit);
-                transferred(old) = 1;
-                cdr(old) = limit;
-                ++limit;
+                limit = transferBackbone(old,limit);
                 }
             //else
                 //debug("TRANSFERRED ",old);
@@ -515,52 +579,61 @@ transfer(int limit)
 
             new_cars[spot].ival = cdr(old);
 
-            /* transfer over the cdr, if necessary */
-
-            old = new_cdrs[spot];
-            if (!transferred(old))
-                {
-                //debug("transferring",old);
-                new_cars[limit] = the_cars[old];
-                new_cdrs[limit] = the_cdrs[old];
-                //printf("placing it at %d\n",limit);
-                transferred(old) = 1;
-                cdr(old) = limit;
-                ++limit;
-                }
-            //else
-                //debug("TRANSFERRED ",old);
-
-            /* update the car to the transferred locaiion */
-
-            new_cdrs[spot] = cdr(old);
-
             //getchar();
             }
         else if (new_cars[spot].type == STRING)
             {
-            /* there is no car, only the cdr */
+            /* cdrs should already be transferred */
 
             old = new_cdrs[spot];
             if (!transferred(old))
                 {
                 //debug("transferring",old);
-                new_cars[limit] = the_cars[old];
-                new_cdrs[limit] = the_cdrs[old];
-                //printf("placing it at %d\n",limit);
-                transferred(old) = 1;
-                cdr(old) = limit;
-                ++limit;
+                assert(0);
+                limit = transferBackbone(old,limit);
+                }
+            //else
+                //debug("TRANSFERRED ",old);
+
+            /* update the cdr to the transferred locaiion */
+
+            new_cdrs[spot] = cdr(old);
+            }
+        else if (new_cars[spot].type == ARRAY)
+            {
+            /* cdr should already be transferred */
+
+            old = new_cdrs[spot];
+            if (!transferred(old))
+                {
+                //debug("transferring",old);
+                assert(0);
+                limit = transferBackbone(old,limit);
+                }
+            //else
+                //debug("TRANSFERRED ",old);
+
+            /* update the cdr to the transferred locaiion */
+
+            new_cdrs[spot] = cdr(old);
+
+            /* transfer over the car, if necessary */
+
+            old = new_cars[spot].ival;
+            if (!transferred(old))
+                {
+                //debug("transferring",old);
+                limit = transferBackbone(old,limit);
                 }
             //else
                 //debug("TRANSFERRED ",old);
 
             /* update the car to the transferred locaiion */
 
-            new_cdrs[spot] = cdr(old);
-            }
+            new_cars[spot].ival = cdr(old);
 
-             
+            //getchar();
+            }
         //else
             //printf("TRANSFERRED: %s\n",type(spot));
         ++spot;
@@ -569,6 +642,8 @@ transfer(int limit)
     return spot;
     }
 
+
+             
 void 
 gc()
     {

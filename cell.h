@@ -36,7 +36,7 @@ extern int length(int);
 #define fval(a)     (the_cars[a].fval)
 #define count(a)    (the_cars[a].count)
 #define file(a)     (the_cars[a].file)
-#define filename(a) (symbols[the_cars[a].file])
+#define filename(a) (SymbolTable[the_cars[a].file])
 #define line(a)     (the_cars[a].line)
 #define transferred(a)     (the_cars[a].transferred)
 

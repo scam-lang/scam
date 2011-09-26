@@ -7,5 +7,5 @@ else
     println("this is not defined");
     }
 ------------------------------------------
-EXCEPTION: nonFunction
-file x.s,line 1: attempted to call STRING as a function
+EXCEPTION: undefinedVariable
+file x.s,line 1: variable defined? is undefined

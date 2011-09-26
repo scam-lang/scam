@@ -2,7 +2,7 @@
     (define result (catch (eval $a #)))
     (if (error? result)
         (begin
-            (set! (__id $error) result #)
+            (set (__id $error) result #)
             (set! result (eval $b #))
             )
         )
@@ -26,7 +26,7 @@
             (throw 'hiy "ouch")
             (set! result (normalize 1 2))
             )
-        (if (== (get code error) 'nonFunction)
+        (if (== (get 'code error) 'nonFunction)
             (begin
                 (println "not a function!")
                 (set! 'result 2)

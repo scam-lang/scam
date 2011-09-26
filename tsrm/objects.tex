@@ -355,7 +355,7 @@ Thus, when the new {\it print} calls {\it display}, the new, local version
 will be found.
 
 \begin{verbatim}
-    (include "clone.lib")
+    (include "reflection.lib")
 
     (define print (clone print))
     (define println (clone println))
@@ -363,7 +363,8 @@ will be found.
     (println p)
 \end{verbatim}
 
-The clone library must be included to access the {\it clone} function.
+The {\it reflection} library must be included
+to access the {\it clone} function.
 
 Now, printing the object {\it p} yields:
 

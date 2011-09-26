@@ -1,5 +1,3 @@
-(include "reflection.lib")
-
 (define __builtin __context)
 (define __main-lib this)
 (define (id x) x)
@@ -9,6 +7,19 @@
 (define (head x) (car x))
 (define (tail x) (cdr x))
 (define (join x y) (cons x y))
+(define (set! # $x y @)
+    (define env (if (null? @) # (car @)))
+    (cond
+        ((dot? $x)
+            (define last (dot-assign-setup (eval (cadr $x) #) (cddr $x) #))
+            (set (cadr last) y (car last))
+            )
+        (else
+            (set $x y #)
+            )
+        )
+    )
+(define assign set!)
 
 (define (for # init $test $increment $)
     (while (eval $test #)
@@ -20,9 +31,9 @@
 (define (for-each2 # $indexVar items $)
     (define result #f)
     (while (!= items nil)
-        (set! (__id $indexVar) (car items) #)
-        (set! result (evalList $ #))
-        (set! items (cdr items))
+        (set $indexVar (car items) #)
+        (set 'result (evalList $ #))
+        (set 'items (cdr items))
         )
     result
     )
@@ -37,12 +48,12 @@
     (iter x)
     )
 
-(define (+= # $v value) (set! (__id $v) (+ (eval $v #) value) #))
-(define (-= # $v value) (set! (__id $v) (- (eval $v #) value) #))
-(define (*= # $v value) (set! (__id $v) (* (eval $v #) value) #))
-(define (/= # $v value) (set! (__id $v) (/ (eval $v #) value) #))
-(define (++ # $v) (set! (__id $v) (+ (eval $v #) 1) #))
-(define (-- # $v) (set! (__id $v) (- (eval $v #) 1) #))
+(define (+= # $v value) (set $v (+ (eval $v #) value) #))
+(define (-= # $v value) (set $v (- (eval $v #) value) #))
+(define (*= # $v value) (set $v (* (eval $v #) value) #))
+(define (/= # $v value) (set $v (/ (eval $v #) value) #))
+(define (++ # $v) (set $v (+ (eval $v #) 1) #))
+(define (-- # $v) (set $v (- (eval $v #) 1) #))
 
 ; object-related functions
 
@@ -50,22 +61,51 @@
 
 (define (type x)
     (if (and (eq? (__type x) 'CONS) (eq? (car x) 'object))
-        (get __label x)
+        (get '__label x)
         (__type x)
         )
     )
 
-(define (. # obj $)
+(define (class x) (get '__label x))
+
+(define (dot-assign-setup obj fields env)
+    (while (valid? (cdr fields))
+        (define field (car fields))
+        (if (pair? field)
+            (set 'obj (get (eval field env) obj))
+            (set 'obj (get field obj))
+            )
+        (set! fields (cdr fields))
+        )
+    (cons obj fields)
+    )
+(define (dot # obj $)
     (while (valid? $)
         (define field (car $))
         (if (pair? field)
-            (assign obj (get (eval field #) obj))
-            (assign obj (get (__id field) obj))
+            (set 'obj (get (eval field #) obj))
+            (set 'obj (get field obj))
             )
-        (assign $ (cdr $))
+        (set! $ (cdr $))
         )
     obj
     )
+
+(define (is? x y)
+    (cond
+        ((null? x) #f)
+        ((not (environment? x)) (eq? (type x) y))
+        ((and (environment? x) (or (eq? y 'environment) (eq? y 'object))) #t)
+        ((and (valid? (. x __constructor)) (eq? (. x __constructor name) y)) #t)
+        (else (and (local? 'parent x) (is? (. x parent) y)))
+        )
+    )
+
+(define (object? x) (and (pair? x) (eq? (car x) 'object)))
+(define (closure? x) (and (object? x) (eq? (class x) 'closure)))
+(define (error? x) (and (object? x) (eq? (class x) 'error)))
+(define (environment? x) (and (object? x) (eq? (class x) 'environment)))
+
 
 (define (and # $)
     (define (iter items)
@@ -108,7 +148,7 @@
 (define (let # $inits $)
     (define v nil)
     (define e (scope this))
-    (set! __context # e)
+    (set '__context # e)
     (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) #) e)
         ;(println "adding " (car v) " from " $inits)
@@ -121,11 +161,19 @@
 (define (let* # $inits $)
     (define v nil)
     (define e (scope this))
-    (set! __context # e)
+    (set '__context # e)
     (for-each2 v $inits
         (addSymbol (car v) (eval (car (cdr v)) e) e)
         )
     (evalList $ e)
+    )
+
+(define (evalList items env)
+    (while (valid? (cdr items)) ; for tail recursion
+         (eval (car items) env)
+         (set 'items (cdr items))
+         )
+    (eval (car items) env)
     )
 
 (define (negative? n) (< n 0))
@@ -185,18 +233,30 @@
 (define (array? x) (eq? (type x) 'ARRAY))
 (define (true? x) x)
 (define (false? x) (not x))
+(define (dot? x) (and (pair? x) (member? (car x) '(dot .))))
+(define (car-cdr items @)
+    (while (valid? @)
+        (cond
+            ((= (car @) 0) (set 'items (car items)))
+            (else (set 'items (cdr items)))
+            )
+        (set '@ (cdr @))
+        )
+    items
+    )
 
-(define (caar x) (car (car x)))
-(define (cadr x) (car (cdr x)))
-(define (caddr x) (car (cdr (cdr x))))
-(define (cadddr x) (car (cdr (cdr (cdr x)))))
-(define (caddddr x) (car (cdr (cdr (cdr (cdr x))))))
-(define (cadddddr x) (car (cdr (cdr (cdr (cdr (cdr x)))))))
+(define (caar x) (car-cdr x 0 0))
+(define (cadr x) (car-cdr x 1 0))
+(define (caddr x) (car-cdr x 1 1 0))
+(define (cadddr x) (car-cdr x 1 1 1 0))
+(define (caddddr x) (car-cdr x 1 1 1 1 0))
+(define (cadddddr x) (car-cdr x 1 1 1 1 1 0))
 
 (define (cddr x) (cdr (cdr x)))
-(define (cdddr x) (cdr (cdr (cdr x))))
-(define (cddddr x) (cdr (cdr (cdr (cdr x)))))
-(define (cdddddr x) (cdr (cdr (cdr (cdr (cdr x))))))
+(define (cddr x) (car-cdr x 1 1))
+(define (cdddr x) (car-cdr x 1 1 1))
+(define (cddddr x) (car-cdr x 1 1 1 1))
+(define (cdddddr x) (car-cdr x 1 1 1 1 1))
 
 (define (equal? a b)
     (cond
@@ -270,10 +330,10 @@
     )
 
 (define (getElement items @)
-    (define __getElement (get getElement (get __context __context)))
+    (define __getElement (get 'getElement (get '__context __context)))
     (while (valid? @)
-        (assign items (__getElement items (car @)))
-        (assign @ (cdr @))
+        (set 'items (__getElement items (car @)))
+        (set '@ (cdr @))
         )
     items
     )
@@ -281,8 +341,8 @@
 (define __string+ string+)
 (define (string+ str @)
     (while (valid? @)
-        (assign str (__string+ str (string (car @))))
-        (assign @ (cdr @))
+        (set 'str (__string+ str (string (car @))))
+        (set '@ (cdr @))
         )
     str
     )
@@ -318,7 +378,28 @@
         )
     )
 
-(define (thunk code __context) this)
+(define (thunk code environment) this)
 (define (thunk? item) (is item 'thunk))
-(define (force item) (eval (. item code) (. item env)))
-(define dot .)
+(define (force item) (eval (. item code) (. item environment)))
+(define . dot)
+
+(define (assoc x y)
+    (cond
+        ((null? y) #f)
+        ((equal? x (caar y)) (car y))
+        (else (assoc x (cdr y)))
+        )
+    )
+
+;{
+(define x 0)
+(set! x 2)
+(inspect x)
+(inspect (. this 'assoc))
+(for-each2 x '(1 2 3 4)
+    (inspect x)
+    )
+(inspect (cadr '(1 2 3)))
+(inspect (caddr '(1 2 3)))
+(inspect (cdddr '(1 2 3)))
+;}

@@ -2,7 +2,7 @@
     (cond
         ((not (pair? expr)) (print indent expr) #t)
         ((closure? expr) (ppFunction expr indent) #f)
-        ((eq? (car expr) 'begin) (ppBegin expr indent) #f)
+        ((eq? (car expr) 'begin) (ppBlock expr indent) #f)
         ((eq? (car expr) 'cond) (ppCond expr indent) #f)
         ((eq? (car expr) 'if) (ppTestBlock expr indent) #f)
         ((eq? (car expr) 'while) (ppTestBlock expr indent) #f)
@@ -17,7 +17,7 @@
     (ppCodeList (cddr expr) (string+ indent "    "))
     (print indent "    " ")\n")
     )
-(define (ppBegin expr indent)
+(define (ppBlock expr indent)
     (print indent "(" (car expr) "\n")
     (ppCodeList (cdr expr) (string+ indent "    "))
     (print indent "    " ")\n")
@@ -44,7 +44,7 @@
         (if (ppCode (car expr) indent)
             (println)
             )
-        (assign expr (cdr expr))
+        (set 'expr (cdr expr))
         )
     )
 

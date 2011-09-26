@@ -7,13 +7,13 @@
         )
     )
 
-(for (set! 'i 1) (< i 10) (set! 'i (+ i 2))
+(for (set! i 1) (< i 10) (set! i (+ i 2))
         (print "the value of i is ")
         (print i)
         (print "\n")
     )
 
-(for2 (set! 'i 10) (> i 0) (set! 'i (- i 1)) 
+(for2 (set! i 10) (> i 0) (set! i (- i 1)) 
         (print "the value of i is ")
         (print i)
         (print "\n")

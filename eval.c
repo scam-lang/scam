@@ -108,6 +108,7 @@ evalCall(int call,int env, int mode)
     {
     int closure,eargs;
 
+    //printf("evalCall...\n");
     if (mode == NORMAL)
         {
         push(env);

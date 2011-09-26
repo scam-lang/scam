@@ -1,6 +1,6 @@
 (include "reflection.lib")
 
-(define methodList (array (symbol "-") '+ (symbol "++")))
+(define methodList (array (symbol "-") '+ (symbol "+!+")))
 (inspect methodList)
 
 (define i 0)

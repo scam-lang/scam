@@ -3,5 +3,5 @@
 (println (bindings this))
 (println (bindings common))
 ------------------------------------------
-((__label environment) (__context <object 4500>) (__level 0) (__constructor nil) (this <object 10507>) (common <object 10585>) (__included_common2.s #t))
-((__label environment) (__context <object 10507>) (__level 0) (__constructor nil) (this <object 10585>) (count 0))
+((__label environment) (__context <object 4708>) (__level 0) (__constructor nil) (this <object 11168>) (common <object 11246>) (__included_common2.s #t))
+((__label environment) (__context <object 11168>) (__level 0) (__constructor nil) (this <object 11246>) (count 0))

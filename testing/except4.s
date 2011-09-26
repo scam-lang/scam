@@ -3,7 +3,7 @@
     (println "beginning f(" x ").")
     (set! result (catch (g (* 2 x))))
     (if (error? result)
-        (if (== (get code result) 'undefinedVariable)
+        (if (== (get 'code result) 'undefinedVariable)
             (set! result x)
             (begin
                 (println "rethrowing the error");

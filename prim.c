@@ -1284,7 +1284,7 @@ setCdr(int args)
     return cadr(args);
     }
 
-/* (set! $id value # @) */
+/* (set id value # @) */
 
 static int
 set(int args)
@@ -1292,19 +1292,11 @@ set(int args)
     int id = car(args);
     int result;
     
-    //printf("in set!...");
-    if (type(id) == CONS)
-        {
-        push(args);
-        id = eval(id,caddr(args));
-        args = pop();
-        rethrow(id,0);
-        }
-
+    //printf("in set...");
     if (type(id) != SYMBOL)
         return throw(exceptionSymbol,
             "file %s,line %d: "
-            "set! identifier resolved to type %s, not SYMBOL",
+            "set identifier resolved to type %s, not SYMBOL",
             SymbolTable[file(id)],line(id),
             type(id));
 
@@ -1313,61 +1305,11 @@ set(int args)
     else
         result = setVariableValue(id,cadr(args),car(cadddr(args)));
 
-    //debug("set! returning",result);
+    //debug("set returning",result);
     return result;
     }
 
-/* (assign $id value # @) */
-
-static int
-assign(int args)
-    {
-    int id = car(args);
-    int obj;
-    int result;
-    
-    //printf("in assign...");
-    if (type(id) == SYMBOL)
-        return set(args);
-
-    //printf("type of id is %s\n",type(id));
-    if (type(id) != CONS
-    || !(sameSymbol(car(id),dotSymbol) || sameSymbol(car(id),DOTSymbol)))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "cannot assign to type %s",
-            SymbolTable[file(car(args))],line(car(args)),
-            type(id));
-
-    obj = cadr(id);
-    id = caddr(id);
-
-    push(args);
-    push(id);
-    obj = eval(obj,caddr(args));
-    id = pop();
-    args = pop();
-
-    rethrow(obj,0);
-
-    if (type(id) == CONS)
-        {
-        //debug("calling",id);
-        push(args);
-        push(obj);
-        id = eval(id,caddr(args));
-        obj = pop();
-        args = pop();
-        //debug("id now is",id);
-        }
-
-    result = setVariableValue(id,cadr(args),obj);
-
-    return result;
-    }
-
-
-/* (get $id # @) */
+/* (get id # @) */
 
 static int 
 get(int args)
@@ -1375,13 +1317,6 @@ get(int args)
     int id = car(args);
 
     //printf("in get...");
-    if (type(id) == CONS)
-        {
-        push(args);
-        id = eval(id,cadr(args));
-        args = pop();
-        rethrow(id,0);
-        }
 
     if (type(id) != SYMBOL)
         return throw(exceptionSymbol,
@@ -1479,23 +1414,12 @@ iinclude(int args)
 static int
 eeval(int args)
     {
-    return eval(car(args),cadr(args));
+    assureMemory("prim:eval",THUNK_CELLS,&args,0);
+    return makeThunk(car(args),cadr(args));
+    //return eval(car(args),cadr(args));
     }
 
 /* (evalList items context) */
-
-static int
-eevalList(int args)
-    {
-    int result;
-    int items = car(args);
-    while (items != 0)
-        {
-        result = eval(car(items),cadr(args));
-        items = cdr(items);
-        }
-    return result;
-    }
 
 /* (apply f args) */
 
@@ -2408,6 +2332,7 @@ getElement(int args)
     int index = ival(cadr(args));
     char *kind = type(supply);
 
+    //printf("in getElement...");
     if (index < 0)
         return throw(exceptionSymbol,
             "file %s,line %d: "
@@ -2435,8 +2360,11 @@ getElement(int args)
 
     if (type(supply) == ARRAY)
         {
+        int result;
         //printf("getting an element of an array\n");
-        return car(supply + index);
+        result = car(supply + index);
+        //printf("returning %d\n",result);
+        return result;
         }
     else
         {
@@ -2986,6 +2914,24 @@ stackDepth(int args)
     return newInteger(StackPtr);
     }
 
+/* (line item) */
+
+static int
+lline(int args)
+    {
+    return newInteger(line(car(args)));
+    }
+
+/* (line item) */
+
+static int
+ffile(int args)
+    {
+    char buffer[512];
+    snprintf(buffer,sizeof(buffer),"%s",filename(car(args)));
+    return newString(buffer);
+    }
+
 void
 loadBuiltIns(int env)
     {
@@ -3432,15 +3378,6 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = eevalList;
-    b = makeBuiltIn(env,
-        newSymbol("evalList"),
-        ucons(newSymbol("expr"),
-            ucons(newSymbol("context"),0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
     BuiltIns[count] = apply;
     b = makeBuiltIn(env,
         newSymbol("apply"),
@@ -3761,7 +3698,7 @@ loadBuiltIns(int env)
     BuiltIns[count] = get;
     b = makeBuiltIn(env,
         newSymbol("get"),
-        ucons(newSymbol("$id"),
+        ucons(newSymbol("id"),
             ucons(sharpSymbol,
                 ucons(atSymbol,0))),
         newInteger(count));
@@ -3770,26 +3707,14 @@ loadBuiltIns(int env)
 
     BuiltIns[count] = set;
     b = makeBuiltIn(env,
-        newSymbol("set!"),
-        ucons(newSymbol("$id"),
+        newSymbol("set"),
+        ucons(newSymbol("id"),
             ucons(valueSymbol,
                 ucons(sharpSymbol,
                     ucons(atSymbol,0)))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
-
-    BuiltIns[count] = assign;
-    b = makeBuiltIn(env,
-        newSymbol("assign"),
-        ucons(newSymbol("$id"),
-            ucons(valueSymbol,
-                ucons(sharpSymbol,
-                    ucons(atSymbol,0)))),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
 
     BuiltIns[count] = setCar;
     b = makeBuiltIn(env,
@@ -3816,6 +3741,23 @@ loadBuiltIns(int env)
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
+
+    BuiltIns[count] = lline;
+    b = makeBuiltIn(env,
+        newSymbol("lineNumber"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ffile;
+    b = makeBuiltIn(env,
+        newSymbol("fileName"),
+        ucons(newSymbol("item"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
 
     assert(count <= sizeof(BuiltIns) / sizeof(PRIM));
 

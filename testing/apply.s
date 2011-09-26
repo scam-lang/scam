@@ -14,8 +14,8 @@
         ;(inspect $)
         ;(inspect (getElement $ 0))
         ;(inspect (getElement $ (- size 1)))
-        (set! 'total (+ total (eval (getElement $ (- size 1)) #)))
-        (set! 'size (- size 1))
+        (set 'total (+ total (eval (getElement $ (- size 1)) #)))
+        (set 'size (- size 1))
         )
 
     total

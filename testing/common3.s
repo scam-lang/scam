@@ -1,7 +1,7 @@
 (include "inherit.lib")
 
 (define (+= # $v value)
-    (set! (__id $v) (+ (eval $v #) value) #)
+    (set $v (+ (eval $v #) value) #)
     )
 
 (define common 0)

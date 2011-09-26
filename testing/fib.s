@@ -13,8 +13,8 @@
 (define result nil)
 (define t (time))
 
-(set! 'x 10)
-(set! 'result (fib x))
+(set! x 10)
+(set! result (fib x))
 (println "fib: fib(" x ") is " result)
 (println (- (time) t) " seconds")
 

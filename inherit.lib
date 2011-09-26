@@ -1,5 +1,6 @@
 ; Java style inheritance in three functions (really two, super is not needed)
 ; linear time
+(include "reflection.lib")
 
 (define (resetClosures static obj)
     ;(println "reifying " obj " to " static)
@@ -7,7 +8,7 @@
         (if (closure? current)
             (begin
                 ;(println "setting context of " (. current name) " to " static)
-                (set! __context static current))
+                (set '__context static current))
                 )
         (if (valid? rest) (update (car rest) (cdr rest)))
         )
@@ -20,15 +21,15 @@
 (define (inherit child parents reification static)
     ;(println "inherit " (list child parents reification static) "...")
     (if (null? parents)
-        (set! __context static child)
-        (set! __context
+        (set '__context static child)
+        (set '__context
               (inherit (resetClosures reification (car parents))
                        (cdr parents) reification static)
               child
               )
         )
     (if (valid? (. child __constructor))
-        (set! __label (. child __constructor name) child)
+        (set '__label (. child __constructor name) child)
         )
     child
     )
@@ -36,15 +37,15 @@
 (define (new child)
     ;(println "new...")
     (define (chain x) (if (null? x) nil (cons x (chain (get 'parent x)))))
-    (inherit child (chain (get 'parent child)) child (get __context child))
+    (inherit child (chain (get 'parent child)) child (get '__context child))
     )
 
 (define (mixin object @)
-    (inherit object @ object (get __context object))
+    (inherit object @ object (get '__context object))
     )
 
 (define (super child)
-    (get __context child)
+    (get '__context child)
     )
 
 (define (extend # parent)
@@ -54,8 +55,8 @@
     ;(println "in extend...")
     (addSymbol 'inherit-top top #)
     
-    (set! __context (get __context #) top)
-    (set! __context parent #)
+    (set '__context (get '__context #) top)
+    (set '__context parent #)
     #
     )
 

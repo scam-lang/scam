@@ -1,3 +1,11 @@
+scam (0.1.7)
+
+  * added redefine, prior, and priorDefinition to reflection.lib
+  * reflection.lib is no longer included by main.lib
+  * folded clone.lib into reflection.lib
+  * added primitives lineNumber and fileName
+  * added assoc to main.lib
+
 scam (0.1.6)
 
   * can now parse an empty file

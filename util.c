@@ -132,6 +132,13 @@ ProcessOptions(int argc, char **argv)
                 argUsed = 1;
                 }
                 break;
+            case 's':
+                {
+                extern int StackSize;
+                StackSize = atoi(arg);
+                argUsed = 1;
+                }
+                break;
             case 't':
                 {
                 extern int TraceBack;

@@ -1,4 +1,4 @@
-function fib(n)
+(define (fib n)
     (if (< n 2)
         n
         (+ (fib (- n 1)) (fib (- n 2)))
@@ -9,7 +9,7 @@ function fib(n)
 (define result)
 (define t (time))
 
-x = 26;
+(define x 26)
 
 opt(fib . code,:<,<);
 opt(fib . code,:-,-);
@@ -17,12 +17,12 @@ opt(fib . code,:+,+);
 opt(fib . code,:if,if);
 opt(fib . code,:fib,fib);
 
-result = fib(x);
-display("fib(");
-display(x);
-display(") is ");
-display(result);
-display("\n");
-display(time() - t);
-display(" seconds");
-display("\n");
+(define result (fib x))
+(display("fib(");
+(display(x);
+(display(") is ");
+(display(result);
+(display("\n");
+(display(time() - t);
+(display(" seconds");
+(display("\n");
