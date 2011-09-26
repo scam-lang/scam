@@ -389,6 +389,7 @@ must declare a parent. In the constructor for an object, the parent
 instance variable is set to the parent object, usually obtained via the
 parent constructor.  Here is an example:
 
+\begin{verbatim}
     (define (b)
         (define parent nil)
         ...
@@ -399,15 +400,19 @@ parent constructor.  Here is an example:
         ...
         this
         )
+\end{verbatim}
 
 Now, to instantiate an object, the new function is called:
 
+\begin{verbatim}
     (define obj (new (a)))
+\end{verbatim}
 
 The {\it new} function follows the parent pointers to reset the enclosing
 scopes appropriately. Here is a possible implementation of {\it new},
 which follows the definition of {\it mixin} closely:
 
+\begin{verbatim}
     (define (new object)
         (define outer (getEnclosingScope object))
         (define spot object)
@@ -421,6 +426,7 @@ which follows the definition of {\it mixin} closely:
         (setEnclosingScope spot outer)
         (resetClosures spot object)
         )
+\end{verbatim}
 
 Other forms of inheritance are possible as well. The flexibility of this
 approach does not require inheritance to be built into the language.
