@@ -15,7 +15,7 @@
             (set (cadr last) y (car last))
             )
         (else
-            (set $x y #)
+            (set $x y env)
             )
         )
     )
@@ -234,6 +234,7 @@
 (define (true? x) x)
 (define (false? x) (not x))
 (define (dot? x) (and (pair? x) (member? (car x) '(dot .))))
+(define (atom? x) (not (or (pair? x) (string? x) (array? x))))
 (define (car-cdr items @)
     (while (valid? @)
         (cond
@@ -391,6 +392,12 @@
         )
     )
 
+(define (make-assoc xs ys)
+    (cond
+        ((null? xs) nil)
+        (else (cons (list (car xs) (car ys)) (make-assoc (cdr xs) (cdr ys))))
+        )
+    )
 ;{
 (define x 0)
 (set! x 2)

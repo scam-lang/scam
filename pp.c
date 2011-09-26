@@ -16,8 +16,7 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
         ppLevel(fp,car(items),mode + 1);
         if (transferred(items))
             {
-            fprintf(fp," NEW(%d))",cdr(items));
-            return;
+            fprintf(fp,"[NEW(%d)]",cdr(items));
             }
         items = cdr(items);
         if (items)
@@ -38,18 +37,19 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
 void
 ppArray(FILE *fp,char *open,int items,char *close,int mode)
     {
+    int size = count(items);
     fprintf(fp,"%s",open);
-    while (items != 0)
+    while (size != 0)
         {
         ppLevel(fp,car(items),mode + 1);
         if (transferred(items))
             {
-            fprintf(fp," NEW(%d))",cdr(items));
-            return;
+            fprintf(fp,"[NEW(%d)]",cdr(items));
             }
         if (cdr(items) != 0)
             fprintf(fp,",");
-        items = cdr(items);
+        ++items;
+        --size;
         }
     fprintf(fp,"%s",close);
     }
@@ -137,16 +137,17 @@ void ppCons(FILE *fp,int expr,int mode)
 void
 ppString(FILE *fp,int expr,int mode)
     {
+    int size = count(expr);
     if (ppQuoting) fprintf(fp,"\"");
-    while (expr != 0)
+    while (size != 0)
         {
         fprintf(fp,"%c",ival(expr));
         if (transferred(expr))
             {
-            fprintf(fp,"...NEW(%d)\"",cdr(expr));
-            return;
+            fprintf(fp,"[NEW(%d)]",cdr(expr));
             }
-        expr = cdr(expr);
+        ++expr;
+        --size;
         }
     if (ppQuoting) fprintf(fp,"\"");
     }

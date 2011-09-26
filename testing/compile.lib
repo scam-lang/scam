@@ -1,3 +1,4 @@
+(include "reflection.lib")
 ; mini parser for alpha-substitution
 
 (define (rewrite-define old new names)
@@ -14,6 +15,7 @@
 ; rewrite a variable definition
 
 (define (rewrite-variable-definition id expr names free)
+    ;(println "rewrite-variable-definition: id: " id " expr: " expr " name: " names)
     (define newid (if (gensym? id) id (rewrite-define id (gensym id) names)))
     ; add the identifier to names
     (cons 'define 
@@ -24,6 +26,7 @@
 ; rewrite a function definition
 
 (define (rewrite-function-definition sig expr names free)
+    ;(println "rewrite-function-definition: sig: " sig " expr: " expr " name: " names)
     (define id (car sig))
     (define newid (if (gensym? id) id (rewrite-define id (gensym id) names)))
     (define next (rewrite-extend (cdr sig) (cdr sig) names))
@@ -43,6 +46,7 @@
     )
 
 (define (rewrite-scope expr names free)
+    ;(println "rewrite-scope: expr: " expr " name: " names)
     (cons 'scope (rewrite (cdr expr) (rewrite-extend nil nil names) free))
     )
 
@@ -53,25 +57,27 @@
     ;(println "rewrite-get: id: " id " name: " names)
     (cond
         ((gensym? id) id)
-        ((and (null? names) (null? free)) id)
-        ((null? names) (get id free))           //free variable
+        ((and (null? names) (not (defined? id free))) id)
+        ((null? names) (get id free))           ;free variable
         (else
             (define target (assoc id (car names)))
-            (if (valid? target)
-                target    ;bound variable
+            (if (neq? target #f)
+                (cadr target)    ;bound variable
                 (rewrite-get id (cdr names) free)
                 )
             )
         )
     )
 
+(define (define? x) (and (pair? x) (eq? (car x) 'define)))
+
 (define (rewrite expr names free)
     ;(println "rewrite: expr: " expr " names: " names)
     (cond
         ((null? expr) nil)
         ((symbol? expr) (rewrite-get expr names free))
-        ((define?(expr)) (rewrite-definition expr names free))
-        ((scope?(expr)) (rewrite-scope expr names free))
+        ((define? expr) (rewrite-definition expr names free))
+        ((object? expr) (rewrite-scope expr names free))
         ((or (object? expr) (atom? expr)) expr)
         (else
             (cons
@@ -85,20 +91,22 @@
 ; compilation and macro functions ;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (compile f env)
-    (set! code
+    ;(pp f)
+    (set 'code
         (rewrite 
-            (get code f) 
-            (rewrite-extend (get parameters f) (get parameters f) nil)
+            (get 'code f) 
+            (rewrite-extend (get 'parameters f) (get 'parameters f) nil)
             env
             )
         f) 
+    ;(pp (dot f code))
     f
     )
 
 (define (macro # f $)
     ; # is bound to the calling environment
     ; $ is bound to a list of unevaluated arguments
-    (define names (list (make-assoc (get parameters f) $)))
-    (define body (rewrite (get code f) names (get context f)))
+    (define names (list (make-assoc (get 'parameters f) $)))
+    (define body (rewrite (get 'code f) names (get 'context f)))
     (eval body #)
     )

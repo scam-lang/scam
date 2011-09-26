@@ -15,13 +15,12 @@
 
 (println "fact.s included - SHOULD ONLY SEE THIS ONCE");
 ------------------------------------------
+scam: cell.c:524: transferBackbone: Assertion `(the_cars[old].transferred) == 0' failed.
 starting fact.s
 including fib.s
 starting fib.s
 including fact.s
-fib: fib(10) is 55
-0 seconds
-fib.s included - SHOULD ONLY SEE THIS ONCE
-fact: fib(5) is 5
-fact: fact(5) is 120
-fact.s included - SHOULD ONLY SEE THIS ONCE
+gc:1, 9535 cells
+gc:2, 9500 cells
+gc:3, 9564 cells
+gc:4, 9548 cells

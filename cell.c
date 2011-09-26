@@ -489,9 +489,10 @@ void push(int i)
 static int
 transferBackbone(int old,int limit)
     {
-    int size;
+    int size,start;
     char *t = type(old);
 
+    //printf("   transferred tag is %d\n",transferred(old));
     if (t != STRING && t != ARRAY)
         {
         //debug("transferring",old);
@@ -506,32 +507,57 @@ transferBackbone(int old,int limit)
         }
 
     /* must be array or string */
+    //printf("backbone type is %s\n",t);
 
     /* first, find the start of the contiguous region */
-    //printf("array start was %d\n",old);
+    //printf("array or string start was %d\n",old);
     //debug("before",old);
-    while (type(old-1) == t && cdr(old-1) == old)
+    while (!transferred(old-1) && type(old-1) == t && cdr(old-1) == old)
+        {
+        //printf("cdr(old-1) is %d, old is %d\n",cdr(old-1),old);
         --old;
-    //printf("array start now is %d\n",old);
+        //debug("string now is",old);
+        }
+    //printf("array or string start now is %d\n",old);
     //debug("after",old);
     size = count(old);
-    //printf("size is %d\n",size);
     //getchar();
 
+    //debug("transferring",old);
+    //printf("placing it at %d\n",limit);
+    //printf("size is %d\n",size);
+    start = limit;
+    //if (t == STRING) debug("before",old);
     while (size != 0)
         {
-        //debug("transferring",old);
+        //printf("   transferred tag at %d is %d\n",old,transferred(old));
         assert(transferred(old) == 0);
         new_cars[limit] = the_cars[old];
         new_cdrs[limit] = the_cdrs[old];
-        //printf("placing it at %d\n",limit);
-        //getchar();
         transferred(old) = 1;
         cdr(old) = limit;
         ++limit;
         ++old;
         --size;
         }
+    //if (t == STRING)
+        //{
+        //printf("last character is %c\n",new_cars[limit-1].ival);
+        //printf("last cdr is %d\n",new_cdrs[limit-1]);
+        //printf("last old character is %c\n",the_cars[old-1].ival);
+        //printf("last old cdr is %d\n",the_cdrs[old-1]);
+        //}
+    //printf("limit is %d\n",limit);
+    //getchar();
+    //if (t == STRING)
+    //    {
+    //    printf("after:  ");
+    //    while (new_cars[start].count >= 1)
+    //         printf("%c",new_cars[start++].ival);
+    //    printf("\n");
+    //    }
+        
+    //debug("after",start);
 
     return limit;
     }
@@ -551,6 +577,7 @@ transfer(int limit)
             {
             /* transfer over the cdr, if necessary */
 
+            //printf("found a cons!\n");
             old = new_cdrs[spot];
             if (!transferred(old))
                 {
@@ -585,39 +612,43 @@ transfer(int limit)
             {
             /* cdrs should already be transferred */
 
-            old = new_cdrs[spot];
-            if (!transferred(old))
-                {
-                //debug("transferring",old);
-                assert(0);
-                limit = transferBackbone(old,limit);
-                }
+            //printf("found a string!\n");
+            //old = new_cdrs[spot];
+            //if (!transferred(old))
+                //{
+                //debug("calling backbone",old);
+                //assert(0);
+                //limit = transferBackbone(old,limit);
+                //}
             //else
                 //debug("TRANSFERRED ",old);
 
             /* update the cdr to the transferred locaiion */
 
-            new_cdrs[spot] = cdr(old);
+            //new_cdrs[spot] = cdr(old);
             }
         else if (new_cars[spot].type == ARRAY)
             {
             /* cdr should already be transferred */
 
-            old = new_cdrs[spot];
-            if (!transferred(old))
-                {
-                //debug("transferring",old);
-                assert(0);
-                limit = transferBackbone(old,limit);
-                }
+            //printf("found an array!\n");
+            //old = new_cdrs[spot];
+            //if (!transferred(old))
+            //    {
+            //    //debug("transferring",old);
+            //    assert(0);
+            //    limit = transferBackbone(old,limit);
+            //    }
             //else
                 //debug("TRANSFERRED ",old);
 
             /* update the cdr to the transferred locaiion */
 
-            new_cdrs[spot] = cdr(old);
+            //new_cdrs[spot] = cdr(old);
 
             /* transfer over the car, if necessary */
+
+            //printf("transferring over array cars\n");
 
             old = new_cars[spot].ival;
             if (!transferred(old))

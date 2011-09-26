@@ -5,6 +5,8 @@ scam (0.1.7)
   * folded clone.lib into reflection.lib
   * added primitives lineNumber and fileName
   * added assoc to main.lib
+  * added the ability to gc arrays 
+  * fixed gc string bug - now strings are gc'd in a contiguous fashion
 
 scam (0.1.6)
 
