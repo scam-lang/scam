@@ -22,6 +22,30 @@
     (OR ha1->or ha2->or carry-out agenda)
     )
 
+(define (simulateAND)
+    (define i)
+    (define a (wire))
+    (define b (wire))
+    (define c (wire))
+    (define simulator (agenda))
+    (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+
+    (println "a\t\b\tc")
+
+    (AND a b c simulator)
+
+    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+        ((. a set) (getElement inputs i 0))
+        ((. b set) (getElement inputs i 1))
+            ((. simulator run))
+            (println
+            (getElement inputs i 0) "\t" 
+            (getElement inputs i 1) "\t" 
+            ((. c get))
+            )
+            )
+    )
+
 (define (simulateHalfAdder)
     (define i)
     (define a (wire))
@@ -79,22 +103,25 @@
         )
     )
 
+;(simulateAND)
+;(println)
 (simulateHalfAdder)
 (println)
 (simulateFullAdder)
 ------------------------------------------
 a       b       sum     carry
 0       0       0       0
-0       1       0       0
-1       0       0       0
-1       1       0       0
+0       1       1       0
+1       0       1       0
+1       1       0       1
 
 a       b       c-in    sum     c-out
 0       0       0       0       0
-0       0       1       0       0
-0       1       0       0       0
-0       1       1       0       0
-1       0       0       0       0
-1       0       1       0       0
-1       1       0       0       0
-1       1       1       0       0
+0       0       1       1       0
+0       1       0       1       0
+0       1       1       0       1
+1       0       0       1       0
+1       0       1       0       1
+gc:1, 13182 cells
+1       1       0       0       1
+1       1       1       1       1

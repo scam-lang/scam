@@ -1,33 +1,53 @@
 OLD vs. NEW
 adders.s
 ------------------------------------------
-88,90c88,90
-< 0       1       1       0
-< 1       0       1       0
-< 1       1       0       1
----
-> 0       1       0       0
-> 1       0       0       0
-> 1       1       0       0
-94,100c94,100
-< 0       0       1       1       0
-< 0       1       0       1       0
-< 0       1       1       0       1
-< 1       0       0       1       0
-< 1       0       1       0       1
-< 1       1       0       0       1
-< 1       1       1       1       1
----
-> 0       0       1       0       0
-> 0       1       0       0       0
-> 0       1       1       0       0
-> 1       0       0       0       0
-> 1       0       1       0       0
-> 1       1       0       0       0
-> 1       1       1       0       0
+24a25,48
+> (define (simulateAND)
+>     (define i)
+>     (define a (wire))
+>     (define b (wire))
+>     (define c (wire))
+>     (define simulator (agenda))
+>     (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+> 
+>     (println "a\t\b\tc")
+> 
+>     (AND a b c simulator)
+> 
+>     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+>         ((. a set) (getElement inputs i 0))
+>         ((. b set) (getElement inputs i 1))
+>             ((. simulator run))
+>             (println
+>             (getElement inputs i 0) "\t" 
+>             (getElement inputs i 1) "\t" 
+>             ((. c get))
+>             )
+>             )
+>     )
+> 
+81a106,107
+> ;(simulateAND)
+> ;(println)
+98a125
+> gc:1, 13182 cells
 ------------------------------------------
 agenda.s
 ------------------------------------------
+7c7,10
+<         ((. actions enqueue) (thunk $action #)  (+ time delay))
+---
+>         (define result (thunk $action #))
+>         ;(print "enqueuing " result)
+>         ;(inspect result)
+>         ((. actions enqueue) result  (+ time delay))
+12c15,18
+<             (force ((. actions dequeue)))       ;action was delayed!
+---
+>             (define result ((. actions dequeue)))
+>             ;(println "dequeuing " result)
+>             ;(inspect result)
+>             (force result)
 ------------------------------------------
 apply.s
 ------------------------------------------
@@ -56,8 +76,8 @@ common2.s
 < ((label environment) (context <object 4685>) (level 0) (constructor nil) (this <object 8372>) (common <object 8450>) (__included_common2.s #t))
 < ((label environment) (context <object 8372>) (level 0) (constructor nil) (this <object 8450>) (count 0))
 ---
-> ((__label environment) (__context <object 4708>) (__level 0) (__constructor nil) (this <object 11168>) (common <object 11246>) (__included_common2.s #t))
-> ((__label environment) (__context <object 11168>) (__level 0) (__constructor nil) (this <object 11246>) (count 0))
+> ((__label environment) (__context <object 4686>) (__level 0) (__constructor nil) (this <object 11244>) (common <object 11322>) (__included_common2.s #t))
+> ((__label environment) (__context <object 11244>) (__level 0) (__constructor nil) (this <object 11322>) (count 0))
 ------------------------------------------
 common3.s
 ------------------------------------------
@@ -117,8 +137,8 @@ env.s
 ------------------------------------------
 error0.s
 ------------------------------------------
-34c34
-< 2 seconds
+28c28
+< 0 seconds
 ---
 > 1 seconds
 ------------------------------------------
@@ -130,10 +150,6 @@ except3.s
 ------------------------------------------
 except4.s
 ------------------------------------------
-6c6
-<         (if (== (get code result) 'undefinedVariable)
----
->         (if (== (get 'code result) 'undefinedVariable)
 ------------------------------------------
 except.s
 ------------------------------------------
@@ -149,10 +165,17 @@ fact.s
 ------------------------------------------
 fib-opt.s
 ------------------------------------------
-1,2d0
+1c1,6
 < include("fact.s");
-< 
-4,16c2,10
+---
+> (define (fib n)
+>     (if (< n 2)
+>         n
+>         (+ (fib (- n 1)) (fib (- n 2)))
+>         )
+>     )
+3,16c8,10
+< function fib(n)
 <     {
 <     if (n < 2)
 <         {
@@ -167,25 +190,39 @@ fib-opt.s
 < var result;
 < var t = time();
 ---
->     (if (< n 2)
->         n
->         (+ (fib (- n 1)) (fib (- n 2)))
->         )
->     )
-> 
 > (define x 0)
 > (define result)
 > (define t (time))
 18c12
 < x = 22;
 ---
-> x = 26;
+> (define x 26)
+26,34c20,28
+< result = fib(x);
+< display("fib(");
+< display(x);
+< display(") is ");
+< display(result);
+< display("\n");
+< display(time() - t);
+< display(" seconds");
+< display("\n");
+---
+> (define result (fib x))
+> (display("fib(");
+> (display(x);
+> (display(") is ");
+> (display(result);
+> (display("\n");
+> (display(time() - t);
+> (display(" seconds");
+> (display("\n");
 36,37c30,31
 < fib(22) is 17711
 < 1 seconds
 ---
 > EXCEPTION: syntaxException
-> file fib-opt.s,line 6: expecting END_OF_INPUT, found CLOSE_PARENTHESIS instead
+> file fib-opt.s,line 29: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
 ------------------------------------------
 fib.s
 ------------------------------------------
@@ -381,7 +418,7 @@ gc.s
 ---
 > (f 3)
 13a13
-> gc:1, 6173 cells
+> gc:1, 8947 cells
 ------------------------------------------
 g.s
 ------------------------------------------
@@ -937,7 +974,7 @@ object3.s
 < (is? c (quote alpha)) is #t
 < (is? c (quote gamma)) is #f
 ---
-> (locals b) is <object 25378>
+> (locals b) is <object 25943>
 >              __label  : throw
 >                 code  : undefinedVariable
 >                value  : "file object3.s,line 25: variable locals is undefined"
@@ -951,15 +988,15 @@ object.s
 36c36
 < z is <object 9629>
 ---
-> z is <object 13258>
+> z is <object 13370>
 38c38
 <            __context  : <object 9516>
 ---
->            __context  : <object 11655>
+>            __context  : <object 11731>
 41c41
 <                 this  : <object 9629>
 ---
->                 this  : <object 13258>
+>                 this  : <object 13370>
 ------------------------------------------
 obj.s
 ------------------------------------------
@@ -2528,102 +2565,4 @@ recursion.s
 ---
 > EXCEPTION: undefinedVariable
 > file recursion.s,line 1: variable var is undefined
-------------------------------------------
-reflect.s
-------------------------------------------
-38,49c38,39
-< x: a is 2, b is 3, c is 5
-< n is constructed via m's constructor
-< x: a is 2, b is 3, c is 8
-< 
-< m . constructor . name is x
-< n . constructor . name is x
-< 
-< changing m . a to 10
-< changing n . b to 10
-< 
-< x: a is 10, b is 3, c is 5
-< x: a is 2, b is 10, c is 8
----
-> EXCEPTION: nonFunction
-> file reflect.s,line 1: attempted to call STRING as a function
-------------------------------------------
-reify.s
-------------------------------------------
-29,31c29,30
-< calling superclass:a
-< superclass:a: calling virtual function b
-< subclass:b
----
-> EXCEPTION: undefinedVariable
-> file reify.s,line 1: variable function is undefined
-------------------------------------------
-return3.s
-------------------------------------------
-42,58c42,43
-< g executing...
-< r is <ERROR 5300>
-< i is 0 and j is 1
-< i is 0 and j is 2
-< i is 0 and j is 3
-< i is 0 and j is 4
-< i is 1 and j is 1
-< i is 1 and j is 2
-< i is 1 and j is 3
-< i is 1 and j is 4
-< i is 2 and j is 1
-< i is 2 and j is 2
-< trying to leave f...
-< g's z is 6
-< g done.
-< 6
-< done
----
-> EXCEPTION: nonFunction
-> file return3.s,line 1: attempted to call STRING as a function
-------------------------------------------
-return.s
-------------------------------------------
-1,10c1,9
-< function f()
-<     {
-<     var x;
-<     print("entering f\n");
-<     x = {
-<         print("entering block\n");
-<         return 3;
-<         print("leaving block (this should not be displayed)\n");
-<         5;
-<         };
----
-> (define (f)
->     (define x)
->     (println "entering f...")
->     (if #t
->         (print("entering block")
->         //(return 3)
->         (println "leaving block (this should not be displayed)")
->         5
->         }
-11a11,12
->     //return 22;
->     print("really leaving f (this should not be displayed)\n");
-14a16
-> var z = 0;
-16c18,20
-< print("f() returns ",f(),"\n");
----
-> z = f();
-> print("f() returns ",z,"\n");
-> println("done");
-18,21c22,23
-< f() should return 3
-< entering f
-< entering block
-< f() returns 3
----
-> EXCEPTION: syntaxException
-> file return.s,line 21: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
-------------------------------------------
-reverse.s
 ------------------------------------------
