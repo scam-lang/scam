@@ -1,19 +1,8 @@
 
-(define (local? id env)
-    (member? id (localNames env))
-    )
 
 (define (defined? id env)
     (define result (catch (eval id env)))
     (not (error? result))
-    )
-
-(define (localNames env)
-    (cadr env)
-    )
-
-(define (localValues env)
-    (caddr env)
     )
 
 (define (priorDefinition # name value)

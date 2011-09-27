@@ -7,6 +7,8 @@
 (define (head x) (car x))
 (define (tail x) (cdr x))
 (define (join x y) (cons x y))
+(define ^ expt)
+(define ** expt)
 (define (set! # $x y @)
     (define env (if (null? @) # (car @)))
     (cond
@@ -380,7 +382,7 @@
     )
 
 (define (thunk code environment) this)
-(define (thunk? item) (is item 'thunk))
+(define (thunk? item) (is? item 'thunk))
 (define (force item) (eval (. item code) (. item environment)))
 (define . dot)
 
@@ -398,6 +400,18 @@
         (else (cons (list (car xs) (car ys)) (make-assoc (cdr xs) (cdr ys))))
         )
     )
+
+(define (local? id env)
+    (member? id (localNames env))
+    )
+(define (localNames env)
+    (cadr env)
+    )
+
+(define (localValues env)
+    (caddr env)
+    )
+
 ;{
 (define x 0)
 (set! x 2)

@@ -60,7 +60,7 @@ lex(PARSER *p)
                 result = newPunctuation(BACKQUOTE);
                 break;
             case ',': 
-                result = newPunctuation(COMMA);
+                result = newSymbol(",");
                 break;
             default:
                 Fatal("INTERNAL ERROR: bad single character token\n");
