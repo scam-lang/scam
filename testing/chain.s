@@ -9,5 +9,7 @@
 
 (define obj (b 'red 'green))
 
+(println "output should be 'one'")
 (inspect (. obj o x))
-
+(println "output should be 'two'")
+(inspect (. obj o y))

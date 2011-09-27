@@ -1,53 +1,11 @@
 OLD vs. NEW
 adders.s
 ------------------------------------------
-24a25,48
-> (define (simulateAND)
->     (define i)
->     (define a (wire))
->     (define b (wire))
->     (define c (wire))
->     (define simulator (agenda))
->     (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
-> 
->     (println "a\t\b\tc")
-> 
->     (AND a b c simulator)
-> 
->     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
->         ((. a set) (getElement inputs i 0))
->         ((. b set) (getElement inputs i 1))
->             ((. simulator run))
->             (println
->             (getElement inputs i 0) "\t" 
->             (getElement inputs i 1) "\t" 
->             ((. c get))
->             )
->             )
->     )
-> 
-81a106,107
-> ;(simulateAND)
-> ;(println)
-98a125
-> gc:1, 13171 cells
+130a131
+> gc:1, 13193 cells
 ------------------------------------------
 agenda.s
 ------------------------------------------
-7c7,10
-<         ((. actions enqueue) (thunk $action #)  (+ time delay))
----
->         (define result (thunk $action #))
->         ;(print "enqueuing " result)
->         ;(inspect result)
->         ((. actions enqueue) result  (+ time delay))
-12c15,18
-<             (force ((. actions dequeue)))       ;action was delayed!
----
->             (define result ((. actions dequeue)))
->             ;(println "dequeuing " result)
->             ;(inspect result)
->             (force result)
 ------------------------------------------
 apply.s
 ------------------------------------------
@@ -69,22 +27,6 @@ catch.s
 ------------------------------------------
 chain.s
 ------------------------------------------
-0a1,15
-> (define (a x y)
->     this
->     )
-> 
-> (define (b m n)
->     (define o (a 'one 'two))
->     this
->     )
-> 
-> (define obj (b 'red 'green))
-> 
-> (inspect (. obj o x))
-> 
-> ------------------------------------------
-> (. obj o x) is one
 ------------------------------------------
 common2.s
 ------------------------------------------
@@ -92,8 +34,8 @@ common2.s
 < ((label environment) (context <object 4685>) (level 0) (constructor nil) (this <object 8372>) (common <object 8450>) (__included_common2.s #t))
 < ((label environment) (context <object 8372>) (level 0) (constructor nil) (this <object 8450>) (count 0))
 ---
-> ((__label environment) (__context <object 4657>) (__level 0) (__constructor nil) (this <object 11215>) (common <object 11293>) (__included_common2.s #t))
-> ((__label environment) (__context <object 11215>) (__level 0) (__constructor nil) (this <object 11293>) (count 0))
+> ((__label environment) (__context <object 4657>) (__level 0) (__constructor nil) (this <object 11379>) (common <object 11457>) (__included_common2.s #t))
+> ((__label environment) (__context <object 11379>) (__level 0) (__constructor nil) (this <object 11457>) (count 0))
 ------------------------------------------
 common3.s
 ------------------------------------------
@@ -157,7 +99,7 @@ env.s
 ------------------------------------------
 error0.s
 ------------------------------------------
-0a1,32
+0a1,41
 > (println "starting error0.s")
 > (println "including fact.s")
 > (include "fact.s")
@@ -178,18 +120,27 @@ error0.s
 > (println "fib(" x ") is " result)
 > (println (- (time) t) " seconds")
 > ------------------------------------------
-> scam: cell.c:524: transferBackbone: Assertion `(the_cars[old].transferred) == 0' failed.
 > starting error0.s
 > including fact.s
 > starting fact.s
 > including fib.s
 > starting fib.s
 > including fact.s
-> gc:1, 9748 cells
-> gc:2, 9747 cells
-> gc:3, 9747 cells
-> gc:4, 9686 cells
-> gc:5, 9747 cells
+> gc:1, 9869 cells
+> gc:2, 9851 cells
+> gc:3, 9818 cells
+> gc:4, 9823 cells
+> gc:5, 9851 cells
+> gc:6, 9883 cells
+> fib: fib(25) is 75025
+> 2 seconds
+> fib.s included - SHOULD ONLY SEE THIS ONCE
+> fact: fib(5) is 5
+> fact: fact(5) is 120
+> fact.s included - SHOULD ONLY SEE THIS ONCE
+> gc:7, 9531 cells
+> fib(20) is 6765
+> 0 seconds
 ------------------------------------------
 except2.s
 ------------------------------------------
@@ -211,33 +162,27 @@ extension.s
 ------------------------------------------
 fact.s
 ------------------------------------------
-17a18
-> scam: cell.c:524: transferBackbone: Assertion `(the_cars[old].transferred) == 0' failed.
-22,27c23,26
+22,23c22,29
 < fib: fib(10) is 55
 < 0 seconds
-< fib.s included - SHOULD ONLY SEE THIS ONCE
-< fact: fib(5) is 5
-< fact: fact(5) is 120
-< fact.s included - SHOULD ONLY SEE THIS ONCE
 ---
-> gc:1, 9535 cells
-> gc:2, 9500 cells
-> gc:3, 9564 cells
-> gc:4, 9548 cells
+> gc:1, 9652 cells
+> gc:2, 9669 cells
+> gc:3, 9654 cells
+> gc:4, 9655 cells
+> gc:5, 9622 cells
+> gc:6, 9652 cells
+> fib: fib(25) is 75025
+> 2 seconds
 ------------------------------------------
 fib-opt.s
 ------------------------------------------
-1c1,6
+1c1,2
 < include("fact.s");
 ---
-> (define (fib n)
->     (if (< n 2)
->         n
->         (+ (fib (- n 1)) (fib (- n 2)))
->         )
->     )
-3,16c8,10
+> (include "compile.lib")
+> (include "pretty.lib")
+3,16c4,9
 < function fib(n)
 <     {
 <     if (n < 2)
@@ -253,14 +198,29 @@ fib-opt.s
 < var result;
 < var t = time();
 ---
-> (define x 0)
-> (define result)
-> (define t (time))
-18c12
+> (define (fib n)
+>     (if (< n 2)
+>         n
+>         (+ (fib (- n 1)) (fib (- n 2)))
+>         )
+>     )
+18c11,12
 < x = 22;
 ---
-> (define x 26)
-26,34c20,28
+> (define x 25)
+> (define result)
+20,24c14,17
+< opt(fib . code,:<,<);
+< opt(fib . code,:-,-);
+< opt(fib . code,:+,+);
+< opt(fib . code,:if,if);
+< opt(fib . code,:fib,fib);
+---
+> (define s (time))
+> (define result (fib x))
+> (define f (time))
+> (println "(fib " x ") is " result ", " (- f s) " seconds.")
+26,34c19,24
 < result = fib(x);
 < display("fib(");
 < display(x);
@@ -271,21 +231,31 @@ fib-opt.s
 < display(" seconds");
 < display("\n");
 ---
+> (compile fib this)
+> 
+> (define s (time))
 > (define result (fib x))
-> (display("fib(");
-> (display(x);
-> (display(") is ");
-> (display(result);
-> (display("\n");
-> (display(time() - t);
-> (display(" seconds");
-> (display("\n");
-36,37c30,31
+> (define f (time))
+> (println "(fib " x ") is " result ", " (- f s) " seconds.")
+36,37c26,40
 < fib(22) is 17711
 < 1 seconds
 ---
-> EXCEPTION: syntaxException
-> file fib-opt.s,line 29: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+> gc:1, 11820 cells
+> gc:2, 11789 cells
+> gc:3, 11823 cells
+> gc:4, 11788 cells
+> gc:5, 11868 cells
+> gc:6, 11866 cells
+> (fib 25) is 75025, 3 seconds.
+> gc:7, 11889 cells
+> gc:8, 11858 cells
+> gc:9, 11875 cells
+> gc:10, 11908 cells
+> gc:11, 11844 cells
+> gc:12, 11846 cells
+> gc:13, 11746 cells
+> (fib 25) is 75025, 1 seconds.
 ------------------------------------------
 fib.s
 ------------------------------------------
@@ -309,12 +279,12 @@ fib.s
 > fact: fib(5) is 5
 > fact: fact(5) is 120
 > fact.s included - SHOULD ONLY SEE THIS ONCE
-> gc:1, 9408 cells
-> gc:2, 9389 cells
-> gc:3, 9454 cells
-> gc:4, 9396 cells
-> gc:5, 9375 cells
-> gc:6, 9424 cells
+> gc:1, 9543 cells
+> gc:2, 9526 cells
+> gc:3, 9444 cells
+> gc:4, 9496 cells
+> gc:5, 9528 cells
+> gc:6, 9497 cells
 > fib: fib(25) is 75025
 > 2 seconds
 > fib.s included - SHOULD ONLY SEE THIS ONCE
@@ -504,7 +474,7 @@ gc.s
 ---
 > (f 3)
 13a13
-> gc:1, 8918 cells
+> gc:1, 9022 cells
 ------------------------------------------
 g.s
 ------------------------------------------
@@ -1060,7 +1030,7 @@ object3.s
 < (is? c (quote alpha)) is #t
 < (is? c (quote gamma)) is #f
 ---
-> (locals b) is <object 25914>
+> (locals b) is <object 26078>
 >              __label  : throw
 >                 code  : undefinedVariable
 >                value  : "file object3.s,line 25: variable locals is undefined"
@@ -1074,15 +1044,15 @@ object.s
 36c36
 < z is <object 9629>
 ---
-> z is <object 13341>
+> z is <object 13505>
 38c38
 <            __context  : <object 9516>
 ---
->            __context  : <object 11702>
+>            __context  : <object 11866>
 41c41
 <                 this  : <object 9629>
 ---
->                 this  : <object 13341>
+>                 this  : <object 13505>
 ------------------------------------------
 obj.s
 ------------------------------------------

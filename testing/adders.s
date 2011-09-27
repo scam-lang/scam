@@ -103,8 +103,8 @@
         )
     )
 
-;(simulateAND)
-;(println)
+(simulateAND)
+(println)
 (simulateHalfAdder)
 (println)
 (simulateFullAdder)

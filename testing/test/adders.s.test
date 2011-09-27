@@ -103,12 +103,18 @@
         )
     )
 
-;(simulateAND)
-;(println)
+(simulateAND)
+(println)
 (simulateHalfAdder)
 (println)
 (simulateFullAdder)
 ------------------------------------------
+a       b       c
+0       0       0
+0       1       0
+1       0       0
+1       1       1
+
 a       b       sum     carry
 0       0       0       0
 0       1       1       0
@@ -122,6 +128,6 @@ a       b       c-in    sum     c-out
 0       1       1       0       1
 1       0       0       1       0
 1       0       1       0       1
-gc:1, 13171 cells
+gc:1, 13193 cells
 1       1       0       0       1
 1       1       1       1       1

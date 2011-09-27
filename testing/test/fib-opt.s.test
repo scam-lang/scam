@@ -1,3 +1,6 @@
+(include "compile.lib")
+(include "pretty.lib")
+
 (define (fib n)
     (if (< n 2)
         n
@@ -5,27 +8,33 @@
         )
     )
 
-(define x 0)
+(define x 25)
 (define result)
-(define t (time))
 
-(define x 26)
-
-opt(fib . code,:<,<);
-opt(fib . code,:-,-);
-opt(fib . code,:+,+);
-opt(fib . code,:if,if);
-opt(fib . code,:fib,fib);
-
+(define s (time))
 (define result (fib x))
-(display("fib(");
-(display(x);
-(display(") is ");
-(display(result);
-(display("\n");
-(display(time() - t);
-(display(" seconds");
-(display("\n");
+(define f (time))
+(println "(fib " x ") is " result ", " (- f s) " seconds.")
+
+(compile fib this)
+
+(define s (time))
+(define result (fib x))
+(define f (time))
+(println "(fib " x ") is " result ", " (- f s) " seconds.")
 ------------------------------------------
-EXCEPTION: syntaxException
-file fib-opt.s,line 29: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+gc:1, 11820 cells
+gc:2, 11789 cells
+gc:3, 11823 cells
+gc:4, 11788 cells
+gc:5, 11868 cells
+gc:6, 11866 cells
+(fib 25) is 75025, 3 seconds.
+gc:7, 11889 cells
+gc:8, 11858 cells
+gc:9, 11875 cells
+gc:10, 11908 cells
+gc:11, 11844 cells
+gc:12, 11846 cells
+gc:13, 11746 cells
+(fib 25) is 75025, 1 seconds.
