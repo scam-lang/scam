@@ -195,7 +195,13 @@
     (inspect (define->lambda '(define (plus a b) (+ a b))))
     )
 
-(define 
+(define (define->lambda code)
+    (list
+        'define
+        (car (cadr code)) ;function name
+        (cons 'lambda (cons (cdr (cadr code)) (cddr code)))
+        )
+    )
 (define (run4)
     (inspect ((extractor 0 1) '((1 2) 3)))
     )
