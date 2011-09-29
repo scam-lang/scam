@@ -6,14 +6,15 @@ As with Scheme, Scam implements scopes using environments.
 For all Scam programs, the built-in functions are stored
 in the outermost scope, while the functions defined
 in the main library, {\it main.lib}, are stored in the next-to-the-outermost
-scope. These three scopes make up the global scope for all 
+scope. Finally, the user is given a global scope of his or her own.
+These three scopes make up the global scope for all 
 Scam programs.
 
 One can write a very simple Scam program to see the three
 levels of the global scope that is in existence for all programs:
 
 \begin{verbatim}
-    (print "STARTING SCOPE: ")
+    (print "USER SCOPE: ")
     (pp this)
     (print "LIBRARY SCOPE: ")
     (pp (. this __context)
@@ -24,7 +25,7 @@ levels of the global scope that is in existence for all programs:
 Running this program yields the following output:
 
 \begin{verbatim}
-    STARTING SCOPE: <object 8675>
+    USER SCOPE: <object 8675>
                    __label  : environment
                  __context  : <object 4777>
                    __level  : 0
@@ -61,7 +62,7 @@ We can see form this output that every environment
 has five predefined variables. So that they are accessible
 and available for manipulation with reduced
 likelihood of being trashed, the first four begin with
-two underscores. They predefined variables are:
+two underscores. The predefined variables are:
 
 \begin{description}
 \item[\_\_label]
@@ -72,7 +73,7 @@ two underscores. They predefined variables are:
     and {\it exception}.
 \item[\_\_context]
     This field holds the enclosing scope. For the outermost scope,
-    the value of this field is nil.
+    the value of this field is {\it nil}.
 \item[\_\_level]
     This fields holds the nesting level of dynamic scopes or, in 
     other words, the depth of the call tree for a particular function.
@@ -84,7 +85,7 @@ two underscores. They predefined variables are:
 \end{description}
 
 
-As variables are defined, there names and values are inserted
+As variables are defined, their names and values are inserted
 into the most local scope at the time of definition.
 
 \section{Nesting scopes}
@@ -124,9 +125,9 @@ We see the following output:
 \end{verbatim}
 
 Note that the nested defines of {\it y} and {\it z} were promoted
-to the scope of the function body and mirrors the behavior of Python
+to the scope of the function body, mirroring the behavior of Python.
 
-To force a block to have its scope, as C, C++, and Java,
+To force a block to have its scope, as in C, C++, and Java,
 one can use the {\it scope} function:
 
 \begin{verbatim}
@@ -143,7 +144,7 @@ one can use the {\it scope} function:
     (g 0)
 \end{verbatim}
 
-Now the output reflects that fact that y and z are in their own
+Now the output reflects that fact that {\it y} and {\it z} are in their own
 separate scope:
 
 \begin{verbatim}

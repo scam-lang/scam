@@ -146,7 +146,7 @@ We can specify this as a recurrence equation, with this last bit about
 the remainder becoming zero as our base case:
 
 \begin{center}
-\begin{tabular}{lcll}
+\begin{tabular}{lcll}%
 \T\toprule
     $gcd$($a$,$b$) & is & $b$ & if $a$ divided by $b$ has a remainder of zero\\
     $gcd$($a$,$b$) & is & $gcd$($b$,$a$ \% $b$) & otherwise \T\\
@@ -245,7 +245,7 @@ then is a recursive implementation of a function which computes the $n^{th}$
 Fibonacci number.
 
 \begin{center}
-\begin{tabular}{lcll}
+\begin{tabular}{lcll}%
 \T\toprule
     {\it fib}({\it n}) & is & 0 & if {\it n} is zero\\
     {\it fib}({\it n}) & is & 1 & if {\it n} is one\\

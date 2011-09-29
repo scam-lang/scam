@@ -155,6 +155,61 @@ from a function. The local variables, including
 formal parameters, become the fields of the function while
 any local functions serve as methods.
 
+\section{This is not This}
+
+It is tempting to think that the predefined variable {\it this} is
+equivalent to {\it this} in Java.
+In Scam, this always refers to the current scope/environment,
+while in Java, this refers to the current object. The difference
+is noticable in object methods. For example, consider the following
+constructor:
+
+\begin{verbatim}
+    (define (f x)
+        (define (g y)
+            this
+            )
+        this
+        )
+\end{verbatim}
+
+If we create an {\it f} object:
+
+\begin{verbatim}
+    (define a (f 0))
+\end{verbatim}
+
+and then save the return value of the {\it g} method:
+
+\begin{verbatim}
+    (define b ((dot f g) 1))
+\end{verbatim}
+    
+then {\it a} and {\it b} are not the same objects; {\it b} would
+be a `sub-object', as it were, of {\it a}. In fact:
+
+\begin{verbatim}
+    (eq? a b)
+\end{verbatim}
+
+returns false, while
+
+\begin{verbatim}
+    (eq? a (dot b __context))
+\end{verbatim}
+
+evaluates to true. To have the {\it g} method return a pointer to the object
+created by {\it f}, we would have {\it g} return its context:
+
+\begin{verbatim}
+    (define (f x)
+        (define (g y)
+            __context
+            )
+        this
+        )
+\end{verbatim}
+
 \section{Objects and Types}
 
 If you were to ask an object, "What are you?", most
@@ -173,18 +228,18 @@ yields:
 \end{verbatim}
 
 This is because the predefined variable {\it this} always points to
-the current environment and when we return this from a function
-we are returning an environment. Since environments are objects
-and vice versa, this is how making objects in Scam is so easy.
+the current environment and when we return {\it this} from a function,
+we are returning an environment. Because environments are objects
+and vice versa, making objects in Scam is quite easy.
 
-While the type function is often useful, we sometimes 
+While the {\it type} function is often useful, we sometimes 
 would like to know what kind of specific object an object is.
 For example, we might like to 
 know whether or not {\it p} is a {\it person} object.
 That is to say,
 was {\it p} created by the {\it person} function/constructor?.
 One way to do this
-is to ask the constructor of the object if it is the person function.
+is to ask the constructor of the object if it is the {\it person} function.
 Luckily, all objects carry along a pointer to the function
 that constructed them:
 

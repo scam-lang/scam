@@ -357,9 +357,12 @@ getEnclosingScope} and {\it setEnclosingScope} functions are trivial:
 Moreover, the task of resetting the enclosing scopes of the parties
 involved can be automated. Scam provides a library, written in Scam that
 provides a number of inheritance mechanisms. The first (and simplest)
-is ad-hoc inheritance. Suppose we have objects a, b, and c and we wish
-a to inherit from b and c (and if both b and c provide functionality,
-we prefer b's implementation). To do so, we call the {\it mixin} function:
+is ad-hoc inheritance. Suppose we have objects {\it a}, {\it b}, and{\it  c}
+and we wish
+{\it a} to inherit from {\it b} and {\it c}
+(and if both {\it b} and {\it c} provide functionality,
+we prefer {\it b}'s implementation).
+To do so, we call the {\it mixin} function:
 
 \begin{verbatim}
     (mixin a b c)
@@ -402,7 +405,7 @@ parent constructor.  Here is an example:
         )
 \end{verbatim}
 
-Now, to instantiate an object, the new function is called:
+Now, to instantiate an object, the {\it new} function is called:
 
 \begin{verbatim}
     (define obj (new (a)))

@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ $2server == server ] ; then
+    SERVER=beastie.cs.ua.edu;
+    echo putting to beastie;
+else
+    SERVER=nixie.cs.ua.edu;
+    echo putting to $2;
+fi
+echo sending lusth.css to $SERVER...
+scp lusth.css $SERVER:/var/www/scam/tsrm/

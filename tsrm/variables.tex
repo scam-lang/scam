@@ -54,18 +54,18 @@ is its value.
 
 When one defines a variable, the variable name and value are
 stored in a table called an {\it environment}. The predefined
-variable this always points to the current environment.
-For example, consider this interaction:
+variable {\it this} always points to the current environment.
+For example, consider the following interaction:
 
 \begin{verbatim}
     (define n 10)
 
     (inspect this)
     -> this is <object 8393>
-                   label  : environment
-                 context  : <object 4495>
-                   level  : 0
-             constructor  : nil
+                 __label  : environment
+               __context  : <object 4495>
+                 __level  : 0
+           __constructor  : nil
                     this  : <object 8393>
                        n  : 10
 \end{verbatim}
@@ -78,8 +78,8 @@ learn about objects in a later chapter.
 
 \section{Defining Variables Programatically}
 
-The function addSymbol is used to define variables on the 
-fly. For example, to define a variable named x in the current
+The function {\it addSymbol} is used to define variables on the 
+fly. For example, to define a variable named {\it x} in the current
 scope and to initialized it to 13, one might use the
 following expression:
 
@@ -99,6 +99,7 @@ the second argument can be any expression that resolves
 to an appropriate value, and the third argument can
 be any expression that resolves to an environment or
 object.
+
 
 \section{Variable naming}
 

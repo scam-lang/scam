@@ -51,24 +51,30 @@ In general, an operator which does not evaluate
 all its arguments is known as a {\it special form}\footnote{
 In Scam, there are no special forms. As such, {\it assign} is
 a true function and can be given a new meaning.}.
-So, for assign, the evaluation of the first argument
-is suppressed. One can force an evaluation be
-passing a function call as the first argument.
-Suppose we have the function {\it symbolX} which returns
-the symbol \verb!x!.
+For {\it assign}, the evaluation of the first argument
+is suppressed.
+
+\section{Other functions for changing the value of a variable}
+
+Scam has two more functions to change the value of a
+varible. The first is the Scheme way:
 
 \begin{verbatim}
-    (define (symbolX) 'x)
+    (set! x 5)
 \end{verbatim}
 
-With this definition, these two calls to assign are equivalent:
+which changes the current value of {\it x} to 5.
+It is equivalent to the {\it assign} function.
+Sometimes, however, it is useful to derive the variable name
+to be modified programmatically.
+A function for doing so is named {\it set}. Unlike {\it assign} and {\it set!},
+whose first argument is not evaluated, all arguments to
+{\it set} are evaluated. Thus, the following call to {\it set} is
+equivalent to the previous call to {\it set!}:
 
 \begin{verbatim}
-    (assign x 3)
-    (assign (symbolX) 3)
+    (set 'x 5)
 \end{verbatim}
-
-The same is true for {\it set!}.
 
 \section{Assignment and Collections}
 
@@ -89,19 +95,23 @@ Also, it is possible to reset the tail of a list:
 
 \section{Assignment and Environments/Objects}
 
-The assign function can take an environment as an
+The assignment functions can take an environment as an
 optional third argument.
-Since the predefined variable
+Because the predefined variable
 {\it this} always points to the current environment,
 the following
-three expressions are equivalent:
+four expressions are equivalent:
 
 \begin{verbatim}
         (assign x 5)
         (assign x 5 this)
         (set! x 5 this)
+        (set (symbol "x") 5 this)
 \end{verbatim}
 
+The {\it symbol} function is used to create a variable name from
+a string.
 Since environments form the basis for objects in Scam,
-{\it assign} and {\it set!} are used to update the instance variables
+{\it assign}, {\it set!}, and {\it set} 
+can be used to update the instance variables
 of objects.
