@@ -62,5 +62,3 @@ println("this takes a while...");
 displayStream(primes,50);
 print("\n");
 ------------------------------------------
-EXCEPTION: undefinedVariable
-file zsieve.s,line 1: variable function is undefined

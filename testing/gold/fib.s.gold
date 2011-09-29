@@ -1,7 +1,4 @@
 (println "starting fib.s")
-(println "including fact.s")
-
-(include "fact.s")
 
 (define (fib n)
     (if (< n 2)
@@ -9,11 +6,15 @@
         (+ (fib (- n 1)) (fib (- n 2)))
         )
     )
+
+(println "including fact.s")
+(include "fact.s")
+
 (define x 0)
 (define result nil)
 (define t (time))
 
-(set! x 10)
+(set! x 25)
 (set! result (fib x))
 (println "fib: fib(" x ") is " result)
 (println (- (time) t) " seconds")
@@ -24,5 +25,9 @@ starting fib.s
 including fact.s
 starting fact.s
 including fib.s
-EXCEPTION: undefinedVariable
-file fact.s,line 13: variable fib is undefined
+fact: fib(5) is 5
+fact: fact(5) is 120
+fact.s included - SHOULD ONLY SEE THIS ONCE
+fib: fib(25) is 75025
+3 seconds
+fib.s included - SHOULD ONLY SEE THIS ONCE

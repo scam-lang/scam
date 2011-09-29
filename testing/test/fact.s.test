@@ -19,12 +19,12 @@ starting fact.s
 including fib.s
 starting fib.s
 including fact.s
-gc:1, 9652 cells
-gc:2, 9669 cells
-gc:3, 9654 cells
-gc:4, 9655 cells
-gc:5, 9622 cells
-gc:6, 9652 cells
+gc:1, 9752 cells
+gc:2, 9738 cells
+gc:3, 9719 cells
+gc:4, 9719 cells
+gc:5, 9721 cells
+gc:6, 9704 cells
 fib: fib(25) is 75025
 2 seconds
 fib.s included - SHOULD ONLY SEE THIS ONCE

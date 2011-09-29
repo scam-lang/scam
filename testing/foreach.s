@@ -1,23 +1,14 @@
-function foreach($v,items,$body)
-    {
-    while (items != :null)
-        {
-	$v = head(items);
-	force($body);
-	items = tail(items);
-	}
-    }
+(define (foreach # $v items $body)
+    (while (valid? items)
+        (set $v (car items) #)
+        (eval $body #)
+        (set 'items (cdr items))
+        )
+    )
 
-var i;
-var a = array(1,2,3);
+(define i)
+(define a (array 1 2 3))
 
-foreach(i,array(1,2,3,4))
-    {
-    println("i is ", i);
-    }
-    
-foreach(a[2],array(1,2,3,4))
-    {
-    println("a[2] is ", a[2]);
-    }
-    
+(foreach i (array 1 2 3 4)
+    (inspect i)
+    )

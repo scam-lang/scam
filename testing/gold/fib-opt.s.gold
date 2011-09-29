@@ -1,37 +1,27 @@
-include("fact.s");
+(include "compile.lib")
+(include "pretty.lib")
 
-function fib(n)
-    {
-    if (n < 2)
-        {
-        n;
-        }
-    else
-        {
-        fib(n - 1) + fib(n - 2);
-        }
-    }
-var x = 0;
-var result;
-var t = time();
+(define (fib n)
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        )
+    )
 
-x = 22;
+(define x 25)
+(define result)
 
-opt(fib . code,:<,<);
-opt(fib . code,:-,-);
-opt(fib . code,:+,+);
-opt(fib . code,:if,if);
-opt(fib . code,:fib,fib);
+(define s (time))
+(define result (fib x))
+(define f (time))
+(println "(fib " x ") is " result ", " (- f s) " seconds.")
 
-result = fib(x);
-display("fib(");
-display(x);
-display(") is ");
-display(result);
-display("\n");
-display(time() - t);
-display(" seconds");
-display("\n");
+(compile fib this)
+
+(define s (time))
+(define result (fib x))
+(define f (time))
+(println "(fib " x ") is " result ", " (- f s) " seconds.")
 ------------------------------------------
-fib(22) is 17711
-1 seconds
+(fib 25) is 75025, 3 seconds.
+(fib 25) is 75025, 1 seconds.
