@@ -1,13 +1,45 @@
-\chapter{Inheritance}
+\chapter{Encapsulation, Inheritance and Polymorphism}
 \label{Inheritance}
+
+\section{A formal view of object-orientation}
+
+Scam is a fully-featured object-oriented language. What does
+that mean exactly? Well, to begin with, a programming language
+is considered object-oriented if it has these
+three features:
+
+\begin{enumerate}
+\item
+    encapsulation
+\item
+    inheritance
+\item
+    polymorphism
+\end{enumerate}
+
+Encapsulation in this sense means that a programmer
+can bundle {\it data} and {\it methods} into a single entity.
+We've seen that a Scam function can
+have local variables and local functions.
+So, if we consider local variables (including the formal
+parameters) as data and local
+functions as methods, we see that Scam can encapsulate
+in the object-oriented sense.
+
+Inheritance is the ability to use the data and methods
+of one kind of object by another as if they were defined
+in the other object to begin with.
+
+Polymorphism means that an object that inherits appears
+to be both kinds of object, the kind of object it is
+itself and the kind of object from which it inherits.
 
 \section{Simple encapsulation}
 
-Recall from the previous chapter that the three hallmarks
-of object-orientation are encapsulation, inheritance, and
-polymorphism. Before we tackle inheritance, let's first review encapsulation.
+The previous chapter was concerned with encapsulation;
+let us review.
 
-A notion that simplifies our definition of inheritance is to use
+A notion that simplifies encapsulation in Scam is to use
 environments themselves as objects. Since an environment can be thought
 of as a table of the variable names currently in scope, along with their
 values, and an object can be thought of as a table of instance variables
@@ -98,7 +130,7 @@ a self-reference may be hidden from the programmer or may
 be made explicit. In any case, Scam displenses with self-references
 and implements inheritance through the manipulation of scope.
 
-\section{Extension inheritance}
+\subsection{Extension inheritance}
 
 In order to provide inheritance by manipulating scope, it must be
 possible to both get and set the static scope, at runtime, of objects
@@ -180,11 +212,11 @@ of the child object receives the child's enclosing scope:
     setEnclosingScope(pN-1,pN)
 \end{verbatim}
 
-It should be noted that the code examples in this and the next sections
+It should be noted that the code examples in this and the next subsections
 hard-wire the inheritance manipulations. As will be seen further on,
 Scam automates these tasks.
 
-\section{Reification inheritance}
+\subsection{Reification inheritance}
 
 As stated earlier, reification inheritance concerns a subclass fleshing
 out a partially completed implementation by the superclass. A consequence
@@ -227,6 +259,8 @@ parent methods to the child. In pseudocode:
 Now, reification inheritance works as expected. Here is an example:
 
 \begin{verbatim}
+    (include "inherit.lib")
+
     (define (parent)
         (define (ba) (string+ (b) (a)))
         (define (b) "slap")
@@ -256,7 +290,7 @@ As can be seen, the reference to {\it a} in the function {\it ba} is
 resolved correctly, due to the resetting of {\it ba}'s enclosing scope
 by {\it child}.
 
-For longer inheritance chains, the pseudocode of the previous section
+For longer inheritance chains, the pseudocode of the previous subsection
 is modified accordingly:
 
 \begin{verbatim}
@@ -272,7 +306,7 @@ is modified accordingly:
 
 All ancestors of the child has the enclosing scopes of their methods reset.
 
-\section{Variation inheritance}
+\subsection{Variation inheritance}
 
 Variation inheritance captures the idea of a subclass overriding a
 superclass method. If functions are naturally virtual (as in Java),
@@ -312,6 +346,8 @@ eliminating the potential error of shadowing a superclass instance
 variable. Here is an example:
 
 \begin{verbatim}
+    (include "inherit.lib")
+
     (define (parent)
         (define x 0)
         (define (toString) (string+ "x:" x))
@@ -344,7 +380,7 @@ demonstrates the virtuality of the instance variable \emph{x}.  Even
 though the program calls the superclass version of \emph{toString},
 the subclass version of \emph{x} is referenced.
 
-\section{Implementing Inheritance in Scam}
+\subsection{Implementing Inheritance in Scam}
 
 Since environments are objects in Scam, implementing the {\it
 getEnclosingScope} and {\it setEnclosingScope} functions are trivial:
@@ -355,7 +391,8 @@ getEnclosingScope} and {\it setEnclosingScope} functions are trivial:
 \end{verbatim}
 
 Moreover, the task of resetting the enclosing scopes of the parties
-involved can be automated. Scam provides a library, written in Scam that
+involved can be automated. Scam provides a library, 
+named {\it inherit.lib}, written in Scam that
 provides a number of inheritance mechanisms. The first (and simplest)
 is ad-hoc inheritance. Suppose we have objects {\it a}, {\it b}, and{\it  c}
 and we wish
@@ -434,7 +471,7 @@ which follows the definition of {\it mixin} closely:
 Other forms of inheritance are possible as well. The flexibility of this
 approach does not require inheritance to be built into the language.
 
-\section{Darwinian versus Lamarckian Inheritance}
+\subsection{Darwinian versus Lamarckian Inheritance}
 
 The behavior of the inheritance scheme implemented in this paper differs
 from the inheritance schemes of the major industrial-strength languages
@@ -455,3 +492,80 @@ and instance variables (say, the genes of the superclass) but none of
 the environmental influences.  Thus, the subclass object must provide
 bindings for the non-local references either through its own definitions
 or in its definition environment.
+
+\section{Polymorphism}
+
+Polymorphism is a word that literally means ``having multiple shapes''.
+With regards to object-orientation, polymorphism means one kind of object
+can look like another kind of object. One concrete example of this
+involves inheritance: if object {\it child} inherits from object {\it parent},
+does the {\it child} look like a {\it parent} object
+as well as a {\it child} object? In
+other words, can a variable that points to a parent object also
+point to a child object? This question is of critical importance
+for statically typed languages such as C++ and Java, but is not
+so important for dynamically-typed languages like Scam.
+This is because a Scam variable can point to any type of entity,
+so the question of whether a variable can point to either a child
+or a parent is moot.
+
+That said, it is often useful in an dynamically-typed, object-oriented
+language to ask whether or not a variable points to an object that
+looks like some other object. The {\it is?} function, introduced in the
+previous chapter, can answer these questions. Consider this set
+of constructors:
+
+\begin{verbatim}
+    (include "inherit.lib")
+
+    (define (p)
+        (define parent nil)
+        this
+        )
+
+    (define (c)
+        (define parent (p))
+        this
+        )
+\end{verbatim}
+
+Here, we have {\it b} inheriting from {\it a}.
+If we create an {\it a} object and a {\it b} object using {\it new}:
+
+\begin{verbatim}
+    (define p-obj (new (p)))
+    (define c-obj (new (c)))
+\end{verbatim}
+
+we can now ask what kinds of objects they are:
+
+\begin{verbatim}
+    (inspect (is? p-obj 'p))
+    (inspect (is? c-obj 'c))
+\end{verbatim}
+
+As expected, the output is:
+
+\begin{verbatim}
+    (is? p-obj 'p) is #t
+    (is? c-obj 'c) is #t
+\end{verbatim}
+
+However, a typical view in the object-oriented world is that a
+child object {\it is also} a parent object,
+since it inherits all the fields and
+methods of the {\it parent}. The {\it is?} function conforms to this idea:
+
+\begin{verbatim}
+    (is? c-obj 'p)
+\end{verbatim}
+
+evaluates to true.
+Conversely, the typical view is that the parent object {\it is not}
+a child object. The expression:
+
+\begin{verbatim}
+    (is? p-obj 'c)
+\end{verbatim}
+
+evaluates to false.

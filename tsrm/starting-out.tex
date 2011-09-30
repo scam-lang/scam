@@ -3,10 +3,10 @@
 
 A word of warning: if you require fancy graphically oriented development
 environments, you will be sorely disappointed in the Scam Programming
-Language. Scam is programming at its simplest: a prompt at which you type
-in expressions which the Scam interpreter evaluates. Of course, you can
+Language. Scam is programming at its simplest: you place code in a file
+and ask scam to evaluate it. 
+You
 create Scam programs using your favorite text editor (mine is {\it vim}).
-Scam can be used as a scripting language, as well.
 
 \section{Running Scam}
 
@@ -20,7 +20,7 @@ where \verb!<fileName>! is replaced by the name of the file contining your
 Scam program ({\it i.e.} Scam source code).
 You should be rewarded with the output from your Scam program.
 
-For example, create a file named hello.s. In it, place the line:
+For example, create a file named {\it hello.scm}. In it, place the line:
 
 \begin{verbatim}
     (println "hello, world!")
@@ -29,7 +29,7 @@ For example, create a file named hello.s. In it, place the line:
 Save the file and exit. Now run your program:
 
 \begin{verbatim}
-    $ scam hello.s
+    $ scam hello.scm
     hello, world!
     $
 \end{verbatim}
@@ -49,6 +49,10 @@ Scam takes a number of options:
     
     set the memory size to {\it NNN}
     
+\item[-s NNN]
+
+    set the stack size to {\it NNN}
+
 \item[-v]
 
     display the Scam version number

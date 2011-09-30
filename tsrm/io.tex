@@ -24,10 +24,10 @@ first create a file port:
 
 Once the port is set, all input will come from the new port.
 The {\it setPort} function, in addition to setting the port, returns
-the old port so that it eventually can be restored.
+the old port so that it eventually can be restored, if needed.
 
 To change the output port, the procedure is similar, except
-the symbol \verb!'write! is used instead.
+the symbol \verb!'write! is used instead of \verb!'read!.
 
 \begin{verbatim}
     (define p (open "data" 'write))   ; p points to a port
@@ -134,8 +134,8 @@ The character sequence \verb!\! followed by
 \verb!n! indicate that
 a newline is to be displayed.
 
-More useful than display are the functions {\it print} and
-{\it println} in that they take any number of arguments:
+More useful than {\it display} are the functions {\it print} and
+{\it println}, in that they take any number of arguments:
 
 \begin{verbatim}
     (print "(f x) is " (f x) "\n")
@@ -159,7 +159,8 @@ version of its argument followed by the arguments evaluation value:
 \end{verbatim}
 
 The {\it inspect} function always prints to {\it stdout},
-regardless of the current output port.
+regardless of the current output port. Like {\it pause}, it is
+useful for debugging.
 
 \section{Pretty printing}
 
@@ -193,6 +194,63 @@ In contrast, using \verb!(pp square)! yields:
                 code  : (begin (* x x))
 \end{verbatim}
 
+Yet a third way to look at a functgion is with the {\it pretty} function:
+
+\begin{verbatim}
+    (include "pretty.lib")
+
+    (pretty square)
+\end{verbatim}
+
+outputs:
+
+\begin{verbatim}
+    (define (square x)
+        (* x x)
+        )
+\end{verbatim}
+
+To use the {\it pretty} function, you must include the {\it pretty.lib} library.
+You can use the {\it pretty} function to display any arbitrary piece of 
+Scam code:
+
+\begin{verbatim}
+    (pretty '(begin (println "testing square...") (square 3)))
+\end{verbatim}
+
+produces:
+
+\begin{verbatim}
+    (begin
+        (println "testing square...")
+        (square 3)
+        )
+\end{verbatim}
+
+To change the level of indent, set the variable {\it \_\_pretty-indent} 
+appropriately:
+
+\begin{verbatim}
+    (assign __pretty-indent "  ")
+    (pretty square)
+\end{verbatim}
+
+produces:
+
+\begin{verbatim}
+    (define (square x)
+      (* x x)
+      this
+      )
+\end{verbatim}
+
+The initial indentation defaults to no indentation.
+To change this, call the {\it ppCode} function:
+
+\begin{verbatim}
+    (ppCode square "    ")
+\end{verbatim}
+
 \section{Formatting}
 
 The {\it fmt} function can be used to format numbers and strings
@@ -204,11 +262,11 @@ The function returns a string.
 For example,
 
 \begin{verbatim}
-    sway>"<" + fmt("%6d",3) + ">";
-    STRING: "<     3>"
+    (string+ "<" (fmt "%6d" 3) ">")
+    -> "<     3>"
 
-    sway>"<" + fmt("%-6d",3) + ">";
-    STRING: "<3     >"
+    (string+ "<" (fmt "%-6d" 3) ">")
+    -> "<3     >"
 \end{verbatim}
 
 A format specification begins with a percent sign and is usually followed

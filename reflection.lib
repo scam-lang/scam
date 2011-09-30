@@ -73,7 +73,7 @@
 
 (define (cloneObjectWithContext item env)
     (define c (cloneObject item))
-    (set (dot c __context) env)
+    (set '__context env c)
     c
     )
 

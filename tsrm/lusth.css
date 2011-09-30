@@ -20,6 +20,13 @@ h1, h2
     margin-left:-20px;
     }
 
+h3
+    {
+    color:slategray;
+    margin-left:-20px;
+    }
+
+
 th {background-color:#D3D3D3;}
 td {background-color:#FFFFFF;}
 
@@ -41,6 +48,7 @@ ul,li {
 table {
     padding-top: 10px;
     padding-bottom: 10px;
+    padding-left: 10px;
     padding-right: 10px;
     }
 

@@ -1096,7 +1096,7 @@ display(int args)
     {
     FILE *port = OpenPorts[CurrentOutputIndex];
 
-    pp(port,car(args));
+    if (car(args) != 0) pp(port,car(args));
 
     return car(args);
     }

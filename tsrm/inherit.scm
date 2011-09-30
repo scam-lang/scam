@@ -13,8 +13,26 @@
     this
     )
 
-(define obj (child))
 
-(inspect ((dot obj b)))
-(inspect ((dot obj a)))
+(define y (child))
+
+(inspect ((dot y b)))
+(inspect ((dot y a)))
+
+(define (a)
+    (define parent nil)
+    this
+    )
+(define (b)
+    (define parent (a))
+    this
+    )
+
+(define x (a))
+(define y (b))
+
+(inspect (is? x 'a))
+(inspect (is? y 'b))
+(inspect (is? y 'a))
+(inspect (is? x 'b))
 

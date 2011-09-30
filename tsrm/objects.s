@@ -1,3 +1,5 @@
+(include "reflection.lib")
+
     (define (square x)
         (* x x)
         )
@@ -58,6 +60,8 @@
     (inspect (is? (person 'veronica 20) 'environment))
     (define x (catch (1)))
     (inspect (is? x 'error))
+    (inspect (is? x 'environment))
+    (inspect (is? x 'object))
     (inspect (is? this 'environment))
 
     (define (person name age)
@@ -81,7 +85,8 @@
                 )
             )
         )
-(include "clone.lib")
     (define print (clone print))
     (define println (clone println))
+    (println p)
+    (set (dot p age) 34)
     (println p)

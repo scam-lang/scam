@@ -2,7 +2,7 @@
 \label{ScopesEnvironmentsObjects}
 
 A {\it scope} holds the current set of variables and their values.
-As with Scheme, Scam implements scopes using environments.
+As with Scheme, Scam implements scope using environments.
 For all Scam programs, the built-in functions are stored
 in the outermost scope, while the functions defined
 in the main library, {\it main.lib}, are stored in the next-to-the-outermost
@@ -11,7 +11,7 @@ These three scopes make up the global scope for all
 Scam programs.
 
 One can write a very simple Scam program to see the three
-levels of the global scope that is in existence for all programs:
+levels of the global scope that are in existence for all programs:
 
 \begin{verbatim}
     (print "USER SCOPE: ")
@@ -58,7 +58,7 @@ Running this program yields the following output:
                      ...
 \end{verbatim}
 
-We can see form this output that every environment
+We can see from this output that every environment
 has five predefined variables. So that they are accessible
 and available for manipulation with reduced
 likelihood of being trashed, the first four begin with
@@ -80,8 +80,9 @@ two underscores. The predefined variables are:
 \item[\_\_constructor]
     This field holds the closure for which the environment was constructed.
     If the environment did not arise from a function call, the value of
-    this field is null.
+    this field is {\it nil}.
 \item[this]
+    A self-reference to the current environment.
 \end{description}
 
 
@@ -157,4 +158,7 @@ separate scope:
                    x  : 1
                    w  : 0
 \end{verbatim}
+
+Because {\it y} and {\it z} are now in an enclosed scope,
+they are no longer visible.
 

@@ -169,10 +169,10 @@ The general form of the cond function call is:
     (cond (expr1 action1) (expr2 action2) ... (else actionN))
 \end{verbatim}
 
-where expr1, expr2, and so on are Boolean expressions. In addition
+where {\it expr1}, {\it expr2}, and so on are Boolean expressions. In addition
 to its compactness, another advantage of a cond is each action
 portion of a clause is really an implied block. For example,
-suppose we wish to debug an if statement and print out a
+suppose we wish to debug an {\it if} expression and print out a
 message if the test resolves to true. We are required to insert
 a begin block, so:
 
@@ -187,7 +187,10 @@ becomes:
 
 \begin{verbatim}
     (if (alpha a b c)
-        (begin (println "it's true!") (beta y))
+        (begin
+            (println "it's true!")
+            (beta y)
+            )
         (gamma z)
         )
 \end{verbatim}
@@ -197,9 +200,11 @@ On the other hand:
 \begin{verbatim}
     (cond
         ((alpha a b c)
-            (beta y))
+            (beta y)
+            )
         (else
-            (gamma z))
+            (gamma z)
+            )
         )
 \end{verbatim}
 
@@ -209,9 +214,11 @@ becomes:
     (cond
         ((alpha a b c)
             (println "it's true!")
-            (beta y))
+            (beta y)
+            )
         (else
-            (gamma z))
+            (gamma z)
+            )
         )
 \end{verbatim}
 

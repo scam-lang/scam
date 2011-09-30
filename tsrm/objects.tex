@@ -1,7 +1,7 @@
 \chapter{Objects}
 \label{Objects}
 
-In the Scam world, an object is a simple a collection of related variables.
+In the Scam world, an object is simply a collection of related variables.
 You've already been exposed to objects, although you may not
 have realized it. When you created a variable, you modified
 the environment, which is an object. When you defined a
@@ -116,6 +116,25 @@ In general, if a field is to be initialized when the object
 is constructed, make that field a formal parameter. If not,
 make the field a locally declared variable.
 
+\section{Chains of objects}
+
+Often times, a field of an object points to another object.
+Suppose an object called primary has a field called secondary
+which points to an object with a field size. We can access
+the size field with two invocations of {\it dot}:
+
+\begin{verbatim}
+    (assign s (dot primary secondary)
+    (dot s size)
+\end{verbatim}
+
+We can remove the need for the temporary variable by nesting the
+calls to {\it dot}.
+
+\begin{verbatim}
+    (dot (dot primary secondary) size)
+\end{verbatim}
+`
 \section{Adding Methods}
 
 Objects can have methods as well.\footnote{
@@ -145,22 +164,18 @@ The output of this code is:
     (dot p age) is 34
 \end{verbatim}
 
-In summary, one turns a function into a constructor by making returning
-
-\begin{verbatim}
-    this
-\end{verbatim}
-
+In summary, one turns a function into a constructor by returning
+{\it this}
 from a function. The local variables, including
 formal parameters, become the fields of the function while
 any local functions serve as methods.
 
-\section{This is not This}
+\section{The variable {\it this} is not {\bf this}}
 
 It is tempting to think that the predefined variable {\it this} is
-equivalent to {\it this} in Java.
-In Scam, this always refers to the current scope/environment,
-while in Java, this refers to the current object. The difference
+equivalent to {\bf this} in Java.
+In Scam, {\it this} always refers to the current scope/environment,
+while in Java, {\bf this} refers to the current object. The difference
 is noticable in object methods. For example, consider the following
 constructor:
 
@@ -192,7 +207,7 @@ be a `sub-object', as it were, of {\it a}. In fact:
     (eq? a b)
 \end{verbatim}
 
-returns false, while
+returns false, while:
 
 \begin{verbatim}
     (eq? a (dot b __context))
@@ -287,42 +302,6 @@ expressions are true:
     (is? (person 'veronica 20) 'environment)
     (is? (person 'veronica 20) 'person)
 \end{verbatim}
-
-\section{A formal view of object-orientation}
-
-Scam is a fully-featured object-oriented language. What does
-that mean exactly? Well, to begin with, a programming language
-is considered object-oriented if it has these
-three features:
-
-\begin{enumerate}
-\item
-    encapsulation
-\item
-    inheritance
-\item
-    polymorphism
-\end{enumerate}
-
-Encapsulation in this sense means that a programmer
-can bundle {\it data} and {\it methods} into a single entity.
-We've seen that a Scam function can
-have local variables and local functions.
-So, if we consider local variables (including the formal
-parameters) as data and local
-functions as methods, we see that Scam can encapsulate
-in the object-oriented sense.
-
-Inheritance is the ability to use the data and methods
-of one kind of object by another as if they were defined
-in the other object to begin with.
-The next chapter deals with inheritance.
-
-Polymorphism means that an object that inherits appears
-to be both kinds of object, the kind of object it is
-itself and the kind of object from which it inherits.
-We will learn more about
-polymorphism in the next chapter as well.
 
 \section{Other objects in Scam}
 
