@@ -3,9 +3,9 @@
 
 Once a variable has been created, it is possible to change its value,
 or {\it binding},
-We have already seen a form of assignment in
-Section {\link ListsArraysStringsSetting};
-Assignment to variables proceeds in a similar fasion.
+We have already seen a form of assignment when
+\link{setting elements of collections}{ListsStringsArraysSetting};
+assignment to variables proceeds in a similar fasion.
 Consider the following interaction with
 the Scam interpreter:
 
@@ -13,7 +13,7 @@ the Scam interpreter:
     (define eyeColor 'black)    ; creation
     
     (inspect eyeColor)          ; reference
-    -> (eyeColor is black)
+    -> eyeColor is black
     
     (assign eyeColor 'green)    ; assignment
     
@@ -78,7 +78,8 @@ equivalent to the previous call to {\it set!}:
 
 \section{Assignment and Collections}
 
-In the chapter on \link{lists and other collections}{ListsStringsArraysSetting},
+In the chapter on
+\link{lists and other collections}{ListsStringsArraysSetting},
 we saw how to change an element in a collection. Recall the
 the functions for doing so:
 

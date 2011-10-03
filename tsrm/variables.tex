@@ -20,8 +20,9 @@ If the initializer is missing:
 
 the variable is initialized to nil.
 
-\section{Defining functions}
+\section{Functions}
 
+A function definition is another way to create a variable.
 There are two ways to define a function. The first is through a 
 regular variable definition, where the initializer is a lambda
 expression:
@@ -37,7 +38,8 @@ expression:
 \end{verbatim}
 
 The above expression defines a function that returns the square of
-its argument. The second method uses a special syntax:
+its argument and emphasizes that the name of a function is
+simply a variable. The second method uses a special syntax:
 
 \begin{verbatim}
     (define (square x) (* x x))
@@ -46,22 +48,23 @@ its argument. The second method uses a special syntax:
     -> square is <function square(x)>
 \end{verbatim}
 
-The two forms are equivalent, so regardless of the method, the
-name of the function is simply a variable. The only difference
-is its value.
+In either case, a variable is created and bound to some entity
+that knows how to compute values.
 
-\section{Environments and Objects}
+\section{Scopes, Environments and Objects}
 
 When one defines a variable, the variable name and value are
-stored in a table called an {\it environment}. The predefined
-variable {\it this} always points to the current environment.
+inserted into the current scope. In actuality,
+the name-value pair is
+stored in a table called an {\it environment}. For the predefined
+variable {\it this}, its value is the current scope or environment.
 For example, consider the following interaction:
 
 \begin{verbatim}
     (define n 10)
 
-    (inspect this)
-    -> this is <object 8393>
+    (pp this)
+    -> <object 8393>
                  __label  : environment
                __context  : <object 4495>
                  __level  : 0
@@ -70,6 +73,8 @@ For example, consider the following interaction:
                        n  : 10
 \end{verbatim}
 
+The {\it pp} function will print out the list of variables
+and their values for the given environment.
 Among other information stored in the current environment,
 we see an entry for {\it n} and its value is indeed 10.
 
@@ -106,8 +111,8 @@ object.
 Unlike many languages,
 Scam is quite liberal in regards to legal variable names.
 A variable can't begin with any of the these characters:
-\verb!0123456789;,'"()! nor whitespace and cannot contain any of these
-characters: \verb!;,'"()! nor whitespace. Typically,
+\verb!0123456789;,`'"()! nor whitespace and cannot contain any of these
+characters: \verb!;,`'"()! nor whitespace. Typically,
 variable names start with a letter or underscore, but
 they do not have to. This flexibility allows Scam programmers
 to easily define new functions that have appropriate names.
@@ -120,7 +125,7 @@ Here is a function that increments the value of its argument:
 While Scam lets you name variables in wild ways:
 
 \begin{verbatim}
-    (assign $#1_2!3iiiiii@ 7)
+    (define $#1_2!3iiiiii@ 7)
 \end{verbatim}
 
 you should temper your

@@ -209,6 +209,8 @@ cons(int a,int b)
     {
     assureMemory("cons",1,&a,&b,0);
 
+    assert(line(a) != 0);
+    assert(file(a) != 0);
     return uconsfl(a,b,file(a),line(a));
     }
 

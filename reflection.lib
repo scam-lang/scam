@@ -1,10 +1,5 @@
 
 
-(define (defined? id env)
-    (define result (catch (eval id env)))
-    (not (error? result))
-    )
-
 (define (priorDefinition # name value)
     (define started #f)
     (define searching #t)
@@ -25,15 +20,15 @@
             (set 'vars (cdr vars))
             (set 'vals (cdr vals))
             )
-        (set '# (dot # __context))
+        (set '# (get '__context #))
         )
     result
     )
 
 (define (prior #)
-    (define f (dot # __constructor))
+    (define f (get '__constructor #))
     (if (local? '__prior f)
-        (dot f __prior)
+        (get '__prior f)
         (throw 'reflectionException "prior field has not been set")
         )
     )
@@ -48,7 +43,7 @@
                 ": can only redefine functions")))
     (define p (car $params))
     (if (defined? p #)
-        (define pf (dot # (__id p)))
+        (define pf (get p #))
         (define pf (lambda (@) #f))
         )
     (define f (eval (cons 'define (cons $params $)) #))
