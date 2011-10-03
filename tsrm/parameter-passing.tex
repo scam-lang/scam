@@ -1,6 +1,413 @@
 \chapter{Parameter Passing}
 \label{ParameterPassing}
 
+There are (at least) six historical and current
+methods of passing arguments to a function when a function call
+is made. They are:
+
+\begin{itemize}
+\item
+    {\it call-by-value}
+\item
+    {\it call-by-reference}
+\item
+    {\it call-by-value-result}
+\item
+    {\it call-by-name}
+\item
+    {\it call-by-need}
+\item
+    {\it delayed evaluation}
+\end{itemize}
+
+Let's examine these six methods in turn.
+
+\section*{Call-by-value}
+
+This method is the only method of parameter passing allowed by C, Java,
+Scam, and Scheme. In this method, the formal parameters are set up as local
+variables that contain the value of the expressions that were passed as
+arguments to the function. Changes to local variables are not reflected
+in the actual arguments. For example, an attempt to define a function
+for exchanging the values
+of two variable passed to it might look like:
+
+\begin{verbatim}
+    (define (swap a b)
+        (define temp a)
+        (set! a b)
+        (set! b temp)
+        )
+\end{verbatim}
+
+Consider this code which uses {\it swap}:
+
+\begin{verbatim}
+    (define x 3)
+    (define y 4)
+
+    (swap x y)
+
+    (inspect x)
+    (inspect y)
+\end{verbatim}
+
+Under {\it call-by-value},
+this function would not yield the intended semantics.
+The output of the above code is:
+
+\begin{verbatim}
+    x is 3
+    y is 4
+\end{verbatim}
+
+This is because only the values of the local variables {\it a} and {\it b}
+were swapped; the variables {\it x} and {\it y} remain unchanged
+since only their values were passed to the swapping function.
+In
+general, one cannot get a swap routine to work under {\it call-by-value}
+unless the addresses of the variables are somehow sent. One way of
+using addresses is to pass an array (in C and Scam, when an array name
+is used as an argument, the address of the first element is sent. In Java
+the address of the array
+object (Java) is sent). For example,
+the code fragment:
+
+\begin{verbatim}
+    (define x (array 1))
+    (define y (array 0))
+
+    (swap x y)  ;address of beginning element is sent
+
+    (println "x[0] is " (getELement x 0) " and y[0] is " (getElement y 0))
+\end{verbatim}
+
+with {\it swap} defined as...
+
+\begin{verbatim}
+    (define (swap a b)
+        (define temp (getElement a 0))
+        (setElement a 0 (getElement b 0))
+        (setElement b 0 temp)
+        )
+\end{verbatim}
+
+would print out:
+
+\begin{verbatim}
+    x[0] is 0 and y[0] is 1
+\end{verbatim}
+
+In this case, the addresses of arrays {\it x} and {\it y}
+are stored in the local variables {\it a} and
+{\it b}, respectively.
+This is
+still call-by-value since even if the address stored in {\it a}, for example,
+is modified,
+{\it x} still "points" to the same array as before. Here is an example:
+
+\begin{verbatim}
+    (define (change a)
+       (assign a (array 13))
+       )
+
+    (define x (array 42))
+
+    (inspect (getElement x 0))
+\end{verbatim}
+
+yields:
+
+\begin{verbatim}
+    (getElement x 0) is 42)
+\end{verbatim}
+
+Note that C has an operator that extracts the address of a variable, the
+\& operator. By using \&, one can write a swap in C that does
+not depend on arrays:
+
+\begin{verbatim}
+    void swap(int *a,int *b)
+        {
+        int temp;
+        temp = *a;
+        *a = *b;
+        *b = temp;
+        }
+\end{verbatim}
+
+The call to {\it swap} would look like:
+
+\begin{verbatim}
+    int x = 3;
+    int y = 4;
+
+    swap(&x,&y);
+
+    printf("x is %d and y is %d\n",x,y);
+\end{verbatim}
+
+with output:
+
+\begin{verbatim}
+    x is 4 and y is 3
+\end{verbatim}
+
+as desired.
+
+Note that this is still {\it call-by-value} since the {\it value} of the
+address of {\it x} (and {\it y}) is being passed to the swapping function.
+
+\section*{Call-by-reference}
+
+This second method differs from the first in that changes to
+the formal parameters during execution of the function body are
+immediately reflected in actual arguments. Both C++ and Pascal allow
+for call-by-reference. Normally, this is accomplished,
+under the hood, by passing the
+address of the actual argument (assuming it has an address) rather than
+the value of the actual argument. References to the analogous formal
+parameter are translated to references to the memory location stored in
+the formal parameter. In C++, {\it swap} could be defined as:
+
+\begin{verbatim}
+    void swap(int &a, int &b) // keyword & signifies
+        {                     // call-by-reference
+        int temp = a;
+        a = b;
+        b = temp;
+        }
+\end{verbatim}
+
+Now consider the code fragment:
+
+\begin{verbatim}
+    var x = 3;  //assume x at memory location 1000
+    var y = 4;  //assume y at memory location 1008
+
+    //location 1000 holds a 3
+    //location 1008 holds a 4
+
+    swap(x,y);
+    cout << "x is " << x << " and y is " << y << "\n";
+\end{verbatim}
+
+When the swapping function starts executing, the value 1000 is stored
+in the local variable {\it a} and 1008 is stored in local variable {\it b}.
+The line:
+
+\begin{verbatim}
+    temp = a;
+\end{verbatim}
+
+is translated, not into store the value of {\it a} (which is 1000) in
+variable {\it temp}, but rather store the value at memory location 1000 (which
+is 3) in variable {\it temp}. Similar translations are made for the remaining
+statements in the function body. Thus, the code fragment prints out:
+
+\begin{verbatim}
+    x is 4 and y is 3
+\end{verbatim}
+
+The swap works! When trying to figure out what happens under
+{\it call-by-reference}, it is often useful to draw pictures of the various
+variables and their values and locations, then update them as the function
+body executes.
+
+It is possible to simulate {\it call-by-reference} in Scam
+with delayed evaluation.
+
+\section*{Call-by-value-result}
+
+This method is a combination of the first two. Execution of the function
+body proceeds as in {\it call}-by-value. That is, no updates of the actual
+arguments are made. However, after execution of the body, but just before
+the function returns, the actual arguments are updated with the final
+values of their associated formal parameters. This method of parameter
+passing is often used for Ada in-out parameters. Would swap work under
+call-by-value-result? 
+
+Like {\it call-by-reference},
+it is possible to simulate {\it call-by-value-result} in Scam
+with delayed evaluation.
+
+\section*{Call-by-name}
+
+{\it Call-by-name} was used in Algol implementations. In essence, functions
+are treated as macros. Under {\it call-by-name}, the fragment:
+
+\begin{verbatim}
+    (define (swap a b)
+        (define temp a)
+        (set! a b)
+        (set! b temp)
+        )
+
+    (define x 3)
+    (define y 4)
+
+    (swap x y)
+
+    (println "x is "  x " and y is " y)
+\end{verbatim}
+
+...would be translated into:
+
+\begin{verbatim}
+    (define (swap a b)
+        (define temp a)
+        (set! a b)
+        (set! b temp)
+        )
+
+    (define x 3)
+    (define y 4)
+
+    ;substitute the body of the function for the call, 
+    ;renaming the references to formal parameters with the names of 
+    ;the actual args
+
+    (scope
+        (define temp x)
+        (assign x y)
+        (assign y temp)
+        )
+
+    (println "x is "  x " and y is " y)
+\end{verbatim}
+
+Under {\it call-by-name}, the {\it swap} works as desired,
+so why is {\it call-by-name}
+a method that has fallen into relative disuse? One reason is complexity.
+What happens if a local parameter happens to have the same name as one of
+the actual args. Suppose {\it swap} had been written as:
+
+\begin{verbatim}
+    (define (swap a b)
+        (define x a) 
+        (set! a b)
+        (set! b x)
+        )
+\end{verbatim}
+
+Then a naive substitution and renaming would have produced:
+
+\begin{verbatim}
+    (scope
+        (define x x)
+        (assign x y)
+        (assign y x)
+        )
+\end{verbatim}
+
+which is surely incorrect.
+Further problems occur if the body of the function references
+globals which have been shadowed in the calling function. This requires
+a complicated renaming scheme. Finally, {\it call-by-name} makes treating
+functions as first-class objects problematic (being difficult to recover
+the static environment of the called function). {\it Call-by-name}
+exists today in C++, where it is possible to {\it inline} function calls
+for performance reasons, and in macro processors.
+
+\section*{Call-by-need}
+
+In {\it call-by-value}, the arguments in a function call are evaluated and
+the results are bound to the formal parameters of the function. In
+call-by-need, the arguments themselves are literally bound
+to the formal
+parameters, as in call-by-name. A major difference is
+that the calling environment is also bound to the formal
+parameters as well. This bundle of literal argument and 
+evaluation environment is known as a {\it thunk}.
+The actual values of the arguments
+are determined only when such values are
+needed; when such a need occurs, the thunk is
+evaluated, causing the literal argument
+in the thunk to be
+evaluated in the stored (calling) environment.
+For example, consider this code:
+
+\begin{verbatim}
+    var z = 5;
+    f(z+3); 
+\end{verbatim}
+
+with {\it f} defined as:
+
+\begin{verbatim}
+    function f(x)
+        {
+        var y = x;  //x is fixed to 8 under call-by-need
+        z = z * 2;
+        return x + y;
+        }
+\end{verbatim}
+
+in the same scope as {\it z}.
+Under call-by-name, the return value is 21, but under
+call-by-need, the return value is 16.
+This is because the
+value of {\it z} changed {\it after} the point when the value of {\it x}
+(really $z+3$) was needed and the value of {\it x} was fixed from
+the prior evaluation of {\it x}. Under call-by-name, the second
+reference to {\it x} causes a fresh, new evaluation of {\it z},
+the yielding the result of 21.
+
+Call-by-need
+is exactly the method used to implement streams in the text.
+It is important to remember that the evaluation of a
+call-by-need argument is done only once, 
+with the result stored in the thunk for future requests.
+
+\section*{Call-by-name (new style)}
+
+Call-by-name (new style) is the same as call-by-need, in
+that thunks are used instead of textual substitutions
+in the body of the function. The difference is the
+result of evaluating a thunk is not memoized ({\it i.e.} stored
+in the thunk). Instead, repeated
+calls for the the value of the formal parameter result in the
+expression in the thunk being evaluated again and again.
+Differences between call-by-need and call-by-name (new style) 
+arise when the thunk's expression causes a change of state.
+
+\section*{Simulating {\it call-by-reference} with {\it call-by-name} in Scam}
+
+It is possible to simulate call-by-refence in Scam by manipulating
+the environment under which the call to the function was made.
+Before that can happen, however, the called function needs to
+be able to access the so-called {\it calling environment} .
+
+To obtain the
+calling environment in Scam,
+one simply adds a formal parameter with the name \verb!#!.
+The calling environment is then passed silently to the
+function when a function call is made. This means that
+the \verb!#! formal parameter is not matched to any actual argument
+and can appear anywhere in the parameter list (except after
+the variadic parameters \verb!@! and \verb!$! - more on them later).
+
+In addition to grabbing a handle to the calling environment,
+a swapping function also needs to delay the evaluation of
+the variable
+With the ability to grab the calling environment,
+delay the evaluation of arguments, and access the
+bindings in an environment (see the previous chapter),
+we can now define a swap function that works as intended.
+
+\begin{verbatim}
+    (define (swap # $a $b)
+        (define temp (get $a #))
+        (set $a (get $b #) #)
+        (set $b temp #)
+        )
+\end{verbatim}
+What happens if a literal is passed as an actual argument to a formal
+parameter that is designated call-by-reference? For example, how might
+
+}}
+
+\end{document}
 Scam implements call-by-value, in that it is not possible
 to directly change the value of a variable by passing it
 to a function. As an example, here is an attempt to define
@@ -35,222 +442,3 @@ As can be seen, the values of {\it x} and {\it y} did not swap.
 This does not mean that a functioning swap cannot be written
 in Scam. One needs a more indirect method of achieving this goal.
 
-\section{Obtaining the calling environment}
-
-Often times it is useful to obtain the calling environment
-of a function. One case where this is true is when you
-wish to simulate call-by-reference, as with the swap
-function in the previous section. To obtain the
-calling environment in Scam,
-one simply adds a formal parameter with the name {\it #}.
-The calling environment is then passed silently to the
-function when a function call is made. This means that
-the \verb!#! formal parameter is not matched to any actual argument
-and can appear anywhere in the parameter list (except after
-the variadic parameters \verb!@! and \verb!$! - more on them later).
-
-\section{Simulating call-by-reference}
-
-With the ability to grab the calling environment,
-delay the evaluation of arguments, and access the
-bindings in an environment (see the previous chapter),
-we can now define a swap function that works as intended.
-
-    (define (swap # $a $b)
-        (define temp (
-Suppose one wishes to count how many additions are performed when
-code in a module is executed. One way to do this is to override
-the built-in addtion function:
-
-\begin{verbatim}
-    (define plus-count 0)
-    (define (+ a b)
-        (assign plus-count (+ plus-count 1))
-        (+ a b)
-        )
-\end{verbatim}
-
-The problem here is that the original binding of \verb!+! is lost when the 
-new version is defined.
-Calling \verb!+! now will result in an infinite recursive
-loop.
-
-One solution is to save the original binding of \verb!+! before the new version
-is defined:
-
-\begin{verbatim}
-    (define old+ +)
-    (define (+ a b)
-        (assign plus-count (old+ plus-count 1))
-        (old+ a b)
-        )
-\end{verbatim}
-
-With the original version of \verb!+! bound to old-plus,
-now {\it a} and {\it b} can be added
-together properly.
-    
-Scam automates this process with two functions, {\it redefine} and {\it prior}.
-If the new version of a function is ``redefined'' rather than defined,
-the previous
-binding of the function is saved in the function closure that results.
-The {\it prior} function 
-is then used to retrieve this binding. Here is a rewrite
-of the above code using these functions:
-
-\begin{verbatim}
-    (include "reflection.lib")
-
-    (redefine (+ a b)
-        (assign plus-count ((prior) plus-count 1))
-        ((prior) a b)
-        )
-\end{verbatim}
-
-The {\it redefine} and {\it prior} functions can be accessed by including
-{\it reflection.lib}.
-    
-\section{Retrieving previous definition}
-
-Another function in the {\it reflection} library, useful for retrieving previous definitions is
-the {\it priorDefinition} function. It can be used to obtain the value
-of a variable immediately prior to the new definition. For
-example, consider the code:
-
-\begin{verbatim}
-    (define x 0)
-    (define x 1)
-    (inspect x)
-\end{verbatim}
-
-The output of this fragment is:
-
-\begin{verbatim}
-    x is 1
-\end{verbatim}
-
-as expected. The original definition of {\it x} with initial value zero
-is shadowed by the subsequent version. To obtain the original value
-of {\it x}, the {\it priorDefinition} function is used:
-
-\begin{verbatim}
-    (define x 0)
-    (define x 1)
-    (inspect (priorDefinition 'x x))
-\end{verbatim}
-
-The {\it priorDefinition} function is passed the symbol name and the current
-value of the binding. Now, the output is:
-
-\begin{verbatim}
-    (priorDefinition (quote x) x) is 0
-\end{verbatim}
-
-The fact that {\it priorDefinition} takes the value along with the symbol
-name allows definitions prior to the prior definition to be accessed.
-
-\begin{verbatim}
-    (define x 0)
-    (scope
-        (define x 1)
-        (define x 2)
-        (println "x is " x)
-        (define y (priorDefinition 'x x))
-        (println "x was " y)
-        (assign y (priorDefinition 'x y))
-        (println "before that, x was " y)
-        )
-\end{verbatim}
-
-The output generated by evaluation this code is:
-
-\begin{verbatim}
-    x is 2
-    x was 1
-    before that, x was 0
-\end{verbatim}
-
-Note that definitions found in enclosing scopes can be retrieved
-as well as prior definitions in the same scope.
-
-\section{Implementing functions for prior definitions}
-
-The redefine function works by adding a field to the closure
-object generated by a function definition. It begins by
-delaying evaluation of the  paramater list and the function
-body and extracting the function name from the parameter list.
-
-\begin{verbatim}
-    (define (redefine # $params $)
-        ;obtain the function name
-        (define f-name (car $params))
-        ;find the previous binding of the function name
-        ;if no prior binding, use the variadic identity function 
-        (if (defined? f-name #)
-            (define f-prior (dot # (__id f-name)))
-            (define f-prior (lambda (@) @))
-            )
-        ;now generate the function closure
-        (define f (eval (cons 'define (cons $params $)) #))
-        ;add the previous binding to the closure
-        (addSymbol '__prior f-prior f)
-        f
-        )
-\end{verbatim}
-
-It continues by looking up the function name in the calling scope, \verb!#!,
-binding that value to the symbol {\it f-prior}. If no binding exists,
-an identity function is bound to {\it f-prior}.
-Next, the desired function definition is processed by building
-the code for a function definition from the delayed parameter list
-and the delayed body.
-Finally, a new field is added to the function closure and bound
-to the prior function.
-
-The {\it prior} function then looks for the added symbol and returns
-its binding. It does so by extracting the constructor of the calling
-environment and then retrieving the value of the symbol that was 
-added by {\it redefine}:
-
-\begin{verbatim}
-    (define (prior #)
-        (define f (dot # __constructor))
-        (dot f __prior)
-        )
-\end{verbatim}
-
-The {\it priorDefinition} function simply walks backward through the list of
-enclosing scopes, setting a flag when the given name-value pair
-is found. It then searches for the first binding of the given
-name as it walks backwards from that point:
-
-\begin{verbatim}
-    (define (priorDefinition # name value)
-        (define started #f)     ;note the current binding has been found
-        (define searching #t)   ;note the previous binding has not been found
-        (define result nil)     ;will hold the value of the previous binding
-        (while (and searching (valid? #))
-            ; extract the list of names and values from the current scope
-            (define vars (localNames #))
-            (define vals (localValues #))
-            (while (and searching (valid? vars))
-                (cond
-                    ((and started (eq? name (car vars)))
-                        ;prior binding found!
-                        (assign searching #f)
-                        (assign result (car vals))
-                        )
-                    ((and (eq? name (car vars)) (eq? value (car vals)))
-                        ;current binding found
-                        (assign started #t)
-                        )
-                    )
-                ; chop of the current binding in this scope
-                (assign vars (cdr vars))
-                (assign vals (cdr vals))
-                )
-            ; chop of the current scope in the chain of scopes
-            (assign # (dot # __context))
-            )
-        result
-        )
