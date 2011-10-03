@@ -17,10 +17,11 @@ is made. They are:
 \item
     {\it call-by-need}
 \item
-    {\it delayed evaluation}
+    {\it generalized delayed evaluation}
 \end{itemize}
 
-Let's examine these six methods in turn.
+Let's examine these six methods in turn. After which, we will
+investigate variadic functions in Scam.
 
 \section*{Call-by-value}
 
@@ -79,7 +80,7 @@ the code fragment:
 
     (swap x y)  ;address of beginning element is sent
 
-    (println "x[0] is " (getELement x 0) " and y[0] is " (getElement y 0))
+    (println "x[0] is " (getElement x 0) " and y[0] is " (getElement y 0))
 \end{verbatim}
 
 with {\it swap} defined as...
@@ -313,9 +314,9 @@ for performance reasons, and in macro processors.
 
 In {\it call-by-value}, the arguments in a function call are evaluated and
 the results are bound to the formal parameters of the function. In
-call-by-need, the arguments themselves are literally bound
+{\it call-by-need}, the arguments themselves are literally bound
 to the formal
-parameters, as in call-by-name. A major difference is
+parameters, as in {\it call-by-name}. A major difference is
 that the calling environment is also bound to the formal
 parameters as well. This bundle of literal argument and 
 evaluation environment is known as a {\it thunk}.
@@ -328,72 +329,85 @@ evaluated in the stored (calling) environment.
 For example, consider this code:
 
 \begin{verbatim}
-    var z = 5;
-    f(z+3); 
+    (define z 5)
+    (f (+ z 3)) 
 \end{verbatim}
 
 with {\it f} defined as:
 
 \begin{verbatim}
-    function f(x)
-        {
-        var y = x;  //x is fixed to 8 under call-by-need
-        z = z * 2;
-        return x + y;
-        }
+    (define (f x)
+        (define y x)  ;x needed! x is fixed to 8 under call-by-need
+        (set! z (* z 2))
+        (+ x y)       ;x needed! x was already evaluated under call-by-need
+        )
 \end{verbatim}
 
 in the same scope as {\it z}.
-Under call-by-name, the return value is 21, but under
-call-by-need, the return value is 16.
+Under {\it call-by-name}, the return value is 21, but under
+{\it call-by-need}, the return value is 16.
 This is because the
 value of {\it z} changed {\it after} the point when the value of {\it x}
-(really $z+3$) was needed and the value of {\it x} was fixed from
-the prior evaluation of {\it x}. Under call-by-name, the second
+(really \verb!(+ z 3)! was needed and the value of {\it x} was fixed from
+the prior evaluation of {\it x}. Under {\it call-by-name}, the second
 reference to {\it x} causes a fresh, new evaluation of {\it z},
 the yielding the result of 21.
 
-Call-by-need
-is exactly the method used to implement streams in the text.
+{\it Call-by-need}
+is exactly the method used to implement streams in the 
+textbook
+{\it The Structure and Interpretation of Computer Programs}.
 It is important to remember that the evaluation of a
-call-by-need argument is done only once, 
+{\it call-by-need} argument is done only once, 
 with the result stored in the thunk for future requests.
 
-\section*{Call-by-name (new style)}
+\section*{Generalized delayed evaluation}
 
-Call-by-name (new style) is the same as call-by-need, in
-that thunks are used instead of textual substitutions
-in the body of the function. The difference is the
-result of evaluating a thunk is not memoized ({\it i.e.} stored
-in the thunk). Instead, repeated
-calls for the the value of the formal parameter result in the
-expression in the thunk being evaluated again and again.
-Differences between call-by-need and call-by-name (new style) 
-arise when the thunk's expression causes a change of state.
+{\it Call-by-need} illustrates an example of delayed evaluation.
+An unevaluated argument is stored in the thunk along with
+its execution environment. The execution environment
+is also known as the {\it calling environment},
+due to the fact that the execution environment is where the
+function call was made. Generalized delayed evaluation
+loosens the restrictions of call-by-need in that the
+function definer controls which arguments are delayed and
+whether or not a fresh evaluation of a delayed argument
+is needed.
+Differences between {\it call-by-need} and
+{\it generalized delayed evaluation}
+arise when a variable making up a delayed argument 
+experiences a change of state in between references in
+the function body.
 
-\section*{Simulating {\it call-by-reference} with {\it call-by-name} in Scam}
+\section*{Simulating {\it call-by-reference} in Scam}
 
-It is possible to simulate call-by-refence in Scam by manipulating
-the environment under which the call to the function was made.
+It is possible to simulate {\it call-by-reference} in Scam by 
+delaying the evaluation of function call arguments and
+manipulating the calling environment.
 Before that can happen, however, the called function needs to
-be able to access the so-called {\it calling environment} .
+be able to access the calling environment.
 
 To obtain the
 calling environment in Scam,
-one simply adds a formal parameter with the name \verb!#!.
+one simply adds a formal parameter with the name {\it \#}.
 The calling environment is then passed silently to the
 function when a function call is made. This means that
-the \verb!#! formal parameter is not matched to any actual argument
+the {\it \#} formal parameter is not matched to any actual argument
 and can appear anywhere in the parameter list (except after
-the variadic parameters \verb!@! and \verb!$! - more on them later).
+the variadic parameters {\it @} and {\it \$} - more on them later).
 
 In addition to grabbing a handle to the calling environment,
 a swapping function also needs to delay the evaluation of
-the variable
+the variables passed in.
+One delays the evaluation of an argument by naming the formal
+parameter matched to the argument in a special way. If the
+formal parameter name begins with a {\it \$}, then
+the corresponding argument is delayed.
+
 With the ability to grab the calling environment,
 delay the evaluation of arguments, and access the
-bindings in an environment (see the previous chapter),
-we can now define a swap function that works as intended.
+bindings in an environment (see the chapter on Objects),
+we can now define a {\it swap} function that works as intended.
 
 \begin{verbatim}
     (define (swap # $a $b)
@@ -402,43 +416,73 @@ we can now define a swap function that works as intended.
         (set $b temp #)
         )
 \end{verbatim}
-What happens if a literal is passed as an actual argument to a formal
-parameter that is designated call-by-reference? For example, how might
 
-}}
+Note that the local variables {\it \$a} and {\it \$b} are regular variables;
+they happen to point to unevaluated fragments
+of Scam code.
+Note also that {\it set} was used instead of {\it set!}
+to change variable values.
+If {\it set!} had been used, only the value of the local
+variables {\it \$a} and {\it \$b} would change.
+Unlike {\it set!}, {\it set} evaluates all its arguments,
+so the values of {\it \$a} and {\it \$b} are passed to {\it set}, rather than
+their names.
+Finally note, that we pass the calling environment, {\it \#}, as the third
+parameter to set, so that changes to the symbols to which
+{\it \$a} and {\it \$b}
+are bound
+happen in the calling environment.
 
-\end{document}
-Scam implements call-by-value, in that it is not possible
-to directly change the value of a variable by passing it
-to a function. As an example, here is an attempt to define
-a swap function:
+\section{Variadic functions}
+
+A variadic function is a function that can take a different
+number of arguments from call to call.
+Scam allows this via two special formal parameter names.
+They are {\it @} and {\it \$}.
+If the last formal parameter is {\it @}, then all remaining
+(evaluated) arguments not matched to any previous formal
+parameters are gathered up in a list and {\it @} is bound to this
+list.  For example, consider these definitions:
 
 \begin{verbatim}
-    (define (swap a b)
-        (define temp a)
-        (assign a b)
-        (assign b temp)
+    (define (variadic first rest)
+        (println "the first argument is " first)
+        (println "the remaining arguments are:")
+        (while (valid? @)
+            (println "    " (car @))
+            (set! @ (cdr @))
+            )
         )
+    (define x 1)
+    (define y 2)
 \end{verbatim}
 
-Consider this code which uses swap:
+The call \verb!(variadic x)! produces:
 
 \begin{verbatim}
-    (define x 3)
-    (define y 4)
-    (swap x y)
-    (inspect x)
-    (inspect y)
+    the first argument is 1
+    the remaining arguments are:
 \end{verbatim}
 
-The output of this code is:
+while the call \verb!(variadic x y (+ x y))! produces:
 
 \begin{verbatim}
-    x is 3
-    y is 4
+    the first argument is 1
+    the remaining arguments are:
+         2
+         3
 \end{verbatim}
 
-As can be seen, the values of {\it x} and {\it y} did not swap.
-This does not mean that a functioning swap cannot be written
-in Scam. One needs a more indirect method of achieving this goal.
+Similar to {\it @,} the formal parameter {\it \$} is expected to be the
+last formal parameter. The difference is that the arguments
+bundled up into a list
+are delayed. Suppose one replaced all occurrences of {\it @} with
+{\it \$} in the definition of {\it variadic}.
+Then, the call \verb!(variadic x y (+ x y))! would produce:
 
+\begin{verbatim}
+    the first argument is x
+    the remaining arguments are:
+        x
+        (+ x y)
+\end{verbatim}
