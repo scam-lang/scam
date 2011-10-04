@@ -31,7 +31,7 @@ variables that contain the value of the expressions that were passed as
 arguments to the function. Changes to local variables are not reflected
 in the actual arguments. For example, an attempt to define a function
 for exchanging the values
-of two variable passed to it might look like:
+of two variables passed to it might look like:
 
 \begin{verbatim}
     (define (swap a b)
@@ -64,14 +64,14 @@ The output of the above code is:
 
 This is because only the values of the local variables {\it a} and {\it b}
 were swapped; the variables {\it x} and {\it y} remain unchanged
-since only their values were passed to the swapping function.
+as only their values were passed to the swapping function.
 In
 general, one cannot get a swap routine to work under {\it call-by-value}
 unless the addresses of the variables are somehow sent. One way of
 using addresses is to pass an array (in C and Scam, when an array name
-is used as an argument, the address of the first element is sent. In Java
+is used as an argument, the address of the first element is sent. In Java,
 the address of the array
-object (Java) is sent). For example,
+object is sent). For example,
 the code fragment:
 
 \begin{verbatim}

@@ -102,10 +102,11 @@ added by {\it redefine}:
 
 \section{Cloning functions}
 
-If you override defined in an enclosing scope, only functions that
-call the overridden function in the current scope see the new definition.
-Functions in an enclosing scope that call the overridden function,
-see the old version. This would be a scope violation otherwise.
+If you override a function defined in an enclosing scope, only calls
+to
+the overridden function {\it in the current scope} see the new definition.
+Calls in the enclosing scope to the overridden function,
+see the old version. A scope violation would occur otherwise.
 To solve this problem, one can override the offending function
 or more simply, clone it. Cloning a function creates a new
 definition in the current scope. The only difference is the

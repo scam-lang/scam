@@ -165,14 +165,14 @@ of the above construct:
         )
 \end{verbatim}
 
-The general form of the cond function call is:
+The general form of a {\it cond} function call is:
 
 \begin{verbatim}
     (cond (expr1 action1) (expr2 action2) ... (else actionN))
 \end{verbatim}
 
 where {\it expr1}, {\it expr2}, and so on are Boolean expressions. In addition
-to its compactness, another advantage of a cond is each action
+to its compactness, another advantage of a {\it cond} is each action
 portion of a clause is really an implied block. For example,
 suppose we wish to debug an {\it if} expression and print out a
 message if the test resolves to true. We are required to insert
