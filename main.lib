@@ -14,7 +14,7 @@
     (cond
         ((dot? $x)
             (define last (dot-assign-setup (eval (cadr $x) #) (cddr $x) #))
-            (inspect last)
+            ;(inspect last)
             (set (cadr last) y (car last))
             )
         (else

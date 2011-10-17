@@ -1,0 +1,2 @@
+(define (similar x) (throw "similar trait not implemented"))
+(define (dissimilar x) (not (similar x)))

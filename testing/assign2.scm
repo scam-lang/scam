@@ -1,6 +1,7 @@
 (include "reflection.lib")
 
 (define (run1) 
+    (inspect (+ (polar 1 .707) (polar 1 .707)))
     (inspect (+ (polar 3 1.423) (polar 7 2.453)))
     (inspect (+ (rectangular 3 1.423) (rectangular 7 2.453)))
     (inspect (+ (polar 3 1.423) 0))
@@ -304,7 +305,7 @@
 (define (Integer i)
     (define (add x)
         (cond
-            ((is? x 'Integer) (Integer (+ i (dot x value))))
+            ((is? x 'Integer) (Integer (+ i ((dot x value)))))
             (else ((dot (promote) add) x))
             )
         )
@@ -318,8 +319,8 @@
 (define (Real r)
     (define (add x)
         (cond
-            ((is? x 'Integer) (Real (+ r (dot x value))))
-            ((is? x 'Real) (Real (+ r (dot x value))))
+            ((is? x 'Integer) (Real (+ r ((dot x value)))))
+            ((is? x 'Real) (Real (+ r ((dot x value)))))
             (else ((dot (promote) add) x))
             )
         )
@@ -333,8 +334,8 @@
 (define (Rectangular x y) 
     (define (add a)
         (cond
-            ((is? a 'Integer) (Rectangular (+ x (dot a value)) y))
-            ((is? a 'Real) (Rectangular (+ x (dot a value)) y))
+            ((is? a 'Integer) (Rectangular (+ x ((dot a value))) y))
+            ((is? a 'Real) (Rectangular (+ x ((dot a value))) y))
             ((is? a 'Polar) (add ((dot a convert))))
             (else
                 (Rectangular
@@ -372,10 +373,17 @@
     (define (toString) (string (list 'polar m a)))
     this
     )
+(redefine (+ a b)
+    (cond
+        ((object? a) ((dot a add) b))
+        (else ((prior) a b))
+        )
+    )
+
 (run1)
 ;(run2)
 ;(run3)
 ;(run4)
 ;(run7)
 ;(run8)
-(run9)
+;(run9)
