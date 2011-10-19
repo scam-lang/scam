@@ -1,3 +1,8 @@
+scam (0.1.8)
+
+  * moved defined? from reflection library to main library
+  * fixed bug in length so that length of empty list returns zero
+
 scam (0.1.7)
 
   * added redefine, prior, and priorDefinition to reflection.lib

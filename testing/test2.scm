@@ -1,3 +1,4 @@
+(include "reflection.lib")
 (include "assign2.scm")
 
 (println "problem 1...\n")

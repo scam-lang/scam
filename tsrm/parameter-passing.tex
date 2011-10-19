@@ -445,7 +445,7 @@ parameters are gathered up in a list and {\it @} is bound to this
 list.  For example, consider these definitions:
 
 \begin{verbatim}
-    (define (variadic first rest)
+    (define (variadic first @)
         (println "the first argument is " first)
         (println "the remaining arguments are:")
         (while (valid? @)

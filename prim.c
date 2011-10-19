@@ -2302,7 +2302,9 @@ llength(int args)
     {
     int item = car(args);
 
-    if (type(item) == ARRAY)
+    if (item == 0)
+        return newInteger(0);
+    else if (type(item) == ARRAY)
         return newInteger(count(item));
     else if (type(item) == CONS)
         {
