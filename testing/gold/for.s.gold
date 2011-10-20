@@ -1,36 +1,35 @@
-var i = 0;
+(define i 0)
 
-function for(init, $test, $increment, $body)
-    {
-    while(force($test))
-        {
-        force($body);
-        force($increment);
-        }
-    }
+(define (for # init $test $increment $)
+    (while (eval $test #)
+        (evalList $ #)
+        (eval $increment #)
+        )
+    )
 
-function for2(init, $test, $increment, $body)
-    {
-    if(force($test))
-        {
-        force($body);
-        force($increment);
-        for2(init, $test, $increment, $body);
-        }
-    }
+(define (for2 # init $test $increment $)
+    (define (iter env)
+        (if (eval $test env)
+            (begin
+                (evalList $ env)
+                (eval $increment env)
+                (iter env)
+                )
+            )
+        )
+    (iter #)
+        )
 
-for(i = 1, i < 10, i = i + 2)
-    {
-    print("the value of i is ");
-    print(i);
-    print("\n");
-    }
-for2(i = 1, i < 10, i = i + 2)
-    {
-    print("the value of i is ");
-    print(i);
-    print("\n");
-    }
+(for (assign i 1) (< i 10) (assign i (+ i 2))
+    (print "the value of i is ")
+    (print i)
+    (print "\n")
+    )
+(for2 (assign i 1) (< i 10) (assign i (+ i 2))
+    (print "the value of i is ")
+    (print i)
+    (print "\n")
+    )
 ------------------------------------------
 the value of i is 1
 the value of i is 3

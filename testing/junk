@@ -1,35 +1,66 @@
-include("basics");
+function cons($a, $b)
+    {
+    return array($a,$b);
+    }
 
-    function node(item,next) { this; }
+function car(x)
+    {
+    //force is a primitive for evaluating
+    //a delayed object
+    return force(x . 0);
+    }
 
-    function right(items)
+function cdr(x)
+    {
+    return force(x . 1);
+    }
+
+function numbersStartingFrom(start)
+    {
+    return cons(start, numbersStartingFrom(start + 1));
+    }
+
+function sieve(primes)
+    {
+    function predicate(x)
         {
-        var slots = items . constructor . parameters;
-        var lhs = slots[0];
-        var rhs = slots[1];
-
-        if (type(items . (lhs)) == :OBJECT 
-        && items . constructor == items . (lhs) . constructor)
-            {
-            var x = items . (lhs);
-            items . (lhs) = x . (rhs);
-            x . (rhs) = items;
-            right(x);
-            }
-        else
-            {
-            items;
-            }
+        return (x % car(primes)) == 0;
         }
 
-    var items = right(1 node 2 node 3 node :null);
+    return cons(car(primes),sieve(remove(predicate,cdr(primes))));
+    }
 
-    while (items != :null)
+function remove(pred, items)
+    {
+    if (pred(car(items)))
         {
-        inspect(items . item);
-        items = items . next;
+        return pred remove cdr(items);
         }
+    else
+        {
+        return car(items) cons (pred remove cdr(items));
+        }
+    }
+
+function displayStream(str, count)
+    {
+    print("[ ");
+    while (count > 0)
+        {
+        //if (car(str) == 211) { defines(); }
+        print(car(str), " ");
+        str = cdr(str);
+        count = count - 1;
+        }
+    print("]");
+    }
+
+
+var primes = sieve(numbersStartingFrom(2));
+
+println("this takes a while...");
+displayStream(primes,50);
+print("\n");
 ------------------------------------------
-items . item is 1
-items . item is 2
-items . item is 3
+this takes a while...
+[ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101 103 107 109 113 127 131 137 139 149 151 157 163 167 173 179 181 191 193 197 199 211 223 227 229 ]

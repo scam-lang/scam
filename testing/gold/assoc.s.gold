@@ -1,0 +1,11 @@
+(define alist '((a 1) (b 2) (c 3)))
+
+(inspect (assoc 'a alist))
+(inspect (assoc 'b alist))
+(inspect (assoc 'c alist))
+(inspect (assoc 'd alist))
+------------------------------------------
+(assoc (quote a) alist) is (a 1)
+(assoc (quote b) alist) is (b 2)
+(assoc (quote c) alist) is (c 3)
+(assoc (quote d) alist) is #f

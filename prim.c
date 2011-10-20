@@ -1748,13 +1748,13 @@ checkPortForReading(FILE *fp,char *item,int args)
             item
             );
 
-    if (feof(fp))
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to read %s at end of input",
-            SymbolTable[file(args)],line(args),
-            item
-            );
+    //if (feof(fp))
+    //    return throw(exceptionSymbol,
+    //        "file %s,line %d: "
+    //        "attempt to read %s at end of input",
+    //        SymbolTable[file(args)],line(args),
+    //        item
+    //        );
 
     return 0;
     }
@@ -1768,12 +1768,11 @@ readRawChar(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"a character",args),0);
+    rethrow(checkPortForReading(fp,"a raw character",args),0);
 
     ch = fgetc(fp);
 
-    if (feof(fp)) 
-        return eofSymbol;
+    if (feof(fp)) return eofSymbol;
 
     if (ch == '\\')
         {
@@ -1862,6 +1861,9 @@ readString(int args)
     skipWhiteSpace(fp);
 
     ch = fgetc(fp);
+
+    if (feof(fp)) return eofSymbol;
+
     if (ch != '\"')
         {
         ungetc(ch,fp);
@@ -1941,8 +1943,12 @@ readToken(int args)
 
     skipWhiteSpace(fp);
 
+    ch = fgetc(fp);
+
+    if (feof(fp)) return eofSymbol;
+
     index = 0;
-    while ((ch = fgetc(fp)) && ch != EOF && !isspace(ch))
+    while (ch != EOF && !isspace(ch))
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
@@ -1951,6 +1957,7 @@ readToken(int args)
                 "attempt to read a very long token failed",
                 SymbolTable[file(args)],line(args)
                 );
+        ch = fgetc(fp);
         }
 
     buffer[index] = '\0';
@@ -1990,8 +1997,12 @@ readWhile(int args)
 
     cellStringTr(target,sizeof(target),a);
 
+    ch = fgetc(fp);
+
+    if (feof(fp)) return eofSymbol;
+
     index = 0;
-    while ((ch = fgetc(fp)) && ch != EOF && strchr(target,ch) != 0)
+    while (ch != EOF && strchr(target,ch) != 0)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
@@ -2000,6 +2011,7 @@ readWhile(int args)
                 "attempt to read a very long token failed",
                 SymbolTable[file(args)],line(args)
                 );
+        ch = fgetc(fp);
         }
 
     buffer[index] = '\0';
@@ -2039,8 +2051,12 @@ readUntil(int args)
 
     cellStringTr(target,sizeof(target),a);
 
+    ch = fgetc(fp);
+
+    if (feof(fp)) return eofSymbol;
+
     index = 0;
-    while ((ch = fgetc(fp)) && ch != EOF && strchr(target,ch) == 0)
+    while (ch != EOF && strchr(target,ch) == 0)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
@@ -2049,6 +2065,7 @@ readUntil(int args)
                 "attempt to read a very long token failed",
                 SymbolTable[file(args)],line(args)
                 );
+        ch = fgetc(fp);
         }
 
     buffer[index] = '\0';
@@ -2092,9 +2109,13 @@ readLine(int args)
     fp = OpenPorts[CurrentInputIndex];
 
     rethrow(checkPortForReading(fp,"a line",args),0);
+ 
+    ch = fgetc(fp);
+
+    if (feof(fp)) return eofSymbol;
 
     index = 0;
-    while ((ch = fgetc(fp)) && ch != EOF && ch != '\n')
+    while (ch != EOF && ch != '\n')
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
@@ -2103,6 +2124,7 @@ readLine(int args)
                 "attempt to read a very long line failed",
                 SymbolTable[file(args)],line(args)
                 );
+        ch = fgetc(fp);
         }
 
     buffer[index] = '\0';

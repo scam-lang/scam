@@ -50,9 +50,9 @@ main(int argc,char **argv,char **envv)
 
     argIndex = ProcessOptions(argc, argv);
 
-    if (argc-argIndex == 0 || argc-argIndex > 1)
+    if (argc-argIndex == 0)
 	{
-        Fatal("usage: %s INPUT_FILE\n", PROGRAM_NAME);
+        Fatal("usage: %s INPUT_FILE [ARGUMENTS]\n", PROGRAM_NAME);
 	}
 
     memoryInit(0);

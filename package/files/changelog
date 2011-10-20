@@ -2,6 +2,9 @@ scam (0.1.8)
 
   * moved defined? from reflection library to main library
   * fixed bug in length so that length of empty list returns zero
+  * removed file name and line number asserts from cons (check why)
+  * all read functions now return END_OF_INPUT symbol if file starts at EOF
+  * scam now takes command-line arguments
 
 scam (0.1.7)
 

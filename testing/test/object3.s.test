@@ -46,7 +46,7 @@
 (object? this) is #t
 (closure? this) is #f
 (environment? this) is #t
-(locals b) is <object 26109>
+(locals b) is <object 26226>
              __label  : throw
                 code  : undefinedVariable
                value  : "file object3.s,line 25: variable locals is undefined"

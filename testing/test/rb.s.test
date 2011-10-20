@@ -365,5 +365,209 @@ inserting!
        right: null
 inserting!
 rotating left
-EXCEPTION: generalException
-file rb.s,line 281: set identifier resolved to type CONS, not SYMBOL
+9 inserted.
+2(black)
+   left:  1(red)
+       left:  null
+       right: null
+   right: 9(red)
+       left:  null
+       right: null
+inserting!
+3 inserted.
+2(black)
+   left:  1(black)
+       left:  null
+       right: null
+   right: 9(black)
+       left:  3(red)
+           left:  null
+           right: null
+       right: null
+inserting!
+rotating left
+rotating right
+6 inserted.
+2(black)
+   left:  1(black)
+       left:  null
+       right: null
+   right: 6(black)
+       left:  3(red)
+           left:  null
+           right: null
+       right: 9(red)
+           left:  null
+           right: null
+inserting!
+4 inserted.
+2(black)
+   left:  1(black)
+       left:  null
+       right: null
+   right: 6(red)
+       left:  3(black)
+           left:  null
+           right: 4(red)
+               left:  null
+               right: null
+       right: 9(black)
+           left:  null
+           right: null
+inserting!
+7 inserted.
+2(black)
+   left:  1(black)
+       left:  null
+       right: null
+   right: 6(red)
+       left:  3(black)
+           left:  null
+           right: 4(red)
+               left:  null
+               right: null
+       right: 9(black)
+           left:  7(red)
+               left:  null
+               right: null
+           right: null
+inserting!
+rotating left
+rotating right
+8 inserted.
+2(black)
+   left:  1(black)
+       left:  null
+       right: null
+   right: 6(red)
+       left:  3(black)
+           left:  null
+           right: 4(red)
+               left:  null
+               right: null
+       right: 8(black)
+           left:  7(red)
+               left:  null
+               right: null
+           right: 9(red)
+               left:  null
+               right: null
+inserting!
+rotating left
+5 inserted.
+2(black)
+   left:  1(black)
+       left:  null
+       right: null
+   right: 6(red)
+       left:  4(black)
+           left:  3(red)
+               left:  null
+               right: null
+           right: 5(red)
+               left:  null
+               right: null
+       right: 8(black)
+           left:  7(red)
+               left:  null
+               right: null
+           right: 9(red)
+               left:  null
+               right: null
+insertion phase complete  tree is...
+2(black)
+   left:  1(black)
+       left:  null
+       right: null
+   right: 6(red)
+       left:  4(black)
+           left:  3(red)
+               left:  null
+               right: null
+           right: 5(red)
+               left:  null
+               right: null
+       right: 8(black)
+           left:  7(red)
+               left:  null
+               right: null
+           right: 9(red)
+               left:  null
+               right: null
+deletion phase begins...
+rotating left
+rotating left
+1 deleted.
+6(black)
+   left:  4(red)
+       left:  2(black)
+           left:  null
+           right: 3(red)
+               left:  null
+               right: null
+       right: 5(black)
+           left:  null
+           right: null
+   right: 8(black)
+       left:  7(red)
+           left:  null
+           right: null
+       right: 9(red)
+           left:  null
+           right: null
+2 deleted.
+6(black)
+   left:  4(red)
+       left:  3(black)
+           left:  null
+           right: null
+       right: 5(black)
+           left:  null
+           right: null
+   right: 8(black)
+       left:  7(red)
+           left:  null
+           right: null
+       right: 9(red)
+           left:  null
+           right: null
+9 deleted.
+6(black)
+   left:  4(red)
+       left:  3(black)
+           left:  null
+           right: null
+       right: 5(black)
+           left:  null
+           right: null
+   right: 8(black)
+       left:  7(red)
+           left:  null
+           right: null
+       right: null
+rotating right
+rotating left
+3 deleted.
+7(black)
+   left:  6(black)
+       left:  4(black)
+           left:  null
+           right: 5(red)
+               left:  null
+               right: null
+       right: null
+   right: 8(black)
+       left:  null
+       right: null
+6 deleted.
+7(black)
+   left:  5(black)
+       left:  4(black)
+           left:  null
+           right: null
+       right: null
+   right: 8(black)
+       left:  null
+       right: null
+EXCEPTION: undefinedVariable
+file rb.s,line 232: variable right is undefined
