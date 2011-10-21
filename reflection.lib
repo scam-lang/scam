@@ -1,30 +1,3 @@
-
-
-(define (priorDefinition # name value)
-    (define started #f)
-    (define searching #t)
-    (define result nil)
-    (while (and searching (valid? #))
-        (define vars (localNames #))
-        (define vals (localValues #))
-        (while (and searching (valid? vars))
-            (cond
-                ((and started (eq? name (car vars)))
-                    (set 'searching #f)
-                    (set 'result (car vals))
-                    )
-                ((and (eq? name (car vars)) (eq? value (car vals)))
-                    (set 'started #t)
-                    )
-                )
-            (set 'vars (cdr vars))
-            (set 'vals (cdr vals))
-            )
-        (set '# (get '__context #))
-        )
-    result
-    )
-
 (define (prior #)
     (define f (get '__constructor #))
     (if (local? '__prior f)
@@ -42,6 +15,10 @@
                 (string (lineNumber $params))
                 ": can only redefine functions")))
     (define p (car $params))
+    (define (zow)
+        (define pf 1)
+        this
+        )
     (if (defined? p #)
         (define pf (get p #))
         (define pf (lambda (@) #f))
@@ -53,6 +30,24 @@
 
 
 (define (clone # item)
+    (define (cloneObject item)
+        (list 'object (cloneList (cadr item)) (cloneList (caddr item)))
+        )
+
+    (define (cloneObjectWithContext item env)
+        (define c (cloneObject item))
+        (set '__context env c)
+        c
+        )
+
+    (define (cloneList items)
+        (cond
+            ((null? items) nil)
+            ((pair? items) (cons (car items) (cloneList (cdr items))))
+            (else items)
+            )
+        )
+
     (cond
         ((closure? item) (cloneObjectWithContext item #))
         ((thunk? item) (cloneObjectWithContext item #))
@@ -62,20 +57,13 @@
         )
     )
 
-(define (cloneObject item)
-    (list 'object (cloneList (cadr item)) (cloneList (caddr item)))
-    )
-
-(define (cloneObjectWithContext item env)
-    (define c (cloneObject item))
-    (set '__context env c)
-    c
-    )
-
-(define (cloneList items)
-    (cond
-        ((null? items) nil)
-        ((pair? items) (cons (car items) (cloneList (cdr items))))
-        (else items)
-        )
+(define (compile-reflection #)
+    (include "compile.lib")
+    (println "compiling prior...")
+    (compile prior #)
+    (println "compiling redefine...")
+    (compile redefine #)
+    (println "compiling clone...")
+    (compile clone #)
+    (println "reflection.lib compiled.")
     )

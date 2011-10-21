@@ -94,6 +94,8 @@ static int SymbolsIncrement = 100;
 static int gccount = 0;
 
 static int rootBottom;
+static int symbolBottom;
+static int specialSymbolBottom;
 
 void
 memoryInit(int memsize)
@@ -128,8 +130,10 @@ memoryInit(int memsize)
 
     assert(MemorySpot == 1);
 
-    zero = newInteger(0);
-    one = newInteger(1);
+    trueSymbol           = newSymbol("#t");
+    falseSymbol          = newSymbol("#f");
+
+    specialSymbolBottom = MemorySpot;
 
     labelSymbol          = newSymbol("__label");
     contextSymbol        = newSymbol("__context");
@@ -159,8 +163,6 @@ memoryInit(int memsize)
     errorSymbol          = newSymbol("error");
     beginSymbol          = newSymbol("begin");
     scopeSymbol          = newSymbol("scope");
-    trueSymbol           = newSymbol("#t");
-    falseSymbol          = newSymbol("#f");
     trueWordSymbol       = newSymbol("true");
     falseWordSymbol      = newSymbol("false");
     backquoteSymbol      = newSymbol("backquote");
@@ -194,6 +196,13 @@ memoryInit(int memsize)
     appendIndex          = findSymbol("append");
     stdinIndex           = findSymbol("stdin");
     stdoutIndex          = findSymbol("stdout");
+
+    assert(stdoutIndex == findSymbol("stdout"));
+
+    symbolBottom = MemorySpot;
+
+    zero = newInteger(0);
+    one = newInteger(1);
 
     rootBottom = MemorySpot;
     }
@@ -296,6 +305,9 @@ newSymbol(char *s)
     {
     int index = findSymbol(s);
     int result;
+
+    if (index < specialSymbolBottom)
+        return index;
 
     assureMemory("newSymbol",1,0);
 

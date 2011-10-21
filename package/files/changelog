@@ -1,3 +1,9 @@
+scam (0.1.9)
+
+  * fixed string and array bug in compile function (compile.lib)
+  * reorganized the reflection and compile libraries
+  * added a compile-library function to the reflection library
+
 scam (0.1.8)
 
   * moved defined? from reflection library to main library

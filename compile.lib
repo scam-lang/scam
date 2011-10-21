@@ -1,84 +1,98 @@
-(include "reflection.lib")
 ; mini parser for alpha-substitution
+; todo! handle function call to scope
 
-(define (rewrite-define old new names)
-    (set-car! names (cons (list old new) (car names)))
-    new
-    )
+; helper: extend the name env, binding original names to themselves
 
-; extend the name env, binding original names to themselves
+(define (rewrite expr names free)
+    ; dispatch function for generic definitions
 
-(define (rewrite-extend params values names)
-    (cons (make-assoc params values) names)
-    )
-
-; rewrite a variable definition
-
-(define (rewrite-variable-definition id expr names free)
-    ;(println "rewrite-variable-definition: id: " id " expr: " expr " name: " names)
-    (define newid (if (gensym? id) id (rewrite-define id (gensym id) names)))
-    ; add the identifier to names
-    (cons 'define 
-        (cons newid 
-            (rewrite (cddr expr) names free)))
-    )
-
-; rewrite a function definition
-
-(define (rewrite-function-definition sig expr names free)
-    ;(println "rewrite-function-definition: sig: " sig " expr: " expr " name: " names)
-    (define id (car sig))
-    (define newid (if (gensym? id) id (rewrite-define id (gensym id) names)))
-    (define next (rewrite-extend (cdr sig) (cdr sig) names))
-    ; add function name to name environment
-    (cons 'define
-        (cons (cons newid (rewrite (cdr sig) next free))
-            (rewrite (cddr expr) next free)))
-    )
-
-; dispatch function for generic definitions
-
-(define (rewrite-definition expr names free)
-    (if (symbol? (cadr expr))
-        (rewrite-variable-definition (cadr expr) expr names free)
-        (rewrite-function-definition (cadr expr) expr names free)
+    (define (rewrite-definition expr names free)
+        (if (symbol? (cadr expr))
+            (rewrite-variable-definition (cadr expr) expr names free)
+            (rewrite-function-definition (cadr expr) expr names free)
+            )
         )
-    )
+    ; rewrite a function definition
 
-(define (rewrite-scope expr names free)
-    ;(println "rewrite-scope: expr: " expr " name: " names)
-    (cons 'scope (rewrite (cdr expr) (rewrite-extend nil nil names) free))
-    )
+    (define (rewrite-function-definition sig expr names free)
+        ;(println "rewrite-function-definition: sig: " sig " expr: " expr " name: " names)
+        (define id (car sig))
+        (define newid (rewrite-identifier id names))
+        ; extend the name environment
+        (define next (cons (make-assoc (cdr sig) (cdr sig)) names))
+        ; add function name to name environment
+        (cons (rewrite 'define names free)
+            (cons (cons newid (rewrite (cdr sig) next free))
+                (rewrite (cddr expr) next free)))
+        )
 
-; look up bindings in the name env
-;   free variables
 
-(define (rewrite-get id names free)
-    ;(println "rewrite-get: id: " id " name: " names)
-    (cond
-        ((gensym? id) id)
-        ((and (null? names) (not (defined? id free))) id)
-        ((null? names) (get id free))           ;free variable
-        (else
-            (define target (assoc id (car names)))
-            (if (neq? target #f)
-                (cadr target)    ;bound variable
-                (rewrite-get id (cdr names) free)
+    (define (rewrite-scope expr names free)
+        ;(println "rewrite-scope: expr: " expr " name: " names)
+        (cons (rewrite 'scope names free)
+            (rewrite
+                (cdr expr)
+                (cons (make-assoc nil nil) names)       ;extend
+                free))
+        )
+
+    ; helper: transform a local identifier to a mangled name
+
+    (define (rewrite-identifier id names)
+        (cond
+            ((gensym? id) id)
+            ((neq? (assoc id (car names)) #f)
+                (cadr (assoc id (car names))))
+            (else
+                (rewrite-add-identifier id (gensym id) names))
+            )
+        )
+
+    ; helper: add a mangled identifier name to
+    ;         the list of names in the current scope
+
+    (define (rewrite-add-identifier old new names)
+        (set-car! names (cons (list old new) (car names)))
+        new
+        )
+
+    ; rewrite a variable definition
+
+    (define (rewrite-variable-definition id expr names free)
+        ;(println "rewrite-variable-definition: id: " id " expr: " expr " name: " names)
+        (define newid (rewrite-identifier id names))
+
+        ; add the identifier to names
+        (cons (rewrite 'define  names free)
+            (cons newid 
+                (rewrite (cddr expr) names free)))
+        )
+
+    ; look up bindings in the name env ;   free variables
+
+    (define (rewrite-get id names free)
+        ;(println "rewrite-get: id: " id " name: " names)
+        (cond
+            ((gensym? id) id)
+            ((and (null? names) (not (defined? id free))) id)
+            ((null? names) (get id free))           ;free variable
+            (else
+                (define target (assoc id (car names)))
+                (if (neq? target #f)
+                    (cadr target)    ;bound variable
+                    (rewrite-get id (cdr names) free)
+                    )
                 )
             )
         )
-    )
 
-(define (define? x) (and (pair? x) (eq? (car x) 'define)))
-
-(define (rewrite expr names free)
+    ;
     ;(println "rewrite: expr: " expr " names: " names)
     (cond
-        ((null? expr) nil)
+        ((literal? expr) expr)
         ((symbol? expr) (rewrite-get expr names free))
-        ((define? expr) (rewrite-definition expr names free))
-        ((object? expr) (rewrite-scope expr names free))
-        ((or (object? expr) (atom? expr)) expr)
+        ((eq? (car expr) 'define) (rewrite-definition expr names free))
+        ((eq? (car expr) 'scope) (rewrite-scope expr names free))
         (else
             (cons
                 (rewrite (car expr) names free)
@@ -95,7 +109,8 @@
     (set 'code
         (rewrite 
             (get 'code f) 
-            (rewrite-extend (get 'parameters f) (get 'parameters f) nil)
+            ; extend
+            (cons (make-assoc (get 'parameters f) (get 'parameters f)) nil)
             env
             )
         f) 

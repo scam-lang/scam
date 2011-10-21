@@ -16,7 +16,9 @@
 (define f (time))
 (println "(fib " x ") is " result ", " (- f s) " seconds.")
 
+(println "compiling fib...")
 (compile fib this)
+(println "fib compiled.")
 
 (define s (time))
 (define result (fib x))

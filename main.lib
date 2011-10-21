@@ -142,7 +142,7 @@
 (define (print @)
     (while (valid? @)
         (display (car @))
-        (assign @ (cdr @))
+        (set! @ (cdr @))
         )
     'print-done
     )
@@ -241,6 +241,9 @@
 (define (true? x) x)
 (define (false? x) (not x))
 (define (dot? x) (and (pair? x) (member? (car x) '(dot .))))
+(define (literal? x)
+    (or (null? x) (eq? x #t) (eq? x #f) (string? x) (array? x)
+        (integer? x) (real? x) (and (pair? x) (eq? (car x) 'quote))))
 (define (atom? x) (not (or (pair? x) (string? x) (array? x))))
 (define (car-cdr items @)
     (while (valid? @)

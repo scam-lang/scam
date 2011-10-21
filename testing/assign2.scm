@@ -1,4 +1,9 @@
 (include "reflection.lib")
+;(compile-reflection)
+(include "../../proglan/table.scm")
+(include "pretty.lib")
+(pretty redefine)
+
 
 (define (run1) 
     (inspect (+ (polar 1 .707) (polar 1 .707)))
