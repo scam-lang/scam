@@ -209,8 +209,10 @@ cons(int a,int b)
     {
     assureMemory("cons",1,&a,&b,0);
 
-    //assert(line(a) != 0);
-    //assert(file(a) != 0);
+    //debug("cons",a);
+    //printf("line is %d\n",line(a));
+    //assert(a == 0 || line(a) != 0);
+    //assert(a == 0 || file(a) != 0);
     return uconsfl(a,b,file(a),line(a));
     }
 
