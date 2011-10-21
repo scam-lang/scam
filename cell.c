@@ -491,7 +491,8 @@ void push(int i)
 static int
 transferBackbone(int old,int limit)
     {
-    int size,start;
+    int size;
+    //int start;
     char *t = type(old);
 
     //printf("   transferred tag is %d\n",transferred(old));
@@ -528,7 +529,6 @@ transferBackbone(int old,int limit)
     //debug("transferring",old);
     //printf("placing it at %d\n",limit);
     //printf("size is %d\n",size);
-    start = limit;
     //if (t == STRING) debug("before",old);
     while (size != 0)
         {

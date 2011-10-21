@@ -235,12 +235,10 @@ lexString(PARSER *p)
     int index;
     char buffer[4096];
     int result;
-    int backslashed;
     int lineNumber;
 
     index = 0;
 
-    backslashed = 0;
     lineNumber = p->line;
     while ((ch = getNextCharacter(p)) && ch != EOF)
         {

@@ -451,7 +451,7 @@ static int
 isEq(int args)
     {
     int a,b,result;
-    char *aType,*bType;
+    char *aType;
     int fi,li;
 
     args = car(args);
@@ -472,7 +472,6 @@ isEq(int args)
         {
         aType = type(a);
         b = car(args);
-        bType = type(b);
  
         if (type(a) != type(b))
             result = 0;
@@ -504,7 +503,7 @@ static int
 isNotEq(int args)
     {
     int a,b,result;
-    char *aType,*bType;
+    char *aType;
     int fi,li;
 
     args = car(args);
@@ -525,7 +524,6 @@ isNotEq(int args)
         {
         aType = type(a);
         b = car(args);
-        bType = type(b);
  
         if (type(a) != type(b))
             result = 1;
@@ -1851,7 +1849,6 @@ readString(int args)
     int index;
     char buffer[4096];
     int result;
-    int backslashed;
     FILE *fp;
 
     fp = OpenPorts[CurrentInputIndex];
@@ -1875,7 +1872,6 @@ readString(int args)
         }
 
     index = 0;
-    backslashed = 0;
     while ((ch = fgetc(fp)) && ch != EOF)
         {
         if (ch == '\"')

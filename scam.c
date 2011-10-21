@@ -27,7 +27,7 @@ extern FILE *Input;
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
 char *PROGRAM_NAME = "scam";
-char *PROGRAM_VERSION = "0.1.7";
+char *PROGRAM_VERSION = "0.1.8";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
