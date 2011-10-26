@@ -105,7 +105,7 @@ added by {\it redefine}:
 If you override a function defined in an enclosing scope, only calls
 to
 the overridden function {\it in the current scope} see the new definition.
-Calls in the enclosing scope to the overridden function,
+Calls made in the enclosing scope to the overridden function
 see the old version. A scope violation would occur otherwise.
 To solve this problem, one can override the offending function
 or more simply, clone it. Cloning a function creates a new
@@ -148,4 +148,5 @@ environment is the outer scope. The next call to {\it inspect} shows that
 {\it f} is not defined in the inner scope. The last three calls show that
 {\it f} is now defined with the proper definition environment.
 
-For an example of using clone, see the chapter on Object.
+For an example of using clone, see the chapter on
+\link{Objects}{Objects}.

@@ -2,21 +2,15 @@
 \usepackage{hyperlatex}
 \usepackage{color}
 
-\htmlcss{steely.css}
+\htmlcss{lusth.css}
 
 \htmldepth{1}
 \htmltitle{scam vs scheme}
 \htmladdress{lusth@cs.ua.edu}
-\T\oddsidemargin  -.1 true in       % Note that \oddsidemargin=\evensidemargin
-\T\evensidemargin -.1 true in
-\T\setlength\topmargin{+0.1in}
-\T\setlength\textheight{9.1 in}
-\T\setlength\textwidth{6.7 in}
 \T\setlength\parskip{6 pt}
 \T\setlength\parindent{0 in}
 
-\title{The Scam Programming Language\\
-Scam vs Scheme}
+\title{The Scam Programming Language}
 
 \author{written by: John C. Lusth}
 
@@ -26,7 +20,11 @@ Scam vs Scheme}
 
 \maketitle
 
-\W\xlink{Printable Version}{quick.pdf}
+\W\htmlrule
+
+\W\subsubsection{\xlink{Printable Version}{quick.pdf}}
+
+\section{Scam vs Scheme}
 
 Things to note for programmers who are trying Scam:
 
@@ -34,34 +32,26 @@ Things to note for programmers who are trying Scam:
 
     Scam variable/function names are case-sensitive.
 
-\subsubsection*{set!}
+\subsubsection*{assignment}
 
     The Scam version of {\it set}! has an additional mode, when compared to
-    Scheme. When its first argument is a function call, it evaluates the
-    call (it is expected that a symbol is returned).
-    Thus, these two calls are equivalent. 
-    
-\begin{verbatim}
-        (set! x 5)
-        (set! ((lambda () 'x)) 5)
-\end{verbatim}
-
-    The {\it assign} function is equivalent to set!
-
-\begin{verbatim}
-        (assign x 5)
-\end{verbatim}
-
-    The {\it set!} function also takes an optional environment,
+    Scheme;
+    the function takes an optional environment,
     where the predefined
     variable {\it this} always points to the current environment.
     Thus, the following
-    three expressions are equivalent:
+    two expressions are equivalent:
 
 \begin{verbatim}
         (set! x 5)
         (set! x 5 this)
-        (assign x 5)
+\end{verbatim}
+
+    There is a version of {\it set!} that evaluates all its arguments;
+    to assign to a variable, one quotes the variable name:
+
+\begin{verbatim}
+         (set 'x 5)
 \end{verbatim}
 
 \subsubsection*{variadic functions}
@@ -69,21 +59,22 @@ Things to note for programmers who are trying Scam:
     If the last formal parameter in a function definition is the
     symbol {\it @}, all remaining arguments not matched with 
     preceding formal parameters are bundled up into a list, with
-    the variable @ set to point to that list. Here is a redefinition
-    of the built-in function println that has the same semantics:
+    the variable {\it @} set to point to that list. Here is a redefinition
+    of the built-in function {\it println} that has the same semantics:
 
 \begin{verbatim}
         (define (println @)
-            (if (null? @)
-                (print "\n")
-                (begin (print (car @)) (apply println (cdr @)))
+            (while (valid? @)
+                (print (car @))
+                (set! @ (cdr @))
                 )
+            (print "\n")
             )
 \end{verbatim}
 
 \subsubsection*{special forms}
 
-    There are no special forms in Scam and all functions can be
+    There are no special forms in Scam; all functions can be
     redefined, including {\it if}, {\it and}, {\it or}, and {\it define}.
 
 \subsubsection*{objects}
@@ -99,14 +90,16 @@ Things to note for programmers who are trying Scam:
             )
 \end{verbatim}
 
-    There are two methods for extracting object components, \verb!.! and
+    There are two methods for extracting object components, {\it dot} and
     {\it get}. The following expressions have identical semantics:
 
 \begin{verbatim}
-        (. value (Node 3 nil))
-        (get 'value (Node 3 nil))
+        (define n (Node 3 nil))
+        (dot n value)
+        (get 'value n)
 \end{verbatim}
 
+    The {\it dot} function does not evaluate its last argument.
     Like {\it set!}, {\it get} evaluates all its arguments.
 
     Note that environments are identified with objects in Scam.
@@ -127,7 +120,8 @@ Things to note for programmers who are trying Scam:
     Calling object methods proceeds as expected:
 
 \begin{verbatim}
-        ((get 'toString (Node 3 nil))
+        (define n (Node 3 nil))
+        ((get 'toString n))
 \end{verbatim}
 
 
@@ -140,7 +134,7 @@ Things to note for programmers who are trying Scam:
         (include "inherit.lib")
 \end{verbatim}
 
-     Once included, the new function is used to perform
+     Once included, the {\it new} function is used to perform
      inheritance:
 
 \begin{verbatim}
