@@ -1,5 +1,8 @@
 html
-    {margin-left:30px;}
+    {
+    border-left: 100px solid darkslategray;
+    border-right: 100px solid darkslategray;
+    }
 
 body
     {
@@ -8,20 +11,24 @@ body
     font-family:"Palatino Linotype", "Book Antiqua", Palatino, serif;
     background-color:#FFFFFF;
     color:black;
+    margin-left: 40px;
+    margin-right: 40px;
     }
 
 h1 {font-size:150%;}
 h2 {font-size:130%;}
 h3 {font-size:110%;}
 
-h1, h2
-    {
-    color:darkslategray;
-    margin-left:-20px;
-    }
+h1, h2, h3 { margin-left:-20px; }
 
-th {background-color:#D3D3D3;}
-td {background-color:#FFFAF0;}
+h1 { color:#2F4F1F; }
+h2 { color:#3F5F2F; }
+h3 { color:#4F6F3F; }
+
+
+td {background-color:#FFFFFF;}
+
+td {padding-left: 10px; padding-right: 10px;}
 
 a:link {color:red;text-decoration:none;}
 a:visited {color:maroon;text-decoration:none;}
@@ -30,9 +37,8 @@ a:hover {color:red;font-weight:bold;text-decoration:underline;}
 h2 a:link {color:darkslategray;text-decoration:none;}
 h2 a:visited {color:darkslategray;text-decoration:none;}
 h2 a:hover {color:darkslategray;font-weight:bold;text-decoration:none;}
-code,tt,pre    {
-    color: #006633;
-    }
+
+code,tt,pre    { color: #003333; }
 
 ul,li {
     padding-bottom: 10px;
@@ -41,6 +47,7 @@ ul,li {
 table {
     padding-top: 10px;
     padding-bottom: 10px;
+    padding-left: 10px;
     padding-right: 10px;
     }
 
@@ -50,10 +57,15 @@ table {
 	border-color:	black;
 	border-style:	none;
     background: none;
-    border: 1px solid black;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
 	}	
 
-body hr
+hr
     {
-    border:none
+    margin-left: -20px;
+    width: 100%;
+    height: 4px;
+    color:#9FBF8F;
+    background-color:#9FBF8F;
     }
