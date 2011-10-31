@@ -1,0 +1,7 @@
+for s in $*
+    do
+    echo fixing $s
+    perl -i -p -e 's!\<hr\ \/\>\n!\<\hr\ \/>!' $s
+    perl -i -p -e 's!\<hr\ \/\>\<\/body!\<\/body!' $s
+    perl -i -p -e 's!\<hr\ \/\>\<address!\<address!' $s
+    done

@@ -10,5 +10,6 @@ pdflatex index.tex
 hyperlatex index.tex
 makeindex index.idx
 cp index.pdf book.pdf
-echo sending scam tar file to $SERVER...
+fix index*.html
+echo sending scam book files to $SERVER...
 scp index*.html *.tex book.pdf $SERVER:/var/www/scam/tsrm/
