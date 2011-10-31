@@ -9,5 +9,6 @@ fi
 name=`basename $1 .tex`
 pdflatex $name.tex
 hyperlatex $name.tex
+fix $name.html
 echo sending $name.\* to $SERVER...
 scp $name.tex $name.html $name.pdf $SERVER:/var/www/scam/
