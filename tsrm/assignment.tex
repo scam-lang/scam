@@ -3,9 +3,6 @@
 
 Once a variable has been created, it is possible to change its value,
 or {\it binding},
-We have already seen a form of assignment when
-\link{setting elements of collections}{ListsStringsArraysSetting};
-assignment to variables proceeds in a similar fasion.
 Consider the following interaction with
 the Scam interpreter:
 
@@ -69,24 +66,6 @@ it is useful to derive the variable name
 to be modified programmatically. The {\it set} function
 allows for this while the {\it set!} function does not.
 
-\section{Assignment and Collections}
-
-In the chapter on
-\link{lists and other collections}{ListsStringsArraysSetting},
-we saw how to change an element in a collection. Recall the
-the functions for doing so:
-
-\begin{verbatim}
-    (setElement collection index newValue)
-    (set-car! collection newValue)
-\end{verbatim}
-
-Also, it is possible to reset the tail of a list:
-
-\begin{verbatim}
-    (set-cdr! items newTail)
-\end{verbatim}
-
 \section{Assignment and Environments/Objects}
 
 The assignment functions can take an environment as an
@@ -109,3 +88,62 @@ Since environments form the basis for objects in Scam,
 {\it assign}, {\it set!}, and {\it set} 
 can be used to update the instance variables
 of objects.
+
+\section{Setting elements of a collection}
+\label{ListsStringsArraysSetting}
+
+The {\it set-car!} function can be used to set the first element of
+a collection:
+
+\begin{verbatim}
+    (define a (list 3 5 7))
+
+    (inspect a)
+    -> a is (3 5 7)
+
+    (set-car! a 11)
+
+    (inspect a)
+    -> a is (11 5 7)
+\end{verbatim}
+
+More generally, the {\it setElement} function can be used to set a new value
+at any legal index. The first argument to {\it setElement} is the collection
+to be modified, the second is in index at which to place the new value,
+the third argument.
+Indices are numbered using zero-based counting:
+
+\begin{verbatim}
+    (define a (list 3 5 7))
+    (setElement a 1 44)         ;index 1 refers to the 2nd element
+    (inspect a)
+    -> a is (3 44 7)
+\end{verbatim}
+
+For strings, the new value must be a non-empty string. If the
+value is composed of multiple characters, the characters after
+the first character are ignored.
+
+For lists, it is possible to set the tail of a list. 
+The tail of a list is the list of all elements in the list 
+except the first element. Here, we set the tail of list {\it a}
+to be list {\it b}, using {\it set-cdr!}:
+
+\begin{verbatim}
+    (define a (list 1 2 3))
+    (define b (list "two" "three" "four" "five"))
+
+    (set-cdr! a b)
+    
+    (inspect a)
+    -> a is (1 "two" "three" "four" "five")
+
+    (set-cdr! (cdr (cdr a)) (list 6))
+
+    (inspect a)
+    -> a is (1 "two" "three" 6)
+\end{verbatim}
+
+The last two interactions show that any expression that resolves
+to a list can be passed as the first and second arguments.
+Note that you cannot set the tail of either an array or a string.

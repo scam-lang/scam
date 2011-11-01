@@ -262,43 +262,4 @@ A list is something known as a {\it data structure};
 data structures are extremely important in writing
 sophisticated programs.
 
-\section{Indexing into Lists}
-
-You can pull out an item from a list by using another function
-named {\it getElement}.
-With the {\it getElement} function,
-you specify exactly which element (or elements)
-you wish to extract from the list. This specification is called an
-{\it index}. The first element of the list has index 0, the second
-index 1, and so on. This concept of having the first element having
-an index of zero is known as {\it zero-based counting}, a common concept
-in Computer Science. Here is some code that extracts the first element
-of a list:
-
-\begin{verbatim}
-    (getElement (list "a" #t 7) 0)
-    -> "a"
-
-    (getElement (list "a" #t 7) 1)
-    -> #t
-
-    (getElement (list "a" #t 7) 2)
-    -> 7
-\end{verbatim}
-
-What happens if our index is too large?
-
-\begin{verbatim}
-    (getElement (list "a" #t 7) 3)
-    EXCEPTION: generalException
-    index (3) is too large
-\end{verbatim}
-
-Not surprisingly, we get an error.
-In Scam, as with many programming languages, an error is known
-as an {\it exception}.
-
-As with Scheme, the built-in {\it car} and {\it cdr} functions
-returns the first item and the tail of a given list, respectively.
-
 We will see more of lists in a later chapter.

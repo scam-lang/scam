@@ -106,48 +106,8 @@ returns the first item and the tail of a collection, respectively:
     -> "b"
 \end{verbatim}
 
-\section{Setting elements of a collection}
-\label{ListsStringsArraysSetting}
+In addition to extracting elements of a collection, one can 
+change the elements in a collection as well. For more
+information, please see the chapter on 
+\link{Assignment}{Assignment}.
 
-The {\it set-car!} function can be used to set the first element of
-a collection:
-
-\begin{verbatim}
-    (set-car! (list 3 5 7) 0 11)
-    -> (11 5 7)
-\end{verbatim}
-
-More generally, the {\it setElement} function can be used to set a new value
-at any legal index:
-
-\begin{verbatim}
-    (setElement collection index newValue)
-\end{verbatim}
-
-For strings, the new value must be a non-empty string. If the
-value is composed of multiple characters, the characters after
-the first character are ignored.
-
-For lists, it is possible to set the tail of a list. 
-The tail of a list is the list of all elements in the list 
-except the first element. Here, we set the tail of list a
-to be list b, using {\it set-cdr!}:
-
-\begin{verbatim}
-    (define a (list 1 2 3))
-    (define b (list "two" "three" "four" "five"))
-
-    (set-cdr! a b)
-    
-    (inspect a)
-    -> a is (1 "two" "three" "four" "five")
-
-    (set-cdr! (cdr (cdr a)) (list 6))
-
-    (inspect a)
-    -> a is (1 "two" "three" 6)
-\end{verbatim}
-
-The last two interactions show that any expression that resolves
-to a list can be passed as the first and second arguments.
-Note that you cannot set the tail of either an array or a string.

@@ -92,13 +92,13 @@ protects against a divide-by-zero error.
 
 Scam's {\it if} expressions are used to conditionally execute code,
 depending on the truth value of what is known as the
-{\it test} expression. One version of {\it if} has a block of
-code following the test expression:
+{\it test} expression. One version of {\it if} has a single expression 
+following the test expression:
 
 Here is an example:
 
 \begin{verbatim}
-    (if (== name "John")
+    (if (equal? name "John")
         (println "What a great name you have!")
         )
 \end{verbatim}
@@ -107,14 +107,14 @@ In this version, when the test expression is true ({\it i.e.},
 the string {\tt "John"} is bound to the variable {\it name}), 
 then the following expression is evaluated 
 (i.e., the compliment
-is printed). The indented code is known as a {\it block}.
+is printed).
 If the test expression is false, however the
 expression following the test expression is not evaluated.
 
 Here is another form of {\it if}:
 
 \begin{verbatim}
-    (if (== major "Computer Science")
+    (if (equal? major "Computer Science")
         (println "Smart choice!")
         (println "Ever think about changing your major?")
         )
@@ -176,7 +176,7 @@ to its compactness, another advantage of a {\it cond} is each action
 portion of a clause is really an implied block. For example,
 suppose we wish to debug an {\it if} expression and print out a
 message if the test resolves to true. We are required to insert
-a begin block, so:
+a {\it begin} block, so:
 
 \begin{verbatim}
     (if (alpha a b c)
