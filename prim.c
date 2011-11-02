@@ -1094,6 +1094,8 @@ display(int args)
     {
     FILE *port = OpenPorts[CurrentOutputIndex];
 
+    //printf("writing to port %p\n",port);
+    //debug("    ",car(args));
     if (car(args) != 0) pp(port,car(args));
 
     return car(args);
@@ -1721,6 +1723,7 @@ cclose(int args)
 
         index = ival(cadr(target));
         rethrow(checkValidPort(index,file(args),line(args)),0);
+        //printf("closing port %p\n",OpenPorts[index]);
         fclose(OpenPorts[index]);
         OpenPorts[index] = 0;
         if (CurrentInputIndex == index) CurrentInputIndex = newPort;
@@ -2146,26 +2149,33 @@ oopen(int args)
     int result;
 
     target = car(args);
+    //debug("open file",target);
     mode = cadr(args);
+    //debug("mode",mode);
 
     if (type(mode) == SYMBOL)
         {
         if (ival(mode) == readIndex)
             {
             char buffer[512];
-            FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"r");
+            cellString(buffer,sizeof(buffer),target);
+            //printf("buffer is %s\n",buffer);
+            FILE *fp = fopen(buffer,"r");
             if (fp == 0)
                 return throw(exceptionSymbol,
                     "file %s,line %d: "
                     "file %s cannot be opened for reading",
                     SymbolTable[file(args)],line(args),
                     buffer);
+            //printf("opening reading port %p\n",fp);
             result = addOpenPort(fp,inputPortSymbol,file(args),line(args));
             }
         else if (ival(mode) == writeIndex)
             {
             char buffer[256];
-            FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"w");
+            cellString(buffer,sizeof(buffer),target);
+            //printf("buffer is %s\n",buffer);
+            FILE *fp = fopen(buffer,"w");
             //printf("buffer is %s\n",buffer);
             if (fp == 0)
                 return throw(exceptionSymbol,
@@ -2173,7 +2183,7 @@ oopen(int args)
                     "file %s cannot be opened for writing",
                     SymbolTable[file(args)],line(args),
                     buffer);
-            //printf("file opened successfully\n");
+            //printf("opening writing port %p\n",fp);
             result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
             }
         else if (ival(mode) == appendIndex)
@@ -2186,6 +2196,7 @@ oopen(int args)
                     "file %s cannot be opened for appending",
                     SymbolTable[file(args)],line(args),
                     buffer);
+            //printf("opening appending port %p\n",fp);
             result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
             }
         else 

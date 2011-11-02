@@ -3,6 +3,7 @@ scam (0.1.9)
   * fixed string and array bug in compile function (compile.lib)
   * reorganized the reflection and compile libraries
   * added a compile-library function to the reflection library
+  * fixed a gc string bug (introduced by the fix in 0.1.7)
 
 scam (0.1.8)
 

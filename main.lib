@@ -138,7 +138,6 @@
 (define (inc x) (+ x 1))
 
 (define __display display)
-(define display __display)
 (define (print @)
     (while (valid? @)
         (display (car @))

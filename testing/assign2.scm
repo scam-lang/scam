@@ -2,7 +2,6 @@
 ;(compile-reflection)
 (include "../../proglan/table.scm")
 (include "pretty.lib")
-(pretty redefine)
 
 
 (define (run1) 

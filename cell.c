@@ -386,7 +386,7 @@ cellStrCmp(int a,int b)
 char *
 cellString(char *buffer,int size, int s)
     {
-    int i = 0;
+    int i,length;
     char *target;
     static char store[4096];
 
@@ -399,12 +399,15 @@ cellString(char *buffer,int size, int s)
     else
         target = buffer;
 
-    while (i < size - 1 && s != 0)
+    i = 0;
+    length = count(s);
+    while (i < size - 1 && length > 0)
         {
         target[i] = (char) ival(s);
         //printf("target[%d] is %c\n",i,target[i]);
-        s = cdr(s);
+        ++s;
         ++i;
+        --length;
         }
 
     target[i] = '\0';
@@ -519,6 +522,7 @@ transferBackbone(int old,int limit)
         //printf("placing it at %d\n",limit);
         //getchar();
         transferred(old) = 1;
+        new_cars[limit].transferred = 0;
         cdr(old) = limit;
         return limit + 1;
         }
@@ -528,15 +532,18 @@ transferBackbone(int old,int limit)
 
     /* first, find the start of the contiguous region */
     //printf("array or string start was %d\n",old);
-    //debug("before",old);
-    while (!transferred(old-1) && type(old-1) == t && cdr(old-1) == old)
+    //if (type(old) == STRING)
+        //debug("before",old);
+    //while (!transferred(old-1) && type(old-1) == t && cdr(old-1) == old)
+    while (type(old-1) == t && count(old-1) == count(old) + 1)
         {
         //printf("cdr(old-1) is %d, old is %d\n",cdr(old-1),old);
         --old;
         //debug("string now is",old);
         }
     //printf("array or string start now is %d\n",old);
-    //debug("after",old);
+    //if (type(old) == STRING)
+        //debug("after",old);
     size = count(old);
     //getchar();
 
@@ -549,7 +556,11 @@ transferBackbone(int old,int limit)
         //printf("   transferred tag at %d is %d\n",old,transferred(old));
         assert(transferred(old) == 0);
         new_cars[limit] = the_cars[old];
-        new_cdrs[limit] = the_cdrs[old];
+        if (size == 1)
+            new_cdrs[limit] = 0;
+        else
+            new_cdrs[limit] = limit + 1;
+        new_cars[limit].transferred = 0;
         transferred(old) = 1;
         cdr(old) = limit;
         ++limit;
@@ -626,43 +637,16 @@ transfer(int limit)
             }
         else if (new_cars[spot].type == STRING)
             {
-            /* cdrs should already be transferred */
-
-            //printf("found a string!\n");
-            //old = new_cdrs[spot];
-            //if (!transferred(old))
-                //{
-                //debug("calling backbone",old);
-                //assert(0);
-                //limit = transferBackbone(old,limit);
-                //}
-            //else
-                //debug("TRANSFERRED ",old);
-
-            /* update the cdr to the transferred locaiion */
-
-            //new_cdrs[spot] = cdr(old);
+            /* strings should already be transferred since all
+               strings are bundled up in a cons cell and the cars
+               and cdrs of all cons cells have been transferred earlier.
+            */
             }
         else if (new_cars[spot].type == ARRAY)
             {
-            /* cdr should already be transferred */
-
-            //printf("found an array!\n");
-            //old = new_cdrs[spot];
-            //if (!transferred(old))
-            //    {
-            //    //debug("transferring",old);
-            //    assert(0);
-            //    limit = transferBackbone(old,limit);
-            //    }
-            //else
-                //debug("TRANSFERRED ",old);
-
-            /* update the cdr to the transferred locaiion */
-
-            //new_cdrs[spot] = cdr(old);
-
-            /* transfer over the car, if necessary */
+            /* since an array slot (the car) may be a string or an array, 
+               we have to take care of it here
+            */
 
             //printf("transferring over array cars\n");
 
@@ -710,6 +694,7 @@ gc()
         {
         new_cars[i] = the_cars[i];
         new_cdrs[i] = the_cdrs[i];
+        new_cars[i].transferred = 0;
         transferred(i) = 1;
         cdr(i) = i;
         }
@@ -724,6 +709,7 @@ gc()
             {
             new_cars[spot] = the_cars[Stack[i]];
             new_cdrs[spot] = the_cdrs[Stack[i]];
+            new_cars[spot].transferred = 0;
             transferred(Stack[i]) = 1;
             cdr(Stack[i]) = spot;
             ++spot;
