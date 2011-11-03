@@ -10,3 +10,4 @@ name=`basename $1 .tex`
 echo sending css files to $SERVER...
 scp lusth.css $SERVER:/var/www/scam/
 scp lusth.css $SERVER:/var/www/scam/tsrm
+cp lusth.css ../tsrm

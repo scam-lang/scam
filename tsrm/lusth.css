@@ -38,7 +38,7 @@ h2 a:link {color:darkslategray;text-decoration:none;}
 h2 a:visited {color:darkslategray;text-decoration:none;}
 h2 a:hover {color:darkslategray;font-weight:bold;text-decoration:none;}
 
-code,tt,pre    { color: #003333; }
+code,tt,pre    { font-size: 110%; color: #003333; }
 
 ul,li {
     padding-bottom: 10px;
@@ -57,8 +57,8 @@ table {
 	border-color:	black;
 	border-style:	none;
     background: none;
-    border-top: 1px solid black;
-    border-bottom: 1px solid black;
+    border-top: 1px solid midnightblue;
+    border-bottom: 1px solid midnightblue;
 	}	
 
 hr
@@ -69,3 +69,10 @@ hr
     color:#AFCF9F;
     background-color:#AFCF9F;
     }
+
+sub, sup { font-size: 75% }
+
+p { line-height: 1.5em; }
+pre { line-height: 1.5em; }
+sub, sup { line-height: 0; } 
+

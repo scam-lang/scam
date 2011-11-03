@@ -8,3 +8,5 @@ else
 fi
 echo sending lusth.css to $SERVER...
 scp lusth.css $SERVER:/var/www/scam/tsrm/
+scp lusth.css $SERVER:/var/www/scam/
+cp lusth.css ../web/
