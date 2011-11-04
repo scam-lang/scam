@@ -10,19 +10,20 @@
 \T\setlength\parskip{6 pt}
 \T\setlength\parindent{0 in}
 
-\title{The Scam Programming Language}
+\title{The Scam Programming Language\\
+\date{Revision Date: \today}
+}
 
 \author{written by: John C. Lusth}
 
-\date{Revision Date: \today}
 
 \begin{document}
 
 \maketitle
 
+\W\subsubsection{\xlink{Printable Version}{quick.pdf}}
 \W\htmlrule
 
-\W\subsubsection{\xlink{Printable Version}{quick.pdf}}
 
 \section{Scam vs Scheme}
 
@@ -34,7 +35,7 @@ Things to note for programmers who are trying Scam:
 
 \subsubsection*{assignment}
 
-    The Scam version of {\it set}! has an additional mode, when compared to
+    The Scam version of {\it set!} has an additional mode, when compared to
     Scheme;
     the function takes an optional environment,
     where the predefined
@@ -53,6 +54,9 @@ Things to note for programmers who are trying Scam:
 \begin{verbatim}
          (set 'x 5)
 \end{verbatim}
+
+    The {\it set} function
+    also takes an environment as an optional third argument.
 
 \subsubsection*{variadic functions}
 
@@ -91,7 +95,7 @@ Things to note for programmers who are trying Scam:
 \end{verbatim}
 
     There are two methods for extracting object components, {\it dot} and
-    {\it get}. The following expressions have identical semantics:
+    {\it get}. The latter two expressions have identical semantics:
 
 \begin{verbatim}
         (define n (Node 3 nil))
@@ -100,9 +104,9 @@ Things to note for programmers who are trying Scam:
 \end{verbatim}
 
     The {\it dot} function does not evaluate its last argument.
-    Like {\it set!}, {\it get} evaluates all its arguments.
+    Like {\it set}, {\it get} evaluates all its arguments.
 
-    Note that environments are identified with objects in Scam.
+    Note that environments and objects are equivalent in Scam.
 
 \subsubsection*{object methods}
 
@@ -155,5 +159,10 @@ Things to note for programmers who are trying Scam:
     convention, define a {\it parent} variable.
 
     Inheritance is similar to Java; every method is virtual.
+    Unlike Java, ancestor objects `inherit' the enclosing scope
+    of the child object. In other words, if an ancestor method
+    references a non-local variable, the non-local is resolved
+    in the scope of the child object and, if not resolved there,
+    in the child's enclosing scope.
 
 \end{document}
