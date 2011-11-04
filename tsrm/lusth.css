@@ -34,14 +34,14 @@ a:link {color:red;text-decoration:none;}
 a:visited {color:maroon;text-decoration:none;}
 a:hover {color:red;font-weight:bold;text-decoration:underline;}
 
-h2 a:link {color:darkslategray;text-decoration:none;}
-h2 a:visited {color:darkslategray;text-decoration:none;}
-h2 a:hover {color:darkslategray;font-weight:bold;text-decoration:none;}
+h1 a:link {color:#2F4F1F;text-decoration:none;}
+h1 a:visited {color:#2F4F1F;text-decoration:none;}
+h1 a:hover {color:#2F4F1F;font-weight:bold;text-decoration:none;}
 
 code,tt,pre    { font-size: 110%; color: #003333; }
 
-ul,li {
-    padding-bottom: 10px;
+li {
+    padding-top: 10px;
     }
 
 table {
@@ -57,8 +57,8 @@ table {
 	border-color:	black;
 	border-style:	none;
     background: none;
-    border-top: 1px solid midnightblue;
-    border-bottom: 1px solid midnightblue;
+    border-top: 1px solid #4F6F3F;
+    border-bottom: 1px solid #4F6F3F;
 	}	
 
 hr
