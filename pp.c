@@ -25,7 +25,7 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
                 fprintf(fp," ");
             else
                 {
-                fprintf(stdout," . ");
+                fprintf(fp," . ");
                 ppLevel(fp,items,mode + 1);
                 break;
                 }

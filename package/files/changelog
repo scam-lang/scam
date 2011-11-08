@@ -1,3 +1,7 @@
+scam (1.0)
+
+  * fixed string conversion bug for items like (cons 2 3)
+
 scam (0.1.9)
 
   * fixed string and array bug in compile function (compile.lib)
