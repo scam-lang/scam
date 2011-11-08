@@ -374,7 +374,7 @@
                 (string+ (string (car z)) " " (iter (cdr z)))
                 )
             (else
-                (string+ (string (car z)) " . " (string (cdr z)))
+                (string+ (string (car z)) " . " (string (cdr z)) ")")
                 )
             )
         )
