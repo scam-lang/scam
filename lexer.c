@@ -36,7 +36,6 @@ lex(PARSER *p)
     int ch; 
 
     ch = skipWhiteSpace(p); 
-    rethrow(ch,0);
 
     if (ch == EOF || strchr("()'`,",ch) != 0) /* single character tokens */ 
         {
@@ -45,21 +44,27 @@ lex(PARSER *p)
         switch(ch) 
             { 
             case EOF: 
+                assureMemory("lex:newPunctuation",1,0);
                 result = newPunctuation(END_OF_INPUT);
                 break;
             case '(': 
+                assureMemory("lex:newPunctuation",1,0);
                 result = newPunctuation(OPEN_PARENTHESIS);
                 break;
             case ')': 
+                assureMemory("lex:newPunctuation",1,0);
                 result = newPunctuation(CLOSE_PARENTHESIS);
                 break;
             case '\'': 
+                assureMemory("lex:newPunctuation",1,0);
                 result = newPunctuation(QUOTE);
                 break;
             case '`': 
+                assureMemory("lex:newPunctuation",1,0);
                 result = newPunctuation(BACKQUOTE);
                 break;
             case ',': 
+                assureMemory("lex:newSymbol",1,0);
                 result = newSymbol(",");
                 break;
             default:
@@ -76,9 +81,12 @@ lex(PARSER *p)
     else if (isprint(ch))
         return lexSymbol(p,ch);
     else 
+        {
+        assureMemory("lex:unknown",1000,0);
         return throw(lexicalExceptionSymbol,
             "file %s,line %d: unexpected character (%d)\n",
             SymbolTable[p->file],p->line,ch);
+        }
     } 
 
 static int
@@ -108,8 +116,7 @@ skipWhiteSpace(PARSER *p)
                     }
                 if (ch == EOF)
                     {
-                    return throw(lexicalExceptionSymbol,
-                        "file %s,line %d: unterminated comment\n",
+                    return Fatal("file %s,line %d: unterminated comment\n",
                             SymbolTable[p->file],lineNumber);
                     }
                 }
@@ -160,9 +167,12 @@ lexNumber(PARSER *p,int ch)
         if (isdigit(ch)) digits = 1;
         s[count++] = ch;
         if (count >= sizeof(s) - 1)
+            {
+            assureMemory("lexNumber:size",1000,0);
             return throw(lexicalExceptionSymbol,
                 "file %s,line %d: number has too many digits",
                 SymbolTable[p->file],p->line);
+            }
         ch = getNextCharacter(p);
         }
 
@@ -170,6 +180,7 @@ lexNumber(PARSER *p,int ch)
 
     if (digits && strchr(" \t\n();,",ch) == 0)
         {
+        assureMemory("lexNumber:illegal",1000,0);
         return throw(lexicalExceptionSymbol,
             "file %s,line %d: misformed number (%s%c)",
             SymbolTable[p->file],p->line,s,ch);
@@ -184,9 +195,15 @@ lexNumber(PARSER *p,int ch)
     else if (strcmp(s,".") == 0)
         result = lexSymbol(p,s[0]);
     else if (floater)
+        {
+        assureMemory("lexNumber:newReal",1,0);
         result = newReal(atof(s));
+        }
     else
+        {
+        assureMemory("lexNumber:newInteger",1,0);
         result = newInteger(atoi(s));
+        }
 
     file(result) = p->file;
     line(result) = p->line;
@@ -210,9 +227,12 @@ lexSymbol(PARSER *p,int ch)
         //printf("symbol: %c\n", ch);
             buffer[index++] = ch;
         if (index == sizeof(buffer))
+            {
+            assureMemory("lexSymbol:size",1000,0);
             return throw(lexicalExceptionSymbol,
                 "file %s,line %d: token has too many characters",
                 SymbolTable[p->file],p->line);
+            }
         }
 
     unread(ch,p);
@@ -220,6 +240,7 @@ lexSymbol(PARSER *p,int ch)
     buffer[index] = '\0';
     //printf("lexSymbol: buffer is %s\n", buffer);
 
+    assureMemory("lexSymbol:newSymbol",1,0);
     result = newSymbol(buffer);
 
     file(result) = p->file;
@@ -249,10 +270,13 @@ lexString(PARSER *p)
             {
             ch = getNextCharacter(p);
             if (ch == EOF)
+                {
+                assureMemory("lexString:eof",1000,0);
                 return throw(lexicalExceptionSymbol,
                     "file %s,line %d: "
                     "unexpected end of file (last char was a backslash)\n",
                     SymbolTable[p->file],p->line);
+                }
             if (ch == 'n')
                 buffer[index++] = '\n';
             else if (ch == 't')
@@ -268,15 +292,19 @@ lexString(PARSER *p)
             buffer[index++] = ch;
 
         if (index == sizeof(buffer) - 1)
+            {
+            assureMemory("lexString:size",1000,0);
             return throw(lexicalExceptionSymbol,
                 "file %s,line %d: string has too many characters",
                 SymbolTable[p->file],lineNumber);
+            }
         }
 
     buffer[index] = '\0';
 
     if (ch != '\"')
         {
+        assureMemory("lexString:unterminated",1000,0);
         return throw(lexicalExceptionSymbol,
             "file %s,line %d: unterminated string",
             SymbolTable[p->file],lineNumber);
@@ -286,6 +314,7 @@ lexString(PARSER *p)
 
     if (buffer[0] == '\0') return 0;
 
+    assureMemory("lexString:newString",strlen(buffer) + 1,0);
     result = newString(buffer);
     //printf("line %d: indent of new string \"%s\" is %d\n",
         //line(result),buffer,indent(result));

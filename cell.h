@@ -17,6 +17,7 @@ typedef struct cellobj
 extern int MemorySpot;
 extern int MemorySize;
 extern int CodeSize;
+extern int gccount;
 
 extern CELL *the_cars;
 extern int *the_cdrs;

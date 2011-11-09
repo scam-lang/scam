@@ -2521,11 +2521,14 @@ tthrow(int args)
     else if (cadr(args) != 0)
         return makeThrow(item,car(cadr(args)),0);
     else
+        {
+        assureMemory("throw:throw",1000+THROW_CELLS,&args,0);
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "wrong number of arguments to throw",
             SymbolTable[file(args)],line(args)
             );
+        }
     }
 
 /* string manipulations */

@@ -12,6 +12,8 @@
 #include "env.h"
 #include "util.h"
 
+extern void debug(char *,int);
+
 /* recursive descent parsing function */
 
 static int exprSeq(PARSER *);
@@ -92,15 +94,20 @@ parse(PARSER *p)
     {
     int result,end;
 
+    //printf("starting to parse...\n");
     if (check(p,END_OF_INPUT)) return 0;
 
     result = exprSeq(p);
     rethrow(result,0);
+    push(result);
     end = match(p,END_OF_INPUT);
+    result = pop();
     rethrow(end,0);
 
     assureMemory("parse",1,&result,0);
-    return uconsfl(beginSymbol,result,file(result),line(result));
+    result = uconsfl(beginSymbol,result,file(result),line(result));
+    //printf("done parsing.\n");
+    return result;
     }
 
 /* iterative version */
@@ -127,10 +134,6 @@ exprSeq(PARSER *p)
         hook = pop();
         cdr(hook) = ucons(b,0);
         hook = cdr(hook);
-        //head = pop();
-        //debug("    added",head);
-        //push(head);
-        //getchar();
         push(hook);
         }
 
@@ -138,8 +141,6 @@ exprSeq(PARSER *p)
     head = pop();
 
     return head;
-
-    return ucons(e,b);
     }
 
 /* recursive version
@@ -147,10 +148,12 @@ exprSeq(PARSER *p)
 static int
 exprSeq(PARSER *p)
     {
-    int e,b;
+    int e,b,result;
 
+    printf("in exprSeq...\n");
     e = expr(p);
     rethrow(e,0);
+    debug("exprSeq, e",e);
 
     push(e);
     if (isExprSeqPending(p))
@@ -159,8 +162,17 @@ exprSeq(PARSER *p)
         b = 0;
     e = pop();
     rethrow(b,0);
+    debug("exprSeq, b",b);
 
-    return ucons(e,b);
+    result = ucons(e,b);
+    debug("exprSeq, result",result);
+    printf("leaving exprSeq.\n");
+    if (gccount >= 1)
+        {
+        printf("cells left: %d\n", MemorySize - MemorySpot);
+        //getchar();
+        }
+    return result;
     }
 */
 
@@ -168,6 +180,7 @@ static int
 expr(PARSER *p)
     {
     int r,q;
+    int fi,li;
     int result;
 
     if (check(p,INTEGER))
@@ -181,36 +194,38 @@ expr(PARSER *p)
     else if (check(p,QUOTE))
         {
         q = match(p,QUOTE);
+        fi = file(q);
+        li = line(q);
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:quote",2,&r,0);
-        result = uconsfl(quoteSymbol,ucons(r,0),
-            file(q),line(q));
+        result = uconsfl(quoteSymbol,ucons(r,0),fi,li);
         }
     else if (check(p,BACKQUOTE))
         {
         q = match(p,BACKQUOTE);
+        fi = file(q);
+        li = line(q);
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:backquote",2,&r,0);
-        result = uconsfl(backquoteSymbol,ucons(r,0),
-            file(q),line(q));
+        result = uconsfl(backquoteSymbol,ucons(r,0),fi,li);
         }
     else if (check(p,COMMA))
         {
         q = match(p,COMMA);
+        fi = file(q);
+        li = line(q);
         r = expr(p);
         rethrow(r,0);
         assureMemory("expr:comma",2,&r,0);
-        result = uconsfl(commaSymbol,ucons(r,0),
-            file(q),line(q));
+        result = uconsfl(commaSymbol,ucons(r,0),fi,li);
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
-        int f,l;
-        match(p,OPEN_PARENTHESIS);
-        f = p->file;
-        l = p->line;
+        q = match(p,OPEN_PARENTHESIS);
+        fi = file(q);
+        li = line(q);
         if (isExprSeqPending(p))
             result = exprSeq(p);
         else
@@ -219,16 +234,19 @@ expr(PARSER *p)
         rethrow(match(p,CLOSE_PARENTHESIS),0);
         if (result != 0)
             {
-            file(result) = f;
-            line(result) = l;
+            file(result) = fi;
+            line(result) = li;
             }
         }
     else if (isThrow(p->pending))
         return p->pending;
     else
+        {
+        assureMemory("expr:throw",1000,0);
         return throw(syntaxExceptionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
+        }
 
     return result;
     }
@@ -263,9 +281,12 @@ match(PARSER *p,char *t)
         if (isThrow(p->pending))
             return p->pending;
         else
+            {
+            assureMemory("match:throw",1000,0);
             return throw(syntaxExceptionSymbol,
                 "file %s,line %d: expecting %s, found %s instead",
                 SymbolTable[p->file],p->line,t,type(p->pending));
+            }
         }
 
     old = p->pending;

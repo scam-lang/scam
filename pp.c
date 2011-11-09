@@ -118,16 +118,10 @@ void ppCons(FILE *fp,int expr,int mode)
     int old = ppQuoting;
 
     ppQuoting = 1;
-    if (sameSymbol(car(expr),objectSymbol))
+    if (transferred(expr))
+        fprintf(fp,"<XXX %s:%d>",type(car(expr)),car(expr));
+    else if (sameSymbol(car(expr),objectSymbol))
         ppObject(fp,expr,mode);
-    //else if (sameSymbol(car(expr),lambdaSymbol))
-    //    {
-    //    fprintf(fp,"<lambda ");
-    //    ppList(fp,"(",closure_parameters(expr),")",mode);
-    //    fprintf(fp,">");
-    //    }
-    else if (transferred(car(expr)))
-        fprintf(fp,"(XXX ...)");
     else
         ppList(fp,"(",expr,")",mode);
 

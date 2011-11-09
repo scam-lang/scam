@@ -91,7 +91,7 @@ int MaxSymbols = 100;
 char **SymbolTable;
 int SymbolCount;
 static int SymbolsIncrement = 100;
-static int gccount = 0;
+int gccount = 0;
 
 static int rootBottom;
 static int symbolBottom;
@@ -493,7 +493,8 @@ pop()
     return temp;
     }
 
-void push(int i)
+void
+push(int i)
     {
     //debug("push",i);
     if (StackPtr >= StackSize)
@@ -532,8 +533,7 @@ transferBackbone(int old,int limit)
 
     /* first, find the start of the contiguous region */
     //printf("array or string start was %d\n",old);
-    //if (type(old) == STRING)
-        //debug("before",old);
+    //printf("backbone starts at %d\n",old);
     //while (!transferred(old-1) && type(old-1) == t && cdr(old-1) == old)
     while (type(old-1) == t && count(old-1) == count(old) + 1)
         {
@@ -542,8 +542,6 @@ transferBackbone(int old,int limit)
         //debug("string now is",old);
         }
     //printf("array or string start now is %d\n",old);
-    //if (type(old) == STRING)
-        //debug("after",old);
     size = count(old);
     //getchar();
 
@@ -567,6 +565,7 @@ transferBackbone(int old,int limit)
         ++old;
         --size;
         }
+    //printf("backbone ends at %d\n",old);
     //if (t == STRING)
         //{
         //printf("last character is %c\n",new_cars[limit-1].ival);
@@ -596,6 +595,7 @@ transfer(int limit)
     while (spot < limit)
         {
         int old;
+        //printf("transfer %d:%s...",spot,type(spot));
 
         /* only need to transfer over conses, strings, and arrays */
 
@@ -608,7 +608,6 @@ transfer(int limit)
             old = new_cdrs[spot];
             if (!transferred(old))
                 {
-                //debug("transferring",old);
                 limit = transferBackbone(old,limit);
                 }
             //else
@@ -623,7 +622,6 @@ transfer(int limit)
             old = new_cars[spot].ival;
             if (!transferred(old))
                 {
-                //debug("transferring",old);
                 limit = transferBackbone(old,limit);
                 }
             //else
@@ -650,6 +648,8 @@ transfer(int limit)
 
             //printf("transferring over array cars\n");
 
+            //printf("transfer %d (%s)? %s ",old,type(old),
+            //    !transferred(old)?"yes":"no");
             old = new_cars[spot].ival;
             if (!transferred(old))
                 {
@@ -673,12 +673,10 @@ transfer(int limit)
     return spot;
     }
 
-
-             
 void 
 gc()
     {
-    int i,spot;
+    int i,spot,stackStart;
     int *temp_cdrs;
     CELL *temp_cars;
 
@@ -703,15 +701,28 @@ gc()
 
     /* transfer over the root list */
 
+    stackStart = spot;
+
     for (i = 0; i < StackPtr; ++i)
         {
         if (!transferred(Stack[i]))
             {
-            new_cars[spot] = the_cars[Stack[i]];
-            new_cdrs[spot] = the_cdrs[Stack[i]];
-            new_cars[spot].transferred = 0;
-            transferred(Stack[i]) = 1;
-            cdr(Stack[i]) = spot;
+            /* cannot transfer strings and arrays over directly */
+            /* so we wrap them in a cons */
+            if (type(Stack[i]) == STRING || type(Stack[i]) == ARRAY)
+                {
+                new_cars[spot].type = CONS;
+                new_cars[spot].ival = Stack[i];
+                new_cdrs[spot] = 0;
+                }
+            else
+                {
+                new_cars[spot] = the_cars[Stack[i]];
+                new_cdrs[spot] = the_cdrs[Stack[i]];
+                new_cars[spot].transferred = 0;
+                transferred(Stack[i]) = 1;
+                cdr(Stack[i]) = spot;
+                }
             ++spot;
             }
         /* point the stack item to its new location */
@@ -719,6 +730,20 @@ gc()
         }
 
     MemorySpot = transfer(spot);
+
+    /* now we have to unwrap the strings and arrays from their cons cells */
+    spot = stackStart;
+    for (i = 0; i < StackPtr; ++i)
+        {
+        if (type(Stack[i]) == STRING || type(Stack[i]) == ARRAY)
+            {
+            if (new_cars[spot].type != CONS)
+                printf("String cell type is %s\n",new_cars[spot].type);
+            assert(new_cars[spot].type == CONS);
+            Stack[i] = new_cars[spot].ival;
+            }
+        ++spot;
+        }
 
     /* swap the new and old memory */
 
@@ -761,6 +786,8 @@ assureMemory(char *tag,int needed, int *item, ...)
         {
         /* save items */
         //printf("gc called from %s\n",tag);
+        //printf("needed %d cells, had %d cells available.\n",
+        //    needed, MemorySize - MemorySpot);
         
         while (item != 0)
             {
@@ -775,6 +802,9 @@ assureMemory(char *tag,int needed, int *item, ...)
 
         if (MemorySpot + needed >= MemorySize)
             Fatal("gc failed: out of memory\n");
+
+        //printf("needed %d cells, now have %d cells available.\n",
+        //    needed, MemorySize - MemorySpot);
 
         /* restore items (reverse order) */
 
