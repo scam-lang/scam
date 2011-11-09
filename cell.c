@@ -680,12 +680,11 @@ gc()
     int *temp_cdrs;
     CELL *temp_cars;
 
-    if (gccount == 199)
-    for (i = 0; i < StackPtr; ++i)
-        {
-        printf("Stack[%d]:Location %d:",i,Stack[i]);
-        debug("",Stack[i]);
-        }
+    //for (i = 0; i < StackPtr; ++i)
+    //    {
+    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
+    //    debug("",Stack[i]);
+    //    }
 
     /* transfer over symbols */
 
@@ -706,31 +705,10 @@ gc()
 
     for (i = 0; i < StackPtr; ++i)
         {
-        if (gccount == 10)
-            printf("%d:%s\n",i,type(Stack[i]));
-        if (!transferred(Stack[i]))
-            {
-            /* cannot transfer strings and arrays over directly */
-            /* so we wrap them in a cons */
-            if (type(Stack[i]) == STRING || type(Stack[i]) == ARRAY)
-                {
-                printf("spot is %d\n",spot);
-                new_cars[spot].type = CONS;
-                new_cars[spot].ival = Stack[i];
-                new_cdrs[spot] = 0;
-                }
-            else
-                {
-                new_cars[spot] = the_cars[Stack[i]];
-                new_cdrs[spot] = the_cdrs[Stack[i]];
-                new_cars[spot].transferred = 0;
-                transferred(Stack[i]) = 1;
-                cdr(Stack[i]) = spot;
-                }
-            ++spot;
-            }
-        /* point the stack item to its new location */
-        Stack[i] = cdr(Stack[i]);
+        new_cars[spot].type = CONS;
+        new_cars[spot].ival = Stack[i];
+        new_cdrs[spot] = 0;
+        ++spot;
         }
 
     MemorySpot = transfer(spot);
@@ -739,18 +717,8 @@ gc()
     spot = stackStart;
     for (i = 0; i < StackPtr; ++i)
         {
-        if (gccount == 10)
-            printf("%d:%s\n",i,type(Stack[i]));
-        if (type(Stack[i]) == STRING || type(Stack[i]) == ARRAY)
-            {
-            if (new_cars[spot].type != CONS)
-                {
-                printf("String cell type is %s\n",new_cars[spot].type);
-                printf("spot is %d\n",spot);
-                }
-            assert(new_cars[spot].type == CONS);
-            Stack[i] = new_cars[spot].ival;
-            }
+        assert(new_cars[spot].type == CONS);
+        Stack[i] = new_cars[spot].ival;
         ++spot;
         }
 
@@ -764,12 +732,11 @@ gc()
     the_cdrs = new_cdrs;
     new_cdrs = temp_cdrs;
 
-    if (gccount == 199)
-    for (i = 0; i < StackPtr; ++i)
-        {
-        printf("Stack[%d]:Location %d:",i,Stack[i]);
-        debug("",Stack[i]);
-        }
+    //for (i = 0; i < StackPtr; ++i)
+    //    {
+    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
+    //    debug("",Stack[i]);
+    //    }
 
     printf("gc:%d, %d cells\n",++gccount,MemorySpot);
 
