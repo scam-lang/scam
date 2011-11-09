@@ -25,20 +25,20 @@
 (define f (time))
 (println "(fib " x ") is " result ", " (- f s) " seconds.")
 ------------------------------------------
-gc:1, 11222 cells
-gc:2, 11206 cells
-gc:3, 11204 cells
-gc:4, 11207 cells
-gc:5, 11238 cells
-gc:6, 11221 cells
-(fib 25) is 75025, 20 seconds.
+gc:1, 11275 cells
+gc:2, 11264 cells
+gc:3, 11246 cells
+gc:4, 11275 cells
+gc:5, 11244 cells
+gc:6, 11228 cells
+(fib 25) is 75025, 23 seconds.
 compiling fib...
 fib compiled.
-gc:7, 11174 cells
-gc:8, 11243 cells
-gc:9, 11275 cells
-gc:10, 11274 cells
-gc:11, 11260 cells
-gc:12, 11230 cells
-gc:13, 11244 cells
-(fib 25) is 75025, 7 seconds.
+gc:7, 11359 cells
+gc:8, 11333 cells
+gc:9, 11328 cells
+gc:10, 11354 cells
+gc:11, 11333 cells
+gc:12, 11328 cells
+gc:13, 11317 cells
+(fib 25) is 75025, 9 seconds.

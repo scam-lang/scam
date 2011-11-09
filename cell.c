@@ -91,7 +91,8 @@ int MaxSymbols = 100;
 char **SymbolTable;
 int SymbolCount;
 static int SymbolsIncrement = 100;
-int gccount = 0;
+int gcCount = 0;
+int gcDisplay = 1;
 
 static int rootBottom;
 static int symbolBottom;
@@ -513,15 +514,14 @@ transferBackbone(int old,int limit)
     //int start;
     char *t = type(old);
 
-    //printf("   transferred tag is %d\n",transferred(old));
+    /* this routine ensures the entire array or string is transferred over, */
+    /* even if 'old' points to the middle of the structure */
+
     if (t != STRING && t != ARRAY)
         {
-        //debug("transferring",old);
         assert(transferred(old) == 0);
         new_cars[limit] = the_cars[old];
         new_cdrs[limit] = the_cdrs[old];
-        //printf("placing it at %d\n",limit);
-        //getchar();
         transferred(old) = 1;
         new_cars[limit].transferred = 0;
         cdr(old) = limit;
@@ -529,29 +529,18 @@ transferBackbone(int old,int limit)
         }
 
     /* must be array or string */
-    //printf("backbone type is %s\n",t);
 
     /* first, find the start of the contiguous region */
-    //printf("array or string start was %d\n",old);
-    //printf("backbone starts at %d\n",old);
-    //while (!transferred(old-1) && type(old-1) == t && cdr(old-1) == old)
-    while (type(old-1) == t && count(old-1) == count(old) + 1)
-        {
-        //printf("cdr(old-1) is %d, old is %d\n",cdr(old-1),old);
-        --old;
-        //debug("string now is",old);
-        }
-    //printf("array or string start now is %d\n",old);
-    size = count(old);
-    //getchar();
 
-    //debug("transferring",old);
-    //printf("placing it at %d\n",limit);
-    //printf("size is %d\n",size);
-    //if (t == STRING) debug("before",old);
+    //printf("array or string start was %d\n",old);
+    while (type(old-1) == t && count(old-1) == count(old) + 1)
+        --old;
+    //printf("array or string start now is %d\n",old);
+
+    size = count(old);
+
     while (size != 0)
         {
-        //printf("   transferred tag at %d is %d\n",old,transferred(old));
         assert(transferred(old) == 0);
         new_cars[limit] = the_cars[old];
         if (size == 1)
@@ -565,25 +554,6 @@ transferBackbone(int old,int limit)
         ++old;
         --size;
         }
-    //printf("backbone ends at %d\n",old);
-    //if (t == STRING)
-        //{
-        //printf("last character is %c\n",new_cars[limit-1].ival);
-        //printf("last cdr is %d\n",new_cdrs[limit-1]);
-        //printf("last old character is %c\n",the_cars[old-1].ival);
-        //printf("last old cdr is %d\n",the_cdrs[old-1]);
-        //}
-    //printf("limit is %d\n",limit);
-    //getchar();
-    //if (t == STRING)
-    //    {
-    //    printf("after:  ");
-    //    while (new_cars[start].count >= 1)
-    //         printf("%c",new_cars[start++].ival);
-    //    printf("\n");
-    //    }
-        
-    //debug("after",start);
 
     return limit;
     }
@@ -597,21 +567,16 @@ transfer(int limit)
         int old;
         //printf("transfer %d:%s...",spot,type(spot));
 
-        /* only need to transfer over conses, strings, and arrays */
+        /* only cons cells and arrays point to other items */
+        /* these pointed-to items need to be transferred */
 
-        //printf("spot %d: ",spot);
         if (new_cars[spot].type == CONS)
             {
             /* transfer over the cdr, if necessary */
 
-            //printf("found a cons!\n");
             old = new_cdrs[spot];
             if (!transferred(old))
-                {
                 limit = transferBackbone(old,limit);
-                }
-            //else
-                //debug("TRANSFERRED ",old);
 
             /* update the cdr to the transferred locaiion */
 
@@ -621,54 +586,28 @@ transfer(int limit)
 
             old = new_cars[spot].ival;
             if (!transferred(old))
-                {
                 limit = transferBackbone(old,limit);
-                }
-            //else
-                //debug("TRANSFERRED ",old);
 
             /* update the car to the transferred locaiion */
 
             new_cars[spot].ival = cdr(old);
-
-            //getchar();
-            }
-        else if (new_cars[spot].type == STRING)
-            {
-            /* strings should already be transferred since all
-               strings are bundled up in a cons cell and the cars
-               and cdrs of all cons cells have been transferred earlier.
-            */
             }
         else if (new_cars[spot].type == ARRAY)
             {
-            /* since an array slot (the car) may be a string or an array, 
-               we have to take care of it here
-            */
+            /* only the cars of arrays point to other items */
 
-            //printf("transferring over array cars\n");
-
-            //printf("transfer %d (%s)? %s ",old,type(old),
-            //    !transferred(old)?"yes":"no");
             old = new_cars[spot].ival;
             if (!transferred(old))
-                {
-                //debug("transferring",old);
                 limit = transferBackbone(old,limit);
-                }
-            //else
-                //debug("TRANSFERRED ",old);
 
             /* update the car to the transferred locaiion */
 
             new_cars[spot].ival = cdr(old);
-
-            //getchar();
             }
-        //else
-            //printf("TRANSFERRED: %s\n",type(spot));
+
         ++spot;
         }
+
     //printf("new memory spot is %d\n",spot);
     return spot;
     }
@@ -699,7 +638,7 @@ gc()
 
     spot = i;
 
-    /* transfer over the root list */
+    /* transfer over the root list, wrapping each item in a cons cell */
 
     stackStart = spot;
 
@@ -712,9 +651,12 @@ gc()
         ++spot;
         }
 
+    /* transfer over everything the root list points to */
+
     MemorySpot = transfer(spot);
 
-    /* now we have to unwrap the strings and arrays from their cons cells */
+    /* unwrap each item on the root list from its cons cell */
+
     spot = stackStart;
     for (i = 0; i < StackPtr; ++i)
         {
@@ -739,7 +681,10 @@ gc()
     //    debug("",Stack[i]);
     //    }
 
-    printf("gc:%d, %d cells\n",++gccount,MemorySpot);
+    ++gcCount;
+    if (gcDisplay)
+        printf("gc:%d, %d cells available\n",
+            gcCount,MemorySize - MemorySpot);
 
     //for (i = 0; i < MemorySize; ++i)
     //    new_cars[i].type = PAST;

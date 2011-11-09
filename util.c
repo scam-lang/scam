@@ -118,6 +118,12 @@ ProcessOptions(int argc, char **argv)
              *         PrintActions = 1;
              *         break;
              */
+            case 'g':
+                {
+                extern int gcDisplay;
+                gcDisplay = !gcDisplay;
+                }
+                break;
             case 'M':
                 {
                 extern int MemorySize;

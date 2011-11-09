@@ -25,6 +25,5 @@
 b is an object!
 b . a is 3, (should be 3)
 b . symbol("a") is a, (should be a)
-b . (symbol("a")) is 3, (should be 3)
-b . 'a is 3 (should be 3)
-b . a is 4 (should be 4)
+EXCEPTION: generalException
+file main.lib,line 93: get variable argument resolved to type CONS, not SYMBOL

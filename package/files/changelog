@@ -3,6 +3,8 @@ scam (1.0)
   * fixed string conversion bug for items like (cons 2 3)
   * fixed pretty print conversion bug for items like (cons 2 3)
   * fixed another gc string bug
+  * add -g option for changing the gc display status
+  * added a compile-library function to the pretty (print) library
 
 scam (0.1.9)
 

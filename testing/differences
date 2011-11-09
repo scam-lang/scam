@@ -1,8 +1,8 @@
 OLD vs. NEW
 adders.s
 ------------------------------------------
-130a131
-> gc:1, 13453 cells
+128a129
+> gc:1, 13142 cells
 ------------------------------------------
 agenda.s
 ------------------------------------------
@@ -30,18 +30,6 @@ catch.s
 ------------------------------------------
 chain.s
 ------------------------------------------
-11a12
-> (println "output should be 'one'")
-13c14,15
-< 
----
-> (println "output should be 'two'")
-> (inspect (. obj o y))
-14a17
-> output should be 'one'
-15a19,20
-> output should be 'two'
-> (. obj o y) is two
 ------------------------------------------
 common2.s
 ------------------------------------------
@@ -49,8 +37,8 @@ common2.s
 < ((__label environment) (__context <object 4707>) (__level 0) (__constructor nil) (this <object 11590>) (common <object 11668>) (__included_common2.s #t))
 < ((__label environment) (__context <object 11590>) (__level 0) (__constructor nil) (this <object 11668>) (count 0))
 ---
-> ((__label environment) (__context <object 4723>) (__level 0) (__constructor nil) (this <object 11792>) (common <object 11870>) (__included_common2.s #t))
-> ((__label environment) (__context <object 11792>) (__level 0) (__constructor nil) (this <object 11870>) (count 0))
+> ((__label environment) (__context <object 4723>) (__level 0) (__constructor nil) (this <object 11742>) (common <object 11820>) (__included_common2.s #t))
+> ((__label environment) (__context <object 11742>) (__level 0) (__constructor nil) (this <object 11820>) (count 0))
 ------------------------------------------
 common3.s
 ------------------------------------------
@@ -132,20 +120,16 @@ error0.s
 < fib: fib(10) is 55
 < 0 seconds
 ---
-> gc:1, 10046 cells
-> gc:2, 10141 cells
-> gc:3, 10157 cells
-> gc:4, 10112 cells
-> gc:5, 10078 cells
-> gc:6, 10110 cells
+> gc:1, 10116 cells
+> gc:2, 10224 cells
+> gc:3, 10228 cells
+> gc:4, 10216 cells
+> gc:5, 10226 cells
+> gc:6, 10195 cells
 > fib: fib(25) is 75025
-> 19 seconds
+> 27 seconds
 32a39
-> gc:7, 9758 cells
-34c41
-< 2 seconds
----
-> 1 seconds
+> gc:7, 9830 cells
 ------------------------------------------
 except2.s
 ------------------------------------------
@@ -168,16 +152,16 @@ extension.s
 fact.s
 ------------------------------------------
 21a22,27
-> gc:1, 9957 cells
-> gc:2, 9893 cells
-> gc:3, 9973 cells
-> gc:4, 9924 cells
-> gc:5, 9879 cells
-> gc:6, 9926 cells
+> gc:1, 10023 cells
+> gc:2, 9953 cells
+> gc:3, 10054 cells
+> gc:4, 9929 cells
+> gc:5, 9995 cells
+> gc:6, 9993 cells
 23c29
 < 2 seconds
 ---
-> 19 seconds
+> 22 seconds
 ------------------------------------------
 fib-opt.s
 ------------------------------------------
@@ -189,37 +173,37 @@ fib-opt.s
 < (fib 25) is 75025, 3 seconds.
 < (fib 25) is 75025, 1 seconds.
 ---
-> gc:1, 11222 cells
-> gc:2, 11206 cells
-> gc:3, 11204 cells
-> gc:4, 11207 cells
-> gc:5, 11238 cells
-> gc:6, 11221 cells
-> (fib 25) is 75025, 20 seconds.
+> gc:1, 11275 cells
+> gc:2, 11264 cells
+> gc:3, 11246 cells
+> gc:4, 11275 cells
+> gc:5, 11244 cells
+> gc:6, 11228 cells
+> (fib 25) is 75025, 23 seconds.
 > compiling fib...
 > fib compiled.
-> gc:7, 11174 cells
-> gc:8, 11243 cells
-> gc:9, 11275 cells
-> gc:10, 11274 cells
-> gc:11, 11260 cells
-> gc:12, 11230 cells
-> gc:13, 11244 cells
-> (fib 25) is 75025, 7 seconds.
+> gc:7, 11359 cells
+> gc:8, 11333 cells
+> gc:9, 11328 cells
+> gc:10, 11354 cells
+> gc:11, 11333 cells
+> gc:12, 11328 cells
+> gc:13, 11317 cells
+> (fib 25) is 75025, 9 seconds.
 ------------------------------------------
 fib.s
 ------------------------------------------
 30a31,36
-> gc:1, 9783 cells
-> gc:2, 9767 cells
-> gc:3, 9785 cells
-> gc:4, 9769 cells
-> gc:5, 9802 cells
-> gc:6, 9816 cells
+> gc:1, 9853 cells
+> gc:2, 9827 cells
+> gc:3, 9829 cells
+> gc:4, 9874 cells
+> gc:5, 9895 cells
+> gc:6, 9832 cells
 32c38
 < 3 seconds
 ---
-> 19 seconds
+> 23 seconds
 ------------------------------------------
 foreach.s
 ------------------------------------------
@@ -380,7 +364,7 @@ gc.s
 ---
 > (f 3)
 13a13
-> gc:1, 9297 cells
+> gc:1, 9268 cells
 ------------------------------------------
 g.s
 ------------------------------------------
@@ -965,7 +949,7 @@ object3.s
 < (is? c (quote alpha)) is #t
 < (is? c (quote gamma)) is #f
 ---
-> (locals b) is <object 26140>
+> (locals b) is <object 29052>
 >              __label  : throw
 >                 code  : undefinedVariable
 >                value  : "file object3.s,line 25: variable locals is undefined"
@@ -979,18 +963,25 @@ object.s
 36c36
 < z is <object 9629>
 ---
-> z is <object 13918>
+> z is <object 13868>
 38c38
 <            __context  : <object 9516>
 ---
->            __context  : <object 12279>
+>            __context  : <object 12229>
 41c41
 <                 this  : <object 9629>
 ---
->                 this  : <object 13918>
+>                 this  : <object 13868>
 ------------------------------------------
 obj.s
 ------------------------------------------
+28,30c28,29
+< b . (symbol("a")) is 3, (should be 3)
+< b . 'a is 3 (should be 3)
+< b . a is 4 (should be 4)
+---
+> EXCEPTION: generalException
+> file main.lib,line 93: get variable argument resolved to type CONS, not SYMBOL
 ------------------------------------------
 overlay.s
 ------------------------------------------
@@ -1918,27 +1909,181 @@ rb.s
 ---
 > (println "hello");
 > (main)
-402a367
-> rotating left
-422a388,389
-> rotating left
-> rotating right
-467a435,436
-> rotating left
-> rotating right
-486a456
-> rotating left
-507c477
+403,619c367,369
+< 9 inserted.
+< 2(black)
+<    left:  1(red)
+<        left:  null
+<        right: null
+<    right: 9(red)
+<        left:  null
+<        right: null
+< inserting!
+< 3 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 9(black)
+<        left:  3(red)
+<            left:  null
+<            right: null
+<        right: null
+< inserting!
+< 6 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(black)
+<        left:  3(red)
+<            left:  null
+<            right: null
+<        right: 9(red)
+<            left:  null
+<            right: null
+< inserting!
+< 4 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  3(black)
+<            left:  null
+<            right: 4(red)
+<                left:  null
+<                right: null
+<        right: 9(black)
+<            left:  null
+<            right: null
+< inserting!
+< 7 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  3(black)
+<            left:  null
+<            right: 4(red)
+<                left:  null
+<                right: null
+<        right: 9(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: null
+< inserting!
+< 8 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  3(black)
+<            left:  null
+<            right: 4(red)
+<                left:  null
+<                right: null
+<        right: 8(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: 9(red)
+<                left:  null
+<                right: null
+< inserting!
+< 5 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  4(black)
+<            left:  3(red)
+<                left:  null
+<                right: null
+<            right: 5(red)
+<                left:  null
+<                right: null
+<        right: 8(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: 9(red)
+<                left:  null
+<                right: null
 < insertion phase complete, tree is...
----
-> insertion phase complete  tree is...
-527a498,499
-> rotating left
-> rotating left
-575a548,549
-> rotating right
-> rotating left
-577,588d550
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  4(black)
+<            left:  3(red)
+<                left:  null
+<                right: null
+<            right: 5(red)
+<                left:  null
+<                right: null
+<        right: 8(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: 9(red)
+<                left:  null
+<                right: null
+< deletion phase begins...
+< 1 deleted.
+< 6(black)
+<    left:  4(red)
+<        left:  2(black)
+<            left:  null
+<            right: 3(red)
+<                left:  null
+<                right: null
+<        right: 5(black)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: 9(red)
+<            left:  null
+<            right: null
+< 2 deleted.
+< 6(black)
+<    left:  4(red)
+<        left:  3(black)
+<            left:  null
+<            right: null
+<        right: 5(black)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: 9(red)
+<            left:  null
+<            right: null
+< 9 deleted.
+< 6(black)
+<    left:  4(red)
+<        left:  3(black)
+<            left:  null
+<            right: null
+<        right: 5(black)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: null
+< 3 deleted.
 < 6(black)
 <    left:  4(black)
 <        left:  null
@@ -1951,31 +2096,23 @@ rb.s
 <            right: null
 <        right: null
 < 6 deleted.
-590,592c552,553
+< 7(black)
 <    left:  4(black)
 <        left:  null
 <        right: 5(red)
----
->    left:  6(black)
->        left:  4(black)
-594c555,558
+<            left:  null
 <            right: null
----
->            right: 5(red)
->                left:  null
->                right: null
->        right: null
-598c562
-< 4 deleted.
----
-> 6 deleted.
-601c565,567
+<    right: 8(black)
 <        left:  null
----
->        left:  4(black)
->            left:  null
->            right: null
-606,619c572,573
+<        right: null
+< 4 deleted.
+< 7(black)
+<    left:  5(black)
+<        left:  null
+<        right: null
+<    right: 8(black)
+<        left:  null
+<        right: null
 < 7 deleted.
 < 8(black)
 <    left:  5(red)
@@ -1991,8 +2128,9 @@ rb.s
 < deletion phase complete, tree is...
 < good-bye!
 ---
-> EXCEPTION: undefinedVariable
-> file rb.s,line 232: variable right is undefined
+> rotating left
+> EXCEPTION: generalException
+> file main.lib,line 93: get variable argument resolved to type CONS, not SYMBOL
 ------------------------------------------
 recur.s
 ------------------------------------------
@@ -2430,1539 +2568,4 @@ reflect.s
 > file reflect.s,line 1: attempted to call STRING as a function
 ------------------------------------------
 reify.s
-------------------------------------------
-29,31c29,30
-< calling superclass:a
-< superclass:a: calling virtual function b
-< subclass:b
----
-> EXCEPTION: undefinedVariable
-> file reify.s,line 1: variable function is undefined
-------------------------------------------
-return3.s
-------------------------------------------
-42,58c42,43
-< g executing...
-< r is <ERROR 5300>
-< i is 0 and j is 1
-< i is 0 and j is 2
-< i is 0 and j is 3
-< i is 0 and j is 4
-< i is 1 and j is 1
-< i is 1 and j is 2
-< i is 1 and j is 3
-< i is 1 and j is 4
-< i is 2 and j is 1
-< i is 2 and j is 2
-< trying to leave f...
-< g's z is 6
-< g done.
-< 6
-< done
----
-> EXCEPTION: nonFunction
-> file return3.s,line 1: attempted to call STRING as a function
-------------------------------------------
-return.s
-------------------------------------------
-1,10c1,9
-< function f()
-<     {
-<     var x;
-<     print("entering f\n");
-<     x = {
-<         print("entering block\n");
-<         return 3;
-<         print("leaving block (this should not be displayed)\n");
-<         5;
-<         };
----
-> (define (f)
->     (define x)
->     (println "entering f...")
->     (if #t
->         (print("entering block")
->         //(return 3)
->         (println "leaving block (this should not be displayed)")
->         5
->         }
-11a11,12
->     //return 22;
->     print("really leaving f (this should not be displayed)\n");
-14a16
-> var z = 0;
-16c18,20
-< print("f() returns ",f(),"\n");
----
-> z = f();
-> print("f() returns ",z,"\n");
-> println("done");
-18,21c22,23
-< f() should return 3
-< entering f
-< entering block
-< f() returns 3
----
-> EXCEPTION: syntaxException
-> file return.s,line 21: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
-------------------------------------------
-reverse.s
-------------------------------------------
-35,46c35,36
-< reversing hello
-< reversing ello
-< reversing llo
-< reversing lo
-< reversing o
-< reversing hello
-< reversing ello
-< reversing llo
-< reversing lo
-< reversing o
-< reverse(hello) is olleh
-< reverse2(hello) is olleh
----
-> EXCEPTION: undefinedVariable
-> file reverse.s,line 1: variable function is undefined
-------------------------------------------
-right.s
-------------------------------------------
-33,35c33,34
-< items . item is 1
-< items . item is 2
-< items . item is 3
----
-> EXCEPTION: nonFunction
-> file right.s,line 1: attempted to call STRING as a function
-------------------------------------------
-sicp1.s
-------------------------------------------
-848c848
-< (- 21) is 21
----
-> (- 21) is -21
-912,915c912,915
-< (sqrt 9) is 1.000000
-< (sqrt (+ 100 37)) is 1.000000
-< (sqrt (+ (sqrt 2) (sqrt 3))) is 1.000000
-< (square (sqrt 1000)) is 1.000000
----
-> (sqrt 9) is 3.000092
-> (sqrt (+ 100 37)) is 11.704700
-> (sqrt (+ (sqrt 2) (sqrt 3))) is 1.773928
-> (square (sqrt 1000)) is 1000.000370
-951,952d950
-< (stack-depth) is 14
-< (list (quote cc) amount kinds-of-coins) is (cc 10 4)
-953a952,953
-> (list (quote cc) amount kinds-of-coins) is (cc 10 4)
-> (stack-depth) is 23
-955c955
-< (stack-depth) is 22
----
-> (stack-depth) is 28
-957c957
-< (stack-depth) is 26
----
-> (stack-depth) is 33
-959c959
-< (stack-depth) is 30
----
-> (stack-depth) is 38
-961c961
-< (stack-depth) is 34
----
-> (stack-depth) is 43
-963c963
-< (stack-depth) is 35
----
-> (stack-depth) is 44
-965c965
-< (stack-depth) is 39
----
-> (stack-depth) is 49
-967c967
-< (stack-depth) is 40
----
-> (stack-depth) is 50
-969c969
-< (stack-depth) is 44
----
-> (stack-depth) is 55
-971c971
-< (stack-depth) is 45
----
-> (stack-depth) is 56
-973c973
-< (stack-depth) is 49
----
-> (stack-depth) is 61
-975c975
-< (stack-depth) is 50
----
-> (stack-depth) is 62
-977c977
-< (stack-depth) is 54
----
-> (stack-depth) is 67
-979c979
-< (stack-depth) is 55
----
-> (stack-depth) is 68
-981c981
-< (stack-depth) is 59
----
-> (stack-depth) is 73
-983c983
-< (stack-depth) is 60
----
-> (stack-depth) is 74
-985c985
-< (stack-depth) is 64
----
-> (stack-depth) is 79
-987c987
-< (stack-depth) is 65
----
-> (stack-depth) is 80
-989c989
-< (stack-depth) is 69
----
-> (stack-depth) is 85
-991c991
-< (stack-depth) is 70
----
-> (stack-depth) is 86
-993c993
-< (stack-depth) is 74
----
-> (stack-depth) is 91
-995c995
-< (stack-depth) is 75
----
-> (stack-depth) is 92
-997c997
-< (stack-depth) is 79
----
-> (stack-depth) is 97
-999c999
-< (stack-depth) is 80
----
-> (stack-depth) is 98
-1001c1001
-< (stack-depth) is 31
----
-> (stack-depth) is 39
-1003c1003
-< (stack-depth) is 35
----
-> (stack-depth) is 44
-1005c1005
-< (stack-depth) is 39
----
-> (stack-depth) is 49
-1007c1007
-< (stack-depth) is 40
----
-> (stack-depth) is 50
-1009c1009
-< (stack-depth) is 44
----
-> (stack-depth) is 55
-1011c1011
-< (stack-depth) is 45
----
-> (stack-depth) is 56
-1013c1013
-< (stack-depth) is 49
----
-> (stack-depth) is 61
-1015c1015
-< (stack-depth) is 50
----
-> (stack-depth) is 62
-1017c1017
-< (stack-depth) is 54
----
-> (stack-depth) is 67
-1019c1019
-< (stack-depth) is 55
----
-> (stack-depth) is 68
-1021c1021
-< (stack-depth) is 59
----
-> (stack-depth) is 73
-1023c1023
-< (stack-depth) is 60
----
-> (stack-depth) is 74
-1025c1025
-< (stack-depth) is 36
----
-> (stack-depth) is 45
-1027c1027
-< (stack-depth) is 27
----
-> (stack-depth) is 34
-1029c1029
-< (stack-depth) is 23
----
-> (stack-depth) is 29
-1031c1031
-< (stack-depth) is 19
----
-> (stack-depth) is 24
-1074,1075c1074,1075
-< (define (pi-sum a b) (sum <lambda ()> a <lambda ()> b)) is <function pi-sum(a b)>
-< (define (integral f a b dx) (* (sum f (+ a (/ dx 2.000000)) <lambda ()> b) dx)) is <function integral(f a b dx)>
----
-> (define (pi-sum a b) (sum (lambda (x) (/ 1.000000 (* x (+ x 2)))) a (lambda (x) (+ x 4)) b)) is <function pi-sum(a b)>
-> (define (integral f a b dx) (* (sum f (+ a (/ dx 2.000000)) (lambda (x) (+ x dx)) b) dx)) is <function integral(f a b dx)>
-1077,1078c1077,1078
-< (define plus4 <lambda ()>) is <function anonymous(x)>
-< (<lambda (square z)> 1 2 3) is 12.000000
----
-> (define plus4 (lambda (x) (+ x 4))) is <function anonymous(x)>
-> ((lambda (x y z) (+ x y (square z))) 1 2 3) is 12.000000
-1081c1081
-< (define (f x y) (<lambda (* a b)> (+ 1 (* x y)) (- 1 y))) is <function f(x y)>
----
-> (define (f x y) ((lambda (a b) (+ (* x (square a)) (* y b) (* a b))) (+ 1 (* x y)) (- 1 y))) is <function f(x y)>
-1088c1088
-< (f <lambda ()>) is 6
----
-> (f (lambda (z) (* z (+ z 1)))) is 6
-1093c1093
-< (half-interval-method <lambda (context)> 1.000000 2.000000) is 1.500000
----
-> (half-interval-method (lambda (x) (- (* x x x) (* 2 x) 3)) 1.000000 2.000000) is 1.893066
-1098,1102c1098,1102
-< (fixed-point cos 1.000000) is 0.857553
-< (fixed-point <lambda ()> 1.000000) is 1.381773
-< (define (sqrt x) (fixed-point <lambda ()> 1.000000)) is <function sqrt(x)>
-< (define (sqrt x) (fixed-point <lambda ()> 1.000000)) is <function sqrt(x)>
-< (define (average-damp f) <lambda ()>) is <function average-damp(f)>
----
-> (fixed-point cos 1.000000) is 0.739082
-> (fixed-point (lambda (y) (+ (sin y) (cos y))) 1.000000) is 1.258732
-> (define (sqrt x) (fixed-point (lambda (y) (/ x y)) 1.000000)) is <function sqrt(x)>
-> (define (sqrt x) (fixed-point (lambda (y) (average y (/ x y))) 1.000000)) is <function sqrt(x)>
-> (define (average-damp f) (lambda (x) (average x (f x)))) is <function average-damp(f)>
-1104,1106c1104,1106
-< (define (sqrt x) (fixed-point (average-damp <lambda ()>) 1.000000)) is <function sqrt(x)>
-< (define (cube-root x) (fixed-point (average-damp <lambda ()>) 1.000000)) is <function cube-root(x)>
-< (define (deriv g) <lambda ()>) is <function deriv(g)>
----
-> (define (sqrt x) (fixed-point (average-damp (lambda (y) (/ x y))) 1.000000)) is <function sqrt(x)>
-> (define (cube-root x) (fixed-point (average-damp (lambda (y) (/ x (square y)))) 1.000000)) is <function cube-root(x)>
-> (define (deriv g) (lambda (x) (/ (- (g (+ x dx)) (g x)) dx))) is <function deriv(g)>
-1110c1110
-< (define (newton-transform g) <lambda ()>) is <function newton-transform(g)>
----
-> (define (newton-transform g) (lambda (x) (- x (/ (g x) ((deriv g) x))))) is <function newton-transform(g)>
-1112c1112
-< (define (sqrt x) (newtons-method <lambda ()> 1.000000)) is <function sqrt(x)>
----
-> (define (sqrt x) (newtons-method (lambda (y) (- (square y) x)) 1.000000)) is <function sqrt(x)>
-1114,1115c1114,1115
-< (define (sqrt x) (fixed-point-of-transform <lambda ()> average-damp 1.000000)) is <function sqrt(x)>
-< (define (sqrt x) (fixed-point-of-transform <lambda ()> newton-transform 1.000000)) is <function sqrt(x)>
----
-> (define (sqrt x) (fixed-point-of-transform (lambda (y) (/ x y)) average-damp 1.000000)) is <function sqrt(x)>
-> (define (sqrt x) (fixed-point-of-transform (lambda (y) (- (square y) x)) newton-transform 1.000000)) is <function sqrt(x)>
-------------------------------------------
-sicp2.s
-------------------------------------------
-1920,1921c1920,1921
-< (define (cons x y) <lambda ()>) is <function cons(x y)>
-< (define (car z) (z <lambda ()>)) is <function car(z)>
----
-> (define (cons x y) (lambda (m) (m x y))) is <function cons(x y)>
-> (define (car z) (z (lambda (p q) p))) is <function car(z)>
-1923,2300c1923,1924
-< (set! (quote car) old-car) is <builtIn car(items)>
-< (set! (quote cdr) old-cdr) is <builtIn cdr(items)>
-< (set! (quote cons) old-cons) is <builtIn cons(a b)>
-< (define zero <lambda ()>) is <function anonymous(f)>
-< (define (add-1 n) <lambda ()>) is <function add-1(n)>
-< (define (inc x) (+ x 1)) is <function inc(x)>
-< (define base 0) is 0
-< (define one (add-1 zero)) is <function anonymous(f)>
-< (define two (add-1 one)) is <function anonymous(f)>
-< (define three (add-1 two)) is <function anonymous(f)>
-< ((zero inc) base) is 0
-< ((one inc) base) is 1
-< ((two inc) base) is 2
-< ((three inc) base) is 3
-< (define (add-interval x y) (make-interval (+ (lower-bound x) (lower-bound y)) (+ (upper-bound x) (upper-bound y)))) is <function add-interval(x y)>
-< (define (mul-interval x y) (let ((p1 (* (lower-bound x) (lower-bound y))) (p2 (* (lower-bound x) (upper-bound y))) (p3 (* (upper-bound x) (lower-bound y))) (p4 (* (upper-bound x) (upper-bound y)))) (make-interval (min p1 p2 p3 p4) (max p1 p2 p3 p4)))) is <function mul-interval(x y)>
-< (define (div-interval x y) (mul-interval x (make-interval (/ 1.000000 (upper-bound y)) (/ 1.000000 (lower-bound y))))) is <function div-interval(x y)>
-< (define (make-interval a b) (cons a b)) is <function make-interval(a b)>
-< (define (make-center-width c w) (make-interval (- c w) (+ c w))) is <function make-center-width(c w)>
-< (define (center i) (/ (+ (lower-bound i) (upper-bound i)) 2)) is <function center(i)>
-< (define (width i) (/ (- (upper-bound i) (lower-bound i)) 2)) is <function width(i)>
-< (define (par1 r1 r2) (div-interval (mul-interval r1 r2) (add-interval r1 r2))) is <function par1(r1 r2)>
-< (define (par2 r1 r2) (let ((one (make-interval 1 1))) (div-interval one (add-interval (div-interval one r1) (div-interval one r2))))) is <function par2(r1 r2)>
-< (cons 1 (cons 2 (cons 3 (cons 4 nil)))) is (1 2 3 4)
-< (define one-through-four (list 1 2 3 4)) is (1 2 3 4)
-< one-through-four is (1 2 3 4)
-< (car one-through-four) is 1
-< (cdr one-through-four) is (2 3 4)
-< (car (cdr one-through-four)) is 2
-< (cons 10 one-through-four) is (10 1 2 3 4)
-< (define (list-ref items n) (if (= n 0) (car items) (list-ref (cdr items) (- n 1)))) is <function list-ref(items n)>
-< (define squares (list 1 4 9 16 25)) is (1 4 9 16 25)
-< (list-ref squares 3) is 16
-< (define (length items) (if (null? items) 0 (+ 1 (length (cdr items))))) is <function length(items)>
-< (define odds (list 1 3 5 7)) is (1 3 5 7)
-< (length odds) is 4
-< (define (length items) (define (length-iter a count) (if (null? a) count (length-iter (cdr a) (+ 1 count)))) (length-iter items 0)) is <function length(items)>
-< (length odds) is 4
-< (append squares odds) is (1 4 9 16 25 1 3 5 7)
-< (append odds squares) is (1 3 5 7 1 4 9 16 25)
-< (define (append list1 list2) (if (null? list1) list2 (cons (car list1) (append (cdr list1) list2)))) is <function append(list1 list2)>
-< (append squares odds) is (1 4 9 16 25 1 3 5 7)
-< (append odds squares) is (1 3 5 7 1 4 9 16 25)
-< (last-pair (list 23 72 149 34)) is (34)
-< (reverse (list 1 4 9 16 25)) is (25 16 9 4 1)
-< (define us-coins (list 50 25 10 5 1)) is (50 25 10 5 1)
-< (define uk-coins (list 100 50 20 10 5 2 1 0.500000)) is (100 50 20 10 5 2 1 0.500000)
-< (define no-more? null?) is <builtIn null?(item)>
-< (define except-first-denomination cdr) is <builtIn cdr(items)>
-< (define first-denomination car) is <builtIn car(items)>
-< (define (cc amount coin-values) (cond ((= amount 0) 1) ((or (< amount 0) (no-more? coin-values)) 0) (else (+ (cc amount (except-first-denomination coin-values)) (cc (- amount (first-denomination coin-values)) coin-values))))) is <function cc(amount coin-values)>
-< (define (scale-list items factor) (if (null? items) nil (cons (* (car items) factor) (scale-list (cdr items) factor)))) is <function scale-list(items factor)>
-< (scale-list (list 1 2 3 4 5) 10) is (10 20 30 40 50)
-< (map <lambda ()> (list 1 2 3 4 5 6)) is (1 4 9 16 25 36)
-< (apply + (list 1 2 3)) is 6
-< (map + (list 1 2 3) (list 40 50 60) (list 700 800 900)) is (741 852 963)
-< (map <lambda ()> (list 1 2 3) (list 4 5 6)) is (9 12 15)
-< (define (map proc items) (if (null? items) nil (cons (proc (car items)) (map proc (cdr items))))) is <function map(proc items)>
-< (map abs (list -10 2.500000 -11.600000 17)) is (-10 2.500000 -11.600000 17)
-< (map <lambda ()> (list 1 2 3 4)) is (1 4 9 16)
-< (define (scale-list items factor) (map <lambda ()> items)) is <function scale-list(items factor)>
-< (define (square-list items) (define (iter things answer) (if (null? things) answer (iter (cdr things) (cons (square (car things)) answer)))) (iter items nil)) is <function square-list(items)>
-< (square-list (list 1 2 3 4)) is (16 9 4 1)
-< (define (square-list items) (define (iter things answer) (if (null? things) answer (iter (cdr things) (cons answer (square (car things)))))) (iter items nil)) is <function square-list(items)>
-< (square-list (list 1 2 3 4)) is ((((nil . 1) . 4) . 9) . 16)
-< 
-< 57
-< 321
-< 88(for-each <lambda ()> (list 57 321 88)) is nil
-< (cons (list 1 2) (list 3 4)) is ((1 2) 3 4)
-< (define (count-leaves x) (cond ((null? x) 0) ((not (pair? x)) 1) (else (+ (count-leaves (car x)) (count-leaves (cdr x)))))) is <function count-leaves(x)>
-< (define x (cons (list 1 2) (list 3 4))) is ((1 2) 3 4)
-< (length x) is 3
-< (count-leaves x) is 4
-< (list x x) is (((1 2) 3 4) ((1 2) 3 4))
-< (length (list x x)) is 2
-< (count-leaves (list x x)) is 8
-< (list 1 (list 2 (list 3 4))) is (1 (2 (3 4)))
-< (quote (1 3 (5 7) 9)) is (1 3 (5 7) 9)
-< (quote ((7))) is ((7))
-< (quote (1 (2 (3 (4 (5 (6 7))))))) is (1 (2 (3 (4 (5 (6 7))))))
-< (define x (list 1 2 3)) is (1 2 3)
-< (define y (list 4 5 6)) is (4 5 6)
-< (append x y) is (1 2 3 4 5 6)
-< (cons x y) is ((1 2 3) 4 5 6)
-< (list x y) is ((1 2 3) (4 5 6))
-< (define x (list (list 1 2) (list 3 4))) is ((1 2) (3 4))
-< x is ((1 2) (3 4))
-< (reverse x) is ((3 4) (1 2))
-< (quote (deep-reverse x)) is (deep-reverse x)
-< (define x (list (list 1 2) (list 3 4))) is ((1 2) (3 4))
-< (quote (fringe x)) is (fringe x)
-< (quote (fringe (list x x))) is (fringe (list x x))
-< (define (make-mobile left right) (list left right)) is <function make-mobile(left right)>
-< (define (make-branch length structure) (list length structure)) is <function make-branch(length structure)>
-< (define (make-mobile left right) (cons left right)) is <function make-mobile(left right)>
-< (define (make-branch length structure) (cons length structure)) is <function make-branch(length structure)>
-< (define (scale-tree tree factor) (cond ((null? tree) nil) ((not (pair? tree)) (* tree factor)) (else (cons (scale-tree (car tree) factor) (scale-tree (cdr tree) factor))))) is <function scale-tree(tree factor)>
-< (scale-tree (list 1 (list 2 (list 3 4) 5) (list 6 7)) 10) is (10 (20 (30 40) 50) (60 70))
-< (define (scale-tree tree factor) (map <lambda (* sub-tree factor)> tree)) is <function scale-tree(tree factor)>
-< (scale-tree (list 1 (list 2 (list 3 4) 5) (list 6 7)) 10) is (10 (20 (30 40) 50) (60 70))
-< (define (square-tree tree) (tree-map square tree)) is <function square-tree(tree)>
-< (define (subsets s) (if (null? s) (list nil) (let ((rest (subsets (cdr s)))) (append rest (map ??FILL-THIS-IN?? rest))))) is <function subsets(s)>
-< (define (sum-odd-squares tree) (cond ((null? tree) 0) ((not (pair? tree)) (if (odd? tree) (square tree) 0)) (else (+ (sum-odd-squares (car tree)) (sum-odd-squares (cdr tree)))))) is <function sum-odd-squares(tree)>
-< (define (even-fibs n) (define (next k) (if (> k n) nil (let ((f (fib k))) (if (even? f) (cons f (next (+ k 1))) (next (+ k 1)))))) (next 0)) is <function even-fibs(n)>
-< (map square (list 1 2 3 4 5)) is (1 4 9 16 25)
-< (define (filter predicate sequence) (cond ((null? sequence) nil) ((predicate (car sequence)) (cons (car sequence) (filter predicate (cdr sequence)))) (else (filter predicate (cdr sequence))))) is <function filter(predicate sequence)>
-< (define (accumulate op initial sequence) (if (null? sequence) initial (op (car sequence) (accumulate op initial (cdr sequence))))) is <function accumulate(op initial sequence)>
-< (accumulate + 0 (list 1 2 3 4 5)) is 15
-< (accumulate * 1 (list 1 2 3 4 5)) is 120
-< (accumulate cons nil (list 1 2 3 4 5)) is (1 2 3 4 5)
-< (define (enumerate-interval low high) (if (> low high) nil (cons low (enumerate-interval (+ low 1) high)))) is <function enumerate-interval(low high)>
-< (enumerate-interval 2 7) is (2 3 4 5 6 7)
-< (define (enumerate-tree tree) (cond ((null? tree) nil) ((not (pair? tree)) (list tree)) (else (append (enumerate-tree (car tree)) (enumerate-tree (cdr tree)))))) is <function enumerate-tree(tree)>
-< (enumerate-tree (list 1 (list 2 (list 3 4)) 5)) is (1 2 3 4 5)
-< (define (sum-odd-squares tree) (accumulate + 0 (map square (filter odd? (enumerate-tree tree))))) is <function sum-odd-squares(tree)>
-< (define (even-fibs n) (accumulate cons nil (filter even? (map fib (enumerate-interval 0 n))))) is <function even-fibs(n)>
-< (define (list-fib-squares n) (accumulate cons nil (map square (map fib (enumerate-interval 0 n))))) is <function list-fib-squares(n)>
-< (list-fib-squares 10) is (0 1 1 4 9 25 64 169 441 1156 3025)
-< (define (product-of-squares-of-odd-elements sequence) (accumulate * 1 (map square (filter odd? sequence)))) is <function product-of-squares-of-odd-elements(sequence)>
-< (product-of-squares-of-odd-elements (list 1 2 3 4 5)) is 225
-< (define (salary-of-highest-paid-programmer records) (accumulate max 0 (map salary (filter programmer? records)))) is <function salary-of-highest-paid-programmer(records)>
-< (define (horner-eval x coefficient-sequence) (accumulate <lambda ()> 0 coefficient-sequence)) is <function horner-eval(x coefficient-sequence)>
-< (quote (horner-eval 2 (list 1 3 0 5 0 1))) is (horner-eval 2 (list 1 3 0 5 0 1))
-< (define (accumulate-n op init seqs) (if (null? (car seqs)) nil (cons (accumulate op init ??FILL-THIS-IN??) (accumulate-n op init ??FILL-THIS-IN??)))) is <function accumulate-n(op init seqs)>
-< (quote (accumulate-n + 0 s)) is (accumulate-n + 0 s)
-< (define (dot-product v w) (accumulate + 0 (map * v w))) is <function dot-product(v w)>
-< (define (fold-left op initial sequence) (define (iter result rest) (if (null? rest) result (iter (op result (car rest)) (cdr rest)))) (iter initial sequence)) is <function fold-left(op initial sequence)>
-< (quote (fold-right / 1 (list 1 2 3))) is (fold-right / 1 (list 1 2 3))
-< (fold-left / 1.000000 (list 1 2 3)) is 0.166667
-< (quote (fold-right list nil (list 1 2 3))) is (fold-right list nil (list 1 2 3))
-< (fold-left list nil (list 1 2 3)) is (((nil 1) 2) 3)
-< (define n 5) is 5
-< (accumulate append nil (map <lambda ()> (enumerate-interval 1 n))) is ((2 1) (3 1) (3 2) (4 1) (4 2) (4 3) (5 1) (5 2) (5 3) (5 4))
-< (define (flatmap proc seq) (accumulate append nil (map proc seq))) is <function flatmap(proc seq)>
-< (define (prime-sum? pair) (prime? (+ (car pair) (cadr pair)))) is <function prime-sum?(pair)>
-< (define (make-pair-sum pair) (list (car pair) (cadr pair) (+ (car pair) (cadr pair)))) is <function make-pair-sum(pair)>
-< (define (prime-sum-pairs n) (map make-pair-sum (filter prime-sum? (flatmap <lambda ()> (enumerate-interval 1 n))))) is <function prime-sum-pairs(n)>
-< (define (permutations s) (if (null? s) (list nil) (flatmap <lambda ()> s))) is <function permutations(s)>
-< (define (remove item sequence) (filter <lambda ()> sequence)) is <function remove(item sequence)>
-< (define (queens board-size) (define (queen-cols k) (if (= k 0) (list empty-board) (filter <lambda ()> (flatmap <lambda ()> (queen-cols (- k 1)))))) (queen-cols board-size)) is <function queens(board-size)>
-< (define (queens board-size) (define (queen-cols k) (if (= k 0) (list empty-board) (filter <lambda ()> (flatmap <lambda ()> (enumerate-interval 1 board-size))))) (queen-cols board-size)) is <function queens(board-size)>
-< (quote (define wave2 (beside wave (flip-vert wave)))) is (define wave2 (beside wave (flip-vert wave)))
-< (quote (define wave4 (below wave2 wave2))) is (define wave4 (below wave2 wave2))
-< (define (flipped-pairs painter) (let ((painter2 (beside painter (flip-vert painter)))) (below painter2 painter2))) is <function flipped-pairs(painter)>
-< (quote (define wave4 (flipped-pairs wave))) is (define wave4 (flipped-pairs wave))
-< (define (right-split painter n) (if (= n 0) painter (let ((smaller (right-split painter (- n 1)))) (beside painter (below smaller smaller))))) is <function right-split(painter n)>
-< (define (corner-split painter n) (if (= n 0) painter (let ((up (up-split painter (- n 1))) (right (right-split painter (- n 1)))) (let ((top-left (beside up up)) (bottom-right (below right right)) (corner (corner-split painter (- n 1)))) (beside (below painter top-left) (below bottom-right corner)))))) is <function corner-split(painter n)>
-< (define (square-limit painter n) (let ((quarter (corner-split painter n))) (let ((half (beside (flip-horiz quarter) quarter))) (below (flip-vert half) half)))) is <function square-limit(painter n)>
-< (define (square-of-four tl tr bl br) <lambda ()>) is <function square-of-four(tl tr bl br)>
-< (define (flipped-pairs painter) (let ((combine4 (square-of-four identity flip-vert identity flip-vert))) (combine4 painter))) is <function flipped-pairs(painter)>
-< (quote (define flipped-pairs (square-of-four identity flip-vert identity flip-vert))) is (define flipped-pairs (square-of-four identity flip-vert identity flip-vert))
-< (define (square-limit painter n) (let ((combine4 (square-of-four flip-horiz identity rotate180 flip-vert))) (combine4 (corner-split painter n)))) is <function square-limit(painter n)>
-< (quote (define right-split (split beside below))) is (define right-split (split beside below))
-< (quote (define up-split (split below beside))) is (define up-split (split below beside))
-< (define (frame-coord-map frame) <lambda ()>) is <function frame-coord-map(frame)>
-< (quote ((frame-coord-map a-frame) (make-vect 0 0))) is ((frame-coord-map a-frame) (make-vect 0 0))
-< (quote (origin-frame a-frame)) is (origin-frame a-frame)
-< (define (make-frame origin edge1 edge2) (list origin edge1 edge2)) is <function make-frame(origin edge1 edge2)>
-< (define (make-frame origin edge1 edge2) (cons origin (cons edge1 edge2))) is <function make-frame(origin edge1 edge2)>
-< (define (segments->painter segment-list) <lambda ()>) is <function segments->painter(segment-list)>
-< (define (transform-painter painter origin corner1 corner2) <lambda ()>) is <function transform-painter(painter origin corner1 corner2)>
-< (define (flip-vert painter) (transform-painter painter (make-vect 0.000000 1.000000) (make-vect 1.000000 1.000000) (make-vect 0.000000 0.000000))) is <function flip-vert(painter)>
-< (define (shrink-to-upper-right painter) (transform-painter painter (make-vect 0.500000 0.500000) (make-vect 1.000000 0.500000) (make-vect 0.500000 1.000000))) is <function shrink-to-upper-right(painter)>
-< (define (rotate90 painter) (transform-painter painter (make-vect 1.000000 0.000000) (make-vect 1.000000 1.000000) (make-vect 0.000000 0.000000))) is <function rotate90(painter)>
-< (define (squash-inwards painter) (transform-painter painter (make-vect 0.000000 0.000000) (make-vect 0.650000 0.350000) (make-vect 0.350000 0.650000))) is <function squash-inwards(painter)>
-< (define (beside painter1 painter2) (let ((split-point (make-vect 0.500000 0.000000))) (let ((paint-left (transform-painter painter1 (make-vect 0.000000 0.000000) split-point (make-vect 0.000000 1.000000))) (paint-right (transform-painter painter2 split-point (make-vect 1.000000 0.000000) (make-vect 0.500000 1.000000)))) <lambda ()>))) is <function beside(painter1 painter2)>
-< (quote (a b c d)) is (a b c d)
-< (quote (23 45 17)) is (23 45 17)
-< (quote ((Norah 12) (Molly 9) (Anna 7) (Lauren 6) (Charlotte 3))) is ((Norah 12) (Molly 9) (Anna 7) (Lauren 6) (Charlotte 3))
-< (define x 3) is 3
-< (* (+ 23 45) (+ x 9)) is 816
-< (define (fact n) (if (= n 1) 1 (* n (fact (- n 1))))) is <function fact(n)>
-< (define a 1) is 1
-< (define b 2) is 2
-< (list a b) is (1 2)
-< (list (quote a) (quote b)) is (a b)
-< (list (quote a) b) is (a 2)
-< (car (quote (a b c))) is a
-< (cdr (quote (a b c))) is (b c)
-< (define false #f) is #f
-< (define (memq item x) (cond ((null? x) false) ((eq? item (car x)) x) (else (memq item (cdr x))))) is <function memq(item x)>
-< (memq (quote apple) (quote (pear banana prune))) is #f
-< (memq (quote apple) (quote (x (apple sauce) y apple pear))) is (apple pear)
-< (list (quote a) (quote b) (quote c)) is (a b c)
-< (list (list (quote george))) is ((george))
-< (cdr (quote ((x1 x2) (y1 y2)))) is ((y1 y2))
-< (cadr (quote ((x1 x2) (y1 y2)))) is (y1 y2)
-< (pair? (car (quote (a short list)))) is #f
-< (memq (quote red) (quote ((red shoes) (blue socks)))) is #f
-< (memq (quote red) (quote (red shoes blue socks))) is (red shoes blue socks)
-< (equal? (quote (this is a list)) (quote (this is a list))) is #t
-< (equal? (quote (this is a list)) (quote (this (is a) list))) is #f
-< (equal? (quote (this (is a) list)) (quote (this (is a) list))) is #t
-< (car (quote (quote abracadabra))) is quote
-< (define (deriv exp var) (cond ((number? exp) 0) ((variable? exp) (if (same-variable? exp var) 1 0)) ((sum? exp) (make-sum (deriv (addend exp) var) (deriv (augend exp) var))) ((product? exp) (make-sum (make-product (multiplier exp) (deriv (multiplicand exp) var)) (make-product (deriv (multiplier exp) var) (multiplicand exp)))) (else (error "unknown expression type -- DERIV" exp)))) is <function deriv(exp var)>
-< (define (variable? x) (symbol? x)) is <function variable?(x)>
-< (define (same-variable? v1 v2) (and (variable? v1) (variable? v2) (eq? v1 v2))) is <function same-variable?(v1 v2)>
-< (define (make-sum a1 a2) (list (quote +) a1 a2)) is <function make-sum(a1 a2)>
-< (define (make-product m1 m2) (list (quote *) m1 m2)) is <function make-product(m1 m2)>
-< (define (sum? x) (and (pair? x) (eq? (car x) (quote +)))) is <function sum?(x)>
-< (define (addend s) (cadr s)) is <function addend(s)>
-< (define (augend s) (caddr s)) is <function augend(s)>
-< (define (product? x) (and (pair? x) (eq? (car x) (quote *)))) is <function product?(x)>
-< (define (multiplier p) (cadr p)) is <function multiplier(p)>
-< (define (multiplicand p) (caddr p)) is <function multiplicand(p)>
-< (type 3) is INTEGER
-< (type 3.300000) is REAL
-< (type "3.3") is STRING
-< (type (quote (3))) is CONS
-< (type (quote 3)) is INTEGER
-< (type (quote three)) is SYMBOL
-< (list? (cons 2 3)) is #f
-< (list? (list 2 3)) is #t
-< (pair? (cons 2 3)) is #t
-< (pair? (list 2 3)) is #t
-< (deriv (quote (+ x 3)) (quote x)) is (+ 1 0)
-< (deriv (quote (* x y)) (quote x)) is (+ (* x 0) (* 1 y))
-< (deriv (quote (* (* x y) (+ x 3))) (quote x)) is (+ (* (* x y) (+ 1 0)) (* (+ (* x 0) (* 1 y)) (+ x 3)))
-< (define (make-sum a1 a2) (cond ((=number? a1 0) a2) ((=number? a2 0) a1) ((and (number? a1) (number? a2)) (+ a1 a2)) (else (list (quote +) a1 a2)))) is <function make-sum(a1 a2)>
-< (define (=number? exp num) (and (number? exp) (= exp num))) is <function =number?(exp num)>
-< (define (make-product m1 m2) (cond ((or (=number? m1 0) (=number? m2 0)) 0) ((=number? m1 1) m2) ((=number? m2 1) m1) ((and (number? m1) (number? m2)) (* m1 m2)) (else (list (quote *) m1 m2)))) is <function make-product(m1 m2)>
-< (deriv (quote (+ x 3)) (quote x)) is 1
-< (deriv (quote (* x y)) (quote x)) is y
-< (deriv (quote (* (* x y) (+ x 3))) (quote x)) is (+ (* x y) (* y (+ x 3)))
-< (deriv (quote (* x y (+ x 3))) (quote x)) is y
-< (define (element-of-set? x set) (cond ((null? set) false) ((equal? x (car set)) true) (else (element-of-set? x (cdr set))))) is <function element-of-set?(x set)>
-< (define (adjoin-set x set) (if (element-of-set? x set) set (cons x set))) is <function adjoin-set(x set)>
-< (define (intersection-set set1 set2) (cond ((or (null? set1) (null? set2)) (quote nil)) ((element-of-set? (car set1) set2) (cons (car set1) (intersection-set (cdr set1) set2))) (else (intersection-set (cdr set1) set2)))) is <function intersection-set(set1 set2)>
-< (define (element-of-set? x set) (cond ((null? set) false) ((= x (car set)) true) ((< x (car set)) false) (else (element-of-set? x (cdr set))))) is <function element-of-set?(x set)>
-< (define (intersection-set set1 set2) (if (or (null? set1) (null? set2)) (quote nil) (let ((x1 (car set1)) (x2 (car set2))) (cond ((= x1 x2) (cons x1 (intersection-set (cdr set1) (cdr set2)))) ((< x1 x2) (intersection-set (cdr set1) set2)) ((< x2 x1) (intersection-set set1 (cdr set2))))))) is <function intersection-set(set1 set2)>
-< (define (entry tree) (car tree)) is <function entry(tree)>
-< (define (left-branch tree) (cadr tree)) is <function left-branch(tree)>
-< (define (right-branch tree) (caddr tree)) is <function right-branch(tree)>
-< (define (make-tree entry left right) (list entry left right)) is <function make-tree(entry left right)>
-< (define (element-of-set? x set) (cond ((null? set) false) ((= x (entry set)) true) ((< x (entry set)) (element-of-set? x (left-branch set))) ((> x (entry set)) (element-of-set? x (right-branch set))))) is <function element-of-set?(x set)>
-< (define (adjoin-set x set) (cond ((null? set) (make-tree x (quote nil) (quote nil))) ((= x (entry set)) set) ((< x (entry set)) (make-tree (entry set) (adjoin-set x (left-branch set)) (right-branch set))) ((> x (entry set)) (make-tree (entry set) (left-branch set) (adjoin-set x (right-branch set)))))) is <function adjoin-set(x set)>
-< (define (tree->list-1 tree) (if (null? tree) (quote nil) (append (tree->list-1 (left-branch tree)) (cons (entry tree) (tree->list-1 (right-branch tree)))))) is <function tree->list-1(tree)>
-< (define (tree->list-2 tree) (define (copy-to-list tree result-list) (if (null? tree) result-list (copy-to-list (left-branch tree) (cons (entry tree) (copy-to-list (right-branch tree) result-list))))) (copy-to-list tree (quote nil))) is <function tree->list-2(tree)>
-< (define (list->tree elements) (car (partial-tree elements (length elements)))) is <function list->tree(elements)>
-< (define (partial-tree elts n) (if (= n 0) (cons (quote nil) elts) (let ((left-size (quotient (- n 1) 2))) (let ((left-result (partial-tree elts left-size))) (let ((left-tree (car left-result)) (non-left-elts (cdr left-result)) (right-size (- n (+ left-size 1)))) (let ((this-entry (car non-left-elts)) (right-result (partial-tree (cdr non-left-elts) right-size))) (let ((right-tree (car right-result)) (remaining-elts (cdr right-result))) (cons (make-tree this-entry left-tree right-tree) remaining-elts)))))))) is <function partial-tree(elts n)>
-< (define (lookup given-key set-of-records) (cond ((null? set-of-records) false) ((equal? given-key (key (car set-of-records))) (car set-of-records)) (else (lookup given-key (cdr set-of-records))))) is <function lookup(given-key set-of-records)>
-< (define (make-leaf symbol weight) (list (quote leaf) symbol weight)) is <function make-leaf(symbol weight)>
-< (define (leaf? object) (eq? (car object) (quote leaf))) is <function leaf?(object)>
-< (define (symbol-leaf x) (cadr x)) is <function symbol-leaf(x)>
-< (define (weight-leaf x) (caddr x)) is <function weight-leaf(x)>
-< (define (make-code-tree left right) (list left right (append (symbols left) (symbols right)) (+ (weight left) (weight right)))) is <function make-code-tree(left right)>
-< (define (left-branch tree) (car tree)) is <function left-branch(tree)>
-< (define (right-branch tree) (cadr tree)) is <function right-branch(tree)>
-< (define (symbols tree) (if (leaf? tree) (list (symbol-leaf tree)) (caddr tree))) is <function symbols(tree)>
-< (define (weight tree) (if (leaf? tree) (weight-leaf tree) (cadddr tree))) is <function weight(tree)>
-< (define (decode bits tree) (define (decode-1 bits current-branch) (if (null? bits) (quote nil) (let ((next-branch (choose-branch (car bits) current-branch))) (if (leaf? next-branch) (cons (symbol-leaf next-branch) (decode-1 (cdr bits) tree)) (decode-1 (cdr bits) next-branch))))) (decode-1 bits tree)) is <function decode(bits tree)>
-< (define (choose-branch bit branch) (cond ((= bit 0) (left-branch branch)) ((= bit 1) (right-branch branch)) (else (error "bad bit -- CHOOSE-BRANCH" bit)))) is <function choose-branch(bit branch)>
-< (define (adjoin-set x set) (cond ((null? set) (list x)) ((< (weight x) (weight (car set))) (cons x set)) (else (cons (car set) (adjoin-set x (cdr set)))))) is <function adjoin-set(x set)>
-< (define (make-leaf-set pairs) (if (null? pairs) (quote nil) (let ((pair (car pairs))) (adjoin-set (make-leaf (car pair) (cadr pair)) (make-leaf-set (cdr pairs)))))) is <function make-leaf-set(pairs)>
-< (define sample-tree (make-code-tree (make-leaf (quote A) 4) (make-code-tree (make-leaf (quote B) 2) (make-code-tree (make-leaf (quote D) 1) (make-leaf (quote C) 1))))) is ((leaf A 4) ((leaf B 2) ((leaf D 1) (leaf C 1) (D C) 2) (B D C) 4) (A B D C) 8)
-< (define sample-message (quote (0 1 1 0 0 1 0 1 0 1 1 1 0))) is (0 1 1 0 0 1 0 1 0 1 1 1 0)
-< (define (encode message tree) (if (null? message) (quote nil) (append (encode-symbol (car message) tree) (encode (cdr message) tree)))) is <function encode(message tree)>
-< (define (generate-huffman-tree pairs) (successive-merge (make-leaf-set pairs))) is <function generate-huffman-tree(pairs)>
-< (define (add-complex z1 z2) (make-from-real-imag (+ (real-part z1) (real-part z2)) (+ (imag-part z1) (imag-part z2)))) is <function add-complex(z1 z2)>
-< (define (sub-complex z1 z2) (make-from-real-imag (- (real-part z1) (real-part z2)) (- (imag-part z1) (imag-part z2)))) is <function sub-complex(z1 z2)>
-< (define (mul-complex z1 z2) (make-from-mag-ang (* (magnitude z1) (magnitude z2)) (+ (angle z1) (angle z2)))) is <function mul-complex(z1 z2)>
-< (define (div-complex z1 z2) (make-from-mag-ang (/ (magnitude z1) (magnitude z2)) (- (angle z1) (angle z2)))) is <function div-complex(z1 z2)>
-< (define (real-part z) (car z)) is <function real-part(z)>
-< (define (imag-part z) (cdr z)) is <function imag-part(z)>
-< (define (magnitude z) (sqrt (+ (square (real-part z)) (square (imag-part z))))) is <function magnitude(z)>
-< (define (angle z) (atan (imag-part z) (real-part z))) is <function angle(z)>
-< (define (make-from-real-imag x y) (cons x y)) is <function make-from-real-imag(x y)>
-< (define (make-from-mag-ang r a) (cons (* r (cos a)) (* r (sin a)))) is <function make-from-mag-ang(r a)>
-< (define (real-part z) (* (magnitude z) (cos (angle z)))) is <function real-part(z)>
-< (define (imag-part z) (* (magnitude z) (sin (angle z)))) is <function imag-part(z)>
-< (define (magnitude z) (car z)) is <function magnitude(z)>
-< (define (angle z) (cdr z)) is <function angle(z)>
-< (define (make-from-real-imag x y) (cons (sqrt (+ (square x) (square y))) (atan y x))) is <function make-from-real-imag(x y)>
-< (define (make-from-mag-ang r a) (cons r a)) is <function make-from-mag-ang(r a)>
-< (define z (cons 2 3)) is (2 . 3)
-< (expt 2 4) is 16
-< (expt 2 4.000000) is 16.000000
-< (make-from-real-imag (real-part z) (imag-part z)) is (2.000000 . 3.000000)
-< (make-from-mag-ang (magnitude z) (angle z)) is (2 . 3)
-< (define (attach-tag type-tag contents) (cons type-tag contents)) is <function attach-tag(type-tag contents)>
-< (define (type-tag datum) (if (pair? datum) (car datum) (error "Bad tagged datum -- TYPE-TAG" datum))) is <function type-tag(datum)>
-< (define (contents datum) (if (pair? datum) (cdr datum) (error "Bad tagged datum -- CONTENTS" datum))) is <function contents(datum)>
-< (define (rectangular? z) (eq? (type-tag z) (quote rectangular))) is <function rectangular?(z)>
-< (define (polar? z) (eq? (type-tag z) (quote polar))) is <function polar?(z)>
-< (define (real-part-rectangular z) (car z)) is <function real-part-rectangular(z)>
-< (define (imag-part-rectangular z) (cdr z)) is <function imag-part-rectangular(z)>
-< (define (magnitude-rectangular z) (sqrt (+ (square (real-part-rectangular z)) (square (imag-part-rectangular z))))) is <function magnitude-rectangular(z)>
-< (define (angle-rectangular z) (atan (imag-part-rectangular z) (real-part-rectangular z))) is <function angle-rectangular(z)>
-< (define (make-from-real-imag-rectangular x y) (attach-tag (quote rectangular) (cons x y))) is <function make-from-real-imag-rectangular(x y)>
-< (define (make-from-mag-ang-rectangular r a) (attach-tag (quote rectangular) (cons (* r (cos a)) (* r (sin a))))) is <function make-from-mag-ang-rectangular(r a)>
-< (define (real-part-polar z) (* (magnitude-polar z) (cos (angle-polar z)))) is <function real-part-polar(z)>
-< (define (imag-part-polar z) (* (magnitude-polar z) (sin (angle-polar z)))) is <function imag-part-polar(z)>
-< (define (magnitude-polar z) (car z)) is <function magnitude-polar(z)>
-< (define (angle-polar z) (cdr z)) is <function angle-polar(z)>
-< (define (make-from-real-imag-polar x y) (attach-tag (quote polar) (cons (sqrt (+ (square x) (square y))) (atan y x)))) is <function make-from-real-imag-polar(x y)>
-< (define (make-from-mag-ang-polar r a) (attach-tag (quote polar) (cons r a))) is <function make-from-mag-ang-polar(r a)>
-< (define (real-part z) (cond ((rectangular? z) (real-part-rectangular (contents z))) ((polar? z) (real-part-polar (contents z))) (else (error "Unknown type -- REAL-PART" z)))) is <function real-part(z)>
-< (define (imag-part z) (cond ((rectangular? z) (imag-part-rectangular (contents z))) ((polar? z) (imag-part-polar (contents z))) (else (error "Unknown type -- IMAG-PART" z)))) is <function imag-part(z)>
-< (define (magnitude z) (cond ((rectangular? z) (magnitude-rectangular (contents z))) ((polar? z) (magnitude-polar (contents z))) (else (error "Unknown type -- MAGNITUDE" z)))) is <function magnitude(z)>
-< (define (angle z) (cond ((rectangular? z) (angle-rectangular (contents z))) ((polar? z) (angle-polar (contents z))) (else (error "Unknown type -- ANGLE" z)))) is <function angle(z)>
-< (define (add-complex z1 z2) (make-from-real-imag (+ (real-part z1) (real-part z2)) (+ (imag-part z1) (imag-part z2)))) is <function add-complex(z1 z2)>
-< (define (make-from-real-imag x y) (make-from-real-imag-rectangular x y)) is <function make-from-real-imag(x y)>
-< (define (make-from-mag-ang r a) (make-from-mag-ang-polar r a)) is <function make-from-mag-ang(r a)>
-< (define (install-rectangular-package) (define (real-part z) (car z)) (define (imag-part z) (cdr z)) (define (make-from-real-imag x y) (cons x y)) (define (magnitude z) (sqrt (+ (square (real-part z)) (square (imag-part z))))) (define (angle z) (atan (imag-part z) (real-part z))) (define (make-from-mag-ang r a) (cons (* r (cos a)) (* r (sin a)))) (define (tag x) (attach-tag (quote rectangular) x)) (put (quote real-part) (quote (rectangular)) real-part) (put (quote imag-part) (quote (rectangular)) imag-part) (put (quote magnitude) (quote (rectangular)) magnitude) (put (quote angle) (quote (rectangular)) angle) (put (quote make-from-real-imag) (quote rectangular) <lambda ()>) (put (quote make-from-mag-ang) (quote rectangular) <lambda ()>) (quote done)) is <function install-rectangular-package()>
-< (define (install-polar-package) (define (magnitude z) (car z)) (define (angle z) (cdr z)) (define (make-from-mag-ang r a) (cons r a)) (define (real-part z) (* (magnitude z) (cos (angle z)))) (define (imag-part z) (* (magnitude z) (sin (angle z)))) (define (make-from-real-imag x y) (cons (sqrt (+ (square x) (square y))) (atan y x))) (define (tag x) (attach-tag (quote polar) x)) (put (quote real-part) (quote (polar)) real-part) (put (quote imag-part) (quote (polar)) imag-part) (put (quote magnitude) (quote (polar)) magnitude) (put (quote angle) (quote (polar)) angle) (put (quote make-from-real-imag) (quote polar) <lambda ()>) (put (quote make-from-mag-ang) (quote polar) <lambda ()>) (quote done)) is <function install-polar-package()>
-< (apply + (list 1 2 3 4)) is 10
-< (define (apply-generic op . args) (let ((type-tags (map type-tag args))) (let ((proc (get op type-tags))) (if proc (apply proc (map contents args)) (error "No method for these types -- APPLY-GENERIC" (list op type-tags)))))) is <function apply-generic(op . args)>
-< (define (real-part z) (apply-generic (quote real-part) z)) is <function real-part(z)>
-< (define (imag-part z) (apply-generic (quote imag-part) z)) is <function imag-part(z)>
-< (define (magnitude z) (apply-generic (quote magnitude) z)) is <function magnitude(z)>
-< (define (angle z) (apply-generic (quote angle) z)) is <function angle(z)>
-< (define (make-from-real-imag x y) ((get (quote make-from-real-imag) (quote rectangular)) x y)) is <function make-from-real-imag(x y)>
-< (define (make-from-mag-ang r a) ((get (quote make-from-mag-ang) (quote polar)) r a)) is <function make-from-mag-ang(r a)>
-< (define (deriv exp var) (cond ((number? exp) 0) ((variable? exp) (if (same-variable? exp var) 1 0)) ((sum? exp) (make-sum (deriv (addend exp) var) (deriv (augend exp) var))) ((product? exp) (make-sum (make-product (multiplier exp) (deriv (multiplicand exp) var)) (make-product (deriv (multiplier exp) var) (multiplicand exp)))) (else (error "unknown expression type -- DERIV" exp)))) is <function deriv(exp var)>
-< (define (deriv exp var) (cond ((number? exp) 0) ((variable? exp) (if (same-variable? exp var) 1 0)) (else ((get (quote deriv) (operator exp)) (operands exp) var)))) is <function deriv(exp var)>
-< (define (operator exp) (car exp)) is <function operator(exp)>
-< (define (operands exp) (cdr exp)) is <function operands(exp)>
-< (define (make-from-real-imag x y) (define (dispatch op) (cond ((eq? op (quote real-part)) x) ((eq? op (quote imag-part)) y) ((eq? op (quote magnitude)) (sqrt (+ (square x) (square y)))) ((eq? op (quote angle)) (atan y x)) (else (error "Unknown op -- MAKE-FROM-REAL-IMAG" op)))) dispatch) is <function make-from-real-imag(x y)>
-< (define (apply-generic op arg) (arg op)) is <function apply-generic(op arg)>
-< (define (add x y) (apply-generic (quote add) x y)) is <function add(x y)>
-< (define (sub x y) (apply-generic (quote sub) x y)) is <function sub(x y)>
-< (define (mul x y) (apply-generic (quote mul) x y)) is <function mul(x y)>
-< (define (div x y) (apply-generic (quote div) x y)) is <function div(x y)>
-< (define (install-scheme-number-package) (define (tag x) (attach-tag (quote scheme-number) x)) (put (quote add) (quote (scheme-number scheme-number)) <lambda ()>) (put (quote sub) (quote (scheme-number scheme-number)) <lambda ()>) (put (quote mul) (quote (scheme-number scheme-number)) <lambda ()>) (put (quote div) (quote (scheme-number scheme-number)) <lambda ()>) (put (quote make) (quote scheme-number) <lambda ()>) (quote done)) is <function install-scheme-number-package()>
-< (define (make-scheme-number n) ((get (quote make) (quote scheme-number)) n)) is <function make-scheme-number(n)>
-< (define (install-rational-package) (define (numer x) (car x)) (define (denom x) (cdr x)) (define (make-rat n d) (let ((g (gcd n d))) (cons (/ n g) (/ d g)))) (define (add-rat x y) (make-rat (+ (* (numer x) (denom y)) (* (numer y) (denom x))) (* (denom x) (denom y)))) (define (sub-rat x y) (make-rat (- (* (numer x) (denom y)) (* (numer y) (denom x))) (* (denom x) (denom y)))) (define (mul-rat x y) (make-rat (* (numer x) (numer y)) (* (denom x) (denom y)))) (define (div-rat x y) (make-rat (* (numer x) (denom y)) (* (denom x) (numer y)))) (define (tag x) (attach-tag (quote rational) x)) (put (quote add) (quote (rational rational)) <lambda ()>) (put (quote sub) (quote (rational rational)) <lambda ()>) (put (quote mul) (quote (rational rational)) <lambda ()>) (put (quote div) (quote (rational rational)) <lambda ()>) (put (quote make) (quote rational) <lambda ()>) (quote done)) is <function install-rational-package()>
-< (define (make-rational n d) ((get (quote make) (quote rational)) n d)) is <function make-rational(n d)>
-< (define (install-complex-package) (define (make-from-real-imag x y) ((get (quote make-from-real-imag) (quote rectangular)) x y)) (define (make-from-mag-ang r a) ((get (quote make-from-mag-ang) (quote polar)) r a)) (define (add-complex z1 z2) (make-from-real-imag (+ (real-part z1) (real-part z2)) (+ (imag-part z1) (imag-part z2)))) (define (sub-complex z1 z2) (make-from-real-imag (- (real-part z1) (real-part z2)) (- (imag-part z1) (imag-part z2)))) (define (mul-complex z1 z2) (make-from-mag-ang (* (magnitude z1) (magnitude z2)) (+ (angle z1) (angle z2)))) (define (div-complex z1 z2) (make-from-mag-ang (/ (magnitude z1) (magnitude z2)) (- (angle z1) (angle z2)))) (define (tag z) (attach-tag (quote complex) z)) (put (quote add) (quote (complex complex)) <lambda ()>) (put (quote sub) (quote (complex complex)) <lambda ()>) (put (quote mul) (quote (complex complex)) <lambda ()>) (put (quote div) (quote (complex complex)) <lambda ()>) (put (quote make-from-real-imag) (quote complex) <lambda ()>) (put (quote make-from-mag-ang) (quote complex) <lambda ()>) (quote done)) is <function install-complex-package()>
-< (define (make-complex-from-real-imag x y) ((get (quote make-from-real-imag) (quote complex)) x y)) is <function make-complex-from-real-imag(x y)>
-< (define (make-complex-from-mag-ang r a) ((get (quote make-from-mag-ang) (quote complex)) r a)) is <function make-complex-from-mag-ang(r a)>
-< (put (quote real-part) (quote (complex)) real-part) is ok
-< (put (quote imag-part) (quote (complex)) imag-part) is ok
-< (put (quote magnitude) (quote (complex)) magnitude) is ok
-< (put (quote angle) (quote (complex)) angle) is ok
-< (define (add-complex-to-schemenum z x) (make-from-real-imag (+ (real-part z) x) (imag-part z))) is <function add-complex-to-schemenum(z x)>
-< (put (quote add) (quote (complex scheme-number)) <lambda ()>) is ok
-< (define (scheme-number->complex n) (make-complex-from-real-imag (contents n) 0)) is <function scheme-number->complex(n)>
-< (quote (put-coercion (quote scheme-number) (quote complex) scheme-number->complex)) is (put-coercion (quote scheme-number) (quote complex) scheme-number->complex)
-< (define (apply-generic op . args) (let ((type-tags (map type-tag args))) (let ((proc (get op type-tags))) (if proc (apply proc (map contents args)) (if (= (length args) 2) (let ((type1 (car type-tags)) (type2 (cadr type-tags)) (a1 (car args)) (a2 (cadr args))) (let ((t1->t2 (get-coercion type1 type2)) (t2->t1 (get-coercion type2 type1))) (cond (t1->t2 (apply-generic op (t1->t2 a1) a2)) (t2->t1 (apply-generic op a1 (t2->t1 a2))) (else (error "No method for these types" (list op type-tags)))))) (error "No method for these types" (list op type-tags))))))) is <function apply-generic(op . args)>
-< (define (scheme-number->scheme-number n) n) is <function scheme-number->scheme-number(n)>
-< (define (complex->complex z) z) is <function complex->complex(z)>
-< (quote (put-coercion (quote scheme-number) (quote scheme-number) scheme-number->scheme-number)) is (put-coercion (quote scheme-number) (quote scheme-number) scheme-number->scheme-number)
-< (quote (put-coercion (quote complex) (quote complex) complex->complex)) is (put-coercion (quote complex) (quote complex) complex->complex)
-< (define (exp x y) (apply-generic (quote exp) x y)) is <function exp(x y)>
-< (put (quote exp) (quote (scheme-number scheme-number)) <lambda ()>) is ok
-< (define (add-poly p1 p2) (if (same-variable? (variable p1) (variable p2)) (make-poly (variable p1) (add-terms (term-list p1) (term-list p2))) (error "Polys not in same var -- ADD-POLY" (list p1 p2)))) is <function add-poly(p1 p2)>
-< (define (mul-poly p1 p2) (if (same-variable? (variable p1) (variable p2)) (make-poly (variable p1) (mul-terms (term-list p1) (term-list p2))) (error "Polys not in same var -- MUL-POLY" (list p1 p2)))) is <function mul-poly(p1 p2)>
-< (define (install-polynomial-package) (define (make-poly variable term-list) (cons variable term-list)) (define (variable p) (car p)) (define (term-list p) (cdr p)) (define (tag p) (attach-tag (quote polynomial) p)) (put (quote add) (quote (polynomial polynomial)) <lambda ()>) (put (quote mul) (quote (polynomial polynomial)) <lambda ()>) (put (quote make) (quote polynomial) <lambda ()>) (quote done)) is <function install-polynomial-package()>
-< (define (add-terms L1 L2) (cond ((empty-termlist? L1) L2) ((empty-termlist? L2) L1) (else (let ((t1 (first-term L1)) (t2 (first-term L2))) (cond ((> (order t1) (order t2)) (adjoin-term t1 (add-terms (rest-terms L1) L2))) ((< (order t1) (order t2)) (adjoin-term t2 (add-terms L1 (rest-terms L2)))) (else (adjoin-term (make-term (order t1) (add (coeff t1) (coeff t2))) (add-terms (rest-terms L1) (rest-terms L2))))))))) is <function add-terms(L1 L2)>
-< (define (mul-terms L1 L2) (if (empty-termlist? L1) (the-empty-termlist) (add-terms (mul-term-by-all-terms (first-term L1) L2) (mul-terms (rest-terms L1) L2)))) is <function mul-terms(L1 L2)>
-< (define (mul-term-by-all-terms t1 L) (if (empty-termlist? L) (the-empty-termlist) (let ((t2 (first-term L))) (adjoin-term (make-term (+ (order t1) (order t2)) (mul (coeff t1) (coeff t2))) (mul-term-by-all-terms t1 (rest-terms L)))))) is <function mul-term-by-all-terms(t1 L)>
-< (define (adjoin-term term term-list) (if (=zero? (coeff term)) term-list (cons term term-list))) is <function adjoin-term(term term-list)>
-< (define (the-empty-termlist) (quote nil)) is <function the-empty-termlist()>
-< (define (first-term term-list) (car term-list)) is <function first-term(term-list)>
-< (define (rest-terms term-list) (cdr term-list)) is <function rest-terms(term-list)>
-< (define (empty-termlist? term-list) (null? term-list)) is <function empty-termlist?(term-list)>
-< (define (make-term order coeff) (list order coeff)) is <function make-term(order coeff)>
-< (define (order term) (car term)) is <function order(term)>
-< (define (coeff term) (cadr term)) is <function coeff(term)>
-< (define (make-polynomial var terms) ((get (quote make) (quote polynomial)) var terms)) is <function make-polynomial(var terms)>
-< (define (div-terms L1 L2) (if (empty-termlist? L1) (list (the-empty-termlist) (the-empty-termlist)) (let ((t1 (first-term L1)) (t2 (first-term L2))) (if (> (order t2) (order t1)) (list (the-empty-termlist) L1) (let ((new-c (div (coeff t1) (coeff t2))) (new-o (- (order t1) (order t2)))) (let ((rest-of-result ??FILL-THIS-IN??)) ??FILL-THIS-IN??)))))) is <function div-terms(L1 L2)>
-< (quote (define p1 (make-polynomial (quote x) (quote ((2 1) (0 1)))))) is (define p1 (make-polynomial (quote x) (quote ((2 1) (0 1)))))
-< (quote (define p2 (make-polynomial (quote x) (quote ((3 1) (0 1)))))) is (define p2 (make-polynomial (quote x) (quote ((3 1) (0 1)))))
-< (quote (define rf (make-rational p2 p1))) is (define rf (make-rational p2 p1))
-< (define (gcd a b) (if (= b 0) a (gcd b (remainder a b)))) is <function gcd(a b)>
-< (define (gcd-terms a b) (if (empty-termlist? b) a (gcd-terms b (remainder-terms a b)))) is <function gcd-terms(a b)>
-< (quote (define p1 (make-polynomial (quote x) (quote ((4 1) (3 -1) (2 -2) (1 2)))))) is (define p1 (make-polynomial (quote x) (quote ((4 1) (3 -1) (2 -2) (1 2)))))
-< (quote (define p2 (make-polynomial (quote x) (quote ((3 1) (1 -1)))))) is (define p2 (make-polynomial (quote x) (quote ((3 1) (1 -1)))))
-< (quote (greatest-common-divisor p1 p2)) is (greatest-common-divisor p1 p2)
-< (define (reduce-integers n d) (let ((g (gcd n d))) (list (/ n g) (/ d g)))) is <function reduce-integers(n d)>
-< (quote (define p1 (make-polynomial (quote x) (quote ((1 1) (0 1)))))) is (define p1 (make-polynomial (quote x) (quote ((1 1) (0 1)))))
-< (quote (define p2 (make-polynomial (quote x) (quote ((3 1) (0 -1)))))) is (define p2 (make-polynomial (quote x) (quote ((3 1) (0 -1)))))
-< (quote (define p3 (make-polynomial (quote x) (quote ((1 1)))))) is (define p3 (make-polynomial (quote x) (quote ((1 1)))))
-< (quote (define p4 (make-polynomial (quote x) (quote ((2 1) (0 -1)))))) is (define p4 (make-polynomial (quote x) (quote ((2 1) (0 -1)))))
-< (quote (define rf1 (make-rational p1 p2))) is (define rf1 (make-rational p1 p2))
-< (quote (define rf2 (make-rational p3 p4))) is (define rf2 (make-rational p3 p4))
-< (quote (add rf1 rf2)) is (add rf1 rf2)
----
-> EXCEPTION: generalException
-> file sicp2.s,line 160: set identifier resolved to type CONS, not SYMBOL
-------------------------------------------
-sicp2-support.s
-------------------------------------------
-------------------------------------------
-sicp3.s
-------------------------------------------
-1758,1944c1758,1761
-< (define new-withdraw (let ((balance 100)) <lambda (gc . "nsufficient funds")>)) is <function anonymous(amount)>
-< (define (make-withdraw balance) <lambda (gc . "nsufficient funds")>) is <function make-withdraw(balance)>
-< (withdraw 25) is 75
-< (withdraw 25) is 50
-< (withdraw 60) is Insufficient funds
-< (withdraw 15) is 35
-< (define W1 (make-withdraw 100)) is <function anonymous(amount)>
-< (define W2 (make-withdraw 100)) is <function anonymous(amount)>
-< (W1 50) is 50
-< (W2 70) is 30
-< (W2 40) is Insufficient funds
-< (W1 40) is 10
-< (define (make-account balance) (define (withdraw amount) (if (>= balance amount) (begin (set! (quote balance) (- balance amount)) balance) "Insufficient funds")) (define (deposit amount) (set! (quote balance) (+ balance amount)) balance) (define (dispatch m) (cond ((eq? m (quote withdraw)) withdraw) ((eq? m (quote deposit)) deposit) (else (error "Unknown request -- MAKE-ACCOUNT" m)))) dispatch) is <function make-account(balance)>
-< (define acc (make-account 100)) is <function dispatch(m)>
-< ((acc (quote withdraw)) 50) is 50
-< ((acc (quote withdraw)) 60) is Insufficient funds
-< ((acc (quote deposit)) 40) is 90
-< ((acc (quote withdraw)) 60) is 30
-< (define acc2 (make-account 100)) is <function dispatch(m)>
-< (quote (define A (make-accumulator 5))) is (define A (make-accumulator 5))
-< (quote (A 10)) is (A 10)
-< (quote (A 10)) is (A 10)
-< (quote (define s (make-monitored sqrt))) is (define s (make-monitored sqrt))
-< (quote (s 100)) is (s 100)
-< (quote (s (quote how-many-calls?))) is (s (quote how-many-calls?))
-< (quote (define acc (make-account 100 (quote secret-password)))) is (define acc (make-account 100 (quote secret-password)))
-< (quote ((acc (quote secret-password) (quote withdraw)) 40)) is ((acc (quote secret-password) (quote withdraw)) 40)
-< (quote ((acc (quote some-other-password) (quote deposit)) 50)) is ((acc (quote some-other-password) (quote deposit)) 50)
-< (define random-init 7) is 7
-< (define rand (let ((x random-init)) <lambda ()>)) is <function anonymous()>
-< (define (estimate-pi trials) (sqrt (/ 6 (monte-carlo trials cesaro-test)))) is <function estimate-pi(trials)>
-< (define (cesaro-test) (= (gcd (rand) (rand)) 1)) is <function cesaro-test()>
-< (define (monte-carlo trials experiment) (define (iter trials-remaining trials-passed) (cond ((= trials-remaining 0) (/ trials-passed trials)) ((experiment) (iter (- trials-remaining 1) (+ trials-passed 1))) (else (iter (- trials-remaining 1) trials-passed)))) (iter trials 0)) is <function monte-carlo(trials experiment)>
-< (define (estimate-pi trials) (sqrt (/ 6 (random-gcd-test trials random-init)))) is <function estimate-pi(trials)>
-< (define (random-gcd-test trials initial-x) (define (iter trials-remaining trials-passed x) (let ((x1 (rand-update x))) (let ((x2 (rand-update x1))) (cond ((= trials-remaining 0) (/ trials-passed trials)) ((= (gcd x1 x2) 1) (iter (- trials-remaining 1) (+ trials-passed 1) x2)) (else (iter (- trials-remaining 1) trials-passed x2)))))) (iter trials 0 initial-x)) is <function random-gcd-test(trials initial-x)>
-< (define (random-in-range low high) (let ((range (- high low))) (+ low (random range)))) is <function random-in-range(low high)>
-< (define (make-simplified-withdraw balance) <lambda ()>) is <function make-simplified-withdraw(balance)>
-< (define W (make-simplified-withdraw 25)) is <function anonymous(amount)>
-< (W 20) is 5
-< (W 10) is -5
-< (define (make-decrementer balance) <lambda ()>) is <function make-decrementer(balance)>
-< (define D (make-decrementer 25)) is <function anonymous(amount)>
-< (D 20) is 5
-< (D 10) is 15
-< ((make-decrementer 25) 20) is 5
-< (<lambda ()> 20) is 5
-< (- 25 20) is 5
-< ((make-simplified-withdraw 25) 20) is 5
-< (<lambda ()> 20) is 25
-< balance is 5
-< (set! (quote balance) (- 25 20)) is 5
-< 25 is 25
-< balance is 5
-< (define D1 (make-decrementer 25)) is <function anonymous(amount)>
-< (define D2 (make-decrementer 25)) is <function anonymous(amount)>
-< (define W1 (make-simplified-withdraw 25)) is <function anonymous(amount)>
-< (define W2 (make-simplified-withdraw 25)) is <function anonymous(amount)>
-< (W1 20) is 5
-< (W1 20) is -15
-< (W2 20) is 5
-< (define peter-acc (make-account 100)) is <function dispatch(m)>
-< (define paul-acc (make-account 100)) is <function dispatch(m)>
-< (define peter-acc (make-account 100)) is <function dispatch(m)>
-< (define paul-acc peter-acc) is <function dispatch(m)>
-< (define (factorial n) (define (iter product counter) (if (> counter n) product (iter (* counter product) (+ counter 1)))) (iter 1 1)) is <function factorial(n)>
-< (define (factorial n) (let ((product 1) (counter 1)) (define (iter) (if (> counter n) product (begin (set! (quote product) (* counter product)) (set! (quote counter) (+ counter 1)) (iter)))) (iter))) is <function factorial(n)>
-< (quote (define paul-acc (make-joint peter-acc (quote open-sesame) (quote rosebud)))) is (define paul-acc (make-joint peter-acc (quote open-sesame) (quote rosebud)))
-< (define (square x) (* x x)) is <function square(x)>
-< (square 4) is 16
-< (define square <lambda ()>) is <function anonymous(x)>
-< (square 4) is 16
-< (define (square x) (* x x)) is <function square(x)>
-< (define (sum-of-squares x y) (+ (square x) (square y))) is <function sum-of-squares(x y)>
-< (define (f a) (sum-of-squares (+ a 1) (* a 2))) is <function f(a)>
-< (catch (sum-of-squares (+ a 1) (* a 2))) is <error 24046>
-< (define (factorial n) (if (= n 1) 1 (* n (factorial (- n 1))))) is <function factorial(n)>
-< (define (factorial n) (fact-iter 1 1 n)) is <function factorial(n)>
-< (define (fact-iter product counter max-count) (if (> counter max-count) product (fact-iter (* counter product) (+ counter 1) max-count))) is <function fact-iter(product counter max-count)>
-< (define (make-withdraw balance) <lambda (gc . "nsufficient funds")>) is <function make-withdraw(balance)>
-< (define W1 (make-withdraw 100)) is <function anonymous(amount)>
-< (W1 50) is 50
-< (define W2 (make-withdraw 100)) is <function anonymous(amount)>
-< (W2 0) is 100
-< (define (make-withdraw initial-amount) (let ((balance initial-amount)) <lambda (gc . "nsufficient funds")>)) is <function make-withdraw(initial-amount)>
-< (define W1 (make-withdraw 100)) is <function anonymous(amount)>
-< (W1 50) is 50
-< (define W2 (make-withdraw 100)) is <function anonymous(amount)>
-< (W2 0) is 100
-< (define (sqrt x) (define (good-enough? guess) (< (abs (- (square guess) x)) 0.001000)) (define (improve guess) (average guess (/ x guess))) (define (sqrt-iter guess) (if (good-enough? guess) guess (sqrt-iter (improve guess)))) (sqrt-iter 1.000000)) is <function sqrt(x)>
-< (define (make-account balance) (define (withdraw amount) (if (>= balance amount) (begin (set! (quote balance) (- balance amount)) balance) "Insufficient funds")) (define (deposit amount) (set! (quote balance) (+ balance amount)) balance) (define (dispatch m) (cond ((eq? m (quote withdraw)) withdraw) ((eq? m (quote deposit)) deposit) (else (error "Unknown request -- MAKE-ACCOUNT" m)))) dispatch) is <function make-account(balance)>
-< (define acc (make-account 50)) is <function dispatch(m)>
-< ((acc (quote deposit)) 40) is 90
-< ((acc (quote withdraw)) 60) is 30
-< (define acc2 (make-account 100)) is <function dispatch(m)>
-< (define old-cons cons) is <builtIn cons(a b)>
-< (define (get-new-pair) (old-cons nil nil)) is <function get-new-pair()>
-< (define (cons x y) (let ((new (get-new-pair))) (set-car! new x) (set-cdr! new y) new)) is <function cons(x y)>
-< (define (append x y) (if (null? x) y (cons (car x) (append (cdr x) y)))) is <function append(x y)>
-< (define (append! x y) (set-cdr! (last-pair x) y) x) is <function append!(x y)>
-< (define (last-pair x) (if (null? (cdr x)) x (last-pair (cdr x)))) is <function last-pair(x)>
-< (define x (list (quote a) (quote b))) is (a b)
-< (define y (list (quote c) (quote d))) is (c d)
-< (define z (append x y)) is (a b c d)
-< z is (a b c d)
-< (cdr x) is (b)
-< (define w (append! x y)) is (a b c d)
-< w is (a b c d)
-< (cdr x) is (b c d)
-< (define (make-cycle x) (set-cdr! (last-pair x) x) x) is <function make-cycle(x)>
-< (define z) is nil
-< (begin (set! (quote z) (make-cycle (list (quote a) (quote b) (quote c)))) (quote ok)) is ok
-< (car z) is a
-< (cadr z) is b
-< (caddr z) is c
-< (cadddr z) is a
-< (caddddr z) is b
-< (cadddddr z) is c
-< (define (mystery x) (define (loop x y) (if (null? x) y (let ((temp (cdr x))) (set-cdr! x y) (loop temp x)))) (loop x (quote nil))) is <function mystery(x)>
-< (define x (list (quote a) (quote b))) is (a b)
-< (define z1 (cons x x)) is ((a b) a b)
-< (define z2 (cons (list (quote a) (quote b)) (list (quote a) (quote b)))) is ((a b) a b)
-< (define (set-to-wow! x) (set-car! (car x) (quote wow)) x) is <function set-to-wow!(x)>
-< z1 is ((a b) a b)
-< (set-to-wow! z1) is ((wow b) wow b)
-< z2 is ((a b) a b)
-< (set-to-wow! z2) is ((wow b) a b)
-< (define (count-pairs x) (if (not (pair? x)) 0 (+ (count-pairs (car x)) (count-pairs (cdr x)) 1))) is <function count-pairs(x)>
-< (define (cons x y) (define (dispatch m) (cond ((eq? m (quote car)) x) ((eq? m (quote cdr)) y) (else (error "Undefined operation -- CONS" m)))) dispatch) is <function cons(x y)>
-< (define (car z) (z (quote car))) is <function car(z)>
-< (define (cdr z) (z (quote cdr))) is <function cdr(z)>
-< (define (cons x y) (define (set-x! v) (set! (quote x) v)) (define (set-y! v) (set! (quote y) v)) (define (dispatch m) (cond ((eq? m (quote car)) x) ((eq? m (quote cdr)) y) ((eq? m (quote set-car!)) set-x!) ((eq? m (quote set-cdr!)) set-y!) (else (error "Undefined operation -- CONS" m)))) dispatch) is <function cons(x y)>
-< (define (car z) (z (quote car))) is <function car(z)>
-< (define (cdr z) (z (quote cdr))) is <function cdr(z)>
-< (define (set-car! z new-value) ((z (quote set-car!)) new-value) z) is <function set-car!(z new-value)>
-< (define (set-cdr! z new-value) ((z (quote set-cdr!)) new-value) z) is <function set-cdr!(z new-value)>
-< (define x (cons 1 2)) is <function dispatch(m)>
-< (define z (cons x x)) is <function dispatch(m)>
-< (set-car! (cdr z) 17) is <function dispatch(m)>
-< (car x) is 17
-< (define (front-ptr queue) (car queue)) is <function front-ptr(queue)>
-< (define (rear-ptr queue) (cdr queue)) is <function rear-ptr(queue)>
-< (define (set-front-ptr! queue item) (set-car! queue item)) is <function set-front-ptr!(queue item)>
-< (define (set-rear-ptr! queue item) (set-cdr! queue item)) is <function set-rear-ptr!(queue item)>
-< (define (empty-queue? queue) (null? (front-ptr queue))) is <function empty-queue?(queue)>
-< (define (make-queue) (cons (quote nil) (quote nil))) is <function make-queue()>
-< (define (front-queue queue) (if (empty-queue? queue) (error "FRONT called with an empty queue" queue) (car (front-ptr queue)))) is <function front-queue(queue)>
-< (define (insert-queue! queue item) (let ((new-pair (cons item (quote nil)))) (cond ((empty-queue? queue) (set-front-ptr! queue new-pair) (set-rear-ptr! queue new-pair) queue) (else (set-cdr! (rear-ptr queue) new-pair) (set-rear-ptr! queue new-pair) queue)))) is <function insert-queue!(queue item)>
-< (define (delete-queue! queue) (cond ((empty-queue? queue) (error "DELETE! called with an empty queue" queue)) (else (set-front-ptr! queue (cdr (front-ptr queue))) queue))) is <function delete-queue!(queue)>
-< (define q1 (make-queue)) is <function dispatch(m)>
-< (insert-queue! q1 (quote a)) is <function dispatch(m)>
-< (insert-queue! q1 (quote b)) is <function dispatch(m)>
-< (delete-queue! q1) is <function dispatch(m)>
-< (delete-queue! q1) is <function dispatch(m)>
-< (define (lookup key table) (let ((record (assoc key (cdr table)))) (if record (cdr record) false))) is <function lookup(key table)>
-< (define (assoc key records) (cond ((null? records) false) ((equal? key (caar records)) (car records)) (else (assoc key (cdr records))))) is <function assoc(key records)>
-< (define (insert! key value table) (let ((record (assoc key (cdr table)))) (if record (set-cdr! record value) (set-cdr! table (cons (cons key value) (cdr table))))) (quote ok)) is <function insert!(key value table)>
-< (define (make-table) (list (quote *table*))) is <function make-table()>
-< (define (lookup key-1 key-2 table) (let ((subtable (assoc key-1 (cdr table)))) (if subtable (let ((record (assoc key-2 (cdr subtable)))) (if record (cdr record) false)) false))) is <function lookup(key-1 key-2 table)>
-< (define (insert! key-1 key-2 value table) (let ((subtable (assoc key-1 (cdr table)))) (if subtable (let ((record (assoc key-2 (cdr subtable)))) (if record (set-cdr! record value) (set-cdr! subtable (cons (cons key-2 value) (cdr subtable))))) (set-cdr! table (cons (list key-1 (cons key-2 value)) (cdr table))))) (quote ok)) is <function insert!(key-1 key-2 value table)>
-< (define (make-table) (let ((local-table (list (quote *table*)))) (define (lookup key-1 key-2) (let ((subtable (assoc key-1 (cdr local-table)))) (if subtable (let ((record (assoc key-2 (cdr subtable)))) (if record (cdr record) false)) false))) (define (insert! key-1 key-2 value) (let ((subtable (assoc key-1 (cdr local-table)))) (if subtable (let ((record (assoc key-2 (cdr subtable)))) (if record (set-cdr! record value) (set-cdr! subtable (cons (cons key-2 value) (cdr subtable))))) (set-cdr! local-table (cons (list key-1 (cons key-2 value)) (cdr local-table))))) (quote ok)) (define (dispatch m) (cond ((eq? m (quote lookup-proc)) lookup) ((eq? m (quote insert-proc!)) insert!) (else (error "Unknown operation -- TABLE" m)))) dispatch)) is <function make-table()>
-< (define operation-table (make-table)) is <function dispatch(m)>
-< (define get (operation-table (quote lookup-proc))) is <function lookup(key-1 key-2)>
-< (define put (operation-table (quote insert-proc!))) is <function insert!(key-1 key-2 value)>
-< (define (fib n) (cond ((= n 0) 0) ((= n 1) 1) (else (+ (fib (- n 1)) (fib (- n 2)))))) is <function fib(n)>
-< (define (memoize f) (let ((table (make-table))) <lambda ()>)) is <function memoize(f)>
-< (define memo-fib (memoize <lambda (else (+ (memo-fib (- n 1)) (memo-fib (- n 2))))>)) is <function anonymous(x)>
-< (define (half-adder a b s c) (let ((d (make-wire)) (e (make-wire))) (or-gate a b d) (and-gate a b c) (inverter c e) (and-gate d e s) (quote ok))) is <function half-adder(a b s c)>
-< (define (full-adder a b c-in sum c-out) (let ((s (make-wire)) (c1 (make-wire)) (c2 (make-wire))) (half-adder b c-in s c1) (half-adder a s sum c2) (or-gate c1 c2 c-out) (quote ok))) is <function full-adder(a b c-in sum c-out)>
-< (define (inverter input output) (define (invert-input) (let ((new-value (logical-not (get-signal input)))) (after-delay inverter-delay <lambda ()>))) (add-action! input invert-input) (quote ok)) is <function inverter(input output)>
-< (define (logical-not s) (cond ((= s 0) 1) ((= s 1) 0) (else (error "Invalid signal" s)))) is <function logical-not(s)>
-< (define (and-gate a1 a2 output) (define (and-action-procedure) (let ((new-value (logical-and (get-signal a1) (get-signal a2)))) (after-delay and-gate-delay <lambda ()>))) (add-action! a1 and-action-procedure) (add-action! a2 and-action-procedure) (quote ok)) is <function and-gate(a1 a2 output)>
-< (define (make-wire) (let ((signal-value 0) (action-procedures (quote nil))) (define (set-my-signal! new-value) (if (not (= signal-value new-value)) (begin (set! (quote signal-value) new-value) (call-each action-procedures)) (quote done))) (define (accept-action-procedure! proc) (set! (quote action-procedures) (cons proc action-procedures)) (proc)) (define (dispatch m) (cond ((eq? m (quote get-signal)) signal-value) ((eq? m (quote set-signal!)) set-my-signal!) ((eq? m (quote add-action!)) accept-action-procedure!) (else (error "Unknown operation -- WIRE" m)))) dispatch)) is <function make-wire()>
-< (define (call-each procedures) (if (null? procedures) (quote done) (begin ((car procedures)) (call-each (cdr procedures))))) is <function call-each(procedures)>
-< (define (get-signal wire) (wire (quote get-signal))) is <function get-signal(wire)>
-< (define (set-signal! wire new-value) ((wire (quote set-signal!)) new-value)) is <function set-signal!(wire new-value)>
-< (define (add-action! wire action-procedure) ((wire (quote add-action!)) action-procedure)) is <function add-action!(wire action-procedure)>
-< (define (after-delay delay action) (add-to-agenda! (+ delay (current-time the-agenda)) action the-agenda)) is <function after-delay(delay action)>
-< (define (propagate) (if (empty-agenda? the-agenda) (quote done) (let ((first-item (first-agenda-item the-agenda))) (first-item) (remove-first-agenda-item! the-agenda) (propagate)))) is <function propagate()>
-< (define (probe name wire) (add-action! wire <lambda ()>)) is <function probe(name wire)>
-< (define a (make-wire)) is <function dispatch(m)>
-< (define b (make-wire)) is <function dispatch(m)>
-< (define c (make-wire)) is <function dispatch(m)>
-< (define d (make-wire)) is <function dispatch(m)>
-< (define e (make-wire)) is <function dispatch(m)>
-< (define s (make-wire)) is <function dispatch(m)>
-< EXCEPTION: undefinedVariable
-< file sicp3.s,line 750: variable or-gate is undefined
----
-> (define new-withdraw (let ((balance 100)) (lambda (amount) (if (>= balance amount) (begin (set! (quote balance) (- balance amount)) balance) "Insufficient funds")))) is <function anonymous(amount)>
-> (define (make-withdraw balance) (lambda (amount) (if (>= balance amount) (begin (set! (quote balance) (- balance amount)) balance) "Insufficient funds"))) is <function make-withdraw(balance)>
-> EXCEPTION: generalException
-> file sicp3.s,line 28: set identifier resolved to type CONS, not SYMBOL
-------------------------------------------
-sicp3-support.s
-------------------------------------------
-------------------------------------------
-similar.s
-------------------------------------------
-------------------------------------------
-sine.s
-------------------------------------------
-37,86c37,38
-< # x     y
-< -2.0000000000   -0.9092974268
-< -1.7500000000   -0.9839859469
-< -1.5000000000   -0.9974949866
-< -1.2500000000   -0.9489846194
-< -1.0000000000   -0.8414709848
-< -0.7500000000   -0.6816387600
-< -0.5000000000   -0.4794255386
-< -0.2500000000   -0.2474039593
-< 0.000000e+00    0.000000e+00
-< 0.2500000000    0.2474039593
-< 0.5000000000    0.4794255386
-< 0.7500000000    0.6816387600
-< 1.0000000000    0.8414709848
-< 1.2500000000    0.9489846194
-< 1.5000000000    0.9974949866
-< 1.7500000000    0.9839859469
-< 2.0000000000    0.9092974268
-< 2.2500000000    0.7780731969
-< 2.5000000000    0.5984721441
-< 2.7500000000    0.3816609921
-< 3.0000000000    0.1411200081
-< 3.2500000000    -0.1081951345
-< 3.5000000000    -0.3507832277
-< 3.7500000000    -0.5715613187
-< 4.0000000000    -0.7568024953
-< 4.2500000000    -0.8949893582
-< 4.5000000000    -0.9775301177
-< 4.7500000000    -0.9992927890
-< 5.0000000000    -0.9589242747
-< 5.2500000000    -0.8589344934
-< 5.5000000000    -0.7055403256
-< 5.7500000000    -0.5082790775
-< 6.0000000000    -0.2794154982
-< 6.2500000000    -0.0331792165
-< 6.5000000000    0.2151199881
-< 6.7500000000    0.4500440738
-< 7.0000000000    0.6569865987
-< 7.2500000000    0.8230808790
-< 7.5000000000    0.9379999768
-< 7.7500000000    0.9945987791
-< 8.0000000000    0.9893582466
-< 8.2500000000    0.9226042102
-< 8.5000000000    0.7984871126
-< 8.7500000000    0.6247239538
-< 9.0000000000    0.4121184852
-< 9.2500000000    0.1738894854
-< 9.5000000000    -0.0751511205
-< 9.7500000000    -0.3195191936
-< 10.0000000000   -0.5440211109
----
-> EXCEPTION: nonFunction
-> file sine.s,line 1: attempted to call STRING as a function
-------------------------------------------
-stack2.s
-------------------------------------------
-33,37c33,34
-< EVALUATION ERROR: :stackError
-< stack2.s,line 10: pop on empty stack
-< 42
-< world
-< hello
----
-> EXCEPTION: nonFunction
-> file stack2.s,line 1: attempted to call STRING as a function
-------------------------------------------
-stack.s
-------------------------------------------
-38,40c38,39
-< 42
-< world
-< hello
----
-> EXCEPTION: undefinedVariable
-> file stack.s,line 1: variable function is undefined
-------------------------------------------
-stream.s
-------------------------------------------
-40c40,41
-< [ 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 ]
----
-> EXCEPTION: undefinedVariable
-> file stream.s,line 1: variable function is undefined
-------------------------------------------
-subset.s
-------------------------------------------
-61,68c61,62
-< [ ] 
-< [ 3 ] 
-< [ 2 ] 
-< [ 2 3 ] 
-< [ 1 ] 
-< [ 1 3 ] 
-< [ 1 2 ] 
-< [ 1 2 3 ] 
----
-> EXCEPTION: undefinedVariable
-> file subset.s,line 1: variable function is undefined
-------------------------------------------
-super.s
-------------------------------------------
-32,34c32,33
-< hello, there
-< hello, goodbye
-< hello, world
----
-> EXCEPTION: undefinedVariable
-> file super.s,line 1: variable function is undefined
-------------------------------------------
-swap.s
-------------------------------------------
-15c15,16
-< a is b and b is a
----
-> EXCEPTION: undefinedVariable
-> file swap.s,line 1: variable function is undefined
-------------------------------------------
-symbol2.s
-------------------------------------------
-26,42c26,27
-< created a thunk...
-< thunk is <THUNK 3237>
-< changing a thunk...
-< sqr is <function sqr(x)>
-< thunk . code = head(sqr . parameters) is x
-< <THUNK 3237>:
-<     context: <OBJECT 966>
-<     code: x
-< forcing thunk, x is ID, x is declared globally with value 10...
-< force(thunk) is 10
-< changing a thunk...
-< thunk . code = symbol("x") is :x
-< <THUNK 3237>:
-<     context: <OBJECT 966>
-<     code: :x
-< forcing thunk, x is SYMBOL...
-< force(thunk) is :x
----
-> EXCEPTION: undefinedVariable
-> file symbol2.s,line 1: variable function is undefined
-------------------------------------------
-symbol.s
-------------------------------------------
-34,40c34,35
-< obj's a was 2 (should be 2)
-< obj's a is hello (should be hello)
-< obj's a now is 3.2000000000 (should be 3.2)
-< separate calls to symbol("a") compare equal
-< a was wow
-< a is 5
-< a now is 6
----
-> EXCEPTION: undefinedVariable
-> file symbol.s,line 1: variable var is undefined
-------------------------------------------
-tailassign.s
-------------------------------------------
-27,50c27,28
-< a is (1,2,3,4,5)
-< after set a to its tail, a is (2,3,4,5)
-< length(a) is 4
-< type(a) is :LIST
-< b was set to the original a
-< b is (1,2,3,4,5)
-< length(b) is 5
-< type(b) is :LIST
-< a is (2,3,4 # [11,12,13,14])
-< a is (3,4 # [11,12,13,14])
-< a is (4 # [11,12,13,14])
-< a is [11,12,13,14]
-< a is [12,13,14]
-< a is [13,14]
-< a is [14]
-< 
-< b is (1,2,3,4 # [11,12,13,14])
-< b is (2,3,4 # [11,12,13,14])
-< b is (3,4 # [11,12,13,14])
-< b is (4 # [11,12,13,14])
-< b is [11,12,13,14]
-< b is [12,13,14]
-< b is [13,14]
-< b is [14]
----
-> EXCEPTION: nonFunction
-> file tailassign.s,line 1: attempted to call STRING as a function
-------------------------------------------
-throw.s
-------------------------------------------
-20c20,21
-< f() returns "throw.s,line 5: variable a is undefined"
----
-> EXCEPTION: undefinedVariable
-> file throw.s,line 1: variable //var is undefined
-------------------------------------------
-toString.s
-------------------------------------------
-34,52c34,35
-< list(1,2) is [1,2]
-< ----------------
-< "array" + string(array(1,2,3)) is "array[1,2,3]"
-< ----------------
-< fo is <f x:20>
-< ----------------
-< fa is [<f x:20>,<f x:20>]
-< ----------------
-< a is [<f x:1>,<f x:2>,<f x:<f x:20>>,<f x:[<f x:20>,<f x:20>]>]
-< ----------------
-< map(string,a) is ("<f x:1>","<f x:2>","<f x:<f x:20>>","<f x:[<f x:20>,<f x:20>]>")
-< ----------------
-< [<f x:1>,<f x:2>,<f x:<f x:20>>,<f x:[<f x:20>,<f x:20>]>]
-< ----------------
-< map: <f x:1>
-< map: <f x:2>
-< map: <f x:<f x:20>>
-< map: <f x:[<f x:20>,<f x:20>]>
-< ----------------
----
-> EXCEPTION: syntaxException
-> file toString.s,line 33: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
-------------------------------------------
-trace.s
-------------------------------------------
-23,32c23,24
-< tracing f...
-< trace.s,line 5: var result = x,y = 0; 
-< trace.s,line 6: result = x + result; 
-< trace.s,line 7: if (x > 0) { var i = 42; g(); }
-< tracing f...
-< trace.s,line 9: var i = 42; 
-< trace.s,line 10: g(); 
-< in g...
-< trace.s,line 12: result; 
-< f(5) is 10
----
-> EXCEPTION: nonFunction
-> file trace.s,line 1: attempted to call STRING as a function
-------------------------------------------
-tree2.s
-------------------------------------------
-111,117c111,112
-< inserting 2
-< inserting 3
-< inserting 1
-< looking for 4: not found!
-< looking for 2: it's an interior node!
-< looking for 1: it's a leaf!
-< good-bye!
----
-> EXCEPTION: undefinedVariable
-> file tree2.s,line 1: variable function is undefined
-------------------------------------------
-tree3.s
-------------------------------------------
-90,96c90,91
-< inserting 2
-< inserting 3
-< inserting 1
-< looking for 4: not found!
-< looking for 2: it's an interior node!
-< looking for 1: it's a leaf!
-< good-bye!
----
-> EXCEPTION: undefinedVariable
-> file tree3.s,line 1: variable function is undefined
-------------------------------------------
-tree.s
-------------------------------------------
-112,120c112,113
-< hello
-< 1 inserted.
-< 2 inserted.
-< 3 inserted.
-< insertion phase complete, tree is (1 () (2 () (3 () ()))).
-< looking for 4: not found!
-< looking for 2: it's an interior node!
-< looking for 3: it's a leaf!
-< good-bye!
----
-> EXCEPTION: undefinedVariable
-> file tree.s,line 1: variable var is undefined
-------------------------------------------
-try.s
-------------------------------------------
-28,30c28,29
-< ERROR OBJECT: :mathError
-< try.s,line 17: division: cannot divide by zero
-< try block has a divide error
----
-> EXCEPTION: undefinedVariable
-> file try.s,line 1: variable function is undefined
-------------------------------------------
-tyro2.s
-------------------------------------------
-16,18c16,17
-< EVALUATION ERROR: :styleViolation
-< tyro2.s,line 6: 
-< indentation is not properly aligned, should be 4 spaces, not 0
----
-> EXCEPTION: nonFunction
-> file tyro2.s,line 1: attempted to call STRING as a function
-------------------------------------------
-tyro.s
-------------------------------------------
-14,16c14,15
-< EVALUATION ERROR: :styleViolation
-< tyro.s,line 8: 
-< next line continues this line, perhaps a missing semicolon?
----
-> EXCEPTION: nonFunction
-> file tyro.s,line 1: attempted to call STRING as a function
-------------------------------------------
-uninit.s
-------------------------------------------
-5,6c5,6
-< EVALUATION ERROR: :uninitializedVariable
-< uninit.s,line 3: variable x is uninitialized
----
-> EXCEPTION: undefinedVariable
-> file uninit.s,line 1: variable var is undefined
-------------------------------------------
-variadic.s
-------------------------------------------
-16,17c16,17
-< goodbye, cruel world
-< goodbye, cruel world
-\ No newline at end of file
----
-> EXCEPTION: undefinedVariable
-> file variadic.s,line 1: variable function is undefined
-------------------------------------------
-variation2.s
-------------------------------------------
-34,39c34,35
-< (x()) . a() yields...
-< x:a() -> hello
-< x:b() -> goodbye
-< (y()) . a() yields...
-< x:a() -> hello
-< y:b() -> au revoir
----
-> EXCEPTION: undefinedVariable
-> file variation2.s,line 1: variable function is undefined
-------------------------------------------
-variation3.s
-------------------------------------------
-36,42c36,37
-< x-obj . a() yields...
-< x:a() -> hello
-< x:b() -> goodbye
-< y-obj . a() yields...
-< x:a() -> hello
-< y:b() -> au revoir
-< run the old version of b, via prior: x:b() -> goodbye
----
-> EXCEPTION: undefinedVariable
-> file variation3.s,line 1: variable function is undefined
-------------------------------------------
-variation.s
-------------------------------------------
-32,37c32,33
-< (x()) . a() yields...
-< x:a() -> hello
-< x:b() -> goodbye
-< (y()) . a() yields...
-< x:a() -> hello
-< y:b() -> au revoir
----
-> EXCEPTION: undefinedVariable
-> file variation.s,line 1: variable function is undefined
-------------------------------------------
-virtual2.s
-------------------------------------------
-21,23c21,22
-< a: x is 0
-< b: x is 1
-< a: x is 1
----
-> EXCEPTION: undefinedVariable
-> file virtual2.s,line 1: variable function is undefined
-------------------------------------------
-virtual.s
-------------------------------------------
-62,83c62,63
-< number of x objects created: 2
-< 5: x's a, calling b
-<    x's b, calling a
-< 4: x's a, calling b
-<    x's b, calling a
-< 3: x's a, calling b
-<    x's b, calling a
-< 2: x's a, calling b
-<    x's b, calling a
-< 1: x's a, calling b
-<    x's b, calling a
-< 0: x's a
-< ------------------------------
-< y's a, calling b
-< y's b, calling x's version of a
-< 3: x's a, calling b
-< y's b, calling x's version of a
-< 2: x's a, calling b
-< y's b, calling x's version of a
-< 1: x's a, calling b
-< y's b, calling x's version of a
-< 0: x's a
----
-> EXCEPTION: undefinedVariable
-> file virtual.s,line 1: variable var is undefined
-------------------------------------------
-while2.s
-------------------------------------------
-55,65c55,56
-< before calling f(0)
-< in while, returning!
-< after calling f(0)
-< before calling f(1)
-< in fwhile, returning!
-< after calling f(1)
-< before calling g()
-<     calling function r()
-<     in function r
-<     done calling function r()
-< after calling g()
----
-> EXCEPTION: undefinedVariable
-> file while2.s,line 1: variable function is undefined
-------------------------------------------
-while3.s
-------------------------------------------
-36,57c36,37
-< run through i and j, stopping when i * j is 9
-< 0 * 0 is 0
-< 0 * 1 is 0
-< 0 * 2 is 0
-< 0 * 3 is 0
-< 0 * 4 is 0
-< 0 * 5 is 0
-< 0 * 6 is 0
-< 0 * 7 is 0
-< 0 * 8 is 0
-< 0 * 9 is 0
-< 1 * 0 is 0
-< 1 * 1 is 1
-< 1 * 2 is 2
-< 1 * 3 is 3
-< 1 * 4 is 4
-< 1 * 5 is 5
-< 1 * 6 is 6
-< 1 * 7 is 7
-< 1 * 8 is 8
-< 1 * 9 is 9
-< done
----
-> EXCEPTION: undefinedVariable
-> file while3.s,line 1: variable function is undefined
-------------------------------------------
-while-else.s
-------------------------------------------
-39,44c39,40
-< i is 0
-< i is 1
-< i is 2
-< i is 3
-< i is 4
-< i was too large!
----
-> EXCEPTION: undefinedVariable
-> file while-else.s,line 1: variable var is undefined
-------------------------------------------
-while.s
-------------------------------------------
-33,58c33,34
-< while as imperative statement
-< i is 0
-< i is 1
-< i is 2
-< i is 3
-< i is 4
-< i is 5
-< i is 6
-< i is 7
-< i is 8
-< i is 9
-< while as a function call
-< i is 9
-< i is 8
-< i is 7
-< i is 6
-< i is 5
-< i is 4
-< i is 3
-< i is 2
-< i is 1
-< i is 0
-< user while that returns from global scope
-< forcing test
-< forcing body
-< returning!
----
-> EXCEPTION: undefinedVariable
-> file while.s,line 1: variable function is undefined
-------------------------------------------
-wire.s
-------------------------------------------
-1,25c1,19
-< function wire()
-<     {
-<     var value = 0;  //initial (nonsensical) value
-<     var downstream = :null;
-<     function register(object)
-<         {
-<         downstream = object join downstream;
-<         object . recalculate();
-<         }
-<     function inform(object)
-<         {
-<         object . recalculate();
-<         }
-<     function set(newValue)
-<         {
-<         if (newValue != value)
-<             {
-<             value = newValue;
-<             map(inform, downstream);
-<             }
-<         }
-<     function get()
-<         {
-<         return(value);
-<         }
----
-> (define (wire )
->     (define value 0)  ;initial (nonsensical) value
->     (define downstream nil)
->     (define (register object)
->         (assign downstream (cons object downstream))
->         ((. object recalculate))
->         )
->     (define (inform object)
->         ((. object recalculate))
->         )
->     (define (set newValue)
->         (if (!= newValue value)
->             (begin
->                 (assign value newValue)
->                 (map inform downstream)
->                 )
->             )
->         )
->     (define (get) value)
-27,28c21,22
-<     this;
-<     }
----
->     this
->     )
-------------------------------------------
-with.s
-------------------------------------------
-26,29c26,27
-< o . x is 3
-< o . y is 4
-< o . x is 10
-< o . y is 13
----
-> EXCEPTION: nonFunction
-> file with.s,line 1: attempted to call STRING as a function
-------------------------------------------
-x.s
-------------------------------------------
-10c10,11
-< this is defined!
----
-> EXCEPTION: nonFunction
-> file x.s,line 1: attempted to call STRING as a function
-------------------------------------------
-z.s
-------------------------------------------
-16,18c16,17
-< obj . a is 4
-< obj . a is 4
-< obj . a is 4
----
-> EXCEPTION: undefinedVariable
-> file z.s,line 1: variable function is undefined
-------------------------------------------
-zsieve.s
-------------------------------------------
-65,66c65,66
-< this takes a while...
-< [ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101 103 107 109 113 127 131 137 139 149 151 157 163 167 173 179 181 191 193 197 199 211 223 227 229 ]
----
-> EXCEPTION: undefinedVariable
-> file zsieve.s,line 1: variable function is undefined
 ------------------------------------------

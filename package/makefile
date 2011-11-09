@@ -2,7 +2,7 @@ SERVER=beastie.cs.ua.edu
 #SERVER=nixie.cs.ua.edu
 
 #don't forget to change version number in scam.c
-ver=0.1.9
+ver=1.0
 arch=i386
 #arch=amd64
 base=scam-$(ver)_$(arch)
