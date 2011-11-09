@@ -706,12 +706,15 @@ gc()
 
     for (i = 0; i < StackPtr; ++i)
         {
+        if (gccount == 10)
+            printf("%d:%s\n",i,type(Stack[i]));
         if (!transferred(Stack[i]))
             {
             /* cannot transfer strings and arrays over directly */
             /* so we wrap them in a cons */
             if (type(Stack[i]) == STRING || type(Stack[i]) == ARRAY)
                 {
+                printf("spot is %d\n",spot);
                 new_cars[spot].type = CONS;
                 new_cars[spot].ival = Stack[i];
                 new_cdrs[spot] = 0;
@@ -736,12 +739,15 @@ gc()
     spot = stackStart;
     for (i = 0; i < StackPtr; ++i)
         {
-        if (gccount == 199)
-            printf("%d\n", i);
+        if (gccount == 10)
+            printf("%d:%s\n",i,type(Stack[i]));
         if (type(Stack[i]) == STRING || type(Stack[i]) == ARRAY)
             {
             if (new_cars[spot].type != CONS)
+                {
                 printf("String cell type is %s\n",new_cars[spot].type);
+                printf("spot is %d\n",spot);
+                }
             assert(new_cars[spot].type == CONS);
             Stack[i] = new_cars[spot].ival;
             }
