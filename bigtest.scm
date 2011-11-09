@@ -101,7 +101,6 @@
                  ;(eval (car stuff) env)
                  )
              )
-        (inspect answer)
         (cond
             ((null? stuff) nil)
             ((string? (car stuff))
