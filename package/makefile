@@ -3,8 +3,8 @@ SERVER=beastie.cs.ua.edu
 
 #don't forget to change version number in scam.c
 ver=1.0
-arch=i386
-#arch=amd64
+#arch=i386
+arch=amd64
 base=scam-$(ver)_$(arch)
 
 $(base).deb	: 

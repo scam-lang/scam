@@ -217,7 +217,7 @@ getMemorySize()
 int
 cons(int a,int b)
     {
-    assureMemory("cons",1,&a,&b,0);
+    assureMemory("cons",1,&a,&b,(int *)0);
 
     //debug("cons",a);
     //printf("line is %d\n",line(a));
@@ -277,7 +277,7 @@ newString(char *s)
     int start;
     int length = strlen(s);
 
-    assureMemory("newString",length,0);
+    assureMemory("newString",length,(int *)0);
 
     start = MemorySpot;
 
@@ -310,7 +310,7 @@ newSymbol(char *s)
     if (index < specialSymbolBottom)
         return index;
 
-    assureMemory("newSymbol",1,0);
+    assureMemory("newSymbol",1,(int *)0);
 
     result = ucons(0,0);
     type(result) = SYMBOL;
@@ -323,7 +323,7 @@ newSymbolFromIndex(int index)
     {
     int result;
 
-    assureMemory("newSymbolFromIndex",1,0);
+    assureMemory("newSymbolFromIndex",1,(int *)0);
 
     result = ucons(0,0);
     type(result) = SYMBOL;
@@ -336,7 +336,7 @@ newInteger(int i)
     {
     int result;
 
-    assureMemory("newInteger",1,0);
+    assureMemory("newInteger",1,(int *)0);
 
     result = ucons(0,0);
     type(result) = INTEGER;
@@ -349,7 +349,7 @@ newReal(double r)
     {
     int result;
 
-    assureMemory("newReal",1,0);
+    assureMemory("newReal",1,(int *)0);
 
     result = ucons(0,0);
     type(result) = REAL;
@@ -362,7 +362,7 @@ newPunctuation(char *t)
     {
     int result;
 
-    assureMemory("newPuncuation",1,0);
+    assureMemory("newPuncuation",1,(int *)0);
 
     result = ucons(0,0);
     type(result) = t;
@@ -714,7 +714,6 @@ assureMemory(char *tag,int needed, int *item, ...)
         
         while (item != 0)
             {
-            //debug("pushing",*item);
             push(*item);
             assert(storePtr < storeSize);
             store[storePtr++] = item;

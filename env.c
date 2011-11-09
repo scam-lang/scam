@@ -58,7 +58,7 @@ defineVariable(int env,int var,int val)
 
     assert(DEFINE_CELLS == 2);
 
-    assureMemory("defineVariable",DEFINE_CELLS,&env,&var,&val,0);
+    assureMemory("defineVariable",DEFINE_CELLS,&env,&var,&val,(int *)0);
 
     /* there are predefined variables, skip over those */
 
@@ -100,7 +100,7 @@ makeEnvironment(int context,int constructor,int vars,int vals)
     assert(ENV_CELLS == OBJECT_CELLS + 8 + 1);
 
     assureMemory("makeEnvironment",ENV_CELLS,
-        &context,&constructor,&vars,&vals,0);
+        &context,&constructor,&vars,&vals,(int *)0);
 
     o = makeObject(envSymbol);
 
@@ -126,7 +126,7 @@ makeThunk(int expr,int env)
 
     assert(THUNK_CELLS == OBJECT_CELLS + 4);
 
-    assureMemory("makeThunk",THUNK_CELLS,&expr,&env,0);
+    assureMemory("makeThunk",THUNK_CELLS,&expr,&env,(int *)0);
 
     o = makeObject(thunkSymbol);
 
@@ -149,7 +149,7 @@ makeClosure(int context,int name,int parameters,int body,int mode)
     assert(CLOSURE_CELLS == OBJECT_CELLS + 8 + 1);
 
     assureMemory("makeClosure",CLOSURE_CELLS,
-        &context,&name,&parameters,&body,0);
+        &context,&name,&parameters,&body,(int *)0);
 
     o = makeObject(closureSymbol);
 
@@ -189,7 +189,7 @@ makeError(int tag,int code,int value,int trace)
     assert(ERROR_CELLS == OBJECT_CELLS + 6);
 
     assureMemory("makeError",ERROR_CELLS,
-        &tag,&code,&value,&trace,0);
+        &tag,&code,&value,&trace,(int *)0);
 
     o = makeObject(tag);
 

@@ -3,7 +3,7 @@
 (include "pretty.lib")
 (define jcl
     (scope
-        (include "assign2.scm")
+        (include "jcl-assign.scm")
         this
         )
     )
@@ -25,7 +25,7 @@
         run7
         run8
         run9
-        ;run10
+        run10
         )
     )
 
@@ -40,14 +40,17 @@
 
 (define outputFile "report")
 
-(define (prettyPrinter items env)
+(define (prettyPrinter # items env)
     (cond
         ((null? items) nil)
         (else
             (display "your ")
             (display (car items))
             (display " function:\n\n")
-            (prettyIndent (eval (car items) env) "    ")
+            (if (defined? (car items) #)
+                (prettyIndent (eval (car items) env) "    ")
+                (println "NOT DEFINED!")
+                )
             (println "\n")
             (prettyPrinter (cdr items) env)
             )
@@ -151,6 +154,12 @@
         (jcl+ (jcl-polar 3 1.423) (jcl-polar 7 2.453))
         (+ (rectangular 3 1.423) (rectangular 7 2.453))
         (jcl+ (jcl-rectangular 3 1.423) (jcl-rectangular 7 2.453))
+        (+ (polar 1.1 2.2) (+ (polar 3 1.423) (polar 7 2.453)))
+        (jcl+ (jcl-polar 1.1 2.2) (jcl+ (polar 3 1.423) (jcl-polar 7 2.453)))
+        (+ (rectangular 1.1 2.2)
+            (+ (rectangular 3 1.423) (rectangular 7 2.453)))
+        (jcl+ (jcl-rectangular 1.1 2.2)
+            (jcl+ (jcl-rectangular 3 1.423) (jcl-rectangular 7 2.453)))
         "\nextra credit\n"
         (+ (rectangular 3 1.423) 2)
         (jcl+ (jcl-rectangular 3 1.423) 2)

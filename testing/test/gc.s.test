@@ -10,7 +10,7 @@
 
 (f 3)
 ------------------------------------------
-gc:1, 9268 cells
+gc:1, 2088833 cells available
 f is <function f(x)>
 x is 3
 y is 9

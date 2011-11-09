@@ -28,12 +28,12 @@ including fib.s
 fact: fib(5) is 5
 fact: fact(5) is 120
 fact.s included - SHOULD ONLY SEE THIS ONCE
-gc:1, 9853 cells
-gc:2, 9827 cells
-gc:3, 9829 cells
-gc:4, 9874 cells
-gc:5, 9895 cells
-gc:6, 9832 cells
+gc:1, 2088210 cells available
+gc:2, 2088271 cells available
+gc:3, 2088206 cells available
+gc:4, 2088269 cells available
+gc:5, 2088274 cells available
+gc:6, 2088209 cells available
 fib: fib(25) is 75025
-23 seconds
+4 seconds
 fib.s included - SHOULD ONLY SEE THIS ONCE

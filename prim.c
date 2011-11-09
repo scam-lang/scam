@@ -69,7 +69,7 @@ defineIdentifier(int name,int init,int env)
         rethrow(init,0);
         }
 
-     assureMemory("defineIdentifier",DEFINE_CELLS,&env,&name,&init,0);
+     assureMemory("defineIdentifier",DEFINE_CELLS,&env,&name,&init,(int *)0);
 
      return defineVariable(env,name,init);
      }
@@ -79,12 +79,17 @@ defineFunction(int name,int parameters,int body,int env)
     {
     int spot;
     int closure;
+    extern int gcCount;
     
-    //printf("defining a function...\n");
-    //debug("    name:",name);
-    //debug("    params:",parameters);
-    //debug("    body:",body);
-    assureMemory("defineFunction",CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,0);
+    if (gcCount == 37)
+        {
+        printf("defining a function...\n");
+        debug("    name",name);
+        debug("    params",parameters);
+        debug("    body",body);
+        debug("    env",env);
+        }
+    assureMemory("defineFunction",CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,(int *) 0);
 
     spot = parameters;
     while (spot != 0)
@@ -1071,7 +1076,7 @@ static int
 rreturn(int args)
     {
     //printf("in return...\n");
-    assureMemory("return",THUNK_CELLS + THROW_CELLS,&args,0);
+    assureMemory("return",THUNK_CELLS + THROW_CELLS,&args,(int *)0);
     return makeThrow(returnSymbol,makeThunk(cadr(args),car(args)),0);
     }
 
@@ -1082,7 +1087,7 @@ scope(int args)
     {
     int env;
     //printf("in scope...\n");
-    assureMemory("scope",ENV_CELLS,&args,0);
+    assureMemory("scope",ENV_CELLS,&args,(int *)0);
     env = makeEnvironment(car(args),0,0,0);
     return evalList(cadr(args),env,ALLBUTLAST);
     }
@@ -1382,7 +1387,7 @@ iinclude(int args)
 
     //printf("file %s not already included\n",buffer);
 
-    assureMemory("include",DEFINE_CELLS,&env,&s,0);
+    assureMemory("include",DEFINE_CELLS,&env,&s,(int *)0);
     defineVariable(env,s,trueSymbol);
     //printf("%s defined in env %d\n",buffer2,env);
 
@@ -1414,7 +1419,7 @@ iinclude(int args)
 static int
 eeval(int args)
     {
-    assureMemory("prim:eval",THUNK_CELLS,&args,0);
+    assureMemory("prim:eval",THUNK_CELLS,&args,(int *)0);
     return makeThunk(car(args),cadr(args));
     //return eval(car(args),cadr(args));
     }
@@ -1426,7 +1431,7 @@ eeval(int args)
 static int
 apply(int args)
     {
-    assureMemory("apply:",1,&args,0);
+    assureMemory("apply:",1,&args,(int *)0);
 
     return evalCall(cons(car(args),cadr(args)),0,NO_EVALUATION);
     }
@@ -1507,7 +1512,7 @@ ccdr(int args)
 static int
 ccons(int args)
     {
-    assureMemory("cons",1,&args,0);
+    assureMemory("cons",1,&args,(int *)0);
     return ucons(car(args),cadr(args));
     }
 
@@ -1583,7 +1588,7 @@ addOpenPort(FILE *fp,int portType,int fi,int li)
 
     OpenPorts[i] = fp;
 
-    assureMemory("addOpenPort",3,0);
+    assureMemory("addOpenPort",3,(int *)0);
 
     return ucons(portType,ucons(newInteger(i),0));
     }
@@ -1594,7 +1599,7 @@ setPort(int args)
     int old;
     int target;
 
-    assureMemory("setPort",3,&args,0);
+    assureMemory("setPort",3,&args,(int *)0);
 
     target = car(args);
 
@@ -1644,14 +1649,14 @@ setPort(int args)
 static int
 getInputPort(int args)
     {
-    assureMemory("getInputPort",3,0);
+    assureMemory("getInputPort",3,(int *)0);
     return ucons(inputPortSymbol,ucons(newInteger(CurrentInputIndex),0));
     }
 
 static int
 getOutputPort(int args)
     {
-    assureMemory("getOutputPort",3,0);
+    assureMemory("getOutputPort",3,(int *)0);
     return ucons(outputPortSymbol,ucons(newInteger(CurrentOutputIndex),0));
     }
 
@@ -2252,7 +2257,7 @@ bindings(int args)
     int vars = object_variables(car(args));
     int vals = object_values(car(args));
 
-    assureMemory("bindings",4 * length(vars),0);
+    assureMemory("bindings",4 * length(vars),(int *)0);
 
     items = 0;
     while (vars != 0)
@@ -2284,7 +2289,7 @@ array(int args)
     args = car(args);
     size = length(args);
     amount = size;
-    assureMemory("array",size,&args,0);
+    assureMemory("array",size,&args,(int *)0);
     for (i = 0; i < size; ++i)
         {
         spot = cons(car(args),0);
@@ -2309,7 +2314,7 @@ allocate(int args)
     int i,spot,start = 0,attach = 0;
     int size = ival(car(args));
     int amount = size;
-    assureMemory("allocate",size,0);
+    assureMemory("allocate",size,(int *)0);
     for (i = 0; i < size; ++i)
         {
         spot = cons(0,0);
@@ -2512,7 +2517,7 @@ tthrow(int args)
     {
     int item;
 
-    assureMemory("throw",THROW_CELLS,&args,0);
+    assureMemory("throw",THROW_CELLS,&args,(int *)0);
 
     item = car(args);
 
@@ -2522,7 +2527,7 @@ tthrow(int args)
         return makeThrow(item,car(cadr(args)),0);
     else
         {
-        assureMemory("throw:throw",1000+THROW_CELLS,&args,0);
+        assureMemory("throw:throw",1000+THROW_CELLS,&args,(int *)0);
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "wrong number of arguments to throw",
@@ -2566,7 +2571,7 @@ string_plus(int args)
     sizeB = length(b);
     size = sizeA + sizeB;
 
-    assureMemory("string_plus",size,0);
+    assureMemory("string_plus",size,(int *)0);
 
     i = 0;
     amount = size;
@@ -2809,7 +2814,7 @@ trim(int args)
             type(a),STRING);
         }
 
-    assureMemory("trim",count(a) + 1,&a,0);
+    assureMemory("trim",count(a) + 1,&a,(int *)0);
 
     start = MemorySpot;
 

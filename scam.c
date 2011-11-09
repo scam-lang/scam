@@ -27,7 +27,7 @@ extern FILE *Input;
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
 char *PROGRAM_NAME = "scam";
-char *PROGRAM_VERSION = "1.0";
+char *PROGRAM_VERSION = "1.0a";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
@@ -83,7 +83,7 @@ main(int argc,char **argv,char **envv)
 
     // indicate that main.lib has already been processed
 
-    assureMemory("scam:main.lib",DEFINE_CELLS + 1,&env,&ptree,0);
+    assureMemory("scam:main.lib",DEFINE_CELLS + 1,&env,&ptree,(int *)0);
     s = newSymbol("__included_main.lib");
     defineVariable(env,s,trueSymbol);
 
@@ -114,7 +114,7 @@ main(int argc,char **argv,char **envv)
 
     // indicate that the user file has already been processed
 
-    assureMemory("scam:user",DEFINE_CELLS + 1,&env,&ptree,0);
+    assureMemory("scam:user",DEFINE_CELLS + 1,&env,&ptree,(int *)0);
     snprintf(buffer,sizeof(buffer),"__included_%s",argv[argIndex]);
     s = newSymbol(buffer);
     defineVariable(env,s,trueSymbol);

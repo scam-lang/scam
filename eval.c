@@ -157,7 +157,7 @@ evalCall(int call,int env, int mode)
         {
         int params,body,xenv;
         
-        assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS + 1,&closure,&eargs,0);
+        assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS + 1,&closure,&eargs,(int *)0);
 
         params = closure_parameters(closure);
         body = closure_body(closure);
@@ -219,7 +219,7 @@ evalList(int items,int env,int mode)
 
     if (mode == ALLBUTLAST)
         {
-        assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,0);
+        assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,(int *)0);
         return makeThunk(car(items),env);
         }
     else
@@ -253,12 +253,12 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
             }
         else
             rest = unevaluatedArgList(args);
-        assureMemory("processArgs:eArgs",1,&rest,0);
+        assureMemory("processArgs:eArgs",1,&rest,(int *)0);
         result = uconsfl(rest,0,fi,li);
         }
     else if (sameSymbol(car(params),dollarSymbol))
         {
-        assureMemory("processArgs:amp",1 + length(args),&args,0);
+        assureMemory("processArgs:amp",1 + length(args),&args,(int *)0);
         rest = unevaluatedArgList(args);
         result = uconsfl(rest,0,fi,li);
         }
@@ -270,7 +270,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
 
         rethrow(rest,0);
 
-        assureMemory("processArgs:sharp",1,&env,&rest,0);
+        assureMemory("processArgs:sharp",1,&env,&rest,(int *)0);
         result = uconsfl(env,rest,fi,li);
         }
     else if (args == 0)
@@ -285,7 +285,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
         {
         push(args);
         rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
-        assureMemory("processArgs:tArg",1,&rest,0);
+        assureMemory("processArgs:tArg",1,&rest,(int *)0);
         args = pop();
 
         rethrow(rest,0);
@@ -313,7 +313,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
 
         push(first);
         rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
-        assureMemory("processArgs:eArg",1,&rest,0);
+        assureMemory("processArgs:eArg",1,&rest,(int *)0);
         first = pop();
 
         rethrow(rest,0);
@@ -361,7 +361,7 @@ evaluatedArgList(args,env)
 
         push(first);
         rest = evaluatedArgList(cdr(args),env);
-        assureMemory("evaluatedArgList",1,&rest,0);
+        assureMemory("evaluatedArgList",1,&rest,(int *)0);
         //printf("back from eval\n");
         first = pop();
 

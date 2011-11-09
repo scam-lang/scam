@@ -126,7 +126,7 @@ a       b       c-in    sum     c-out
 0       0       1       1       0
 0       1       0       1       0
 0       1       1       0       1
-gc:1, 13142 cells
+gc:1, 2084960 cells available
 1       0       0       1       0
 1       0       1       0       1
 1       1       0       0       1

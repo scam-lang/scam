@@ -104,7 +104,7 @@ parse(PARSER *p)
     result = pop();
     rethrow(end,0);
 
-    assureMemory("parse",1,&result,0);
+    assureMemory("parse",1,&result,(int *)0);
     result = uconsfl(beginSymbol,result,file(result),line(result));
     //printf("done parsing.\n");
     return result;
@@ -130,7 +130,7 @@ exprSeq(PARSER *p)
         {
         b = expr(p);
         rethrow(b,2);
-        assureMemory("exprSeq",1,&b,0);
+        assureMemory("exprSeq",1,&b,(int *)0);
         hook = pop();
         cdr(hook) = ucons(b,0);
         hook = cdr(hook);
@@ -198,7 +198,7 @@ expr(PARSER *p)
         li = line(q);
         r = expr(p);
         rethrow(r,0);
-        assureMemory("expr:quote",2,&r,0);
+        assureMemory("expr:quote",2,&r,(int *)0);
         result = uconsfl(quoteSymbol,ucons(r,0),fi,li);
         }
     else if (check(p,BACKQUOTE))
@@ -208,7 +208,7 @@ expr(PARSER *p)
         li = line(q);
         r = expr(p);
         rethrow(r,0);
-        assureMemory("expr:backquote",2,&r,0);
+        assureMemory("expr:backquote",2,&r,(int *)0);
         result = uconsfl(backquoteSymbol,ucons(r,0),fi,li);
         }
     else if (check(p,COMMA))
@@ -218,7 +218,7 @@ expr(PARSER *p)
         li = line(q);
         r = expr(p);
         rethrow(r,0);
-        assureMemory("expr:comma",2,&r,0);
+        assureMemory("expr:comma",2,&r,(int *)0);
         result = uconsfl(commaSymbol,ucons(r,0),fi,li);
         }
     else if (check(p,OPEN_PARENTHESIS))
@@ -242,7 +242,7 @@ expr(PARSER *p)
         return p->pending;
     else
         {
-        assureMemory("expr:throw",1000,0);
+        assureMemory("expr:throw",1000,(int *)0);
         return throw(syntaxExceptionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
@@ -282,7 +282,7 @@ match(PARSER *p,char *t)
             return p->pending;
         else
             {
-            assureMemory("match:throw",1000,0);
+            assureMemory("match:throw",1000,(int *)0);
             return throw(syntaxExceptionSymbol,
                 "file %s,line %d: expecting %s, found %s instead",
                 SymbolTable[p->file],p->line,t,type(p->pending));
