@@ -708,6 +708,7 @@ gc()
         new_cars[spot].type = CONS;
         new_cars[spot].ival = Stack[i];
         new_cdrs[spot] = 0;
+        new_cars[i].transferred = 0;
         ++spot;
         }
 
