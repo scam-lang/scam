@@ -680,11 +680,12 @@ gc()
     int *temp_cdrs;
     CELL *temp_cars;
 
-    //for (i = 0; i < StackPtr; ++i)
-    //    {
-    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
-    //    debug("",Stack[i]);
-    //    }
+    if (gccount == 199)
+    for (i = 0; i < StackPtr; ++i)
+        {
+        printf("Stack[%d]:Location %d:",i,Stack[i]);
+        debug("",Stack[i]);
+        }
 
     /* transfer over symbols */
 
@@ -735,6 +736,8 @@ gc()
     spot = stackStart;
     for (i = 0; i < StackPtr; ++i)
         {
+        if (gccount == 199)
+            printf("%d\n", i);
         if (type(Stack[i]) == STRING || type(Stack[i]) == ARRAY)
             {
             if (new_cars[spot].type != CONS)
@@ -755,11 +758,12 @@ gc()
     the_cdrs = new_cdrs;
     new_cdrs = temp_cdrs;
 
-    //for (i = 0; i < StackPtr; ++i)
-    //    {
-    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
-    //    debug("",Stack[i]);
-    //    }
+    if (gccount == 199)
+    for (i = 0; i < StackPtr; ++i)
+        {
+        printf("Stack[%d]:Location %d:",i,Stack[i]);
+        debug("",Stack[i]);
+        }
 
     printf("gc:%d, %d cells\n",++gccount,MemorySpot);
 
