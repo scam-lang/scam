@@ -79,16 +79,7 @@ defineFunction(int name,int parameters,int body,int env)
     {
     int spot;
     int closure;
-    extern int gcCount;
     
-    if (gcCount == 37)
-        {
-        printf("defining a function...\n");
-        debug("    name",name);
-        debug("    params",parameters);
-        debug("    body",body);
-        debug("    env",env);
-        }
     assureMemory("defineFunction",CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,(int *) 0);
 
     spot = parameters;
