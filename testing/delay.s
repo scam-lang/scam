@@ -53,7 +53,7 @@
         (add-streams (stream-cdr s) (psum s))
         )
     )
-(sdisplay (psum integers) 1000)
+(sdisplay (psum integers) 100)
 
 (define (psum s)
     (define ssum (cons-stream (stream-car s) (add-streams (stream-cdr s) ssum)))

@@ -1,0 +1,104 @@
+(define (delay # $x) (lambda () (eval $x #)))
+(define (force t) (t))
+
+(define (sdisplay s n)
+    (cond
+        ((= n 0) (println "..."))
+        (else (print (stream-car s) " ")  (sdisplay (force (cdr s)) (- n 1)))
+        )
+    )
+
+(define (f x)
+    (cons x (delay (f (+ x x))))
+    )
+
+(sdisplay (f 1) 10)
+
+(define (sdisplay s n)
+    (cond
+        ((= n 0) (println "..."))
+        (else (print (stream-car s) " ")  (sdisplay (stream-cdr s) (- n 1)))
+        )
+    )
+
+(define (f x)
+    (cons-stream x (f (+ x x)))
+    )
+
+(sdisplay (f 1) 10)
+
+(define (psum s)
+    (cons-stream
+       (stream-car s)
+       (psum (cons-stream (+ (stream-car s) (stream-car (stream-cdr s))) (stream-cdr (stream-cdr s))))
+       )
+    )
+
+(define (add-streams s t)
+    (cons-stream
+        (+ (stream-car s) (stream-car t))
+        (add-streams (stream-cdr s) (stream-cdr t))
+        )
+    )
+
+(define ones (cons-stream 1 ones))
+(define integers (cons-stream 1 (add-streams ones integers)))
+(sdisplay ones 10)
+(sdisplay integers 10)
+(sdisplay (psum integers) 10)
+
+(define (psum s)
+    (cons-stream
+        (stream-car s)
+        (add-streams (stream-cdr s) (psum s))
+        )
+    )
+(sdisplay (psum integers) 100)
+
+(define (psum s)
+    (define ssum (cons-stream (stream-car s) (add-streams (stream-cdr s) ssum)))
+    ssum
+    )
+
+(sdisplay (psum integers) 10)
+
+------------------------------------------
+1 2 4 8 16 32 64 128 256 512 ...
+1 2 4 8 16 32 64 128 256 512 ...
+1 1 1 1 1 1 1 1 1 1 ...
+1 2 3 4 5 6 7 8 9 10 ...
+1 3 6 10 15 21 28 36 45 55 ...
+1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 153 171 190 210 231 253 276 300 325 351 378 406 435 465 496 gc:1, 2040417 cells available
+528 561 595 630 666 703 741 780 820 gc:2, 2018659 cells available
+861 903 946 990 1035 1081 gc:3, 1993714 cells available
+1128 1176 1225 1275 1326 gc:4, 1989419 cells available
+1378 1431 1485 1540 gc:5, 1972996 cells available
+1596 1653 1711 gc:6, 1917904 cells available
+1770 1830 1891 gc:7, 1896821 cells available
+1953 2016 2080 gc:8, 1907223 cells available
+2145 2211 2278 gc:9, 1944603 cells available
+2346 2415 gc:10, 1886305 cells available
+2485 2556 gc:11, 1850355 cells available
+2628 2701 gc:12, 1834180 cells available
+2775 2850 gc:13, 1834995 cells available
+2926 3003 gc:14, 1850329 cells available
+3081 3160 gc:15, 1879094 cells available
+3240 3321 gc:16, 1919947 cells available
+3403 gc:17, 1800553 cells available
+3486 3570 gc:18, 1876392 cells available
+3655 gc:19, 1777424 cells available
+3741 3828 gc:20, 1882368 cells available
+3916 gc:21, 1794213 cells available
+4005 gc:22, 1723482 cells available
+4095 4186 gc:23, 1872603 cells available
+4278 gc:24, 1803487 cells available
+4371 gc:25, 1750168 cells available
+4465 gc:26, 1708861 cells available
+4560 gc:27, 1677951 cells available
+4656 gc:28, 1656950 cells available
+4753 gc:29, 1643954 cells available
+4851 gc:30, 1637391 cells available
+4950 gc:31, 1636786 cells available
+5050 gc:32, 1641491 cells available
+...
+1 3 6 10 15 21 28 36 45 55 ...

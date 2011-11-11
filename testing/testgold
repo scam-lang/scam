@@ -6,9 +6,9 @@ for s in $*
 	cat $s | expand > test/$s.test
 	echo "------------------------------------------" >> test/$s.test
 	if test -e $s.run; then
-	    scam `cat $s.run` $s 2>&1 | expand >> test/$s.test;
+	    scam -g `cat $s.run` $s 2>&1 | expand >> test/$s.test;
 	else
-	    scam $s 2>&1 | expand >> test/$s.test
+	    scam -g $s 2>&1 | expand >> test/$s.test
 	echo $s >> differences
 	echo "------------------------------------------" >> differences
 	expand gold/$s.gold > junk

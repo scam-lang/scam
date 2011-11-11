@@ -1,8 +1,6 @@
 OLD vs. NEW
 adders.s
 ------------------------------------------
-128a129
-> gc:1, 2084960 cells available
 ------------------------------------------
 agenda.s
 ------------------------------------------
@@ -30,27 +28,6 @@ catch.s
 ------------------------------------------
 chain.s
 ------------------------------------------
-0a1,20
-> (define (a x y)
->     this
->     )
-> 
-> (define (b m n)
->     (define o (a 'one 'two))
->     this
->     )
-> 
-> (define obj (b 'red 'green))
-> 
-> (println "output should be 'one'")
-> (inspect (. obj o x))
-> (println "output should be 'two'")
-> (inspect (. obj o y))
-> ------------------------------------------
-> output should be 'one'
-> (. obj o x) is one
-> output should be 'two'
-> (. obj o y) is two
 ------------------------------------------
 common2.s
 ------------------------------------------
@@ -58,8 +35,8 @@ common2.s
 < ((__label environment) (__context <object 4707>) (__level 0) (__constructor nil) (this <object 11590>) (common <object 11668>) (__included_common2.s #t))
 < ((__label environment) (__context <object 11590>) (__level 0) (__constructor nil) (this <object 11668>) (count 0))
 ---
-> ((__label environment) (__context <object 3774>) (__level 0) (__constructor nil) (this <object 10793>) (common <object 10871>) (__included_common2.s #t))
-> ((__label environment) (__context <object 10793>) (__level 0) (__constructor nil) (this <object 10871>) (count 0))
+> ((__label environment) (__context <object 4713>) (__level 0) (__constructor nil) (this <object 11781>) (common <object 11859>) (__included_common2.s #t))
+> ((__label environment) (__context <object 11781>) (__level 0) (__constructor nil) (this <object 11859>) (count 0))
 ------------------------------------------
 common3.s
 ------------------------------------------
@@ -76,108 +53,139 @@ common.s
 defined.s
 ------------------------------------------
 ------------------------------------------
+delay.s
+------------------------------------------
+0a1,72
+> (define (delay # $x) (lambda () (eval $x #)))
+> (define (force t) (t))
+> 
+> (define (sdisplay s n)
+>     (cond
+>         ((= n 0) (println "..."))
+>         (else (print (stream-car s) " ")  (sdisplay (force (cdr s)) (- n 1)))
+>         )
+>     )
+> 
+> (define (f x)
+>     (cons x (delay (f (+ x x))))
+>     )
+> 
+> (sdisplay (f 1) 10)
+> 
+> (define (sdisplay s n)
+>     (cond
+>         ((= n 0) (println "..."))
+>         (else (print (stream-car s) " ")  (sdisplay (stream-cdr s) (- n 1)))
+>         )
+>     )
+> 
+> (define (f x)
+>     (cons-stream x (f (+ x x)))
+>     )
+> 
+> (sdisplay (f 1) 10)
+> 
+> (define (psum s)
+>     (cons-stream
+>        (stream-car s)
+>        (psum (cons-stream (+ (stream-car s) (stream-car (stream-cdr s))) (stream-cdr (stream-cdr s))))
+>        )
+>     )
+> 
+> (define (add-streams s t)
+>     (cons-stream
+>         (+ (stream-car s) (stream-car t))
+>         (add-streams (stream-cdr s) (stream-cdr t))
+>         )
+>     )
+> 
+> (define ones (cons-stream 1 ones))
+> (define integers (cons-stream 1 (add-streams ones integers)))
+> (sdisplay ones 10)
+> (sdisplay integers 10)
+> (sdisplay (psum integers) 10)
+> 
+> (define (psum s)
+>     (cons-stream
+>         (stream-car s)
+>         (add-streams (stream-cdr s) (psum s))
+>         )
+>     )
+> (sdisplay (psum integers) 100)
+> 
+> (define (psum s)
+>     (define ssum (cons-stream (stream-car s) (add-streams (stream-cdr s) ssum)))
+>     ssum
+>     )
+> 
+> (sdisplay (psum integers) 10)
+> 
+> ------------------------------------------
+> 1 2 4 8 16 32 64 128 256 512 ...
+> 1 2 4 8 16 32 64 128 256 512 ...
+> 1 1 1 1 1 1 1 1 1 1 ...
+> 1 2 3 4 5 6 7 8 9 10 ...
+> 1 3 6 10 15 21 28 36 45 55 ...
+> 1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 153 171 190 210 231 253 276 300 325 351 378 406 435 465 496 528 561 595 630 666 703 741 780 820 861 903 946 990 1035 1081 1128 1176 1225 1275 1326 1378 1431 1485 1540 1596 1653 1711 1770 1830 1891 1953 2016 2080 2145 2211 2278 2346 2415 2485 2556 2628 2701 2775 2850 2926 3003 3081 3160 3240 3321 3403 3486 3570 3655 3741 3828 3916 4005 4095 4186 4278 4371 4465 4560 4656 4753 4851 4950 5050 ...
+> 1 3 6 10 15 21 28 36 45 55 ...
+------------------------------------------
 env.s
 ------------------------------------------
-9,11d8
-< ORBIT_SOCKETDIR
-< SSH_AGENT_PID
+11d10
 < TERM
-12a10
+12a12
 > TERM
-14,16c12,13
-< WINDOWID
-< GNOME_KEYRING_CONTROL
-< GTK_MODULES
----
-> SSH_CLIENT
-> SSH_TTY
-19,23d15
-< SSH_AUTH_SOCK
+20,21d19
 < SESSION_MANAGER
 < USERNAME
-< DEFAULTS_PATH
-< XDG_CONFIG_DIRS
-25c17
-< DESKTOP_SESSION
----
-> MAIL
-28,29d19
-< GDM_KEYBOARD_LAYOUT
+22a21,22
+> USERNAME
+> SESSION_MANAGER
+24d23
+< PATH
+25a25
+> PATH
+27d26
+< EDITOR
+29c28
 < GNOME_KEYRING_PID
-31,35c21,22
+---
+> EDITOR
+31c30
 < GDM_LANG
-< MANDATORY_PATH
-< UBUNTU_MENUPROXY
-< GDMSESSION
+---
+> GNOME_KEYRING_PID
+32a32
+> GDM_LANG
+35d34
 < SHLVL
----
-> HISTCONTROL
-> SPEECHD_PORT
-37,38c24
-< LANGUAGE
-< GNOME_DESKTOP_SESSION_ID
----
+36a36
 > SHLVL
-40,41c26
+40d39
 < XDG_DATA_DIRS
-< DBUS_SESSION_BUS_ADDRESS
----
-> SSH_CONNECTION
-43,44c28
+41a41
+> XDG_DATA_DIRS
+43c43
 < VIMRUNTIME
-< WINDOWPATH
 ---
 > EMAIL
-46d29
+46d45
 < VIM
-48,49d30
+48d46
 < COLORTERM
-< XAUTHORITY
+49a48
+> COLORTERM
 ------------------------------------------
 error0.s
 ------------------------------------------
-0a1,41
-> (println "starting error0.s")
-> (println "including fact.s")
-> (include "fact.s")
-> 
-> (define (fib n)
->     (if (< n 2)
->         n
->         (+ (fib (- n 1)) (fib (- n 2)))
->         )
->         )
-> (define x 0)
-> (define result)
-> (define t (time))
-> 
-> (define x 20)
-> 
-> (define result (fib x))
-> (println "fib(" x ") is " result)
-> (println (- (time) t) " seconds")
-> ------------------------------------------
-> starting error0.s
-> including fact.s
-> starting fact.s
-> including fib.s
-> starting fib.s
-> including fact.s
-> gc:1, 2087955 cells available
-> gc:2, 2087976 cells available
-> gc:3, 2087898 cells available
-> gc:4, 2087940 cells available
-> gc:5, 2087916 cells available
-> gc:6, 2087919 cells available
-> fib: fib(25) is 75025
-> 4 seconds
-> fib.s included - SHOULD ONLY SEE THIS ONCE
-> fact: fib(5) is 5
-> fact: fact(5) is 120
-> fact.s included - SHOULD ONLY SEE THIS ONCE
-> gc:7, 2088297 cells available
-> fib(20) is 6765
-> 0 seconds
+28c28
+< 3 seconds
+---
+> 2 seconds
+34c34
+< 0 seconds
+---
+> 1 seconds
 ------------------------------------------
 except2.s
 ------------------------------------------
@@ -199,17 +207,10 @@ extension.s
 ------------------------------------------
 fact.s
 ------------------------------------------
-21a22,27
-> gc:1, 2088064 cells available
-> gc:2, 2088099 cells available
-> gc:3, 2088128 cells available
-> gc:4, 2088101 cells available
-> gc:5, 2088091 cells available
-> gc:6, 2088126 cells available
-23c29
+23c23
 < 2 seconds
 ---
-> 4 seconds
+> 3 seconds
 ------------------------------------------
 fib-opt.s
 ------------------------------------------
@@ -217,41 +218,12 @@ fib-opt.s
 > (println "compiling fib...")
 19a21
 > (println "fib compiled.")
-26,27c28,44
-< (fib 25) is 75025, 3 seconds.
-< (fib 25) is 75025, 1 seconds.
----
-> gc:1, 2086853 cells available
-> gc:2, 2086815 cells available
-> gc:3, 2086830 cells available
-> gc:4, 2086826 cells available
-> gc:5, 2086852 cells available
-> gc:6, 2086793 cells available
-> (fib 25) is 75025, 4 seconds.
+26a29,30
 > compiling fib...
 > fib compiled.
-> gc:7, 2086735 cells available
-> gc:8, 2086776 cells available
-> gc:9, 2086820 cells available
-> gc:10, 2086770 cells available
-> gc:11, 2086773 cells available
-> gc:12, 2086790 cells available
-> gc:13, 2086772 cells available
-> (fib 25) is 75025, 2 seconds.
 ------------------------------------------
 fib.s
 ------------------------------------------
-30a31,36
-> gc:1, 2088210 cells available
-> gc:2, 2088271 cells available
-> gc:3, 2088206 cells available
-> gc:4, 2088269 cells available
-> gc:5, 2088274 cells available
-> gc:6, 2088209 cells available
-32c38
-< 3 seconds
----
-> 4 seconds
 ------------------------------------------
 foreach.s
 ------------------------------------------
@@ -411,8 +383,6 @@ gc.s
 < f(3);
 ---
 > (f 3)
-13a13
-> gc:1, 2088833 cells available
 ------------------------------------------
 g.s
 ------------------------------------------
@@ -944,6 +914,21 @@ matrixproblem.s
 > EXCEPTION: nonFunction
 > file matrixproblem.s,line 1: attempted to call STRING as a function
 ------------------------------------------
+nil.s
+------------------------------------------
+0a1,11
+> (define g (lambda () 3))
+> (inspect (address (dot g parameters)))
+> (inspect (g))
+> (define f (lambda nil 3))
+> (inspect (address (dot f parameters)))
+> (inspect (f))
+> ------------------------------------------
+> (address (dot g parameters)) is 0
+> (g) is 3
+> (address (dot f parameters)) is 0
+> (f) is 3
+------------------------------------------
 object3.s
 ------------------------------------------
 49,68c49,56
@@ -968,7 +953,7 @@ object3.s
 < (is? c (quote alpha)) is #t
 < (is? c (quote gamma)) is #f
 ---
-> (locals b) is <object 28103>
+> (locals b) is <object 29091>
 >              __label  : throw
 >                 code  : undefinedVariable
 >                value  : "file object3.s,line 25: variable locals is undefined"
@@ -982,15 +967,15 @@ object.s
 36c36
 < z is <object 9629>
 ---
-> z is <object 12919>
+> z is <object 13907>
 38c38
 <            __context  : <object 9516>
 ---
->            __context  : <object 11280>
+>            __context  : <object 12268>
 41c41
 <                 this  : <object 9629>
 ---
->                 this  : <object 12919>
+>                 this  : <object 13907>
 ------------------------------------------
 obj.s
 ------------------------------------------
@@ -7914,6 +7899,60 @@ trace.s
 ---
 > EXCEPTION: nonFunction
 > file trace.s,line 1: attempted to call STRING as a function
+------------------------------------------
+traits.s
+------------------------------------------
+0a1,50
+> (include "inherit.lib")
+> 
+> (define (point x y)
+>     (define parent nil)
+>     (include "similar.s")
+>     (define (similar z) (and (= x (dot z x)) (= y (dot z y))))
+>     this
+>     )
+> 
+> (inspect ((dot (point 2 3) similar) (point 2 4)))
+> (inspect ((dot (point 2 3) similar) (point 2 3)))
+> (inspect ((dot (point 2 3) dissimilar) (point 2 4)))
+> (inspect ((dot (point 2 3) dissimilar) (point 2 3)))
+> 
+> (define (circle r)
+>     (define parent (point 0 0))
+>     (define (similar z)
+>         (and ((dot parent similar) (dot z parent)) (= r (dot z r)))
+>         )
+>     this
+>     )
+> 
+> (inspect ((dot (new (circle 5)) similar) (new (circle 5))))
+> (inspect ((dot (new (circle 5)) similar) (new (circle 6))))
+> (inspect ((dot (new (circle 5)) dissimilar) (new (circle 5))))
+> (inspect ((dot (new (circle 5)) dissimilar) (new (circle 6))))
+> 
+> (define x (new (circle 5)))
+> (define y (new (circle 5)))
+> (inspect ((dot x similar) y))
+> (inspect (dot x y))
+> (set! (dot x y) 1)
+> (inspect (dot x y))
+> (inspect ((dot x similar) y))
+> (inspect ((dot x dissimilar) y))
+> 
+> ------------------------------------------
+> ((dot (point 2 3) similar) (point 2 4)) is #f
+> ((dot (point 2 3) similar) (point 2 3)) is #t
+> ((dot (point 2 3) dissimilar) (point 2 4)) is #t
+> ((dot (point 2 3) dissimilar) (point 2 3)) is #f
+> ((dot (new (circle 5)) similar) (new (circle 5))) is #t
+> ((dot (new (circle 5)) similar) (new (circle 6))) is #f
+> ((dot (new (circle 5)) dissimilar) (new (circle 5))) is #f
+> ((dot (new (circle 5)) dissimilar) (new (circle 6))) is #t
+> ((dot x similar) y) is #t
+> (dot x y) is 0
+> (dot x y) is 1
+> ((dot x similar) y) is #f
+> ((dot x dissimilar) y) is #t
 ------------------------------------------
 tree2.s
 ------------------------------------------

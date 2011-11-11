@@ -1,3 +1,8 @@
+scam (1.1)
+
+  * fixed gc bug in while function
+  * changed ScamArgs not to include 'scam' and scam options
+
 scam (1.0)
 
   * fixed string conversion bug for items like (cons 2 3)

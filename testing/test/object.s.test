@@ -33,12 +33,12 @@ an object was made!
 
 an object was made!
 
-z is <object 12919>
+z is <object 13907>
              __label  : environment
-           __context  : <object 11280>
+           __context  : <object 12268>
              __level  : 1
        __constructor  : <function anonymous()>
-                this  : <object 12919>
+                this  : <object 13907>
                    c  : 5
 
 y:(a,b,c) is 2,hello,5
