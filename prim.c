@@ -936,6 +936,31 @@ llog(int args)
     return result;
     }
 
+static int
+randomInt(int args)
+    {
+    int low = ival(car(args));
+    int high = ival(cadr(args));
+    return newInteger(low + (int)((rand() * 1.0 / RAND_MAX) * high));
+    }
+
+static int
+randomSeed(int args)
+    {
+    int a = car(args);
+
+    if (type(a) == INTEGER && ival(a) > 0)
+        {
+        srand(ival(a));
+        return 0;
+        }
+    
+    return throw(exceptionSymbol,
+        "file %s,line %d: "
+        "randomSeed: argument must be a positive integer",
+        SymbolTable[file(car(args))],line(car(args)));
+    }
+
 /* (sin a) */
 
 static int
@@ -1229,7 +1254,9 @@ wwhile(int args)
         rethrow(last,0);
 
         push(args);
+        push(last);
         testResult = eval(cadr(args),car(args));
+        last = pop();
         args = pop();
 
         rethrow(testResult,0);
@@ -3588,6 +3615,22 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = randomInt;
+    b = makeBuiltIn(env,
+        newSymbol("randomInt"),
+        ucons(newSymbol("low"),
+            ucons(newSymbol("high"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = randomSeed;
+    b = makeBuiltIn(env,
+        newSymbol("randomSeed"),
+        ucons(newSymbol("seed"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
@@ -3798,29 +3841,30 @@ loadBuiltIns(int env)
     }
 
 void
-installArgsEnv(int argc, char **argv, char **envv, int env)
+installArgsEnv(int argIndex,int argc, char **argv, char **envv, int env)
     {
     int index;
     int start;
 
     //printf("installing command line arguments and execution environment\n");
 
-    if (argc > 0)
+    index = 0;
+    if (argc - argIndex > 0)
         {
         start = MemorySpot;
-        MemorySpot += argc;
-        index = 0;
+        MemorySpot += argc - argIndex;
 
-        while (index < argc)
+        while (argc - argIndex > 0)
             {
             type(start+index) = ARRAY;
-            count(start+index) = argc - index;
-            car(start+index) = newString(argv[index]);
-            if (index == argc - 1)
+            count(start+index) = argc - argIndex;
+            car(start+index) = newString(argv[argIndex]);
+            if (argc - argIndex == 1)
                 cdr(start+index) = 0;
             else
                 cdr(start+index) = start+index + 1;
             ++index;
+            ++argIndex;
             }
 
         defineVariable(env,newSymbol(ArgumentsName),start);

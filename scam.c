@@ -69,7 +69,7 @@ main(int argc,char **argv,char **envv)
 
     loadBuiltIns(env);
 
-    installArgsEnv(argc,argv,envv,env);
+    installArgsEnv(argIndex,argc,argv,envv,env);
 
     //debug("global env: ",env);
 

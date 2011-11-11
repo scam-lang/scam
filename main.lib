@@ -339,9 +339,12 @@
         )
     )
 
+(define (nequal? a b) (not (equal? a b)))
+
 (define (getElement items @)
     (define __getElement (get 'getElement (get '__context __context)))
     (while (valid? @)
+        ;(inspect items)
         (set 'items (__getElement items (car @)))
         (set '@ (cdr @))
         )

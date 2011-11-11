@@ -11,7 +11,8 @@
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
-int MemorySize =  2 * 2 * 2 * 2 * 4 * 16 * 32 * 64; 
+//int MemorySize =  2 * 2 * 2 * 2 * 4 * 16 * 32 * 64; 
+int MemorySize =  18500;
 int StackPtr = 0;
 int StackSize = STACKSIZE;
 int *Stack;
@@ -675,6 +676,7 @@ gc()
     the_cdrs = new_cdrs;
     new_cdrs = temp_cdrs;
 
+    //printf("after gc...");
     //for (i = 0; i < StackPtr; ++i)
     //    {
     //    printf("Stack[%d]:Location %d:",i,Stack[i]);
@@ -705,6 +707,7 @@ assureMemory(char *tag,int needed, int *item, ...)
 
     va_start(ap, item);
 
+    //printf("assureMemory: %s\n",tag);
     if (MemorySpot + needed >= MemorySize)
         {
         /* save items */
