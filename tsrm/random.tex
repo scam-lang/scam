@@ -1,0 +1,76 @@
+\chapter{Randomness}
+\label{Randomness}
+
+Scam has a few functions for generating pseudo-random numbers.
+Although the word {\it randomly} is used in the chapter,
+{\it pseudo-randomly}
+would be a more accurate term.
+
+\section{Built-in Random Functions}
+
+The built-in functions are
+{\it randomInt}, {\it randomMax}, and {\it randomSeed}.
+
+\subsection*{{\tt randomMax()}}
+
+This function, which takes no arguments, returns the largest
+integer
+that can be returned from the {\it randomInt} function.
+
+\subsection*{{\tt randomInt()}}
+
+This function, which takes no arguments,
+returns a randomly generated number between 0
+and \verb!(randomMax)!, inclusive.
+
+\subsection*{{\tt randomSeed(seed)}}
+
+This function, which takes a positive integer as an
+argument, resets the state of Scam's pseudo-random number
+generator. If a program uses {\it randomInt} without resetting the
+random state, the same sequence of pseudo-random numbers will
+be generated each time the program is run. To generate a
+different sequence each time, a common trick is to set the
+state with the current time at the start of the program:
+
+\begin{verbatim}
+    (randomSeed (time))
+\end{verbatim}
+
+\section{The {\it random} library}
+
+The random library, included with the expression:
+
+\begin{verbatim}
+    (include "random.lib")
+\end{verbatim}
+
+adds the following functions:
+{\it randomReal}, {\it randomRange}, {\it shuffle}, and {\it flip}.
+
+\subsection*{{\tt randomReal()}}
+
+This function,  which takes no arguments, returns a real number
+between 0 (inclusive) and 1 (exclusive).
+
+\subsection*{{\tt randomRange(low,high)}}
+
+This function,  which takes no arguments, returns an integer
+between {\it low} (inclusive) and {\it high} (exclusive).
+To randomly retrieve a value from a collection named {\it items},
+one might use the expression:
+
+\begin{verbatim}
+    (getElement items (randomRange 0 (length items)))
+\end{verbatim}
+
+\subsection*{{\tt shuffle(items)}}
+
+This function, which takes a list or an array as an argument,
+randomly rearranges the values in the given collection.
+
+\subsection*{{\tt flip()}}
+
+This function, which takes no arguments,
+randomly returns integer 0 or integer 1.
+It is used to simulate coin flips.
