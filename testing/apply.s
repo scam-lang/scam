@@ -22,3 +22,13 @@
     )
 (print "sum (via f): " (f 1 2 3 4) "\n")
 (print "sum (via g): " (g 1 2 3 4) "\n")
+
+(define (a)
+    (define (f) (print "hello\n"))
+    (define (g x) (println x))
+    (lambda (@) (apply (get (car @) __context) (cdr @)))
+    )
+
+(define aa (a))
+(aa'f)
+(aa'g 'world)
