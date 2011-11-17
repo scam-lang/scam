@@ -1,6 +1,6 @@
 #ARCH = OSX
-#ARCH = i386
-ARCH = amd64
+ARCH = i386
+#ARCH = amd64
 
 install		:	
 			(cd ..; touch *.c; make)

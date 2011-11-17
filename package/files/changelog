@@ -8,7 +8,7 @@ scam (1.0)
   * fixed string conversion bug for items like (cons 2 3)
   * fixed pretty print conversion bug for items like (cons 2 3)
   * fixed another gc string bug
-  * fixed bug caused by assumption that 0 is the same as (int *)0 on amd64
+  * fixed bug caused by assumption that 0 is the same as (int *)0 on amd64 (it is not)
   * add -g option for changing the gc display status
   * added a compile-library function to the pretty (print) library
 

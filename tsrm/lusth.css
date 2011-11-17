@@ -40,8 +40,24 @@ h1 a:hover {color:#2F4F1F;font-weight:bold;text-decoration:none;}
 
 code,tt,pre    { font-size: 110%; color: #003333; }
 
-li {
+/*
+dt {
     padding-top: 10px;
+    }
+*/
+
+li > ul, li > ol {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    }
+
+li > ul + p, li > ol + p {
+    margin-top: 0em;
+    }
+    
+ul > li + li
+    {
+    padding-top: 0.25em;
     }
 
 table {
