@@ -2,6 +2,7 @@ scam (1.1)
 
   * fixed gc bug in while function
   * changed ScamArgs not to include 'scam' and scam options
+  * added randomInt, randomMax, randomSeed, and random.lib
 
 scam (1.0)
 

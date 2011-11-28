@@ -939,9 +939,13 @@ llog(int args)
 static int
 randomInt(int args)
     {
-    int low = ival(car(args));
-    int high = ival(cadr(args));
-    return newInteger(low + (int)((rand() * 1.0 / RAND_MAX) * high));
+    return newInteger(random());
+    }
+
+static int
+randomMax(int args)
+    {
+    return newInteger(RAND_MAX);
     }
 
 static int
@@ -951,7 +955,7 @@ randomSeed(int args)
 
     if (type(a) == INTEGER && ival(a) > 0)
         {
-        srand(ival(a));
+        srandom(ival(a));
         return 0;
         }
     
@@ -3618,8 +3622,15 @@ loadBuiltIns(int env)
     BuiltIns[count] = randomInt;
     b = makeBuiltIn(env,
         newSymbol("randomInt"),
-        ucons(newSymbol("low"),
-            ucons(newSymbol("high"),0)),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = randomMax;
+    b = makeBuiltIn(env,
+        newSymbol("randomMax"),
+        0,
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

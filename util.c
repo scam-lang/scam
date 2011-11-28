@@ -138,6 +138,13 @@ ProcessOptions(int argc, char **argv)
                 argUsed = 1;
                 }
                 break;
+            case 'S':
+                {
+                extern int StackSize;
+                printf("StackSize = %d\n",StackSize);
+                exit(0);
+                }
+                break;
             case 's':
                 {
                 extern int StackSize;
