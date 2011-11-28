@@ -406,7 +406,7 @@ For example, consider this code:
 
 \begin{verbatim}
     (define (f x)
-        (define y x)  ;x needed! x is fixed to 8 under call-by-need
+        (define y x)  ;x needed! x is fixed to its current value
         (set! z (* z 2))
         (+ x y)       ;x needed! x was already evaluated under call-by-need
         )
@@ -466,9 +466,9 @@ arise when the thunk's expression causes a change of state.
 \begin{verbatim}
     function f(x)
         {
-        var y = x;  //x is not fixed to 8 under call-by-name-with-thunks
+        var y = x;    //x needed! Evaluate the arg in the calling env
         z = z * 2;
-        return x + y;
+        return x + y; //x needed! Evaluate the arg in the calling env
         }
 
     var z = 5;
@@ -497,7 +497,7 @@ Scam allows this via two special formal parameter names.
 They are {\it @} and {\it \$}.
 If the last formal parameter is {\it @}, then all remaining
 (evaluated) arguments not matched to any previous formal
-parameters are gathered up in a list and {\it @} is bound to this
+parameters are gathered up in a list and the variable {\it @} is bound to this
 list.  For example, consider these definitions:
 
 \begin{verbatim}
