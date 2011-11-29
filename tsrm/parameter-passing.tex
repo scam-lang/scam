@@ -263,12 +263,14 @@ body proceeds as in {\it call}-by-value. That is, no updates of the actual
 arguments are made. However, after execution of the body, but just before
 the function returns, the actual arguments are updated with the final
 values of their associated formal parameters. This method of parameter
-passing is often used for Ada in-out parameters. Would swap work under
-call-by-value-result? 
+passing is used for Ada {\it in-out} parameters.
 
-We can simulate
-{\it call-by-value-result} in Scam by simulating {\it call-by-reference},
-but assigning the values of the passed symbols to local
+We can achieve the affect of
+{\it call-by-value-result} in Scam by using a scheme 
+similar
+to the simulation of {\it call-by-reference}.
+The modification is to
+assigning the values of the passed symbols to local
 variables at the start of the function:
 
 \begin{verbatim}
@@ -289,7 +291,7 @@ variables at the start of the function:
 \end{verbatim}
 
 The section marked \verb!pre! sets up the locals while the section marked
-\verb!body! implement the swap on the locals. The section marked \verb!post!
+\verb!body! implements the swap on the locals. The section marked \verb!post!
 updates the variables that were passed to {\it swap}.
 
 Usually, one cannot tell whether a language implements
@@ -539,6 +541,6 @@ Then, the call \verb!(variadic x y (+ x y))! would produce:
 \begin{verbatim}
     the first argument is x
     the remaining arguments are:
-        x
+        y
         (+ x y)
 \end{verbatim}
