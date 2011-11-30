@@ -939,7 +939,9 @@ llog(int args)
 static int
 randomInt(int args)
     {
-    return newInteger(random());
+    int x = random();
+    if (x == RAND_MAX) --x;
+    return newInteger(x);
     }
 
 static int
