@@ -126,48 +126,84 @@ evalCall(int call,int env, int mode)
     //debug("evalCall",call);
     //debug("calling",closure);
 
-    if (!isClosure(closure))
+    /* args are the cdr of call */
+
+    if (isClosure(closure))
+        {
+        int result;
+        //printf("it's a closure!\n");
+        push(closure);
+        //debug("unevaluated args",cdr(call));
+        eargs = processArguments(closure_name(closure),
+            closure_parameters(closure),cdr(call),env,mode,
+            file(car(call)),line(car(call)));
+        closure = pop();
+
+        rethrow(eargs,0);
+
+        //debug("evaluated args",eargs);
+
+        if (sameSymbol(object_label(closure),builtInSymbol))
+            {
+            result = evalBuiltIn(eargs,closure);
+            //debug("builtin call result",result);
+            }
+        else
+            {
+            int params,body,xenv;
+            
+            assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS + 1,&closure,&eargs,(int *)0);
+
+            params = closure_parameters(closure);
+            body = closure_body(closure);
+            xenv = closure_context(closure);
+            xenv = makeEnvironment(xenv,closure,params,eargs);
+            env_level(xenv) = newInteger(ival(env_level(env)) + 1);
+
+            //debug("calling",car(call));
+            result = makeThunk(body,xenv);
+            }
+        return result;
+        }
+    else if (isObject(closure))
+        {
+        //printf("it's an object!\n");
+        //debug("unevaluated args",cdr(call));
+        push(closure);
+        eargs = evalExprList(cdr(call),env);
+        closure = pop();
+
+        rethrow(eargs,0);
+
+        //debug("evaluated args",eargs);
+        //printf("starting to walk the object\n");
+        while (eargs != 0)
+            {
+            if (!isObject(closure))
+                {
+                return throw(nonObjectSymbol,
+                    "file %s,line %d: "
+                    "attempted to access %s as an object",
+                    SymbolTable[file(closure)],line(closure),
+                    type(closure));
+                }
+            closure = getVariableValue(car(eargs),closure);
+            //debug("object now is",closure);
+            rethrow(closure,0);
+            eargs = cdr(eargs);
+            }
+
+        return closure;
+        }
+    else
+        {
         return throw(nonFunctionSymbol,
             "file %s,line %d: "
             "attempted to call %s as a function",
             SymbolTable[file(closure)],line(closure),
             type(closure));
-
-    /* args are the cdr of call */
-
-    push(closure);
-    //debug("unevaluated args",cdr(call));
-    eargs = processArguments(closure_name(closure),
-        closure_parameters(closure),cdr(call),env,mode,
-        file(car(call)),line(car(call)));
-    closure = pop();
-
-    rethrow(eargs,0);
-
-    //debug("evaluated args",eargs);
-
-    if (sameSymbol(object_label(closure),builtInSymbol))
-        {
-        int result;
-        result = evalBuiltIn(eargs,closure);
-        //debug("builtin call result",result);
-        return result;
         }
-    else
-        {
-        int params,body,xenv;
-        
-        assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS + 1,&closure,&eargs,(int *)0);
 
-        params = closure_parameters(closure);
-        body = closure_body(closure);
-        xenv = closure_context(closure);
-        xenv = makeEnvironment(xenv,closure,params,eargs);
-        env_level(xenv) = newInteger(ival(env_level(env)) + 1);
-
-        //debug("calling",car(call));
-        return makeThunk(body,xenv);
-        }
     }
 
 static int
@@ -188,6 +224,47 @@ evalBuiltIn(int args,int builtIn)
     }
 
 /* evalList expects a regular list of expressions */
+
+int
+evalExprList(int items,int env)
+    {
+    int result = 0;
+    int spot = 0;
+
+    if (items == 0) return 0;
+
+    push(env);
+    push(items);
+    result = cons(eval(car(items),env), 0);
+    items = pop();
+    env = pop();
+
+    spot = result;
+    items = cdr(items);
+
+    while (items != 0)
+        {
+        int value;
+        //debug("items before",items);
+        push(env);
+        push(items);
+        value = eval(car(items),env);
+        items = pop();
+        env = pop();
+        //debug("items after",items);
+
+        rethrow(value,0);
+
+        assureMemory("evalExprList",1,&result,&spot,&env,&items,(int *) 0);
+
+        cdr(spot) = ucons(value,0);
+        spot = cdr(spot);
+
+        items = cdr(items);
+        }
+
+    return result;
+    }
 
 int
 evalList(int items,int env,int mode)

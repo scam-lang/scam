@@ -31,8 +31,11 @@
 (inspect (. (new (x)) uncommon))
 (inspect ((. (new (x)) getCommon)))
 ------------------------------------------
-help!
-((. (new (x)) getCommon)) is 4
-(. (new (x)) uncommon) is 1
-help!
-((. (new (x)) getCommon)) is 4
+((. (new (x)) getCommon)) is <object 13839>
+             __label  : throw
+                code  : undefinedVariable
+               value  : "file common4.s,line 30: variable . is undefined"
+               trace  : (((. (new (x)) getCommon)) (. (new (x)) getCommon))
+
+EXCEPTION: undefinedVariable
+file common4.s,line 30: variable . is undefined

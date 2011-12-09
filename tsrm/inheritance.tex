@@ -70,23 +70,23 @@ Here is an example of object creation in Scam:
 
     (define obj (bundle 3 4))
 
-    (inspect ((dot obj display)))  ;call the display function
-    (inspect ((dot obj total) 0))  ;call the total function
+    (inspect ((obj 'display)))  ;call the display function
+    (inspect ((obj 'total) 0))  ;call the total function
 \end{verbatim}
 
 The variable {\it this} is always bound to the current execution
 enironment or scope. Since, in Scam, objects and environments the same,
 this can be roughly thought of as a self reference to an object. The
-{\it dot} function (equivalent to the dot operator in Java) is used to
-retrieve the values of the given instance variable from the given object.
+the object can be called as if it were a function as long as the arguments
+in the call resolve to field names.
 The {\it inspect} function prints the unevaluated argument followed by
 its evaluation.
 
 Running the above program yields the following output:
 
 \begin{verbatim}
-    ((dot obj display)) is a:3, b:4
-    ((dot obj total) 0) is 7
+    ((obj 'display)) is a:3, b:4
+    ((obj 'total) 0) is 7
 \end{verbatim}
 
 It can be seen from the code and the output that encapsulation via this
@@ -176,17 +176,17 @@ As a concrete example, consider the following Scam program:
 
     (define obj (child))
 
-    (inspect ((dot obj b)))
-    (inspect ((dot obj a)))
-    (inspect ((dot obj c)))
+    (inspect ((obj 'b)))
+    (inspect ((obj 'a)))
+    (inspect ((obj 'c)))
 \end{verbatim}
 
 Running this program yields the following output:
 
 \begin{verbatim}
-    ((dot obj a)) is jacks
-    ((dot obj b)) is slap
-    ((dot obj c)) is happy
+    ((obj 'a)) is jacks
+    ((obj 'b)) is slap
+    ((obj 'c)) is happy
 \end{verbatim}
 
 The call to {\it a} immediately finds the child's method.  The call to
@@ -271,19 +271,19 @@ Now, reification inheritance works as expected. Here is an example:
         (define temp (parent))
         (setEnclosingScope temp (getEnclosingScope this))
         (setEnclosingScope this temp)
-        (setEnclosingScope (dot temp ba) this)
+        (setEnclosingScope (temp 'ba) this)
         this
         )
 
     (define obj (child))
 
-    (inspect ((dot obj ba)))
+    (inspect ((obj 'ba)))
 \end{verbatim}
 
 The output of this program is:
 
 \begin{verbatim}
-    ((dot obj ba)) is "slapjacks"
+    ((obj 'ba)) is "slapjacks"
 \end{verbatim}
 
 As can be seen, the reference to {\it a} in the function {\it ba} is
@@ -322,7 +322,7 @@ If {\it child} is redefined as follows:
         (define temp (parent))
         (setEnclosingScope temp (getEnclosingScope this))
         (setEnclosingScope this temp)
-        (setEnclosingScope (dot temp ab) this)
+        (setEnclosingScope (temp 'ab) this)
         this
         )
 \end{verbatim}
@@ -331,7 +331,7 @@ then the new version of {\it b} overrides the parent version.  The output
 now becomes:
 
 \begin{verbatim}
-    ((dot obj ba)) is jumpingjacks 
+    ((obj 'ba)) is jumpingjacks 
 \end{verbatim}
 
 This demonstrates that both reification and variation inheritance can be
@@ -358,22 +358,22 @@ variable. Here is an example:
         (define temp (parent))
         (setEnclosingScope temp (getEnclosingScope this))
         (setEnclosingScope this temp)
-        (setEnclosingScope (dot temp toString) this)
+        (setEnclosingScope (temp 'toString) this)
         this
         )
 
     (define p-obj (parent))
     (define c-obj (child))
 
-    (inspect ((dot p-obj toString)))
-    (inspect ((dot c-obj toString)))
+    (inspect ((p-obj 'toString)))
+    (inspect ((c-obj 'toString)))
 \end{verbatim}
 
 The output:
 
 \begin{verbatim}
-    ((dot p-obj toString)) is x:0
-    ((dot c-obj toString)) is x:1
+    ((p-obj 'toString)) is x:0
+    ((c-obj 'toString)) is x:1
 \end{verbatim}
 
 demonstrates the virtuality of the instance variable \emph{x}.  Even
@@ -386,8 +386,8 @@ Since environments are objects in Scam, implementing the {\it
 getEnclosingScope} and {\it setEnclosingScope} functions are trivial:
 
 \begin{verbatim}
-    (define (setEnclosingScope a b) (assign (dot a __context) b))
-    (define (getEnclosingScope a) (dot a __context))
+    (define (setEnclosingScope a b) (set '__context b a))
+    (define (getEnclosingScope a) (a '__context))
 \end{verbatim}
 
 Moreover, the task of resetting the enclosing scopes of the parties
@@ -456,12 +456,12 @@ which follows the definition of {\it mixin} closely:
     (define (new object)
         (define outer (getEnclosingScope object))
         (define spot object)
-        (define current (dot spot parent))
+        (define current (spot 'parent))
         (while (not (null? current))
             (resetClosures current object)
             (setEnclosingScope spot current)
             (assign spot current)
-            (define current (dot spot parent))
+            (define current (spot 'parent))
             )
         (setEnclosingScope spot outer)
         (resetClosures spot object)

@@ -139,6 +139,7 @@ extern int mathExceptionSymbol;
 extern int lexicalExceptionSymbol;
 extern int syntaxExceptionSymbol;
 extern int nonFunctionSymbol;
+extern int nonObjectSymbol;
 extern int returnSymbol;
 extern int levelSymbol;
 extern int eqSymbol;

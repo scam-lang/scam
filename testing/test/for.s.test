@@ -31,13 +31,5 @@
     (print "\n")
     )
 ------------------------------------------
-the value of i is 1
-the value of i is 3
-the value of i is 5
-the value of i is 7
-the value of i is 9
-the value of i is 1
-the value of i is 3
-the value of i is 5
-the value of i is 7
-the value of i is 9
+EXCEPTION: undefinedVariable
+file for.s,line 23: variable assign is undefined

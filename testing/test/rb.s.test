@@ -366,4 +366,4 @@ inserting!
 inserting!
 rotating left
 EXCEPTION: generalException
-file main.lib,line 93: get variable argument resolved to type CONS, not SYMBOL
+file main.lib,line 91: get variable argument resolved to type CONS, not SYMBOL

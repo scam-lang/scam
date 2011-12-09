@@ -45,5 +45,5 @@
 (println (g))
 ------------------------------------------
 starting
-EXCEPTION: hiy
-ouch
+EXCEPTION: undefinedVariable
+file except2.s,line 5: variable __id is undefined

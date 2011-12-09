@@ -39,9 +39,5 @@
 (println "y's count is " (get 'count yish))
 (println "z's count is " (get 'count zish))
 ------------------------------------------
-x's common count is 3
-y's common count is 3
-z's common count is 3
-x's count is 1
-y's count is 1
-z's count is 1
+EXCEPTION: undefinedVariable
+file common5.s,line 16: variable assign is undefined

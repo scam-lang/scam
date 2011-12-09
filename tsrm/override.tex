@@ -95,8 +95,8 @@ added by {\it redefine}:
 
 \begin{verbatim}
     (define (prior #)
-        (define f (dot # __constructor))
-        (get '__prior f)
+        (define f (# '__constructor))
+        (f '__prior)
         )
 \end{verbatim}
 
@@ -121,14 +121,14 @@ in the function to be cloned. Consider this code:
 
     (define (f x) x)
     (inspect this)
-    (inspect (dot f __context))
+    (inspect (f '__context))
 
     (scope
         (inspect (local? 'f this))
         (define f (clone f))
         (inspect (local? 'f this))
         (inspect this)
-        (inspect (dot f __context))
+        (inspect (f '__context))
         )
 \end{verbatim}
 
@@ -136,11 +136,11 @@ The output generated will be something like:
 
 \begin{verbatim}
     this is <object 11698>
-    (dot f __context) is <object 11698>
+    (f '__context) is <object 11698>
     (local? (quote f) this) is #f
     (local? (quote f) this) is #t
     this is <object 13317>
-    (dot f __context) is <object 13317>
+    (f '__context) is <object 13317>
 \end{verbatim}
 
 The first two calls to {\it inspect} show that {\it f}'s definition

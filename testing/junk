@@ -1,66 +1,132 @@
-function cons($a, $b)
-    {
-    return array($a,$b);
-    }
+(include "wire.s")
+(include "logic.s")
+(include "agenda.s")
 
-function car(x)
-    {
-    //force is a primitive for evaluating
-    //a delayed object
-    return force(x . 0);
-    }
+(define (half-adder a b sum carry simulator)
+    (define or->and (wire))
+    (define not->and (wire))
 
-function cdr(x)
-    {
-    return force(x . 1);
-    }
+    (AND a b carry simulator)
+    (OR a b or->and simulator)
+    (NOT carry not->and simulator)
+    (AND or->and not->and sum simulator)
+    )
 
-function numbersStartingFrom(start)
-    {
-    return cons(start, numbersStartingFrom(start + 1));
-    }
+(define (full-adder a b carry-in sum carry-out agenda)
+    (define ha1->ha2 (wire))
+    (define ha1->or (wire))
+    (define ha2->or (wire))
 
-function sieve(primes)
-    {
-    function predicate(x)
-        {
-        return (x % car(primes)) == 0;
-        }
+    (half-adder b carry-in ha1->ha2 ha1->or agenda)
+    (half-adder a ha1->ha2 sum ha2->or agenda)
+    (OR ha1->or ha2->or carry-out agenda)
+    )
 
-    return cons(car(primes),sieve(remove(predicate,cdr(primes))));
-    }
+(define (simulateAND)
+    (define i)
+    (define a (wire))
+    (define b (wire))
+    (define c (wire))
+    (define simulator (agenda))
+    (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
 
-function remove(pred, items)
-    {
-    if (pred(car(items)))
-        {
-        return pred remove cdr(items);
-        }
-    else
-        {
-        return car(items) cons (pred remove cdr(items));
-        }
-    }
+    (println "a\t\b\tc")
 
-function displayStream(str, count)
-    {
-    print("[ ");
-    while (count > 0)
-        {
-        //if (car(str) == 211) { defines(); }
-        print(car(str), " ");
-        str = cdr(str);
-        count = count - 1;
-        }
-    print("]");
-    }
+    (AND a b c simulator)
 
+    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+        ((. a set) (getElement inputs i 0))
+        ((. b set) (getElement inputs i 1))
+            ((. simulator run))
+            (println
+            (getElement inputs i 0) "\t" 
+            (getElement inputs i 1) "\t" 
+            ((. c get))
+            )
+            )
+    )
 
-var primes = sieve(numbersStartingFrom(2));
+(define (simulateHalfAdder)
+    (define i)
+    (define a (wire))
+    (define b (wire))
+    (define sum (wire))
+    (define carry (wire))
+    (define simulator (agenda))
+    (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
 
-println("this takes a while...");
-displayStream(primes,50);
-print("\n");
+    (println "a\t\b\tsum\t\carry")
+
+    (half-adder a b sum carry simulator)
+
+    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+        ((. a set) (getElement inputs i 0))
+        ((. b set) (getElement inputs i 1))
+            ((. simulator run))
+            (println
+            (getElement inputs i 0) "\t" 
+            (getElement inputs i 1) "\t" 
+            ((. sum get)) "\t"
+            ((. carry get))
+            )
+            )
+    )
+
+(define (simulateFullAdder)
+    (define i)
+    (define a (wire))
+    (define b (wire))
+    (define carry-in (wire))
+    (define sum (wire))
+    (define carry-out (wire))
+    (define simulator (agenda))
+    (define inputs (array 
+        (array 0 0 0)  (array 0 0 1)  (array 0 1 0)  (array 0 1 1) 
+        (array 1 0 0)  (array 1 0 1)  (array 1 1 0)  (array 1 1 1)
+        ))
+
+    (println "a\t\b\tc-in\tsum\t\c-out")
+
+    (full-adder a  b  carry-in  sum  carry-out  simulator)
+
+    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
+        ((. a set) (getElement inputs i 0))
+        ((. b set) (getElement inputs i 1))
+        ((. carry-in set) (getElement inputs i 2))
+        ((. simulator run))
+        (println 
+            (getElement inputs i 0)  "\t" 
+            (getElement inputs i 1)  "\t" 
+            (getElement inputs i 2)  "\t" 
+            ((. sum get))  "\t"  ((. carry-out get))
+            )
+        )
+    )
+
+(simulateAND)
+(println)
+(simulateHalfAdder)
+(println)
+(simulateFullAdder)
 ------------------------------------------
-this takes a while...
-[ 2 3 5 7 11 13 17 19 23 29 31 37 41 43 47 53 59 61 67 71 73 79 83 89 97 101 103 107 109 113 127 131 137 139 149 151 157 163 167 173 179 181 191 193 197 199 211 223 227 229 ]
+a       b       c
+0       0       0
+0       1       0
+1       0       0
+1       1       1
+
+a       b       sum     carry
+0       0       0       0
+0       1       1       0
+1       0       1       0
+1       1       0       1
+
+a       b       c-in    sum     c-out
+0       0       0       0       0
+0       0       1       1       0
+0       1       0       1       0
+0       1       1       0       1
+1       0       0       1       0
+1       0       1       0       1
+1       1       0       0       1
+1       1       1       1       1

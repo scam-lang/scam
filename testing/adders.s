@@ -28,20 +28,21 @@
     (define b (wire))
     (define c (wire))
     (define simulator (agenda))
-    (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+    ;(define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+    (define inputs (array (array 1 1)))
 
     (println "a\t\b\tc")
 
     (AND a b c simulator)
 
-    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-        ((. a set) (getElement inputs i 0))
-        ((. b set) (getElement inputs i 1))
-	    ((. simulator run))
+    (for (set 'i 0) (< i (length inputs)) (set 'i (+ i 1))
+        ((a 'set) (getElement inputs i 0))
+        ((b 'set) (getElement inputs i 1))
+	    ((simulator 'run))
 	    (println
             (getElement inputs i 0) "\t" 
             (getElement inputs i 1) "\t" 
-            ((. c get))
+            ((c 'get))
             )
 	    )
     )
@@ -59,15 +60,15 @@
 
     (half-adder a b sum carry simulator)
 
-    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-        ((. a set) (getElement inputs i 0))
-        ((. b set) (getElement inputs i 1))
-	    ((. simulator run))
+    (for (set 'i 0) (< i (length inputs)) (set 'i (+ i 1))
+        ((a 'set) (getElement inputs i 0))
+        ((b 'set) (getElement inputs i 1))
+	    ((simulator 'run))
 	    (println
             (getElement inputs i 0) "\t" 
             (getElement inputs i 1) "\t" 
-            ((. sum get)) "\t"
-            ((. carry get))
+            ((sum 'get)) "\t"
+            ((carry 'get))
             )
 	    )
     )
@@ -89,22 +90,27 @@
 
     (full-adder a  b  carry-in  sum  carry-out  simulator)
 
-    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-        ((. a set) (getElement inputs i 0))
-        ((. b set) (getElement inputs i 1))
-        ((. carry-in set) (getElement inputs i 2))
-        ((. simulator run))
+    (for (set 'i 0) (< i (length inputs)) (set 'i (+ i 1))
+        ((a 'set) (getElement inputs i 0))
+        ((b 'set) (getElement inputs i 1))
+        ((carry-in 'set) (getElement inputs i 2))
+        ((simulator 'run))
         (println 
             (getElement inputs i 0)  "\t" 
             (getElement inputs i 1)  "\t" 
             (getElement inputs i 2)  "\t" 
-            ((. sum get))  "\t"  ((. carry-out get))
+            ((sum 'get))  "\t"  ((carry-out 'get))
             )
         )
     )
 
+;(define a (wire))
+;(define b (wire))
+;(define sum (wire))
+;(inspect ((AND a  b sum (agenda)) 'recalculate))
+;;$
 (simulateAND)
 (println)
-(simulateHalfAdder)
-(println)
-(simulateFullAdder)
+;(simulateHalfAdder)
+;(println)
+;(simulateFullAdder)

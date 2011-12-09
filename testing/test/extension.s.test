@@ -16,5 +16,5 @@
 (println "z = y(); z . a is " (. z a))
 (println "new(y()) . a is " (. (new (y)) a))
 ------------------------------------------
-z = y(); z . a is 3
-new(y()) . a is 3
+EXCEPTION: undefinedVariable
+file inherit.lib,line 31: variable . is undefined

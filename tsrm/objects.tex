@@ -45,7 +45,7 @@ Usually, an object lets you look at its individual components.
 For example:
 
 \begin{verbatim}
-    (println "square's formal parameters are: " (dot square parameters))
+    (println "square's formal parameters are: " (get 'parameters square))
 \end{verbatim}
 
 yields:
@@ -54,9 +54,13 @@ yields:
     square's formal parameters are: (x)
 \end{verbatim}
     
-We use the function {\it dot} (usually called the {\it dot operator}) to extract
-the fields of an object. The first argument to dot is the object, while
-the second is the field name. The field name does not have to be quoted.
+We use the function {\it get} to extract
+the fields of an object. The first argument to {\it get} is an expression that
+should resolve to a symbol to be gotten,
+while
+the second is the object holding the field. 
+
+\section{Creating objects}
 
 It is easy to create your own objects. First you must make a
 {\it constructor}. A constructor is just a function that returns 
@@ -79,20 +83,64 @@ We can create an object simply by calling the constructor:
 \end{verbatim}
 
 The variable {\it p} now points to a {\it person} object and we
-can use {\it p} and the {\it dot} operator to
+can use {\it p} and the {\it set} operator to
 set the fields of the person object:
 
 \begin{verbatim}
-    (assign (dot p name) "Boris")
-    (assign (dot p age) 33)
-    (inspect (dot p name))
+    (set 'name "Boris" p)
+    (set 'age 33 p)
+    (inspect (get 'name p))
 \end{verbatim}
 
+The {\it set} function takes three arguments. The first should evaluate
+to the field name, the second to the new field value, and the third
+to the object to update.
 Evaluating this code yields the following output:
 
 \begin{verbatim}
-    (dot p name) is Boris
+    (get 'name  p) is Boris
 \end{verbatim}
+
+Scam allows an alternative form for getting values from an object.
+This form uses function call syntax. For example, the following two expressions
+are equivalent:
+
+\begin{verbatim}
+    (get 'name p)
+    (p 'name)
+\end{verbatim}
+
+The advantage of the latter form is that if the retrieved field is
+itself an object, you can chain field names together.
+For example if {\it n} points
+to a linked list:
+
+\begin{verbatim}
+    (define (node value next) this)
+    (define n (node 'a (node 'b (node 'c nil))))
+\end{verbatim}
+    
+you can get the value of the third node in the
+list with
+either expression:
+
+\begin{verbatim}
+    (get 'value (get 'next (get 'next n)))
+    (n 'next 'next 'value)
+\end{verbatim}
+
+To set the value of a field using a similar syntax, one calls the {\it set*}
+function. Here, both calls set the value of the third node in the list to 5:
+
+\begin{verbatim}
+    (set 'value 5 (get 'next (get 'next n)))
+    (set* n 'next 'next 'value 5)
+\end{verbatim}
+
+Note that for {\it set}, the object is the last argument while for {\it set*},
+the object is the first.
+    
+\section{Initializing fields}
 
 It is often convenient to give initial values to the fields of
 an object. Here is another version of {\it person} that allows us
@@ -103,38 +151,19 @@ to do just that when we create the object:
         
     (define p (person "Boris" 33))
         
-    (inspect (dot p name))
+    (inspect (p 'name))
 \end{verbatim}
 
 The output is the same:
 
 \begin{verbatim}
-    (dot p name) is Boris
+    (p 'name) is Boris
 \end{verbatim}
 
 In general, if a field is to be initialized when the object
 is constructed, make that field a formal parameter. If not,
 make the field a locally declared variable.
 
-\section{Chains of objects}
-
-Often times, a field of an object points to another object.
-Suppose an object called primary has a field called secondary
-which points to an object with a field size. We can access
-the size field with two invocations of {\it dot}:
-
-\begin{verbatim}
-    (assign s (dot primary secondary)
-    (dot s size)
-\end{verbatim}
-
-We can remove the need for the temporary variable by nesting the
-calls to {\it dot}.
-
-\begin{verbatim}
-    (dot (dot primary secondary) size)
-\end{verbatim}
-`
 \section{Adding Methods}
 
 Objects can have methods as well.\footnote{
@@ -153,15 +182,15 @@ Here's a version of the
         )
         
     (define p (person "Boris" 33))
-    ((dot p birthday))
-    (inspect (dot p age))
+    ((p 'birthday))
+    (inspect (p 'age))
 \end{verbatim}
 
 The output of this code is:
 
 \begin{verbatim}
     Happy Birthday, Boris!
-    (dot p age) is 34
+    (p 'age) is 34
 \end{verbatim}
 
 In summary, one turns a function into a constructor by returning
@@ -197,7 +226,7 @@ If we create an {\it f} object:
 and then save the return value of the {\it g} method:
 
 \begin{verbatim}
-    (define b ((dot f g) 1))
+    (define b ((f 'g) 1))
 \end{verbatim}
     
 then {\it a} and {\it b} are not the same objects; {\it b} would
@@ -210,7 +239,7 @@ be a `sub-object', as it were, of {\it a}. In fact:
 returns false, while:
 
 \begin{verbatim}
-    (eq? a (dot b __context))
+    (eq? a (b '__context))
 \end{verbatim}
 
 evaluates to true. To have the {\it g} method return a pointer to the object
@@ -260,25 +289,21 @@ that constructed them:
 
 \begin{verbatim}
     (define p (person "veronica" 20))
-    (inspect (dot p __constructor name))
+    (inspect (p '__constructor 'name))
 \end{verbatim}
 
 yields:
 
 \begin{verbatim}
-    (dot p __constructor name) is person
+    (p '__constructor 'name) is person
 \end{verbatim}
 
-Note that:
-\verb!(dot p __constructor name)!
-is equivalent to
-\verb!(dot (dot p __constructor) name)!.
 So, to ask if {\it p} is a person, we would use the following
 expression:
 
 \begin{verbatim}
     (if (and (eq? (type p) 'environment)
-             (eq? (dot p __constructor name) 'person)) ...
+             (eq? (p '__constructor 'name) 'person)) ...
 \end{verbatim}
 
 Since this construct is rather wordy, there
@@ -366,7 +391,7 @@ to do the actual printing:
 \begin{verbatim}
     (define (display  item)
         (if (and (object? item) (local? 'toString item))
-            (__display ((dot item toString)))
+            (__display ((item 'toString)))
             (__display item)
             )
         )

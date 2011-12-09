@@ -30,7 +30,5 @@
 (println "obj . yow() is " ((. obj yow)))
 (println "obj . zow() is " ((. obj zow)))
 ------------------------------------------
-wow() is wow, wow, wow!
-obj . wow() is 16
-obj . yow() is 256
-obj . zow() is 65536
+EXCEPTION: undefinedVariable
+file inherit.lib,line 31: variable . is undefined

@@ -26,4 +26,4 @@ b is an object!
 b . a is 3, (should be 3)
 b . symbol("a") is a, (should be a)
 EXCEPTION: generalException
-file main.lib,line 93: get variable argument resolved to type CONS, not SYMBOL
+file main.lib,line 91: get variable argument resolved to type CONS, not SYMBOL

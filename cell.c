@@ -68,6 +68,7 @@ int mathExceptionSymbol;
 int lexicalExceptionSymbol;
 int syntaxExceptionSymbol;
 int nonFunctionSymbol;
+int nonObjectSymbol;
 int returnSymbol;
 int levelSymbol;
 int eqSymbol;
@@ -185,6 +186,7 @@ memoryInit(int memsize)
     lexicalExceptionSymbol = newSymbol("lexicalException");
     syntaxExceptionSymbol = newSymbol("syntaxException");
     nonFunctionSymbol    = newSymbol("nonFunction");
+    nonObjectSymbol      = newSymbol("nonObject");
     returnSymbol         = newSymbol("return");
     eqSymbol             = newSymbol("=");
     dotSymbol            = newSymbol(".");

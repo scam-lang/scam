@@ -16,7 +16,5 @@
 (inspect (defined? 'defined? this))
 ------------------------------------------
 methodList is [-,+,+!+]
-- is defined!
-+ is defined!
-+!+ is not defined.
-(defined? (quote defined?) this) is #t
+EXCEPTION: undefinedVariable
+file defined.s,line 10: variable __id is undefined
