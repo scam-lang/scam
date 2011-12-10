@@ -1,22 +1,25 @@
-function a()
-    {
-    var x = 0;
-    function display() { println("a: x is ",x); }
-    this;
-    }
-function b()
-    {
-    var x = 1;
-    function display() { println("b: x is ",x); }
-    proxy(a());
-    }
+(include "inherit.lib")
 
-var aish = a();
-var bish = b();
+(define (a)
+    (define parent nil)
+    (define x 0)
+    (define (display) (println "a: x is " x))
+    this
+    )
+(define (b)
+    (define parent (a))
+    (define x 1)
+    (define (display) (println "b: x is " x))
+    this
+    )
 
-aish . display();
-bish . display();
-bish . display . prior();
+(define aish (new (a)))
+(define bish (new (b)))
+
+((aish 'display))
+((bish 'display))
+((bish 'parent 'display))
 ------------------------------------------
-EXCEPTION: undefinedVariable
-file virtual2.s,line 1: variable function is undefined
+a: x is 0
+b: x is 1
+a: x is 1

@@ -13,5 +13,5 @@
     )
 
 (define z (new (y)))
-(println "z = y(); z . a is " (. z a))
-(println "new(y()) . a is " (. (new (y)) a))
+(println "z = y(); z . a is " (z 'a))
+(println "new(y()) . a is " ((new (y)) 'a))

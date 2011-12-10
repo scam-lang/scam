@@ -1,39 +1,38 @@
-var built-in = context;
-function while($test,$body,$)
-    {
-    var result = force($test);
-    if (result)
-        {
-        force($body);
-        built-in . while(force($test))
-            {
-            force($body);
-            }
-        }
-    else if ($ != :null)
-        {
-        force($ . 0);
-        }
-    }
+(include "reflection.lib")
 
-var i;
+(redefine (while # $test $body $)
+    (define oldwhile (prior))
+    (define result (eval $test #))
+    (if result
+        (begin
+            (eval $body #)
+            (oldwhile (eval $test #)
+                (eval $body #)
+                )
+            )
+        (if (valid? $)
+            (eval (car $) #)
+            )
+        )
+    )
 
-i = 0;
-while (i < 5)
-    {
-    println("i is ", i);
-    i = i + 1;
-    }
+(define i)
 
-while (i < 5)
-    {
-    println("i is ", i);
-    i = i + 1;
-    }
-else
-    {
-    println("i was too large!");
-    }
+(define i 0)
+(while (< i 5)
+    (begin
+        (println "i is " i)
+        (++ i)
+        )
+    )
+
+(while (< i 5)
+    (begin
+        (println "i is " i)
+        (++ i)
+        )
+    (println "i was too large!")
+    )
 
 ------------------------------------------
 i is 0

@@ -87,8 +87,7 @@ ppTable(FILE *fp,int expr,int mode)
     int vars = object_variables(expr);
     int vals = object_values(expr);
 
-    fprintf(fp,"<");
-    ppLevel(fp,car(expr),mode);
+    fprintf(fp,"<object");
     fprintf(fp," %d>",expr);
     if (mode < 1)
         {

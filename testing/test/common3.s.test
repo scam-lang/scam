@@ -24,11 +24,7 @@
 (inspect (get 'uncommon (new (x))))
 (inspect (get 'uncommon (new (x))))
 ------------------------------------------
-(get (quote common) (new (x))) is <object 18312>
-             __label  : throw
-                code  : undefinedVariable
-               value  : "file inherit.lib,line 31: variable . is undefined"
-               trace  : ((get (quote common) (new (x))) (set (quote __context) (inherit (resetClosures reification (car parents)) (cdr parents) reification static) child) (if (valid? (. child __constructor)) (set (quote __label) (. child __constructor name) child)) (valid? (. child __constructor)) (. child __constructor))
-
-EXCEPTION: undefinedVariable
-file inherit.lib,line 31: variable . is undefined
+(get (quote common) (new (x))) is 1
+(get (quote common) (new (x))) is 2
+(get (quote uncommon) (new (x))) is 1
+(get (quote uncommon) (new (x))) is 1

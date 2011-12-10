@@ -1,11 +1,6 @@
-if (defined?(symbol("this"),this))
-    {
-    println("this is defined!");
-    }
-else
-    {
-    println("this is not defined");
-    }
+(if (defined? (symbol "this") this)
+    (println "this is defined!")
+    (println "this is not defined")
+    )
 ------------------------------------------
-EXCEPTION: nonFunction
-file x.s,line 1: attempted to call STRING as a function
+this is defined!

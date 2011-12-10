@@ -28,8 +28,7 @@
     (define b (wire))
     (define c (wire))
     (define simulator (agenda))
-    ;(define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
-    (define inputs (array (array 1 1)))
+    (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
 
     (println "a\t\b\tc")
 
@@ -104,13 +103,8 @@
         )
     )
 
-;(define a (wire))
-;(define b (wire))
-;(define sum (wire))
-;(inspect ((AND a  b sum (agenda)) 'recalculate))
-;;$
 (simulateAND)
 (println)
-;(simulateHalfAdder)
-;(println)
-;(simulateFullAdder)
+(simulateHalfAdder)
+(println)
+(simulateFullAdder)

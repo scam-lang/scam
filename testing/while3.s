@@ -1,34 +1,28 @@
-function fwhile($test, $body)
-    {
-    while(force($test))
-        {
-	force($body);
-	}
-    }
-function f(x)
-    {
-    fwhile (i < 10)
-	{
-	j = 0;
-	fwhile (j < 10)
-	    {
-	    print(i, " * ", j, " is ", i * j, "\n");
-	    if (i * j == x)
-		{
-		return 0;
-		}
-	    j = j + 1;
-	    }
-	i = i + 1;
-	}
-    }
+(define (fwhile # $test $)
+    (while (eval $test #)
+        (evalList $ #)
+        )
+	)
+(define (f x)
+    (fwhile (< i 10)
+        (set 'j 0)
+        (fwhile (< j 10)
+            (print i " * " j " is " (* i j) "\n")
+            (if (= (* i j) x)
+                (return 0)
+                )
+            (++ j)
+            )
+        (++ i)
+        )
+    )
 
-var i = 0;
-var j = 0;
-var stop = 9;
+(define i 0)
+(define j 0)
+(define stop 9)
 
-print("run through i and j, stopping when i * j is ", stop, "\n");
+(print "run through i and j, stopping when i * j is " stop "\n")
 
-f(stop);
+(f stop)
 
-print("done\n");
+(print "done\n")

@@ -1,30 +1,28 @@
-function x()
-    {
-    function a()
-        {
-	println("x:a() -> hello");
-	b();
-	}
-    function b()
-        {
-	println("x:b() -> goodbye");
-	}
+(include "inherit.lib")
 
-    this;
-    }
+(define (x)
+    (define parent nil)
+    (define (a)
+        (println "x:a() -> hello")
+        (b)
+        )
+    (define (b)
+        (println "x:b() -> goodbye")
+        )
+    this
+    )
 
-function y()
-    {
-    proxy(x());
-    b = function()
-        {
-	println("y:b() -> au revoir");
-	};
+(define (y)
+    (define parent (x))
+    (set* parent 'b
+        (lambda ()
+            (println "y replacement :b() -> au revoir")
+            )
+        )
+    this
+    )
 
-    this;
-    }
-
-println("(x()) . a() yields...");
-(x()) . a();
-println("(y()) . a() yields...");
-(y()) . a();
+(println "(x()) . a() yields...")
+(((new (x)) 'a))
+(println "(y()) . a() yields...")
+(((new (y)) 'a))

@@ -1,31 +1,19 @@
-function fwhile($test, $body)
-    {
-    println("forcing test");
-    while(force($test))
-        {
-	println("forcing body");
-	force($body);
-	}
-    }
-var i = 0;
+(define (until # $test $)
+    (println "forcing test")
+    (while (not (eval $test #))
+        (evalList $ #)
+        )
+    )
+(define i 0)
+(println "until as variadic function")
+(until (= i 10)
+    (print "i is " i "\n")
+    (++ i)
+    )
+(println "user while that returns from global scope")
+(until #f
+    (println "returning!")
+    (return 0)
+    )
 
-println("while as imperative statement");
-while (i < 10)
-    {
-    print("i is ", i, "\n");
-    i = i + 1;
-    }
-println("while as a function call");
-while (i > 0,
-    {
-    i = i - 1;
-    print("i is ", i, "\n");
-    });
-println("user while that returns from global scope");
-fwhile (:true)
-    {
-    println("returning!");
-    return 0;
-    }
-
-print("you should not be seeing this message\n");
+(print "you should not be seeing this message\n")

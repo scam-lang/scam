@@ -142,6 +142,7 @@ memoryInit(int memsize)
     contextSymbol        = newSymbol("__context");
     levelSymbol          = newSymbol("__level");
     constructorSymbol    = newSymbol("__constructor");
+    objectSymbol         = newSymbol("__object");
     codeSymbol           = newSymbol("code");
     thisSymbol           = newSymbol("this");
     parametersSymbol     = newSymbol("parameters");
@@ -150,7 +151,6 @@ memoryInit(int memsize)
     envSymbol            = newSymbol("environment");
     closureSymbol        = newSymbol("closure");
     builtInSymbol        = newSymbol("builtIn");
-    objectSymbol         = newSymbol("object");
     typeSymbol           = newSymbol("type");
     valueSymbol          = newSymbol("value");
     traceSymbol          = newSymbol("trace");

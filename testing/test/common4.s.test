@@ -31,7 +31,7 @@
 (inspect (. (new (x)) uncommon))
 (inspect ((. (new (x)) getCommon)))
 ------------------------------------------
-((. (new (x)) getCommon)) is <object 13839>
+((. (new (x)) getCommon)) is <object 13888>
              __label  : throw
                 code  : undefinedVariable
                value  : "file common4.s,line 30: variable . is undefined"

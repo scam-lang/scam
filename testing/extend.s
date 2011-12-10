@@ -26,6 +26,6 @@
 (define obj (new (a 2)))
 
 (println "wow() is " (wow))
-(println "obj . wow() is " ((. obj wow)))
-(println "obj . yow() is " ((. obj yow)))
-(println "obj . zow() is " ((. obj zow)))
+(println "obj . wow() is " ((obj 'wow)))
+(println "obj . yow() is " ((obj 'yow)))
+(println "obj . zow() is " ((obj 'zow)))

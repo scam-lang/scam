@@ -1,132 +1,105 @@
-(include "wire.s")
-(include "logic.s")
-(include "agenda.s")
+include("basics");
 
-(define (half-adder a b sum carry simulator)
-    (define or->and (wire))
-    (define not->and (wire))
+function heap(items,op)
+    {
+    var size = length(items);
 
-    (AND a b carry simulator)
-    (OR a b or->and simulator)
-    (NOT carry not->and simulator)
-    (AND or->and not->and sum simulator)
-    )
+    function leftChild(x) { 2 * x + 1; }
+    function rightChild(x) { 2 * x + 2; }
+    function deleteMin()
+        {
+        var temp = items[0];
+        items[0] = items[size - 1];
+        items[size - 1] = temp;
+        size = size - 1;
+        heapify(0);
+        temp;
+        }
+    function heapify(root)
+        {
+        var extreme;
+        var newRoot;
 
-(define (full-adder a b carry-in sum carry-out agenda)
-    (define ha1->ha2 (wire))
-    (define ha1->or (wire))
-    (define ha2->or (wire))
+        if (leaf?(root)) { return :ok; }
+        
+        extreme = findExtremalChild(root);
 
-    (half-adder b carry-in ha1->ha2 ha1->or agenda)
-    (half-adder a ha1->ha2 sum ha2->or agenda)
-    (OR ha1->or ha2->or carry-out agenda)
-    )
+        if (extreme == items[root]) { return :ok; }
 
-(define (simulateAND)
-    (define i)
-    (define a (wire))
-    (define b (wire))
-    (define c (wire))
-    (define simulator (agenda))
-    (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+        if (extreme == items[leftChild(root)])
+            {
+            newRoot = leftChild(root);
+            }
+        else
+            {
+            newRoot = rightChild(root);
+            }
+        items[newRoot] = items[root];
+        items[root] = extreme;
+        heapify(newRoot);
+        }
+    function findExtremalChild(root)
+        {
+        var extreme;
 
-    (println "a\t\b\tc")
+        extreme = extremal(op,items[root],items[leftChild(root)]);
 
-    (AND a b c simulator)
+        if (rightChild(root) >= size)
+            {
+            extreme;
+            }
+        else
+            {
+            extremal(op,extreme,items[rightChild(root)]);
+            }
+        }
+    function build-heap()
+        {
+        var i;
 
-    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-        ((. a set) (getElement inputs i 0))
-        ((. b set) (getElement inputs i 1))
-            ((. simulator run))
-            (println
-            (getElement inputs i 0) "\t" 
-            (getElement inputs i 1) "\t" 
-            ((. c get))
-            )
-            )
-    )
+        for (i = size - 1, i >= 0, i = i - 1)
+            {
+            heapify(i);
+            }
+        }
 
-(define (simulateHalfAdder)
-    (define i)
-    (define a (wire))
-    (define b (wire))
-    (define sum (wire))
-    (define carry (wire))
-    (define simulator (agenda))
-    (define inputs (array (array 0 0) (array 0 1) (array 1 0) (array 1 1)))
+    function leaf?(x)
+        {
+        leftChild(x) >= size;
+        }
 
-    (println "a\t\b\tsum\t\carry")
+    build-heap();
+    this;
+    }
 
-    (half-adder a b sum carry simulator)
+function heap-sort(items,op)
+    {
+    var i;
+    var h;
 
-    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-        ((. a set) (getElement inputs i 0))
-        ((. b set) (getElement inputs i 1))
-            ((. simulator run))
-            (println
-            (getElement inputs i 0) "\t" 
-            (getElement inputs i 1) "\t" 
-            ((. sum get)) "\t"
-            ((. carry get))
-            )
-            )
-    )
+    h = heap(items,op);
 
-(define (simulateFullAdder)
-    (define i)
-    (define a (wire))
-    (define b (wire))
-    (define carry-in (wire))
-    (define sum (wire))
-    (define carry-out (wire))
-    (define simulator (agenda))
-    (define inputs (array 
-        (array 0 0 0)  (array 0 0 1)  (array 0 1 0)  (array 0 1 1) 
-        (array 1 0 0)  (array 1 0 1)  (array 1 1 0)  (array 1 1 1)
-        ))
+    while (h . size > 0)
+        {
+        print(h . deleteMin());
+        if (h . size > 0,print(" "));
+        }
+    }
 
-    (println "a\t\b\tc-in\tsum\t\c-out")
+function extremal(op,a,b)
+    {
+    if (a op b,a,b);
+    }
 
-    (full-adder a  b  carry-in  sum  carry-out  simulator)
+var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
 
-    (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-        ((. a set) (getElement inputs i 0))
-        ((. b set) (getElement inputs i 1))
-        ((. carry-in set) (getElement inputs i 2))
-        ((. simulator run))
-        (println 
-            (getElement inputs i 0)  "\t" 
-            (getElement inputs i 1)  "\t" 
-            (getElement inputs i 2)  "\t" 
-            ((. sum get))  "\t"  ((. carry-out get))
-            )
-        )
-    )
+heap-sort(a,>);
+println("\n");
 
-(simulateAND)
-(println)
-(simulateHalfAdder)
-(println)
-(simulateFullAdder)
+inspect(a);
+inspect(extremal . parameters);
 ------------------------------------------
-a       b       c
-0       0       0
-0       1       0
-1       0       0
-1       1       1
+88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
 
-a       b       sum     carry
-0       0       0       0
-0       1       1       0
-1       0       1       0
-1       1       0       1
-
-a       b       c-in    sum     c-out
-0       0       0       0       0
-0       0       1       1       0
-0       1       0       1       0
-0       1       1       0       1
-1       0       0       1       0
-1       0       1       0       1
-1       1       0       0       1
-1       1       1       1       1
+a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
+extremal . parameters is (op,a,b)

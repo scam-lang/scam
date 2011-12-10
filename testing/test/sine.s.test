@@ -1,38 +1,81 @@
-include("basics");
+(define amplitude 1)
+(define frequency 1)
+(define shift 0)
 
-var amplitude = 1;
-var frequency = 1;
-var shift = 0;
+(define width)
+(define low -2.0)
+(define high 10.0)
+(define step .25)
 
-var width;
-var low = -2.0;
-var high = 10.0;
-var step = .25;
+(define x)
 
-var x;
+(define (sineWave a f s)
+    (lambda (x)
+        (* a  (sin (+ (* f x) s)))
+        )
+    )
 
-function sineWave(a,f,s)
-    {
-    function (x)
-        {
-        a * sin(f * x + s);
-        };
-    }
+(define s (sineWave amplitude frequency shift))
 
-var s = sineWave(amplitude,frequency,shift);
+(define port (open "sine.dat" 'write))
+(setPort port)
 
-var port = open("sine.dat",:write);
-setPort(port);
+(println "# x\ty")
+(for (set 'x low) (<= x high) (+= x step)
+    (println x "\t" (s x))
+    )
 
-println("# x\ty");
-for (x = low, x <= high, x += step)
-    {
-    println(x,"\t",s(x));
-    }
+(close port)
 
-close(port);
-
-system("cat sine.dat");
+(system "cat sine.dat")
 ------------------------------------------
-EXCEPTION: nonFunction
-file sine.s,line 1: attempted to call STRING as a function
+# x     y
+-2.000000       -0.909297
+-1.750000       -0.983986
+-1.500000       -0.997495
+-1.250000       -0.948985
+-1.000000       -0.841471
+-0.750000       -0.681639
+-0.500000       -0.479426
+-0.250000       -0.247404
+0.000000        0.000000
+0.250000        0.247404
+0.500000        0.479426
+0.750000        0.681639
+1.000000        0.841471
+1.250000        0.948985
+1.500000        0.997495
+1.750000        0.983986
+2.000000        0.909297
+2.250000        0.778073
+2.500000        0.598472
+2.750000        0.381661
+3.000000        0.141120
+3.250000        -0.108195
+3.500000        -0.350783
+3.750000        -0.571561
+4.000000        -0.756802
+4.250000        -0.894989
+4.500000        -0.977530
+4.750000        -0.999293
+5.000000        -0.958924
+5.250000        -0.858934
+5.500000        -0.705540
+5.750000        -0.508279
+6.000000        -0.279415
+6.250000        -0.033179
+6.500000        0.215120
+6.750000        0.450044
+7.000000        0.656987
+7.250000        0.823081
+7.500000        0.938000
+7.750000        0.994599
+8.000000        0.989358
+8.250000        0.922604
+8.500000        0.798487
+8.750000        0.624724
+9.000000        0.412118
+9.250000        0.173889
+9.500000        -0.075151
+9.750000        -0.319519
+10.000000       -0.544021

@@ -1,6 +1,5 @@
 (println "starting error0.s")
-(println "including fact.s")
-(include "fact.s")
+(include "error0.s")
 
 (define (fib n)
     (if (< n 2)

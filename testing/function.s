@@ -1,8 +1,8 @@
 (define (define-function name params body env)
     (define donor (lambda () 1))
-    (set! 'name name donor)
-    (set! 'parameters params donor)
-    (set! 'code body donor)
+    (set! name name donor)
+    (set! parameters params donor)
+    (set! code body donor)
     (addSymbol name donor env)
     )
 

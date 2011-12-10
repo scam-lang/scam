@@ -2,7 +2,7 @@
     (define result (catch (eval $a #)))
     (if (error? result)
         (begin
-            (set (__id $error) result #)
+            (set $error result #)
             (set! result (eval $b #))
             )
         )

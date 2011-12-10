@@ -1,35 +1,30 @@
-include("basics");
+(define amplitude 1)
+(define frequency 1)
+(define shift 0)
 
-var amplitude = 1;
-var frequency = 1;
-var shift = 0;
+(define width)
+(define low -2.0)
+(define high 10.0)
+(define step .25)
 
-var width;
-var low = -2.0;
-var high = 10.0;
-var step = .25;
+(define x)
 
-var x;
+(define (sineWave a f s)
+    (lambda (x)
+        (* a  (sin (+ (* f x) s)))
+        )
+    )
 
-function sineWave(a,f,s)
-    {
-    function (x)
-        {
-	a * sin(f * x + s);
-	};
-    }
+(define s (sineWave amplitude frequency shift))
 
-var s = sineWave(amplitude,frequency,shift);
+(define port (open "sine.dat" 'write))
+(setPort port)
 
-var port = open("sine.dat",:write);
-setPort(port);
+(println "# x\ty")
+(for (set 'x low) (<= x high) (+= x step)
+    (println x "\t" (s x))
+    )
 
-println("# x\ty");
-for (x = low, x <= high, x += step)
-    {
-    println(x,"\t",s(x));
-    }
+(close port)
 
-close(port);
-
-system("cat sine.dat");
+(system "cat sine.dat")

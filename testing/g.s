@@ -2,8 +2,8 @@
     (define total 1)
 
     (while (> n 1)
-        (set! 'total (* total n))
-        (set! 'n (- n 1))
+        (set! total (* total n))
+        (set! n (- n 1))
         )
     
     total

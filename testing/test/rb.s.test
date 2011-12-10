@@ -351,19 +351,5 @@
 (main)
 ------------------------------------------
 hello
-inserting!
-1 inserted.
-1(black)
-   left:  null
-   right: null
-inserting!
-2 inserted.
-1(black)
-   left:  null
-   right: 2(red)
-       left:  null
-       right: null
-inserting!
-rotating left
-EXCEPTION: generalException
-file main.lib,line 91: get variable argument resolved to type CONS, not SYMBOL
+EXCEPTION: undefinedVariable
+file rb.s,line 322: variable assign is undefined

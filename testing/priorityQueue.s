@@ -25,7 +25,6 @@
     (define (peekRank) (items 'next 'rank))
     (define (empty)    (null? (items 'next)))
 
-    (inspect set)
     (set 'items (bundle nil nil nil))  ;dummy head node
     this
     )

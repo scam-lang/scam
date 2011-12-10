@@ -1,16 +1,17 @@
-function f(x)
-    {
-    var y = x * x;
+(define (f x)
+    (define y (* x x))
 
-    gc();
+    (inspect f)
 
-    println("f is ", f);
-    println("x is ", x);
-    println("y is ", y);
-    }
+    (gc)
 
-f(3);
+    (inspect x)
+    (inspect y)
+    )
+
+(f 3)
 ------------------------------------------
 f is <function f(x)>
+gc:1, 2087805 cells available
 x is 3
 y is 9

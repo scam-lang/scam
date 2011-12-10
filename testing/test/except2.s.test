@@ -2,7 +2,7 @@
     (define result (catch (eval $a #)))
     (if (error? result)
         (begin
-            (set (__id $error) result #)
+            (set $error result #)
             (set! result (eval $b #))
             )
         )
@@ -45,5 +45,5 @@
 (println (g))
 ------------------------------------------
 starting
-EXCEPTION: undefinedVariable
-file except2.s,line 5: variable __id is undefined
+EXCEPTION: hiy
+ouch

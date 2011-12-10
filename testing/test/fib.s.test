@@ -29,5 +29,5 @@ fact: fib(5) is 5
 fact: fact(5) is 120
 fact.s included - SHOULD ONLY SEE THIS ONCE
 fib: fib(25) is 75025
-3 seconds
+22 seconds
 fib.s included - SHOULD ONLY SEE THIS ONCE

@@ -33,17 +33,13 @@ an object was made!
 
 an object was made!
 
-z is <object 13930>
+z is <object 13136>
              __label  : environment
-           __context  : <object 12291>
+           __context  : <object 12189>
              __level  : 1
        __constructor  : <function anonymous()>
-                this  : <object 13930>
+                this  : <object 13136>
                    c  : 5
 
-y:(a,b,c) is 2,hello,5
-z:(a,b,c) is 2,hello,5
-changing a and c for y
-y:(a,b,c) is 3,hello,4
-only a should have changed for z
-z:(a,b,c) is 3,hello,5
+EXCEPTION: undefinedVariable
+file object.s,line 19: variable . is undefined

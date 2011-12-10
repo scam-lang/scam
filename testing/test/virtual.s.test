@@ -1,63 +1,89 @@
-var x-shared =
-    {
-    var count = 0;
-    function +count() { count = count + 1; }
-    this;
-    };
+(include "inherit.lib")
+(define x-shared 
+    (scope
+        (define count 0)
+        (define (+count ) (++ count))
+        this
+        )
+    )
 
-function x()
-    {
-    var shared = x-shared;
-    var trials = 5;
-    function a()
-        {
-        print(trials, ": x's a");
-        if (trials > 0)
-            {
-            println(", calling b");
-            trials = trials - 1;
-            b();
-            }
-        else
-            {
-            println();
-            }
-        }
-    function b()
-        {
-        print("   x's b, calling a\n");
-        a();
-        }
-    shared . +count();
+(define (x)
+    (define parent nil)
+    (define shared x-shared)
+    (define trials 5)
+    (define (a)
+        (print trials ": x's a")
+        (if (> trials 0)
+            (begin
+                (println ", calling b")
+                (-- trials)
+                (b)
+                )
+            (println)
+            )
+        )
+    (define (b)
+        (print "   x's b, calling a\n")
+        (a)
+        )
 
-    this;
-    }
+    ((shared '+count))
 
-function y()
-    {
-    function a()  //override x's a
-        {
-        print("y's a, calling b\n");
-        b();
-        }
-    function b()  //override x's b
-        {
-        print("y's b, calling x's version of a\n");
-        a . prior();
-        }
+    this
+    )
 
-    proxy(x());
-    trials = trials - 2;
-    this;
-    }
+(define (y)
+    (define parent (x))
+    (define (a)  ;override x's a
+        (print "y's a, calling b\n")
+        (b)
+        )
+    (define (b)  ;override x's b
+        (print "y's b, calling x's version of a\n")
+        ((parent 'a))
+        )
 
-var xish = x();
-var yish = y();
+    (set* parent 'trials (+ (parent 'trials) 2))
+    this
+    )
 
-println("number of x objects created: ", xish . shared . count);
-xish . a();
-println("------------------------------");
-yish . a();
+(define xish (new (x)))
+(define yish (new (y)))
+
+(println "number of x objects created: " (xish 'shared 'count))
+(println "number of x objects created, via y: " (yish 'shared 'count))
+((xish 'a))
+(println "------------------------------")
+((yish 'a))
 ------------------------------------------
-EXCEPTION: undefinedVariable
-file virtual.s,line 1: variable var is undefined
+number of x objects created: 2
+number of x objects created, via y: 2
+5: x's a, calling b
+   x's b, calling a
+4: x's a, calling b
+   x's b, calling a
+3: x's a, calling b
+   x's b, calling a
+2: x's a, calling b
+   x's b, calling a
+1: x's a, calling b
+   x's b, calling a
+0: x's a
+------------------------------
+y's a, calling b
+y's b, calling x's version of a
+7: x's a, calling b
+y's b, calling x's version of a
+6: x's a, calling b
+y's b, calling x's version of a
+5: x's a, calling b
+y's b, calling x's version of a
+4: x's a, calling b
+y's b, calling x's version of a
+3: x's a, calling b
+y's b, calling x's version of a
+2: x's a, calling b
+y's b, calling x's version of a
+1: x's a, calling b
+y's b, calling x's version of a
+0: x's a

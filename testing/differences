@@ -1,78 +1,204 @@
 OLD vs. NEW
-adders.s
+heapsort.s
 ------------------------------------------
-37,40c37,40
-<     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-<         ((. a set) (getElement inputs i 0))
-<         ((. b set) (getElement inputs i 1))
-<             ((. simulator run))
+1c1,2
+< include("basics");
 ---
->     (for (set 'i 0) (< i (length inputs)) (set 'i (+ i 1))
->         ((a 'set) (getElement inputs i 0))
->         ((b 'set) (getElement inputs i 1))
->             ((simulator 'run))
-44c44
-<             ((. c get))
+> (define (heap items op)
+>     (define size (length items))
+3,21c4,17
+< function heap(items,op)
+<     {
+<     var size = length(items);
+< 
+<     function leftChild(x) { 2 * x + 1; }
+<     function rightChild(x) { 2 * x + 2; }
+<     function deleteMin()
+<         {
+<         var temp = items[0];
+<         items[0] = items[size - 1];
+<         items[size - 1] = temp;
+<         size = size - 1;
+<         heapify(0);
+<         temp;
+<         }
+<     function heapify(root)
+<         {
+<         var extreme;
+<         var newRoot;
 ---
->             ((c 'get))
-62,65c62,65
-<     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-<         ((. a set) (getElement inputs i 0))
-<         ((. b set) (getElement inputs i 1))
-<             ((. simulator run))
+>     (define (leftChild x) (+ (* 2 x) 1))
+>     (define (rightChild x) (+ (* 2 x) 2))
+>     (define (deleteExtreme)
+>         (define temp (getElement items 0))
+>         (setElement items 0 (getElement items (- size 1)))
+>         (setElement items (- size 1) temp)
+>         (set! size (- size 1))
+>         (heapify 0)
+>         temp
+>         )
+> 
+>     (define (heapify root)
+>         (define extreme nil)
+>         (define newRoot nil)
+23c19
+<         if (leaf?(root)) { return :ok; }
 ---
->     (for (set 'i 0) (< i (length inputs)) (set 'i (+ i 1))
->         ((a 'set) (getElement inputs i 0))
->         ((b 'set) (getElement inputs i 1))
->             ((simulator 'run))
-69,70c69,70
-<             ((. sum get)) "\t"
-<             ((. carry get))
+>         (if (leaf? root) (return 'ok))
+25c21
+<         extreme = findExtremalChild(root);
 ---
->             ((sum 'get)) "\t"
->             ((carry 'get))
-92,96c92,96
-<     (for (assign i 0) (< i (length inputs)) (assign i (+ i 1))
-<         ((. a set) (getElement inputs i 0))
-<         ((. b set) (getElement inputs i 1))
-<         ((. carry-in set) (getElement inputs i 2))
-<         ((. simulator run))
+>         (set! extreme (findExtremalChild root))
+27c23
+<         if (extreme == items[root]) { return :ok; }
 ---
->     (for (set 'i 0) (< i (length inputs)) (set 'i (+ i 1))
->         ((a 'set) (getElement inputs i 0))
->         ((b 'set) (getElement inputs i 1))
->         ((carry-in 'set) (getElement inputs i 2))
->         ((simulator 'run))
-101c101
-<             ((. sum get))  "\t"  ((. carry-out get))
+>         (if (== extreme (getElement items root)) (return 'ok))
+29,92c25,79
+<         if (extreme == items[leftChild(root)])
+<             {
+<             newRoot = leftChild(root);
+<             }
+<         else
+<             {
+<             newRoot = rightChild(root);
+<             }
+<         items[newRoot] = items[root];
+<         items[root] = extreme;
+<         heapify(newRoot);
+<         }
+<     function findExtremalChild(root)
+<         {
+<         var extreme;
+< 
+<         extreme = extremal(op,items[root],items[leftChild(root)]);
+< 
+<         if (rightChild(root) >= size)
+<             {
+<             extreme;
+<             }
+<         else
+<             {
+<             extremal(op,extreme,items[rightChild(root)]);
+<             }
+<         }
+<     function build-heap()
+<         {
+<         var i;
+< 
+<         for (i = size - 1, i >= 0, i = i - 1)
+<             {
+<             heapify(i);
+<             }
+<         }
+< 
+<     function leaf?(x)
+<         {
+<         leftChild(x) >= size;
+<         }
+< 
+<     build-heap();
+<     this;
+<     }
+< 
+< function heap-sort(items,op)
+<     {
+<     var i;
+<     var h;
+< 
+<     h = heap(items,op);
+< 
+<     while (h . size > 0)
+<         {
+<         print(h . deleteMin());
+<         if (h . size > 0,print(" "));
+<         }
+<     }
+< 
+< function extremal(op,a,b)
+<     {
+<     if (a op b,a,b);
+<     }
 ---
->             ((sum 'get))  "\t"  ((carry-out 'get))
-116c116
-< 1       1       1
+>         (if (== extreme (getElement items (leftChild root)))
+>             (set! newRoot (leftChild root))
+>             (set! newRoot (rightChild root))
+>             )
+> 
+>         (setElement items newRoot (getElement items root))
+>         (setElement items root extreme)
+>         (heapify newRoot)
+>         )
+> 
+>     (define (findExtremalChild root)
+>         (define extreme nil)
+>         (set! extreme 
+>             (extremal op
+>                 (getElement items root)
+>                 (getElement items (leftChild root))))
+> 
+>         (if (>= (rightChild root) size)
+>             extreme
+>             (extremal op extreme (getElement items (rightChild root)))
+>             )
+>         )
+> 
+>     (define (build-heap)
+>         (define i nil)
+>         (for (set! i (- size 1)) (>= i 0) (set! i (- i 1))
+>             (println "heapifying element " i)
+>             (heapify i)
+>             (println "element " i " has been heapified")
+>             )
+>         )
+> 
+>     (define (leaf? x) (>= (leftChild x) size))
+> 
+>     (println "about to build-heap...")
+>     (build-heap)
+>     this
+>     )
+> 
+> (define (heap-sort items op)
+>     (define i nil)
+>     (define h nil)
+> 
+>     (set! h (heap items op))
+> 
+>     (while (> (get 'size h) 0)
+>         (print ((get 'deleteExtreme h)))
+>         (if (> (get 'size h) 0) (print " "))
+>         )
+>     (println "\n")
+>     )
+> 
+> (define (extremal op a b)
+>     (if (op a b) a b)
+>     )
+94c81
+< var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
 ---
-> 1       1       0
-120,122c120,122
-< 0       1       1       0
-< 1       0       1       0
-< 1       1       0       1
+> (define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
+96,97c83
+< heap-sort(a,>);
+< println("\n");
 ---
-> 0       1       0       0
-> 1       0       0       0
-> 1       1       0       0
-126,132c126,132
-< 0       0       1       1       0
-< 0       1       0       1       0
-< 0       1       1       0       1
-< 1       0       0       1       0
-< 1       0       1       0       1
-< 1       1       0       0       1
-< 1       1       1       1       1
+> (heap-sort a >)
+99,100c85,86
+< inspect(a);
+< inspect(extremal . parameters);
 ---
-> 0       0       1       0       0
-> 0       1       0       0       0
-> 0       1       1       0       0
-> 1       0       0       0       0
-> 1       0       1       0       0
-> 1       1       0       0       0
-> 1       1       1       0       0
+> (inspect a)
+> (inspect (get 'parameters extremal))
+102c88,90
+< 88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
+---
+> about to build-heap...
+> heapifying element 16
+> 3 31 6 88 16 25 20 9 29 6 4 5 10 4 3 0 0
+104,105c92,93
+< a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
+< extremal . parameters is (op,a,b)
+---
+> a is [0,0,3,4,10,5,4,6,29,9,20,25,16,88,6,31,3]
+> (get (quote parameters) extremal) is (op a b)
 ------------------------------------------

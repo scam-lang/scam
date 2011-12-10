@@ -1092,7 +1092,7 @@ begin(int args)
     return evalList(cadr(args),car(args),ALLBUTLAST);
     }
 
-/* (throw # $item) */
+/* (return # $item) */
 
 static int
 rreturn(int args)
@@ -2259,6 +2259,13 @@ ttime(int args)
     }
 
 static int
+eexit(int args)
+    {
+    exit(ival(car(args)));
+    return 0;
+    }
+
+static int
 ssystem(int args)
     {
     char buffer[512];
@@ -3185,6 +3192,14 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("bindings"),
         ucons(newSymbol("object"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = eexit;
+    b = makeBuiltIn(env,
+        newSymbol("exit"),
+        ucons(newSymbol("errorNumber"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

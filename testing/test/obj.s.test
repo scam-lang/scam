@@ -23,7 +23,5 @@
 (println "b . a is " (. b a) " (should be 4)");
 ------------------------------------------
 b is an object!
-b . a is 3, (should be 3)
-b . symbol("a") is a, (should be a)
-EXCEPTION: generalException
-file main.lib,line 91: get variable argument resolved to type CONS, not SYMBOL
+EXCEPTION: undefinedVariable
+file obj.s,line 17: variable . is undefined

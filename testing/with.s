@@ -1,24 +1,19 @@
-include("basics");
-
-function with(obj,$actions)
-    {
-    $actions . context = obj;
-    force($actions);
-    }
+(define (with obj $)
+    (evalList $ obj)
+    )
 
 
-function f(x) { var y = x + 1; this;}
+(define (f x) (define y (+ x 1)) this)
 
-var o = f(3);
+(define o (f 3))
 
-inspect(o . x);
-inspect(o . y);
+(inspect (o 'x))
+(inspect (o 'y))
 
-with (o)
-    {
-    x = 10;
-    y = 13;
-    }
+(with (o)
+    (set 'x 10)
+    (set 'y 13)
+    )
 
-inspect(o . x);
-inspect(o . y);
+(inspect (o 'x))
+(inspect (o 'y))

@@ -1,14 +1,12 @@
-function show(@)
-    {
-    apply(print,@);
-    }
+(define (show @)
+    (apply print @)
+    )
 
-function fatal(@)
-    {
-    apply(print,@);
-    exit(3);
-    }
+(define (fatal @)
+    (apply print @)
+    (exit 3)
+    )
 
-show("goodbye, ", "cruel", " world");
-print("\n");
-fatal("goodbye, ", "cruel", " world");
+(show "goodbye, " "cruel" " world")
+(print "\n");
+(fatal "goodbye, " "cruel" " world")

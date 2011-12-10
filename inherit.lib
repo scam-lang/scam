@@ -7,7 +7,7 @@
     (define (update current rest)
         (if (closure? current)
             (begin
-                ;(println "setting context of " (. current name) " to " static)
+                ;(println "setting context of " (current 'name) " to " static)
                 (set '__context static current))
                 )
         (if (valid? rest) (update (car rest) (cdr rest)))
@@ -28,37 +28,37 @@
               child
               )
         )
-    (if (valid? (. child __constructor))
-        (set '__label (. child __constructor name) child)
+    (if (valid? (child '__constructor))
+        (set '__label (child '__constructor 'name) child)
         )
     child
     )
 
 (define (new child)
     ;(println "new...")
-    (define (chain x) (if (null? x) nil (cons x (chain (get 'parent x)))))
-    (inherit child (chain (get 'parent child)) child (get '__context child))
+    (define (chain x) (if (null? x) nil (cons x (chain (x 'parent)))))
+    (inherit child (chain (child 'parent)) child (child '__context))
     )
 
 (define (mixin object @)
-    (inherit object @ object (get '__context object))
+    (inherit object @ object (object '__context))
     )
 
 (define (super child)
-    (get '__context child)
+    (child '__context)
     )
 
 (define (extend # parent)
     (define top
-        (if (local? 'inherit-top parent) (get 'inherit-top parent) parent))
+        (if (local? 'inherit-top parent) (parent 'inherit-top) parent))
     
     ;(println "in extend...")
     (addSymbol 'inherit-top top #)
     
-    (set '__context (get '__context #) top)
+    (set '__context (# '__context) top)
     (set '__context parent #)
     #
     )
 
-(define (setEnclosingScope a b) (assign (dot a __context) b))
-(define (getEnclosingScope a) (dot a __context))
+(define (setEnclosingScope a b) (set* a '__context b))
+(define (getEnclosingScope a) (a '__context))
