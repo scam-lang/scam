@@ -1,32 +1,52 @@
-include("debug");
+(define (trace f)
+    (define (traceBlock # $b)
+        (define actions (cdr $b))
+        (inspect actions)
+        (define last nil)
+        (define act)
+        (while (valid? actions)
+            (set! act (car actions))
+            (println (fileName act) ", line " (lineNumber act) ": " act)
+            (set! last (eval act #))
+            (set! actions (cdr actions))
+            )
+        last
+        )
+    (set* f 'code (list traceBlock (get* f 'code)))
+    (pp f)
+    )
 
-function f(x)
-    {
-    var result = x,y = 0;
-    result = x + result;
-    if (x > 0)
-        {
-        var i = 42;
-        g();
-        }
-    result;
-    }
+(define (f x)
+    (define result x)
+    (define y 0)
+    (+= result x)
+    (if (> x 0)
+        (begin
+            (define i 42)
+            (g)
+            )
+        )
+    result
+    )
 
-function g()
-    {
-    println("in g...");
-    }
+(define (g)
+    (println "in g...")
+    )
 
-f . filter = trace*;
-println("f(5) is ",f(5));
+(trace f)
+(println "f(5) is " (f 5))
 ------------------------------------------
-tracing f...
-trace.s,line 5: var result = x,y = 0; 
-trace.s,line 6: result = x + result; 
-trace.s,line 7: if (x > 0) { var i = 42; g(); }
-tracing f...
-trace.s,line 9: var i = 42; 
-trace.s,line 10: g(); 
+<object 12155>
+             __label  : closure
+           __context  : <object 11785>
+                name  : f
+          parameters  : (x)
+                code  : (<function traceBlock(# $b)> (begin (define result x) (define y 0) (+= result x) (if (> x 0) (begin (define i 42) (g))) result))
+actions is ((define result x) (define y 0) (+= result x) (if (> x 0) (begin (define i 42) (g))) result)
+trace.s, line 20: (define result x)
+trace.s, line 21: (define y 0)
+trace.s, line 22: (+= result x)
+trace.s, line 23: (if (> x 0) (begin (define i 42) (g)))
 in g...
-trace.s,line 12: result; 
+trace.s, line 29: result
 f(5) is 10

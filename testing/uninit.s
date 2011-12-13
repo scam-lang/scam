@@ -1,3 +1,3 @@
-var x;
+(define x)
 
-print(x + 1);
+(println (+ x 1))

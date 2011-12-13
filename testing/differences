@@ -1,204 +1,209 @@
 OLD vs. NEW
-heapsort.s
+tree2.s
 ------------------------------------------
-1c1,2
-< include("basics");
----
-> (define (heap items op)
->     (define size (length items))
-3,21c4,17
-< function heap(items,op)
+1,97c1,83
+< function tree()
 <     {
-<     var size = length(items);
-< 
-<     function leftChild(x) { 2 * x + 1; }
-<     function rightChild(x) { 2 * x + 2; }
-<     function deleteMin()
+<     var key = :null;
+<     var left = :null;
+<     var right = :null;
+<     function insert(v)
 <         {
-<         var temp = items[0];
-<         items[0] = items[size - 1];
-<         items[size - 1] = temp;
-<         size = size - 1;
-<         heapify(0);
-<         temp;
-<         }
-<     function heapify(root)
-<         {
-<         var extreme;
-<         var newRoot;
----
->     (define (leftChild x) (+ (* 2 x) 1))
->     (define (rightChild x) (+ (* 2 x) 2))
->     (define (deleteExtreme)
->         (define temp (getElement items 0))
->         (setElement items 0 (getElement items (- size 1)))
->         (setElement items (- size 1) temp)
->         (set! size (- size 1))
->         (heapify 0)
->         temp
->         )
-> 
->     (define (heapify root)
->         (define extreme nil)
->         (define newRoot nil)
-23c19
-<         if (leaf?(root)) { return :ok; }
----
->         (if (leaf? root) (return 'ok))
-25c21
-<         extreme = findExtremalChild(root);
----
->         (set! extreme (findExtremalChild root))
-27c23
-<         if (extreme == items[root]) { return :ok; }
----
->         (if (== extreme (getElement items root)) (return 'ok))
-29,92c25,79
-<         if (extreme == items[leftChild(root)])
+<         if (key == :null)
 <             {
-<             newRoot = leftChild(root);
+<             key = v;
+<             }
+<         else if (v < key && left != :null)
+<             {
+<             left . insert(v);
+<             }
+<         else if (v < key)
+<             {
+<             left = tree();
+<             left . insert(v);
+<             }
+<         else if (right != :null)
+<             {
+<             right . insert(v);
 <             }
 <         else
 <             {
-<             newRoot = rightChild(root);
+<             right = tree();
+<             right . insert(v);
 <             }
-<         items[newRoot] = items[root];
-<         items[root] = extreme;
-<         heapify(newRoot);
 <         }
-<     function findExtremalChild(root)
+<     function find(v)
 <         {
-<         var extreme;
-< 
-<         extreme = extremal(op,items[root],items[leftChild(root)]);
-< 
-<         if (rightChild(root) >= size)
+<         if (key == :null)
 <             {
-<             extreme;
+<             this;
+<             }
+<         else if (v == key)
+<             {
+<             this;
+<             }
+<         else if (v < key && left != :null)
+<             {
+<             left . find(v);
+<             }
+<         else if (v < key)
+<             {
+<             :null;
+<             }
+<         else if (right != :null)
+<             {
+<             right . find(v);
 <             }
 <         else
 <             {
-<             extremal(op,extreme,items[rightChild(root)]);
+<             :null;
 <             }
 <         }
-<     function build-heap()
-<         {
-<         var i;
-< 
-<         for (i = size - 1, i >= 0, i = i - 1)
-<             {
-<             heapify(i);
-<             }
-<         }
-< 
-<     function leaf?(x)
-<         {
-<         leftChild(x) >= size;
-<         }
-< 
-<     build-heap();
 <     this;
 <     }
 < 
-< function heap-sort(items,op)
+< function lookup(t,i)
 <     {
-<     var i;
-<     var h;
+<     var result = t . find(i);
 < 
-<     h = heap(items,op);
-< 
-<     while (h . size > 0)
+<     if (result == :null)
 <         {
-<         print(h . deleteMin());
-<         if (h . size > 0,print(" "));
+<         "not found!";
+<         }
+<     else if (t . key == :null)
+<         {
+<         "empty tree";
+<         }
+<     else if (result . left == :null && result . right == :null)
+<         {
+<         "it's a leaf!";
+<         }
+<     else
+<         {
+<         "it's an interior node!";
 <         }
 <     }
 < 
-< function extremal(op,a,b)
+< function main()
 <     {
-<     if (a op b,a,b);
-<     }
+<     var i;
+<     var data = array(2,3,1);
+<     var search = array(4,2,1);
+<     var size = 3;
+<     var t = tree();
+< 
+<     i = 0;
+<     while (i < size)
+<         {
+<         print("inserting ", data . i, "\n");
+<         t . insert(data . i);
+<         i = i + 1;
+<         }
 ---
->         (if (== extreme (getElement items (leftChild root)))
->             (set! newRoot (leftChild root))
->             (set! newRoot (rightChild root))
->             )
-> 
->         (setElement items newRoot (getElement items root))
->         (setElement items root extreme)
->         (heapify newRoot)
->         )
-> 
->     (define (findExtremalChild root)
->         (define extreme nil)
->         (set! extreme 
->             (extremal op
->                 (getElement items root)
->                 (getElement items (leftChild root))))
-> 
->         (if (>= (rightChild root) size)
->             extreme
->             (extremal op extreme (getElement items (rightChild root)))
->             )
->         )
-> 
->     (define (build-heap)
->         (define i nil)
->         (for (set! i (- size 1)) (>= i 0) (set! i (- i 1))
->             (println "heapifying element " i)
->             (heapify i)
->             (println "element " i " has been heapified")
+> (define (tree)
+>     (define key nil)
+>     (define left nil)
+>     (define right nil)
+>     (define (insert v)
+>             (cond 
+>             ((null? key)
+>                 (set! key v)
+>                 )
+>             ((and (< v key) (valid? left))
+>                 ((left 'insert) v)
+>                 )
+>             ((< v key)
+>                 (set! left (tree))
+>                 ((left 'insert) v)
+>                 )
+>             ((valid? right)
+>                 ((right 'insert) v)
+>                 )
+>             (else
+>                 (set! right (tree))
+>                 ((right 'insert) v)
+>                 )
 >             )
 >         )
 > 
->     (define (leaf? x) (>= (leftChild x) size))
-> 
->     (println "about to build-heap...")
->     (build-heap)
+>     (define (find v)
+>         (cond
+>             ((null? key)
+>                 this
+>                 )
+>             ((eq? v key)
+>                 this
+>                 )
+>             ((and (< v key) (valid? left))
+>                 ((left 'find) v)
+>                 )
+>             ((< v key)
+>                 nil
+>                 )
+>             ((valid? right)
+>                 ((right 'find) v)
+>                 )
+>             (else
+>                 nil
+>                 )
+>             )
+>         )
 >     this
 >     )
 > 
-> (define (heap-sort items op)
->     (define i nil)
->     (define h nil)
-> 
->     (set! h (heap items op))
-> 
->     (while (> (get 'size h) 0)
->         (print ((get 'deleteExtreme h)))
->         (if (> (get 'size h) 0) (print " "))
+> (define (lookup t i)
+>     (define result ((t 'find) i))
+>     (cond
+>         ((null? result)
+>             "not found!"
+>             )
+>         ((null? (t 'key))
+>             "empty tree";
+>             )
+>         ((and (null? (result 'left)) (null? (result 'right)))
+>             "it's a leaf!";
+>             )
+>         (else
+>             "it's an interior node!";
+>             )
 >         )
->     (println "\n")
 >     )
 > 
-> (define (extremal op a b)
->     (if (op a b) a b)
+> (define (main)
+>     (define i)
+>     (define num nil)
+>     (define input (array 2  3 1))
+>     (define search (array 4  2  1))
+>     (define t (tree))
+> 
+>     (set! i 0)
+>     (while (< i (length input))
+>         (set! num (getElement input i))
+>         (print "inserting " num "\n")
+>         ((t 'insert) num)
+>         (++ i)
+>         )
+99,107c85,92
+<     i = 0;
+<     while (i < size)
+<         {
+<         print("looking for ", search . i, ": ", lookup(t,search . i),"\n");
+<         i = i + 1;
+<         }
+< 
+<     print("good-bye!\n");
+<     }
+---
+>     (set! i 0)
+>     (while (< i (length search))
+>         (set! num (getElement search i))
+>         (print "looking for "  num  ": "  (lookup t num) "\n")
+>         (++ i)
+>         )
+>     (print "good-bye!\n")
 >     )
-94c81
-< var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
+109c94
+< main();
 ---
-> (define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
-96,97c83
-< heap-sort(a,>);
-< println("\n");
----
-> (heap-sort a >)
-99,100c85,86
-< inspect(a);
-< inspect(extremal . parameters);
----
-> (inspect a)
-> (inspect (get 'parameters extremal))
-102c88,90
-< 88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
----
-> about to build-heap...
-> heapifying element 16
-> 3 31 6 88 16 25 20 9 29 6 4 5 10 4 3 0 0
-104,105c92,93
-< a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
-< extremal . parameters is (op,a,b)
----
-> a is [0,0,3,4,10,5,4,6,29,9,20,25,16,88,6,31,3]
-> (get (quote parameters) extremal) is (op a b)
+> (main)
 ------------------------------------------

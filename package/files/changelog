@@ -1,5 +1,6 @@
 scam (1.1)
 
+  * using an uninitialized variable now throws an exception
   * allowed object to be called as functions to access fields
   * fixed gc bug in while function
   * changed ScamArgs not to include 'scam' and scam options

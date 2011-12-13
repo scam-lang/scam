@@ -2,13 +2,15 @@
     (define x)
     (println "entering f...")
     (if #t
-        (println "entering block")
-        (return 3)
-        (println "leaving block (this should not be displayed)")
-        5
+        (begin
+            (println "entering block")
+            (return 3)
+            (println "leaving block (this should not be displayed)")
+            5
+            )
         )
     (print "leaving f (this should not be displayed)\n")
-    ;(return 22)
+    (return 22)
     (print "really leaving f (this should not be displayed)\n")
     10
     )

@@ -2,22 +2,27 @@
     (define x)
     (println "entering f...")
     (if #t
-        (print("entering block")
-        //(return 3)
-        (println "leaving block (this should not be displayed)")
-        5
-        }
-    print("leaving f (this should not be displayed)\n");
-    //return 22;
-    print("really leaving f (this should not be displayed)\n");
-    return 10;
-    }
+        (begin
+            (println "entering block")
+            (return 3)
+            (println "leaving block (this should not be displayed)")
+            5
+            )
+        )
+    (print "leaving f (this should not be displayed)\n")
+    (return 22)
+    (print "really leaving f (this should not be displayed)\n")
+    10
+    )
 
-var z = 0;
-print("f() should return 3\n");
-z = f();
-print("f() returns ",z,"\n");
-println("done");
+(define z 0)
+(print "f() should return 3\n") 
+(set! z (f))
+(print "f() returns " z "\n") 
+(println "done");
 ------------------------------------------
-EXCEPTION: syntaxException
-file return.s,line 21: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+f() should return 3
+entering f...
+entering block
+f() returns 3
+done

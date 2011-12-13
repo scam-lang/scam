@@ -1,3 +1,4 @@
+(define else #t)
 (define __builtin __context)
 (define __main-lib this)
 (define nil? null?)

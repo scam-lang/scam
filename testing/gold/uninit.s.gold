@@ -1,6 +1,6 @@
-var x;
+(define x)
 
-print(x + 1);
+(println (+ x 1))
 ------------------------------------------
-EVALUATION ERROR: :uninitializedVariable
-uninit.s,line 3: variable x is uninitialized
+EXCEPTION: uninitializedVariable
+file uninit.s,line 3: variable x is uninitialized

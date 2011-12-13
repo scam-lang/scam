@@ -1,30 +1,32 @@
-    function try($store,$code,$alternative)
-        {
-        var result = catch(force($code));
-        if (type(result) == :ERROR)
-            {
-            $store = result;
-            force($alternative);
-            }
-        result;
-        }
+(define (try # $store $code $alternative)
+    (define result (catch (eval $code #)))
+    (if (error? result)
+        (begin
+            (set $store result #)
+            (eval $alternative #)
+            )
+        )
+    result
+    )
 
-    var error;
-    var a = 6,b = 0;
+(define error)
+(define a 6)
+(define b 0)
 
-    try (error)
-        {
-        a / b;
-        }
-    else if (error . type == :undefinedVariable)
-        {
-        println("try block has an undefined variable");
-        }
-    else 
-        {
-        println("try block has a divide error");
-        }
+(try error
+    (/ a b)
+    (if (eq? (error 'code) 'undefinedVariable)
+        (println "try block has an undefined variable")
+        (println "try block has a divide error")
+        )
+    )
+(try error
+    (/ a c)
+    (if (eq? (get* error 'code) 'undefinedVariable)
+        (println "try block has an undefined variable")
+        (println "try block has a divide error")
+        )
+    )
 ------------------------------------------
-ERROR OBJECT: :mathError
-try.s,line 17: division: cannot divide by zero
 try block has a divide error
+try block has an undefined variable

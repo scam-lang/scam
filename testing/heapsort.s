@@ -18,8 +18,11 @@
 
         (if (leaf? root)
             (begin
+                (inspect root)
                 (println "it's a leaf")
-                (return 'ok))
+                (println "heapify level is " __level)
+                (return 'ok)
+                (inspect root))
             )
         
         (set! extreme (findExtremalChild root))
@@ -51,11 +54,15 @@
         )
 
     (define (build-heap)
-        (for (define i (- size 1)) (>= i 0) (-- i)
+        (for (define i (- size 1)) (inspect (>= i 0)) (inspect (-- i))
             (println "heapifying index " i)
+            (println "buildheap level is " __level)
             (heapify i)
+            (inspect r)
             (println "index " i " has been heapified")
             )
+        (inspect i)
+        (println "root is now " (getElement items 0))
         )
 
     (define (leaf? x) (>= (leftChild x) size))
@@ -65,16 +72,17 @@
     (println "done with build-heap")
     this
     )
+
 (define (heap-sort items op)
     (define h nil)
 
     (set! h (heap items op))
 
-    (while (> (h 'size) 0)
-        (print ((h 'deleteExtreme)))
-        (if (> (get 'size h) 0) (print " "))
-        )
-    (println "\n")
+    ;(while (> (h 'size) 0)
+    ;    (print ((h 'deleteExtreme)))
+    ;    (if (> (get 'size h) 0) (print " "))
+    ;    )
+    ;(println "\n")
     )
 
 (define (extremal op a b)

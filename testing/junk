@@ -1,105 +1,117 @@
-include("basics");
-
-function heap(items,op)
+function tree()
     {
-    var size = length(items);
-
-    function leftChild(x) { 2 * x + 1; }
-    function rightChild(x) { 2 * x + 2; }
-    function deleteMin()
+    var key = :null;
+    var left = :null;
+    var right = :null;
+    function insert(v)
         {
-        var temp = items[0];
-        items[0] = items[size - 1];
-        items[size - 1] = temp;
-        size = size - 1;
-        heapify(0);
-        temp;
-        }
-    function heapify(root)
-        {
-        var extreme;
-        var newRoot;
-
-        if (leaf?(root)) { return :ok; }
-        
-        extreme = findExtremalChild(root);
-
-        if (extreme == items[root]) { return :ok; }
-
-        if (extreme == items[leftChild(root)])
+        if (key == :null)
             {
-            newRoot = leftChild(root);
+            key = v;
+            }
+        else if (v < key && left != :null)
+            {
+            left . insert(v);
+            }
+        else if (v < key)
+            {
+            left = tree();
+            left . insert(v);
+            }
+        else if (right != :null)
+            {
+            right . insert(v);
             }
         else
             {
-            newRoot = rightChild(root);
+            right = tree();
+            right . insert(v);
             }
-        items[newRoot] = items[root];
-        items[root] = extreme;
-        heapify(newRoot);
         }
-    function findExtremalChild(root)
+    function find(v)
         {
-        var extreme;
-
-        extreme = extremal(op,items[root],items[leftChild(root)]);
-
-        if (rightChild(root) >= size)
+        if (key == :null)
             {
-            extreme;
+            this;
+            }
+        else if (v == key)
+            {
+            this;
+            }
+        else if (v < key && left != :null)
+            {
+            left . find(v);
+            }
+        else if (v < key)
+            {
+            :null;
+            }
+        else if (right != :null)
+            {
+            right . find(v);
             }
         else
             {
-            extremal(op,extreme,items[rightChild(root)]);
+            :null;
             }
         }
-    function build-heap()
-        {
-        var i;
-
-        for (i = size - 1, i >= 0, i = i - 1)
-            {
-            heapify(i);
-            }
-        }
-
-    function leaf?(x)
-        {
-        leftChild(x) >= size;
-        }
-
-    build-heap();
     this;
     }
 
-function heap-sort(items,op)
+function lookup(t,i)
     {
-    var i;
-    var h;
+    var result = t . find(i);
 
-    h = heap(items,op);
-
-    while (h . size > 0)
+    if (result == :null)
         {
-        print(h . deleteMin());
-        if (h . size > 0,print(" "));
+        "not found!";
+        }
+    else if (t . key == :null)
+        {
+        "empty tree";
+        }
+    else if (result . left == :null && result . right == :null)
+        {
+        "it's a leaf!";
+        }
+    else
+        {
+        "it's an interior node!";
         }
     }
 
-function extremal(op,a,b)
+function main()
     {
-    if (a op b,a,b);
+    var i;
+    var data = array(2,3,1);
+    var search = array(4,2,1);
+    var size = 3;
+    var t = tree();
+
+    i = 0;
+    while (i < size)
+        {
+        print("inserting ", data . i, "\n");
+        t . insert(data . i);
+        i = i + 1;
+        }
+    
+    i = 0;
+    while (i < size)
+        {
+        print("looking for ", search . i, ": ", lookup(t,search . i),"\n");
+        i = i + 1;
+        }
+
+    print("good-bye!\n");
     }
 
-var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
-
-heap-sort(a,>);
-println("\n");
-
-inspect(a);
-inspect(extremal . parameters);
+main();
 ------------------------------------------
-88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
-
-a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
-extremal . parameters is (op,a,b)
+inserting 2
+inserting 3
+inserting 1
+looking for 4: not found!
+looking for 2: it's an interior node!
+looking for 1: it's a leaf!
+good-bye!

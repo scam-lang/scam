@@ -71,14 +71,15 @@ eval(int expr, int env)
         if (isReturn(result))
             {
             int s = error_value(result);
-            //printf("it's a return!\n");
-            //debug("return expression",thunk_code(s));
-            //printf("return level: %d\n",ival(env_level(thunk_context(s))));
-            //printf("current level: %d\n",ival(env_level(env)));
+            debug("it's a return from",expr);
+            debug("return expression",thunk_code(s));
+            printf("return level: %d\n",ival(env_level(thunk_context(s))));
+            printf("current level: %d\n",ival(env_level(env)));
+            printf("original level: %d\n",level);
             if (level < ival(env_level(thunk_context(s))))
                 {
                 result = s;
-                //debug("result is now",result);
+                debug("result is now",result);
                 }
             }
 

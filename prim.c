@@ -58,11 +58,13 @@ static int
 defineIdentifier(int name,int init,int env)
     {
     //debug("init",init);
-    if (init != 0 && !sameSymbol(init,uninitializedSymbol))
+    if (init == 0)
+        init = uninitializedSymbol;
+    else
         {
         push(name);
         push(env);
-        init = eval(init,env);
+        init = eval(car(init),env);
         env = pop();
         name = pop();
 
@@ -108,13 +110,22 @@ static int
 define(int args)
     {
     int actualArgs = cadr(args);
-    int first = car(actualArgs);
-    int rest = cdr(actualArgs);
+    int first,rest;
+    
+    if (actualArgs == 0)
+        return throw(exceptionSymbol,
+            "file %s,line %d: "
+            "not enough arguments for definition",
+            SymbolTable[file(args)],line(args)
+            );
+
+    first = car(actualArgs);
+    rest = cdr(actualArgs);
 
     if (type(first) == CONS)
         return defineFunction(car(first),cdr(first),rest,car(args));
     else if (type(first) == SYMBOL)
-        return defineIdentifier(first,car(rest),car(args));
+        return defineIdentifier(first,rest,car(args));
     else
         return throw(exceptionSymbol,
             "file %s,line %d: "
@@ -1214,9 +1225,6 @@ cond(int args)
         {
         int result;
         int condition = caar(cases);
-
-        if (sameSymbol(condition,elseSymbol))
-            return  evalList(cdar(cases),env,ALLBUTLAST);
 
         push(env);
         push(cases);

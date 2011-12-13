@@ -1,109 +1,94 @@
-function tree()
-    {
-    var key = :null;
-    var left = :null;
-    var right = :null;
-    function insert(v)
-	{
-	if (key == :null)
-	    {
-	    key = v;
-	    }
-	else if (v < key && left != :null)
-	    {
-	    left . insert(v);
-	    }
-	else if (v < key)
-	    {
-	    left = tree();
-	    left . insert(v);
-	    }
-	else if (right != :null)
-	    {
-	    right . insert(v);
-	    }
-	else
-	    {
-	    right = tree();
-	    right . insert(v);
-	    }
-	}
-    function find(v)
-	{
-	if (key == :null)
-	    {
-	    this;
-	    }
-	else if (v == key)
-	    {
-	    this;
-	    }
-	else if (v < key && left != :null)
-	    {
-	    left . find(v);
-	    }
-	else if (v < key)
-	    {
-	    :null;
-	    }
-	else if (right != :null)
-	    {
-	    right . find(v);
-	    }
-	else
-	    {
-	    :null;
-	    }
-	}
-    this;
-    }
+(define (tree)
+    (define key nil)
+    (define left nil)
+    (define right nil)
+    (define (insert v)
+	    (cond 
+            ((null? key)
+                (set! key v)
+                )
+            ((and (< v key) (valid? left))
+                ((left 'insert) v)
+                )
+            ((< v key)
+                (set! left (tree))
+                ((left 'insert) v)
+                )
+            ((valid? right)
+                ((right 'insert) v)
+                )
+            (else
+                (set! right (tree))
+                ((right 'insert) v)
+                )
+            )
+        )
 
-function lookup(t,i)
-    {
-    var result = t . find(i);
+    (define (find v)
+        (cond
+            ((null? key)
+                this
+                )
+            ((eq? v key)
+                this
+                )
+            ((and (< v key) (valid? left))
+                ((left 'find) v)
+                )
+            ((< v key)
+                nil
+                )
+            ((valid? right)
+                ((right 'find) v)
+                )
+            (else
+                nil
+                )
+            )
+        )
+    this
+    )
 
-    if (result == :null)
-	{
-	"not found!";
-	}
-    else if (t . key == :null)
-	{
-	"empty tree";
-	}
-    else if (result . left == :null && result . right == :null)
-	{
-	"it's a leaf!";
-	}
-    else
-	{
-	"it's an interior node!";
-	}
-    }
+(define (lookup t i)
+    (define result ((t 'find) i))
+    (cond
+        ((null? result)
+            "not found!"
+            )
+        ((null? (t 'key))
+            "empty tree";
+            )
+        ((and (null? (result 'left)) (null? (result 'right)))
+            "it's a leaf!";
+            )
+        (else
+            "it's an interior node!";
+            )
+        )
+    )
 
-function main()
-    {
-    var i;
-    var data = array(2,3,1);
-    var search = array(4,2,1);
-    var size = 3;
-    var t = tree();
+(define (main)
+    (define i)
+    (define num nil)
+    (define input (array 2  3 1))
+    (define search (array 4  2  1))
+    (define t (tree))
 
-    i = 0;
-    while (i < size)
-        {
-	print("inserting ", data . i, "\n");
-        t . insert(data . i);
-	i = i + 1;
-	}
+    (set! i 0)
+    (while (< i (length input))
+        (set! num (getElement input i))
+        (print "inserting " num "\n")
+        ((t 'insert) num)
+        (++ i)
+        )
     
-    i = 0;
-    while (i < size)
-        {
-	print("looking for ", search . i, ": ", lookup(t,search . i),"\n");
-	i = i + 1;
-	}
+    (set! i 0)
+    (while (< i (length search))
+        (set! num (getElement search i))
+        (print "looking for "  num  ": "  (lookup t num) "\n")
+        (++ i)
+        )
+    (print "good-bye!\n")
+    )
 
-    print("good-bye!\n");
-    }
-
-main();
+(main)
