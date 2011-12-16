@@ -35,11 +35,14 @@
     )
 
 
-(define (for # init $test $increment $)
-    (while (eval $test #)
-        (evalList $ #)
+(define (for # init $fortest $increment $)
+    (define forresult nil)
+    (println "for level: " __level)
+    (while (eval $fortest #)
+        (set 'forresult (evalList $ #))
         (eval $increment #)
         )
+    forresult
     )
 
 (define (for-each2 # $indexVar items $)
@@ -158,12 +161,12 @@
     (evalList $ e)
     )
 
-(define (evalList items env)
-    (while (valid? (cdr items)) ; for tail recursion
-         (eval (car items) env)
-         (set 'items (cdr items))
+(define (evalList listOfitems env)
+    (while (valid? (cdr listOfitems)) ; for tail recursion
+         (eval (car listOfitems) env)
+         (set 'listOfitems (cdr listOfitems))
          )
-    (eval (car items) env)
+    (eval (car listOfitems) env)
     )
 
 (define (negative? n) (< n 0))

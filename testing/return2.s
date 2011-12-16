@@ -1,11 +1,16 @@
-(define size 17)
-
 (define (heapify root)
-    (return 'ok))
+    (println "g level: "  __level)
+    (return 'ok)
+    'ok
+    )
     
 (define (build-heap)
-    (for (define i (- size 1)) (>= i 0) (-- i)
+    (println "build-heap level: " __level)
+    (define i 16)
+    (for 'ok (>= i 0) (-- i)
         (println "heapifying index " i)
+        (println "loop body level: " __level)
+        (readRawChar)
         (heapify i)
         (println "index " i " has been heapified")
         )

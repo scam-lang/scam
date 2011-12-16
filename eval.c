@@ -19,6 +19,7 @@ eval(int expr, int env)
     {
     int result;
     int level = ival(env_level(env));
+    int orig = expr; //orig is not gc safe!
 
     //debug("initial eval",expr);
     //printf("env level is %d\n",level);
@@ -27,9 +28,12 @@ eval(int expr, int env)
         {
         int tag;
 
-        //debug("eval",expr);
-        //printf("env level is %d\n",ival(env_level(env)));
-        //debug(" env",env);
+        if (level > 0)
+            {
+            debug("eval",expr);
+            //printf("env level is %d\n",ival(env_level(env)));
+            //debug(" env",env);
+            }
 
         if (expr == 0) { result = 0; break; }
         if (type(expr) == INTEGER) { result = expr; break; }
@@ -71,19 +75,19 @@ eval(int expr, int env)
         if (isReturn(result))
             {
             int s = error_value(result);
-            debug("it's a return from",expr);
-            debug("return expression",thunk_code(s));
-            printf("return level: %d\n",ival(env_level(thunk_context(s))));
-            printf("current level: %d\n",ival(env_level(env)));
-            printf("original level: %d\n",level);
+            //debug("it's a return from",expr);
+            //printf("    return level: %d\n",ival(env_level(thunk_context(s))));
+            //printf("    current level: %d\n",ival(env_level(env)));
+            //printf("    original level: %d\n",level);
             if (level < ival(env_level(thunk_context(s))))
                 {
                 result = s;
-                debug("result is now",result);
+                //debug("    ****result is now",result);
                 }
+            else
+                debug("returning from",expr);
             }
-
-        if (isThrow(result))
+        else if (isThrow(result))
             {
             if (!(type(expr) == CONS) || !(sameSymbol(car(expr),beginSymbol)))
                 {
@@ -100,7 +104,9 @@ eval(int expr, int env)
         env = thunk_context(result);
         }
 
-    //debug("final result",result);
+    debug("final result",result);
+    //debug("original expression was",orig);
+
     return result;
     }
         
@@ -283,12 +289,21 @@ evalList(int items,int env,int mode)
 
         if (isThrow(result))
             {
+            if (isReturn(result))
+               {
+               //debug("a return was found",thunk_code(error_value(result)));
+               //printf("   return level: %d\n",
+               //    ival(env_level(thunk_context(error_value(result)))));
+               //printf("    env level: %d\n",ival(env_level(env)));
+               //debug("    expressions",items);
+               }
             //if (isReturn(result) && ival(env_level(env) < thunk_context(error_value(result)))
             //    return error_value(result);
             //else
             //    return result;
             return result;
             }
+        //if (isThrow(result))
         //if (isThrow(result))
         //    return throwAgain(car(items),result);
 
