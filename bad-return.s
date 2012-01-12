@@ -1,6 +1,7 @@
 (define (f value)
     (inspect value)
     (return value)
+    (println "should not see this!")
     'ok
     )
     
