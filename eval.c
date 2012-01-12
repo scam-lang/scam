@@ -30,7 +30,7 @@ eval(int expr, int env)
 
         if (level > 0)
             {
-            debug("eval",expr);
+            //debug("eval",expr);
             //printf("env level is %d\n",ival(env_level(env)));
             //debug(" env",env);
             }
@@ -84,8 +84,8 @@ eval(int expr, int env)
                 result = s;
                 //debug("    ****result is now",result);
                 }
-            else
-                debug("returning from",expr);
+            //else
+                //debug("returning from",expr);
             }
         else if (isThrow(result))
             {
@@ -104,7 +104,7 @@ eval(int expr, int env)
         env = thunk_context(result);
         }
 
-    debug("final result",result);
+    //debug("final result",result);
     //debug("original expression was",orig);
 
     return result;

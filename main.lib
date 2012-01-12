@@ -37,7 +37,7 @@
 
 (define (for # init $fortest $increment $)
     (define forresult nil)
-    (println "for level: " __level)
+    ;(println "for level: " __level)
     (while (eval $fortest #)
         (set 'forresult (evalList $ #))
         (eval $increment #)
