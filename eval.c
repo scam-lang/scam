@@ -102,6 +102,9 @@ eval(int expr, int env)
 
         expr = thunk_code(result);
         env = thunk_context(result);
+		
+		// Keep the level at lowest setting to properly handle returns
+		level = ival(env_level(env))<level?ival(env_level(env)):level;
         }
 
     //debug("final result",result);
