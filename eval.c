@@ -79,11 +79,17 @@ eval(int expr, int env)
             //printf("    return level: %d\n",ival(env_level(thunk_context(s))));
             //printf("    current level: %d\n",ival(env_level(env)));
             //printf("    original level: %d\n",level);
-            if (level < ival(env_level(thunk_context(s))))
+            if (level < (ival(env_level(thunk_context(s))) - returns))
                 {
                 result = s;
+				returns++;// recurReturn
                 //debug("    ****result is now",result);
                 }
+			else
+				{
+				ival(env_level(thunk_context(s))) = ival(env_level(thunk_context(s))) - returns; 
+				// allowing recurReturns when switching to new evaluation context
+				}
             //else
                 //debug("returning from",expr);
             }
