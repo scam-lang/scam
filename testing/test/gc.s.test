@@ -1,9 +1,10 @@
 (define (f x)
     (define y (* x x))
 
+    (inspect f)
+
     (gc)
 
-    (inspect f)
     (inspect x)
     (inspect y)
     )

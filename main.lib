@@ -9,6 +9,23 @@
 (define ^ expt)
 (define ** expt)
 
+(define (backquote # $items)
+    (define (helper items)
+        (inspect items)
+        (inspect (get '__context this))
+        (cond
+            ((null? items) nil)
+            ((eq? (car items) ',)
+                (cons (eval (cadr items) #) (helper (cddr items)))
+                )
+            (else
+                (cons (car items) (helper (cdr items)))
+                )
+            )
+        )
+    (helper $items)
+    )
+
 (define (set! # $x y @)
     (define env (if (null? @) # (car @)))
     (set $x y env)

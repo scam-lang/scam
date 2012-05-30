@@ -25,7 +25,7 @@
 (define f (time))
 (println "(fib " x ") is " result ", " (- f s) " seconds.")
 ------------------------------------------
-(fib 25) is 75025, 21 seconds.
+(fib 25) is 75025, 3 seconds.
 compiling fib...
 fib compiled.
-(fib 25) is 75025, 8 seconds.
+(fib 25) is 75025, 1 seconds.

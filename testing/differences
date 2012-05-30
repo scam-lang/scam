@@ -1,209 +1,2586 @@
 OLD vs. NEW
-tree2.s
+adders.s
 ------------------------------------------
-1,97c1,83
-< function tree()
+------------------------------------------
+agenda.s
+------------------------------------------
+10c10
+<         ((. actions enqueue) result  (+ time delay))
+---
+>         ((actions 'enqueue) result  (+ time delay))
+13,15c13,15
+<         (while (not((. actions empty)))
+<             (assign time ((. actions peekRank)))
+<             (define result ((. actions dequeue)))
+---
+>         (while (not((actions 'empty)))
+>             (set 'time ((actions 'peekRank)))
+>             (define result ((actions 'dequeue)))
+20c20
+<         (assign time 0)
+---
+>         (set 'time 0)
+------------------------------------------
+apply.s
+------------------------------------------
+------------------------------------------
+arrays.s
+------------------------------------------
+------------------------------------------
+a.s
+------------------------------------------
+------------------------------------------
+assoc.s
+------------------------------------------
+------------------------------------------
+bad.s
+------------------------------------------
+------------------------------------------
+block.s
+------------------------------------------
+------------------------------------------
+call.s
+------------------------------------------
+------------------------------------------
+catch.s
+------------------------------------------
+------------------------------------------
+chain.s
+------------------------------------------
+18,20c18,25
+< (. obj o x) is one
+< output should be 'two'
+< (. obj o y) is two
+---
+> (. obj o x) is <object 12485>
+>              __label  : throw
+>                 code  : undefinedVariable
+>                value  : "file chain.s,line 13: variable . is undefined"
+>                trace  : ((. obj o x))
+> 
+> EXCEPTION: undefinedVariable
+> file chain.s,line 13: variable . is undefined
+------------------------------------------
+common2.s
+------------------------------------------
+6,7c6,7
+< ((__label environment) (__context <object 4707>) (__level 0) (__constructor nil) (this <object 11590>) (common <object 11668>) (__included_common2.s #t))
+< ((__label environment) (__context <object 11590>) (__level 0) (__constructor nil) (this <object 11668>) (count 0))
+---
+> ((__label environment) (__context <object 4745>) (__level 0) (__constructor nil) (this <object 11698>) (common <object 11776>) (__included_common2.s #t))
+> ((__label environment) (__context <object 11698>) (__level 0) (__constructor nil) (this <object 11776>) (count 0))
+------------------------------------------
+common3.s
+------------------------------------------
+------------------------------------------
+common4.s
+------------------------------------------
+34,38c34,41
+< help!
+< ((. (new (x)) getCommon)) is 4
+< (. (new (x)) uncommon) is 1
+< help!
+< ((. (new (x)) getCommon)) is 4
+---
+> ((. (new (x)) getCommon)) is <object 13884>
+>              __label  : throw
+>                 code  : undefinedVariable
+>                value  : "file common4.s,line 30: variable . is undefined"
+>                trace  : (((. (new (x)) getCommon)) (. (new (x)) getCommon))
+> 
+> EXCEPTION: undefinedVariable
+> file common4.s,line 30: variable . is undefined
+------------------------------------------
+common5.s
+------------------------------------------
+42,47c42,43
+< x's common count is 3
+< y's common count is 3
+< z's common count is 3
+< x's count is 1
+< y's count is 1
+< z's count is 1
+---
+> EXCEPTION: undefinedVariable
+> file common5.s,line 16: variable assign is undefined
+------------------------------------------
+common.s
+------------------------------------------
+35,38c35,36
+< x's common count is 2
+< y's common count is 2
+< x's uncommon count is 1
+< y's uncommon count is 1
+---
+> EXCEPTION: undefinedVariable
+> file common.s,line 14: variable assign is undefined
+------------------------------------------
+cond.s
+------------------------------------------
+0a1,15
+> (for (define i 0) (< i 4) (++ i)
+>     (cond
+>         ((= i 0) (println 'zero))
+>         ((= i 1) (println 'one))
+>         ((= i 2) (println 'two))
+>         (else (println "more than two"))
+>         )
+>     )
+> (inspect else)
+> ------------------------------------------
+> zero
+> one
+> two
+> more than two
+> else is #t
+------------------------------------------
+defined.s
+------------------------------------------
+19,22c19,20
+< - is defined!
+< + is defined!
+< +!+ is not defined.
+< (defined? (quote defined?) this) is #t
+---
+> EXCEPTION: undefinedVariable
+> file defined.s,line 10: variable __id is undefined
+------------------------------------------
+delay.s
+------------------------------------------
+71,103c71
+< 1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 153 171 190 210 231 253 276 300 325 351 378 406 435 465 496 gc:1, 2040417 cells available
+< 528 561 595 630 666 703 741 780 820 gc:2, 2018659 cells available
+< 861 903 946 990 1035 1081 gc:3, 1993714 cells available
+< 1128 1176 1225 1275 1326 gc:4, 1989419 cells available
+< 1378 1431 1485 1540 gc:5, 1972996 cells available
+< 1596 1653 1711 gc:6, 1917904 cells available
+< 1770 1830 1891 gc:7, 1896821 cells available
+< 1953 2016 2080 gc:8, 1907223 cells available
+< 2145 2211 2278 gc:9, 1944603 cells available
+< 2346 2415 gc:10, 1886305 cells available
+< 2485 2556 gc:11, 1850355 cells available
+< 2628 2701 gc:12, 1834180 cells available
+< 2775 2850 gc:13, 1834995 cells available
+< 2926 3003 gc:14, 1850329 cells available
+< 3081 3160 gc:15, 1879094 cells available
+< 3240 3321 gc:16, 1919947 cells available
+< 3403 gc:17, 1800553 cells available
+< 3486 3570 gc:18, 1876392 cells available
+< 3655 gc:19, 1777424 cells available
+< 3741 3828 gc:20, 1882368 cells available
+< 3916 gc:21, 1794213 cells available
+< 4005 gc:22, 1723482 cells available
+< 4095 4186 gc:23, 1872603 cells available
+< 4278 gc:24, 1803487 cells available
+< 4371 gc:25, 1750168 cells available
+< 4465 gc:26, 1708861 cells available
+< 4560 gc:27, 1677951 cells available
+< 4656 gc:28, 1656950 cells available
+< 4753 gc:29, 1643954 cells available
+< 4851 gc:30, 1637391 cells available
+< 4950 gc:31, 1636786 cells available
+< 5050 gc:32, 1641491 cells available
+< ...
+---
+> 1 3 6 10 15 21 28 36 45 55 66 78 91 105 120 136 153 171 190 210 231 253 276 300 325 351 378 406 435 465 496 528 561 595 630 666 703 741 780 820 861 903 946 990 1035 1081 1128 1176 1225 1275 1326 1378 1431 1485 1540 1596 1653 1711 1770 1830 1891 1953 2016 2080 2145 2211 2278 2346 2415 2485 2556 2628 2701 2775 2850 2926 3003 3081 3160 3240 3321 3403 3486 3570 3655 3741 3828 3916 4005 4095 4186 4278 4371 4465 4560 4656 4753 4851 4950 5050 ...
+------------------------------------------
+env.s
+------------------------------------------
+11d10
+< TERM
+12a12
+> TERM
+20,21d19
+< SESSION_MANAGER
+< USERNAME
+22a21,22
+> USERNAME
+> SESSION_MANAGER
+24d23
+< PATH
+25a25
+> PATH
+27d26
+< EDITOR
+29c28
+< GNOME_KEYRING_PID
+---
+> EDITOR
+31c30
+< GDM_LANG
+---
+> GNOME_KEYRING_PID
+32a32
+> GDM_LANG
+35d34
+< SHLVL
+36a36
+> SHLVL
+40d39
+< XDG_DATA_DIRS
+41a41
+> XDG_DATA_DIRS
+43c43
+< VIMRUNTIME
+---
+> EMAIL
+46d45
+< VIM
+48d46
+< COLORTERM
+49a48
+> COLORTERM
+------------------------------------------
+error0.s
+------------------------------------------
+2,3c2
+< (println "including fact.s")
+< (include "fact.s")
+---
+> (include "error0.s")
+22,32d20
+< including fact.s
+< starting fact.s
+< including fib.s
+< starting fib.s
+< including fact.s
+< fib: fib(25) is 75025
+< 3 seconds
+< fib.s included - SHOULD ONLY SEE THIS ONCE
+< fact: fib(5) is 5
+< fact: fact(5) is 120
+< fact.s included - SHOULD ONLY SEE THIS ONCE
+34c22
+< 0 seconds
+---
+> 1 seconds
+------------------------------------------
+except2.s
+------------------------------------------
+------------------------------------------
+except3.s
+------------------------------------------
+------------------------------------------
+except4.s
+------------------------------------------
+------------------------------------------
+except.s
+------------------------------------------
+------------------------------------------
+extend.s
+------------------------------------------
+------------------------------------------
+extension.s
+------------------------------------------
+------------------------------------------
+fact.s
+------------------------------------------
+23c23
+< 2 seconds
+---
+> 3 seconds
+------------------------------------------
+fib-opt.s
+------------------------------------------
+18a19
+> (println "compiling fib...")
+19a21
+> (println "fib compiled.")
+26a29,30
+> compiling fib...
+> fib compiled.
+------------------------------------------
+fib.s
+------------------------------------------
+------------------------------------------
+foreach.s
+------------------------------------------
+------------------------------------------
+for.s
+------------------------------------------
+34,43c34,35
+< the value of i is 1
+< the value of i is 3
+< the value of i is 5
+< the value of i is 7
+< the value of i is 9
+< the value of i is 1
+< the value of i is 3
+< the value of i is 5
+< the value of i is 7
+< the value of i is 9
+---
+> EXCEPTION: undefinedVariable
+> file for.s,line 23: variable assign is undefined
+------------------------------------------
+f.s
+------------------------------------------
+------------------------------------------
+function.s
+------------------------------------------
+------------------------------------------
+gc.s
+------------------------------------------
+15d14
+< gc:1, 2087805 cells available
+------------------------------------------
+g.s
+------------------------------------------
+------------------------------------------
+heapsort.s
+------------------------------------------
+1c1,2
+< include("basics");
+---
+> (define (heap items op)
+>     (define size (length items))
+3,23c4,26
+< function heap(items,op)
 <     {
-<     var key = :null;
-<     var left = :null;
-<     var right = :null;
-<     function insert(v)
+<     var size = length(items);
+< 
+<     function leftChild(x) { 2 * x + 1; }
+<     function rightChild(x) { 2 * x + 2; }
+<     function deleteMin()
 <         {
-<         if (key == :null)
+<         var temp = items[0];
+<         items[0] = items[size - 1];
+<         items[size - 1] = temp;
+<         size = size - 1;
+<         heapify(0);
+<         temp;
+<         }
+<     function heapify(root)
+<         {
+<         var extreme;
+<         var newRoot;
+< 
+<         if (leaf?(root)) { return :ok; }
+---
+>     (define (leftChild x) (+ (* 2 x) 1))
+>     (define (rightChild x) (+ (* 2 x) 2))
+>     (define (deleteExtreme)
+>         (define temp (getElement items 0))
+>         (setElement items 0 (getElement items (- size 1)))
+>         (setElement items (- size 1) temp)
+>         (set! size (- size 1))
+>         (heapify 0)
+>         temp
+>         )
+> 
+>     (define (heapify root)
+>         (define extreme nil)
+>         (define newRoot nil)
+> 
+>         (if (leaf? root)
+>             (begin
+>                 (inspect root)
+>                 (println "it's a leaf")
+>                 (println "heapify level is " __level)
+>                 (return 'ok)
+>                 (inspect root))
+>             )
+25,92c28
+<         extreme = findExtremalChild(root);
+< 
+<         if (extreme == items[root]) { return :ok; }
+< 
+<         if (extreme == items[leftChild(root)])
 <             {
-<             key = v;
-<             }
-<         else if (v < key && left != :null)
-<             {
-<             left . insert(v);
-<             }
-<         else if (v < key)
-<             {
-<             left = tree();
-<             left . insert(v);
-<             }
-<         else if (right != :null)
-<             {
-<             right . insert(v);
+<             newRoot = leftChild(root);
 <             }
 <         else
 <             {
-<             right = tree();
-<             right . insert(v);
+<             newRoot = rightChild(root);
 <             }
+<         items[newRoot] = items[root];
+<         items[root] = extreme;
+<         heapify(newRoot);
 <         }
-<     function find(v)
+<     function findExtremalChild(root)
 <         {
-<         if (key == :null)
+<         var extreme;
+< 
+<         extreme = extremal(op,items[root],items[leftChild(root)]);
+< 
+<         if (rightChild(root) >= size)
 <             {
-<             this;
-<             }
-<         else if (v == key)
-<             {
-<             this;
-<             }
-<         else if (v < key && left != :null)
-<             {
-<             left . find(v);
-<             }
-<         else if (v < key)
-<             {
-<             :null;
-<             }
-<         else if (right != :null)
-<             {
-<             right . find(v);
+<             extreme;
 <             }
 <         else
 <             {
-<             :null;
+<             extremal(op,extreme,items[rightChild(root)]);
 <             }
 <         }
+<     function build-heap()
+<         {
+<         var i;
+< 
+<         for (i = size - 1, i >= 0, i = i - 1)
+<             {
+<             heapify(i);
+<             }
+<         }
+< 
+<     function leaf?(x)
+<         {
+<         leftChild(x) >= size;
+<         }
+< 
+<     build-heap();
 <     this;
 <     }
 < 
-< function lookup(t,i)
+< function heap-sort(items,op)
 <     {
-<     var result = t . find(i);
+<     var i;
+<     var h;
 < 
-<     if (result == :null)
+<     h = heap(items,op);
+< 
+<     while (h . size > 0)
 <         {
-<         "not found!";
+<         print(h . deleteMin());
+<         if (h . size > 0,print(" "));
 <         }
-<     else if (t . key == :null)
+<     }
+< 
+< function extremal(op,a,b)
+<     {
+<     if (a op b,a,b);
+<     }
+---
+>         (set! extreme (findExtremalChild root))
+94c30
+< var a = array(3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31);
+---
+>         (if (= extreme (getElement items root)) (return 'ok))
+96,97c32,96
+< heap-sort(a,>);
+< println("\n");
+---
+>         (if (= extreme (getElement items (leftChild root)))
+>             (set! newRoot (leftChild root))
+>             (set! newRoot (rightChild root))
+>             )
+> 
+>         (setElement items newRoot (getElement items root))
+>         (setElement items root extreme)
+> 
+>         (heapify newRoot)
+>         )
+> 
+>     (define (findExtremalChild root)
+>         (define extreme nil)
+>         (set! extreme 
+>             (extremal op
+>                 (getElement items root)
+>                 (getElement items (leftChild root))))
+> 
+>         (if (>= (rightChild root) size)
+>             extreme
+>             (extremal op extreme (getElement items (rightChild root)))
+>             )
+>         )
+> 
+>     (define (build-heap)
+>         (for (define i (- size 1)) (inspect (>= i 0)) (inspect (-- i))
+>             (println "heapifying index " i)
+>             (println "buildheap level is " __level)
+>             (heapify i)
+>             (inspect r)
+>             (println "index " i " has been heapified")
+>             )
+>         (inspect i)
+>         (println "root is now " (getElement items 0))
+>         )
+> 
+>     (define (leaf? x) (>= (leftChild x) size))
+> 
+>     (println "about to build-heap...")
+>     (build-heap)
+>     (println "done with build-heap")
+>     this
+>     )
+> 
+> (define (heap-sort items op)
+>     (define h nil)
+> 
+>     (set! h (heap items op))
+> 
+>     ;(while (> (h 'size) 0)
+>     ;    (print ((h 'deleteExtreme)))
+>     ;    (if (> (get 'size h) 0) (print " "))
+>     ;    )
+>     ;(println "\n")
+>     )
+> 
+> (define (extremal op a b)
+>     (if (op a b) a b)
+>     )
+> 
+> (define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
+> 
+> (println "before heapsorting: " a)
+> (heap-sort a >)
+> (println "after heapsorting:  " a)
+99,100c98
+< inspect(a);
+< inspect(extremal . parameters);
+---
+> (inspect (get* extremal 'parameters))
+102c100,112
+< 88 31 29 25 20 16 10 9 6 6 5 4 4 3 3 0 0
+---
+> before heapsorting: [3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31]
+> about to build-heap...
+> (>= i 0) is #t
+> heapifying index 16
+> buildheap level is 3
+> root is 16
+> it's a leaf
+> heapify level is 4
+> r is <object 16626>
+>              __label  : throw
+>                 code  : undefinedVariable
+>                value  : "file heapsort.s,line 61: variable r is undefined"
+>                trace  : nil
+104,105c114,115
+< a is [0,0,3,3,4,4,5,6,6,9,10,16,20,25,29,31,88]
+< extremal . parameters is (op,a,b)
+---
+> EXCEPTION: undefinedVariable
+> file heapsort.s,line 61: variable r is undefined
+------------------------------------------
+hide.s
+------------------------------------------
+37,41c37,38
+< EVALUATION ERROR: :restrictedAssignment
+< hide.s,line 7: you are only allowed to assign to simple variables
+< 4
+< 13
+< 13
+---
+> EXCEPTION: nonFunction
+> file hide.s,line 1: attempted to call STRING as a function
+------------------------------------------
+hook2.s
+------------------------------------------
+16,18c16,17
+< about to greet...
+< intercepted! initializer is hello, world!
+< hello, world!
+---
+> EXCEPTION: undefinedVariable
+> file hook2.s,line 1: variable function is undefined
+------------------------------------------
+hook.s
+------------------------------------------
+15,17c15,16
+< Intercepted!
+< about to greet...
+< hello, world!
+---
+> EXCEPTION: undefinedVariable
+> file hook.s,line 1: variable function is undefined
+------------------------------------------
+if2.s
+------------------------------------------
+27c27,28
+< three *is* less than 4!
+---
+> EXCEPTION: undefinedVariable
+> file if2.s,line 1: variable var is undefined
+------------------------------------------
+if3.s
+------------------------------------------
+47,63c47,48
+< EVALUATION ERROR: :argumentCountError
+< if3.s,line 8: too many arguments to if
+< the test is true
+< naughts!
+< the test is false
+< the test is true
+< onesies!
+< the test is false
+< the test is false
+< the test is true
+< binary!
+< the test is false
+< the test is false
+< the test is false
+< the test is true
+< trinary!
+< call if with too many arguments
+---
+> EXCEPTION: undefinedVariable
+> file if3.s,line 1: variable var is undefined
+------------------------------------------
+if4.s
+------------------------------------------
+26,45c26,27
+< function (test,$tBranch,$fBranch)
+<     {
+<     var oldIf = context . context . if;
+<     print("the test is ",test,"
+< ");
+<     oldIf (test)
 <         {
-<         "empty tree";
-<         }
-<     else if (result . left == :null && result . right == :null)
-<         {
-<         "it's a leaf!";
+<         while (:false)
+<             {
+<             println("huh");
+<             }
+<         force($tBranch);
 <         }
 <     else
 <         {
-<         "it's an interior node!";
+<         force($fBranch);
+<         }
+<     }
+< the test is true
+< three *is* less than 4!
+---
+> EXCEPTION: undefinedVariable
+> file if4.s,line 1: variable var is undefined
+------------------------------------------
+if5.s
+------------------------------------------
+24c24,25
+< 3 is less than 4!
+---
+> EXCEPTION: undefinedVariable
+> file if5.s,line 1: variable var is undefined
+------------------------------------------
+if.s
+------------------------------------------
+33,35c33,34
+< enter 0, 1, or 2: 
+< you entered 3
+< can't follow directions, can you?
+---
+> EXCEPTION: undefinedVariable
+> file if.s,line 1: variable //overload is undefined
+------------------------------------------
+lhs.s
+------------------------------------------
+30,33c30,31
+< z is 3 (should be 3)
+< xobj's a is z (should be z)
+< z now is 5 (should be 5)
+< xobj's a now is q (should be q)
+---
+> EXCEPTION: undefinedVariable
+> file lhs.s,line 1: variable var is undefined
+------------------------------------------
+linecheck.s
+------------------------------------------
+186,188c186,187
+< done
+< even
+< cleaning up...
+---
+> EXCEPTION: lexicalException
+> file linecheck.s,line 64: misformed number (1])
+------------------------------------------
+list.s
+------------------------------------------
+98,113c98,99
+< [ ]
+< [ 4 ]
+< [ 3 ]
+< [ 3 4 ]
+< [ 2 ]
+< [ 2 4 ]
+< [ 2 3 ]
+< [ 2 3 4 ]
+< [ 1 ]
+< [ 1 4 ]
+< [ 1 3 ]
+< [ 1 3 4 ]
+< [ 1 2 ]
+< [ 1 2 4 ]
+< [ 1 2 3 ]
+< [ 1 2 3 4 ]
+---
+> EXCEPTION: syntaxException
+> file list.s,line 97: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+------------------------------------------
+ln2.s
+------------------------------------------
+------------------------------------------
+logic.s
+------------------------------------------
+1,62c1,42
+< function AND(in1, in2, out, agenda)
+<     {
+<     var delay = 4; //milliseconds
+<     function recalculate()
+<         {
+<         if (in1 . get() == 1 && in2 . get() == 1)
+<             {
+<             agenda . schedule(out . set(1), delay);
+<             }
+<         else
+<             {
+<             agenda . schedule(out . set(0), delay);
+<             }
+<         }
+< 
+<     in1 . register(this);
+<     in2 . register(this);
+<     recalculate();
+<     this;
+<     }
+< 
+< 
+< function OR(in1, in2, out, agenda)
+<     {
+<     var delay = 3; //milliseconds
+<     function recalculate()
+<         {
+<         if (in1 . get() == 1 || in2 . get() == 1)
+<             {
+<             agenda . schedule(out . set(1), delay);
+<             }
+<         else
+<             {
+<             agenda . schedule(out . set(0), delay);
+<             }
+<         }
+< 
+<     in1 . register(this);
+<     in2 . register(this);
+<     this;
+<     }
+< 
+< 
+< function NOT(in, out, agenda)
+<     {
+<     var delay = 1; //milliseconds
+<     function recalculate()
+<         {
+<         if (in . get() == 0)
+<             {
+<             agenda . schedule(out . set(1), delay);
+<             }
+<         else
+<             {
+<             //println("output is 0");
+<             agenda . schedule(out . set(0), delay);
+<             }
+<         }
+< 
+<     in . register(this);
+<     this;
+<     }
+---
+> (define (AND in1 in2 out agenda)
+>     (define delay 4)  ;milliseconds
+>     (define (recalculate)
+>         (if (and (== ((in1 'get)) 1) (== ((in2 'get)) 1))
+>             ((agenda 'schedule) ((out 'set) 1) delay)
+>             ((agenda 'schedule) ((out 'set) 0) delay)
+>             )
+>         )
+> 
+>     ((in1 'register) this)
+>     ((in2 'register) this)
+>     (recalculate)
+>     this
+>     )
+> 
+> 
+> (define (OR in1 in2 out agenda)
+>     (define delay 3) ;milliseconds
+>     (define (recalculate)
+>         (if (or (== ((in1 'get)) 1) (== ((in2 'get)) 1))
+>             ((agenda 'schedule) ((out 'set) 1) delay)
+>             ((agenda 'schedule) ((out 'set) 0) delay)
+>             )
+>         )
+> 
+>     ((in1 'register) this)
+>     ((in2 'register) this)
+>     this
+>     )
+> 
+> (define (NOT in out agenda)
+>     (define delay 1)  ;milliseconds
+>     (define (recalculate)
+>         (if (== ((in 'get)) 0)
+>             ((agenda 'schedule) ((out 'set) 1) delay)
+>             ((agenda 'schedule) ((out 'set) 0) delay)
+>             )
+>         )
+> 
+>     ((in 'register) this)
+>     this
+>     )
+------------------------------------------
+map.s
+------------------------------------------
+45,56c45,46
+< mapping [ 1 2 3 4 ] 
+< mapping [ 2 3 4 ] 
+< mapping [ 3 4 ] 
+< mapping [ 4 ] 
+< mapping [ ] 
+< returning null
+< joining 16 with null
+< joining 9 with (16)
+< joining 4 with (9,16)
+< joining 1 with (4,9,16)
+< [ 1 2 3 4 ] 
+< [ 1 4 9 16 ] 
+---
+> EXCEPTION: undefinedVariable
+> file map.s,line 1: variable var is undefined
+------------------------------------------
+matrixproblem.s
+------------------------------------------
+27,28c27,28
+< length(mat) is 10
+< length(mat) is 20
+---
+> EXCEPTION: nonFunction
+> file matrixproblem.s,line 1: attempted to call STRING as a function
+------------------------------------------
+nil.s
+------------------------------------------
+0a1,15
+> (define g (lambda () 3))
+> (inspect (address (dot g parameters)))
+> (inspect (g))
+> (define f (lambda nil 3))
+> (inspect (address (dot f parameters)))
+> (inspect (f))
+> ------------------------------------------
+> (address (dot g parameters)) is <object 11880>
+>              __label  : throw
+>                 code  : undefinedVariable
+>                value  : "file nil.s,line 2: variable dot is undefined"
+>                trace  : ((address (dot g parameters)) (dot g parameters))
+> 
+> EXCEPTION: undefinedVariable
+> file nil.s,line 2: variable dot is undefined
+------------------------------------------
+object3.s
+------------------------------------------
+41,68c41,42
+< (class this) is environment
+< (class alpha) is closure
+< (class a) is alpha
+< (class c) is beta
+< (class (. c __context)) is alpha
+< (object? this) is #t
+< (closure? this) is #f
+< (environment? this) is #t
+< (locals b) is (__label __context __level __constructor this parent x)
+< (local? parent b) is #t
+< (local? Parent b) is #f
+< a . x is 4
+< (. a x) is 4
+< <object 10983>
+<              __label  : closure
+<            __context  : <object 9029>
+<                 name  : alpha
+<           parameters  : (x)
+<                 code  : (begin (define parent nil) this)
+< (. (. a __constructor) name) is alpha
+< (. b x) is 5
+< (. (. b __constructor) name) is alpha
+< (is? a (quote alpha)) is #t
+< (is? b (quote alpha)) is #t
+< (is? b (quote beta)) is #f
+< (is? c (quote beta)) is #t
+< (is? c (quote alpha)) is #t
+< (is? c (quote gamma)) is #f
+---
+> EXCEPTION: undefinedVariable
+> file object3.s,line 13: variable . is undefined
+------------------------------------------
+object.s
+------------------------------------------
+36c36
+< z is <object 9629>
+---
+> z is <object 13132>
+38c38
+<            __context  : <object 9516>
+---
+>            __context  : <object 12185>
+41c41
+<                 this  : <object 9629>
+---
+>                 this  : <object 13132>
+44,49c44,45
+< y:(a,b,c) is 2,hello,5
+< z:(a,b,c) is 2,hello,5
+< changing a and c for y
+< y:(a,b,c) is 3,hello,4
+< only a should have changed for z
+< z:(a,b,c) is 3,hello,5
+---
+> EXCEPTION: undefinedVariable
+> file object.s,line 19: variable . is undefined
+------------------------------------------
+obj.s
+------------------------------------------
+26,30c26,27
+< b . a is 3, (should be 3)
+< b . symbol("a") is a, (should be a)
+< b . (symbol("a")) is 3, (should be 3)
+< b . 'a is 3 (should be 3)
+< b . a is 4 (should be 4)
+---
+> EXCEPTION: undefinedVariable
+> file obj.s,line 17: variable . is undefined
+------------------------------------------
+overlay.s
+------------------------------------------
+0a1,41
+> function stack()
+>     {
+>     var store = :null;
+>     function pop()
+>         {
+>         var p = head(store);
+>         store = tail(store);
+>         p;
+>         }
+>     function push(item)
+>         {
+>         store = item join store;
+>         item;
+>         }
+>     function empty?()
+>         {
+>         return store == :null;
+>         }
+>     this;
+>     }
+> 
+> function stack()
+>     {
+>     function pop()
+>         {
+>         if (empty?(),throw(:stackException,"popped an empty stack"));
+>         pop . prior();
+>         }
+>     extends(stack . prior());
+>     this;
+>     }
+> 
+> var s = stack();
+> 
+> pp(stack);
+> inspect(s . push(5));
+> inspect(s . pop());
+> inspect(s . pop());
+> ------------------------------------------
+> EXCEPTION: undefinedVariable
+> file overlay.s,line 1: variable function is undefined
+------------------------------------------
+overload.s
+------------------------------------------
+15,19c15,16
+< local + is <function +(x,y)>
+< non-local + is <function +(x,y)>
+< non-non-local + is <function +(a,b)>
+< shadowed + is <function +(a,b)>
+< x is 7
+---
+> EXCEPTION: nonFunction
+> file overload.s,line 1: attempted to call STRING as a function
+------------------------------------------
+p1.s
+------------------------------------------
+16,18c16,17
+< in overridden +
+< 3
+< hello, world
+---
+> EXCEPTION: undefinedVariable
+> file p1.s,line 1: variable var is undefined
+------------------------------------------
+pp.s
+------------------------------------------
+54,99c54,55
+< function f(a,b,c)
+<     {
+<     var x;
+<     if (true)
+<         {
+<         var x = 3;
+<         var y = 4;
+<         print(x);
+<         print(y);
+<         while (x > y)
+<             {
+<             x = x - 1;
+<             y = y + 1;
+<             }
+<         }
+<     else if (false)
+<         {
+<         :ok;
+<         }
+<     else if (true)
+<         {
+<         :ok;
+<         }
+<     else
+<         {
+<         print("huh?");
+<         }
+<     return :oops;
+<     }
+< function mv(m,v)
+<     {
+<     function q()
+<         {
+<         x;
+<         }
+<     function h()
+<         {
+<         3 * 3;
+<         }
+<     map(function (r) { r dot-product v; },m);
+<     }
+< ["pp.s"]
+< <THUNK 7272>:
+<     context: <OBJECT 984>
+<     code: hello + goodbye
+< 
+---
+> EXCEPTION: syntaxException
+> file pp.s,line 53: expecting CLOSE_PARENTHESIS, found END_OF_INPUT instead
+------------------------------------------
+pq.s
+------------------------------------------
+32,52c32,33
+< enqueueing: 3
+<     first item is 3
+<     first rank is 6
+< enqueueing: 2
+<     first item is 2
+<     first rank is 4
+< enqueueing: 0
+<     first item is 0
+<     first rank is 0
+< enqueueing: 1
+<     first item is 0
+<     first rank is 0
+< enqueueing: 4
+<     first item is 0
+<     first rank is 0
+< 
+< dequeueing: 0
+< dequeueing: 1
+< dequeueing: 2
+< dequeueing: 3
+< dequeueing: 4
+---
+> EXCEPTION: nonFunction
+> file pq.s,line 1: attempted to call STRING as a function
+------------------------------------------
+priorityQueue.s
+------------------------------------------
+1,7c1,5
+< function priorityQueue()
+<     {
+<     var items;
+<     function bundle(data,rank,next) { return this; }
+<     function dequeue()
+<         {
+<         var item;
+---
+> (define (priorityQueue)
+>     (define items)
+>     (define (bundle data rank next) this)
+>     (define (dequeue)
+>         (define item)
+9,17c7,14
+<         item = items . next . data;
+<         items . next = items . next . next;
+<         return item;
+<         }
+<     function enqueue(item,rank)
+<         {
+<         var prefix = items;
+<         var suffix = items . next;
+<         var package = bundle(item,rank,:null);
+---
+>         (set 'item (items 'next 'data))
+>         (set* items 'next (items 'next 'next))
+>         item
+>         )
+>     (define (enqueue item rank)
+>         (define prefix items)
+>         (define suffix (items 'next))
+>         (define package (bundle item rank nil))
+19,23c16,19
+<         while (suffix != :null && rank >= suffix . rank)
+<             {
+<             prefix = suffix;
+<             suffix = suffix . next;
+<             }
+---
+>         (while (and (valid? suffix) (>= rank (suffix 'rank)))
+>             (set 'prefix suffix)
+>             (set 'suffix (suffix 'next))
+>             )
+25,30c21,26
+<         prefix . next = package;
+<         package . next = suffix;
+<         }
+<     function peekItem() { return items . next . data; }
+<     function peekRank() { return items . next . rank; }
+<     function empty()    { return items . next == :null; }
+---
+>         (set* prefix 'next package)
+>         (set* package 'next suffix)
+>         )
+>     (define (peekItem) (items 'next 'data))
+>     (define (peekRank) (items 'next 'rank))
+>     (define (empty)    (null? (items 'next)))
+32,34c28,30
+<     items = bundle(:null,:null,:null); //dummy head node
+<     this;
+<     }
+---
+>     (set 'items (bundle nil nil nil))  ;dummy head node
+>     this
+>     )
+------------------------------------------
+prior.s
+------------------------------------------
+19,20c19,20
+< well, hello there!
+< hi,all!
+---
+> EXCEPTION: undefinedVariable
+> file prior.s,line 1: variable function is undefined
+------------------------------------------
+rb.s
+------------------------------------------
+1,365c1,330
+< include("debug");
+< 
+< var root = :null;
+< 
+< function node(value,left,right)
+<     {
+<     var parent;
+<     var color;
+< 
+<     function display()
+<         {
+<         println("value:  ", value);
+<         println("left:   ", left);
+<         println("right:  ", right);
+<         println("parent: ", parent);
+<         println("color:  ", color);
+<         }
+< 
+<     this;
+<     }
+< 
+< function printTree(t)
+<     {
+<     function iter(r, indent)
+<         {
+<         if (r == :null)
+<             {
+<             println("null");
+<             }
+<         else
+<             {
+<             println(r . value, "(", r . color, ")");
+<             print(indent, "left:  ");
+<             iter(r . left,indent + "    ");
+<             print(indent, "right: ");
+<             iter(r . right,indent + "    ");
+<             }
+<         }
+< 
+<     iter(t, "   ");
+<     }
+< 
+< function insert(t, v, op)
+<     {
+<     if (t == :null)
+<         {
+<         root = node(v,:null,:null);
+<         root . parent = root;
+<         insertionFixup(root);
+<         }
+<     else
+<         {
+<         var lessThan = v op t . value;
+< 
+<         if (lessThan && t . left != :null)
+<             {
+<             insert(t . left, v, op);
+<             }
+<         else if (lessThan)
+<             {
+<             t . left = node(v,:null,:null);
+<             t . left . parent = t;
+<             insertionFixup(t . left);
+<             }
+<         else if (t . right != :null)
+<             {
+<             insert(t . right, v, op);
+<             }
+<         else
+<             {
+<             t . right = node(v, :null, :null);
+<             t . right . parent = t;
+<             insertionFixup(t . right);
+<             }
+<         }
+<     }
+< 
+< function prune(x)
+<     {
+<     assert(leaf?(x) == :true);
+<     if (leftChild?(x))
+<         {
+<         parent(x) . left = :null;
+<         }
+<     else if (rightChild?(x))
+<         {
+<         parent(x) . right = :null;
+<         }
+<     else
+<         {
+<         root = :null;
+<         }
+<     }
+< 
+< function swapToLeaf(x)
+<     {
+<     if (leaf?(x) == :false)
+<         {
+<         var y;
+<         var temp;
+< 
+<         if (x . right != :null)
+<             {
+<             y = findMin(x . right);
+<             }
+<         else
+<             {
+<             y = findMax(x . left);
+<             }
+< 
+<         temp = x . value;
+<         x . value = y . value;
+<         y . value = temp;
+< 
+<         swapToLeaf(y);
+<         }
+<     else
+<         {
+<         x;
+<         }
+<     }
+< function findMin(x)
+<     {
+<     while (x . left != :null)
+<         {
+<         x = x . left;
+<         }
+<     return x;
+<     }
+< function findMax(x)
+<     {
+<     while (x . right != :null)
+<         {
+<         x = x . right;
+<         }
+<     return x;
+<     }
+< function delete(x)
+<     {
+<     x = swapToLeaf(x);
+<     deletionFixup(x);
+<     //println("pruning ", x . value);
+<     prune(x);
+<     }
+< 
+< function deletionFixup(x)
+<     {
+<     while (root?(x) == :false && x . color == :black)
+<         {
+<         if (red?(sibling(x)))
+<             {
+<             parent(x) . color = :red;
+<             sibling(x) . color = :black;
+<             rotate(sibling(x),parent(x));
+<             // should have black sibling now
+<             assert(sibling(x) . color == :black);
+<             }
+<         else if (red?(nephew(x)))
+<             {
+<             sibling(x) . color = parent(x) . color;
+<             parent(x) . color = :black;
+<             nephew(x) . color = :black;
+<             rotate(sibling(x),parent(x));
+<             x = root;
+<             // subtree is bh balanced
+<             // with proper bh contribution
+<             }
+<         else if (red?(niece(x)))
+<             {
+<             // nephew must be black
+<             niece(x) = :black;
+<             sibling(x) = :red;
+<             rotate(neice(x),sibling(x));
+<             // should have red nephew now
+<             assert(nephew(x) . color == :red);
+<             }
+<         else
+<             {
+<             // sibling, niece, and nephew must be black
+<             sibling(x) . color = :red;
+<             x = parent(x);
+<             // subtree is bh balanced
+<             // but has deficit in bh contribution
+<             }
+<         }
+< 
+<     x . color = :black;
+<     }
+< 
+< function insertionFixup(x)
+<     {
+<     x . color = :red;
+< 
+<     while (root?(x) == :false && x . parent . color == :red)
+<         {
+<         if (red?(uncle(x)))
+<             {
+<             parent(x) . color = :black;
+<             uncle(x) . color = :black;
+<             grandparent(x) . color = :red;
+<             x = grandparent(x);
+<             }
+<         else
+<             {
+<             // uncle must be black
+< 
+<             if (linear?(x, parent(x), grandparent(x)) == :false)
+<                 {
+<                 var oldParent = parent(x);
+<                 rotate(x,parent(x));
+<                 x = oldParent;
+<                 }
+< 
+<             parent(x) . color = :black;
+<             assert(x . parent . color == :black);
+<             grandparent(x) . color = :red;
+<             rotate(parent(x),grandparent(x));
+<             }
+<         }
+< 
+<     root . color = :black;
+<     }
+< 
+< function root?(x) { x == x . parent; }
+< function leftChild?(x) { return parent(x) . left == x; }
+< function rightChild?(x) { return parent(x) . right == x; }
+< function leaf?(x) { x . left == :null && x . right == :null; }
+< function red?(x) { return x != :null && x . color == :red; }
+< function black?(x) { return x == :null || x . color == :black; }
+< 
+< function sibling(x)
+<     {
+<     if (leftChild?(x))
+<         {
+<         x . parent . right;
+<         }
+<     else if (rightChild?(x))
+<         {
+<         x . parent . left;
+<         }
+<     else
+<         {
+<         :null;
+<         }
+<     }
+< function niece(x)       //precondition: sibling exists
+<     {
+<     if (leftChild?(x))
+<         {
+<         sibling(x) . left;
+<         }
+<     else
+<         {
+<         sibling(x) . right;
+<         }
+<     }
+< function nephew(x)      //precondition: sibling exists
+<     {
+<     if (leftChild?(x))
+<         {
+<         sibling(x) . right;
+<         }
+<     else
+<         {
+<         sibling(x) . left;
+<         }
+<     }
+< function parent(x) { x . parent; }
+< function grandparent(x) { parent(x) . parent; }
+< function uncle(x)
+<     {
+<     if (leftChild?(parent(x)))
+<         {
+<         return grandparent(x) . right;
+<         }
+<     else if (rightChild?(parent(x)))
+<         {
+<         return grandparent(x) . left;
+<         }
+<     else
+<         {
+<         return :null;
+<         }
+<     }
+< function linear?(x,y,z)
+<     {
+<     return
+<         ((leftChild?(x)  && leftChild?(y)) ||
+<          (rightChild?(x) && rightChild?(y)));
+<     }
+< 
+< 
+< function rotate(x,p)
+<     {
+<     if (p . left == x) 
+<         {
+<         //rotate right
+<         rotator(x,p,:right,:left);
+<         }
+<     else if (p . right == x)
+<         {
+<         //rotate left
+<         rotator(x,p,:left,:right);
+<         }
+<     else
+<         {
+<         throw("rotate error");
+<         }
+<     }
+< function rotator(x,p,direction,oppositeDirection)
+<     {
+<     var gp = parent(p);
+<     var beta = x . (direction);
+< 
+<     p . (oppositeDirection) = beta;
+<     if (beta != :null) { beta . parent = p; }
+< 
+<     x . (direction) = p;
+<     p . parent = x;
+< 
+<     if (p == gp)
+<         {
+<         root = x;
+<         x . parent = x;
+<         }
+<     else {
+<         if (gp . (direction) == p) { gp . (direction) = x; }
+<         else { gp . (oppositeDirection) = x; }
+<         x . parent = gp;
+<         }
+<     }
+< 
+< function findNode(t, v, op)
+<     {
+<     if (t == :null || v == t . value)
+<         {
+<         t;
+<         }
+<     else if (v op t . value)
+<         {
+<         findNode(t . left, v, op);
+<         }
+<     else
+<         {
+<         findNode(t . right, v, op);
 <         }
 <     }
 < 
 < function main()
 <     {
 <     var i;
-<     var data = array(2,3,1);
-<     var search = array(4,2,1);
-<     var size = 3;
-<     var t = tree();
+<     var num = :null;
+<     var x;
+<     var input = array(1, 2, 9, 3, 6, 4, 7, 8, 5);
 < 
 <     i = 0;
-<     while (i < size)
+<     while (i < length(input))
 <         {
-<         print("inserting ", data . i, "\n");
-<         t . insert(data . i);
+<         num = input . i;
+<         println("inserting!");
+<         insert(root, num, <);
+<         print(num," inserted.\n");
+<         printTree(root);
 <         i = i + 1;
 <         }
 ---
-> (define (tree)
->     (define key nil)
->     (define left nil)
->     (define right nil)
->     (define (insert v)
->             (cond 
->             ((null? key)
->                 (set! key v)
->                 )
->             ((and (< v key) (valid? left))
->                 ((left 'insert) v)
->                 )
->             ((< v key)
->                 (set! left (tree))
->                 ((left 'insert) v)
->                 )
->             ((valid? right)
->                 ((right 'insert) v)
->                 )
->             (else
->                 (set! right (tree))
->                 ((right 'insert) v)
->                 )
->             )
+> (define root nil)
+> (define (assert # $x)
+>     (if (not (eval $x #))
+>         (throw 'assertionError $x)
+>         )
+>     )
+> 
+> (define (node value left right)
+>     (define parent nil)
+>     (define color nil)
+> 
+>     (define (display)
+>         (println "value:  "  value)
+>         (println "left:   "  left)
+>         (println "right:  "  right)
+>         (println "parent: "  parent)
+>         (println "color:  "  color)
 >         )
 > 
->     (define (find v)
->         (cond
->             ((null? key)
->                 this
->                 )
->             ((eq? v key)
->                 this
->                 )
->             ((and (< v key) (valid? left))
->                 ((left 'find) v)
->                 )
->             ((< v key)
->                 nil
->                 )
->             ((valid? right)
->                 ((right 'find) v)
->                 )
->             (else
->                 nil
->                 )
->             )
->         )
 >     this
 >     )
 > 
-> (define (lookup t i)
->     (define result ((t 'find) i))
+> (define (printTree t)
+>     (define (iter r indent)
+>         (if (null? r)
+>             (println "null")
+>             (begin
+>                 (println (. r value)  "("  (. r color)  ")")
+>                 (print indent "left:  ")
+>                 (iter (. r left) (string+ indent "    "))
+>                 (print indent  "right: ")
+>                 (iter (. r right) (string+ indent "    "))
+>                 )
+>             )
+>         )
+> 
+>     (iter t "   ")
+>     )
+> 
+> (define (insert t v op)
+>     (if (null? t)
+>         (begin
+>             (assign root (node v nil nil))
+>             (assign (. root parent) root)
+>             (insertionFixup root)
+>             )
+>         (begin
+>             (define lessThan (op v (. t value)))
+> 
+>             (cond
+>                 ((and lessThan (valid? (. t left)))
+>                     (insert (. t left)  v  op)
+>                     )
+>                 (lessThan
+>                     (assign (. t left) (node v nil nil))
+>                     (assign (. (. t left) parent) t)
+>                     (insertionFixup (. t left))
+>                     )
+>                 ((valid? (. t right))
+>                     (insert (. t right)  v  op)
+>                     )
+>                 (else
+>                     (assign (. t right) (node v nil nil))
+>                     (assign (. (. t right) parent) t)
+>                     (insertionFixup (. t right))
+>                     )
+>                 )
+>             )
+>         )
+>     )
+> (define (prune x)
+>     (assert (leaf? x))
 >     (cond
->         ((null? result)
->             "not found!"
+>         ((leftChild? x)
+>             (assign (. (parent x) left) nil)
 >             )
->         ((null? (t 'key))
->             "empty tree";
->             )
->         ((and (null? (result 'left)) (null? (result 'right)))
->             "it's a leaf!";
+>         ((rightChild? x)
+>             (assign (. (parent x) right) nil)
 >             )
 >         (else
->             "it's an interior node!";
+>             (assign root nil)
+>             )
+>         )
+>     )
+> 
+> (define (swapToLeaf x)
+>     (if (not (leaf? x))
+>         (begin
+>             (define y nil)
+>             (define temp nil)
+> 
+>             (if (valid? (. x right))
+>                 (assign y (findMin (. x right)))
+>                 (assign y (findMax (. x left)))
+>                 )
+> 
+>             (assign temp (. x value))
+>             (assign (. x value) (. y value))
+>             (assign (. y value) temp)
+> 
+>             (swapToLeaf y)
+>             )
+>         x
+>         )
+>     )
+> 
+> (define (findMin x)
+>     (while (valid? (. x left))
+>         (assign x (. x left))
+>         )
+>     x
+>     )
+> 
+> (define (findMax x)
+>     (while (valid? (. x right))
+>         (assign x (. x right))
+>         )
+>     x
+>     )
+> 
+> (define (delete x)
+>     (assign x (swapToLeaf x))
+>     (deletionFixup x)
+>     ; (println "pruning "  (. x value))
+>     (prune x)
+>     )
+> 
+> (define (deletionFixup x)
+>     (while (and (false? (root? x)) (eq? (. x color) 'black))
+>         (cond
+>             ((red? (sibling x))
+>                 (assign (. (parent x) color) 'red)
+>                 (assign (. (sibling x) color) 'black)
+>                 (rotate (sibling x) (parent x))
+>                 ; should have black sibling now
+>                 (assert (eq? (. (sibling x) color) 'black))
+>                 )
+>             ((red? (nephew x))
+>                 (assign (. (sibling x) color) (. (parent x) color))
+>                 (assign (. (parent x) color) 'black)
+>                 (assign (. (nephew x) color) 'black)
+>                 (rotate (sibling x) (parent x))
+>                 (assign x root)
+>                 ; subtree is bh balanced
+>                 ; with proper bh contribution
+>                 )
+>             ((red? (niece x))
+>                 ; nephew must be black
+>                 (assign (. (niece x) color) 'black)
+>                 (assign (. (sibling x) color) 'red)
+>                 (rotate (niece x) (sibling x))
+>                 ; should have red nephew now
+>                 (assert (eq? (. (nephew x) color) 'red))
+>                 )
+>             (else
+>                 ; sibling  niece  and nephew must be black
+>                 (assign (. (sibling x) color) 'red)
+>                 (assign x (parent x))
+>                 ; subtree is bh balanced
+>                 ; but has deficit in bh contribution
+>                 )
+>             )
+> 
+>         (assign (. x color) 'black)
+>         )
+>     )
+> 
+> (define (insertionFixup x)
+>     (assign (. x color) 'red)
+> 
+>     (while (and (not (root? x)) (eq? (. (. x parent) color) 'red))
+>         (if (red? (uncle x))
+>             (begin
+>                 (assign (. (parent x) color) 'black)
+>                 (assign (. (uncle x) color) 'black)
+>                 (assign (. (grandparent x) color) 'red)
+>                 (assign x (grandparent x))
+>                 )
+>             (begin
+>                 ; uncle must be black
+> 
+>                 (if (not (linear? x (parent x) (grandparent x)))
+>                     (begin
+>                         (define oldParent (parent x))
+>                         (rotate x (parent x))
+>                         (assign x oldParent)
+>                         )
+>                     )
+> 
+>                 (assign (. (parent x) color) 'black)
+>                 ;(inspect (. (parent x) color))
+>                 (assert (eq? (. (. x parent) color) 'black))
+>                 (assign (. (grandparent x) color) 'red)
+>                 (rotate (parent x) (grandparent x))
+>                 )
+>             )
+>         )
+>     (assign (. root color) 'black)
+>     )
+> 
+> (define (root? x) (eq? x (. x parent)))
+> (define (leftChild? x) (eq? (. (parent x) left) x))
+> (define (rightChild? x) (eq? (. (parent x) right) x))
+> (define (leaf? x) (and (null? (. x left))(null? (. x right))))
+> (define (red? x) (and (valid? x) (eq? (. x color) 'red)))
+> (define (black? x) (or  (null? x) (eq? (. x color) 'black)))
+> 
+> (define (sibling x)
+>     (cond
+>         ((leftChild? x)
+>             (. (. x parent) right)
+>             )
+>         ((rightChild? x)
+>             (. (. x parent) left)
+>             )
+>         (else
+>             nil
+>             )
+>         )
+>     )
+> 
+> (define (niece x)       ; precondition: sibling exists
+>     (if (leftChild? x)
+>         (. (sibling x) left)
+>         (. (sibling x) right)
+>         )
+>     )
+> 
+> (define (nephew x)      ; precondition: sibling exists
+>     ;(inspect (sibling x))
+>     (if (leftChild? x)
+>         (. (sibling x) right)
+>         (. (sibling x) left)
+>         )
+>     )
+> 
+> (define (parent x) (. x parent))
+> (define (grandparent x) (parent (parent x)))
+> (define (uncle x)
+>     (cond
+>         ((leftChild? (parent x))
+>             (. (grandparent x) right))
+>         ((rightChild? (parent x))
+>             (. (grandparent x) left))
+>         (else
+>             nil)
+>         )
+>     )
+> 
+> (define (linear? x y z)
+>     (or
+>         (and (leftChild? x) (leftChild? y))
+>         (and (rightChild? x) (rightChild? y))
+>         )
+>     )
+> 
+> (define (rotate x p)
+>     (cond
+>         ((eq? (. p left) x) 
+>             ; rotate right
+>             (println "rotating right")
+>             (rotator x p 'right 'left)
+>             )
+>         ((eq? (. p right) x)
+>             ; rotate left
+>             (println "rotating left")
+>             (rotator x p 'left 'right)
+>             )
+>         (else
+>             (throw 'redBlackException "rotate error")
+>             )
+>         )
+>     )
+> 
+> (define (id x) x)
+> 
+> (define (rotator x p direction oppositeDirection)
+>     (define gp (parent p))
+>     (define beta (. x (id direction)))
+> 
+>     (assign (. p (id oppositeDirection)) beta)
+>     (if (valid? beta) (assign (. beta parent) p))
+> 
+>     (assign (. x (id direction)) p)
+>     (assign (. p parent) x)
+> 
+>     (if (eq? p gp)
+>         (begin
+>             (assign root x)
+>             (assign (. x parent) x)
+>             )
+>         (begin
+>             (if (eq? (. gp (id direction)) p)
+>                 (assign (. gp (id direction)) x)
+>                 (assign (. gp (id oppositeDirection)) x)
+>                 )
+>             (assign (. x parent) gp)
+>             )
+>         )
+>     )
+> 
+> (define (findNode t v op)
+>     (cond
+>         ((or (null? t) (eq? v (. t value)))
+>             t
+>             )
+>         ((op v (. t value))
+>             (findNode (. t left) v op)
+>             )
+>         (else
+>             (findNode (. t right) v op)
 >             )
 >         )
 >     )
 > 
 > (define (main)
->     (define i)
+>     (define i nil)
 >     (define num nil)
->     (define input (array 2  3 1))
->     (define search (array 4  2  1))
->     (define t (tree))
+>     (define x nil)
+>     (define input (array 1  2  9  3  6  4  7  8  5))
 > 
->     (set! i 0)
+>     (assign i 0)
 >     (while (< i (length input))
->         (set! num (getElement input i))
->         (print "inserting " num "\n")
->         ((t 'insert) num)
->         (++ i)
+>         (assign num (getElement input i))
+>         (println "inserting!")
+>         (insert root num <)
+>         (println num " inserted.")
+>         (printTree root)
+>         (assign i (+ i 1))
 >         )
-99,107c85,92
+367,384c332,348
+<     println("insertion phase complete, tree is...");
+<     printTree(root);
+<     println("deletion phase begins...");
+< 
 <     i = 0;
-<     while (i < size)
+<     while (i < length(input))
 <         {
-<         print("looking for ", search . i, ": ", lookup(t,search . i),"\n");
+<         num = input . i;
+<         x = findNode(root,num,<);
+<         delete(x);
+<         print(num," deleted.\n");
+<         printTree(root);
 <         i = i + 1;
 <         }
 < 
+<     println("deletion phase complete, tree is...");
 <     print("good-bye!\n");
 <     }
 ---
->     (set! i 0)
->     (while (< i (length search))
->         (set! num (getElement search i))
->         (print "looking for "  num  ": "  (lookup t num) "\n")
->         (++ i)
+>     (println "insertion phase complete  tree is...")
+>     (printTree root)
+>     (println "deletion phase begins...")
+> 
+>     (assign i 0)
+>     (while (< i (length input))
+>         (assign num (getElement input i))
+>         (assign x (findNode root num <))
+>         (delete x)
+>         (println num " deleted.")
+>         (printTree root)
+>         (assign i (+ i 1))
 >         )
->     (print "good-bye!\n")
+> 
+>     (println "deletion phase complete  tree is...")
+>     (println "good-bye!")
 >     )
-109c94
+386,387c350,351
+< print("hello\n");
 < main();
 ---
+> (println "hello");
 > (main)
+390,619c354,355
+< inserting!
+< 1 inserted.
+< 1(black)
+<    left:  null
+<    right: null
+< inserting!
+< 2 inserted.
+< 1(black)
+<    left:  null
+<    right: 2(red)
+<        left:  null
+<        right: null
+< inserting!
+< 9 inserted.
+< 2(black)
+<    left:  1(red)
+<        left:  null
+<        right: null
+<    right: 9(red)
+<        left:  null
+<        right: null
+< inserting!
+< 3 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 9(black)
+<        left:  3(red)
+<            left:  null
+<            right: null
+<        right: null
+< inserting!
+< 6 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(black)
+<        left:  3(red)
+<            left:  null
+<            right: null
+<        right: 9(red)
+<            left:  null
+<            right: null
+< inserting!
+< 4 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  3(black)
+<            left:  null
+<            right: 4(red)
+<                left:  null
+<                right: null
+<        right: 9(black)
+<            left:  null
+<            right: null
+< inserting!
+< 7 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  3(black)
+<            left:  null
+<            right: 4(red)
+<                left:  null
+<                right: null
+<        right: 9(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: null
+< inserting!
+< 8 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  3(black)
+<            left:  null
+<            right: 4(red)
+<                left:  null
+<                right: null
+<        right: 8(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: 9(red)
+<                left:  null
+<                right: null
+< inserting!
+< 5 inserted.
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  4(black)
+<            left:  3(red)
+<                left:  null
+<                right: null
+<            right: 5(red)
+<                left:  null
+<                right: null
+<        right: 8(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: 9(red)
+<                left:  null
+<                right: null
+< insertion phase complete, tree is...
+< 2(black)
+<    left:  1(black)
+<        left:  null
+<        right: null
+<    right: 6(red)
+<        left:  4(black)
+<            left:  3(red)
+<                left:  null
+<                right: null
+<            right: 5(red)
+<                left:  null
+<                right: null
+<        right: 8(black)
+<            left:  7(red)
+<                left:  null
+<                right: null
+<            right: 9(red)
+<                left:  null
+<                right: null
+< deletion phase begins...
+< 1 deleted.
+< 6(black)
+<    left:  4(red)
+<        left:  2(black)
+<            left:  null
+<            right: 3(red)
+<                left:  null
+<                right: null
+<        right: 5(black)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: 9(red)
+<            left:  null
+<            right: null
+< 2 deleted.
+< 6(black)
+<    left:  4(red)
+<        left:  3(black)
+<            left:  null
+<            right: null
+<        right: 5(black)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: 9(red)
+<            left:  null
+<            right: null
+< 9 deleted.
+< 6(black)
+<    left:  4(red)
+<        left:  3(black)
+<            left:  null
+<            right: null
+<        right: 5(black)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: null
+< 3 deleted.
+< 6(black)
+<    left:  4(black)
+<        left:  null
+<        right: 5(red)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  7(red)
+<            left:  null
+<            right: null
+<        right: null
+< 6 deleted.
+< 7(black)
+<    left:  4(black)
+<        left:  null
+<        right: 5(red)
+<            left:  null
+<            right: null
+<    right: 8(black)
+<        left:  null
+<        right: null
+< 4 deleted.
+< 7(black)
+<    left:  5(black)
+<        left:  null
+<        right: null
+<    right: 8(black)
+<        left:  null
+<        right: null
+< 7 deleted.
+< 8(black)
+<    left:  5(red)
+<        left:  null
+<        right: null
+<    right: null
+< 8 deleted.
+< 5(black)
+<    left:  null
+<    right: null
+< 5 deleted.
+< null
+< deletion phase complete, tree is...
+< good-bye!
+---
+> EXCEPTION: undefinedVariable
+> file rb.s,line 322: variable assign is undefined
+------------------------------------------
+recur.s
+------------------------------------------
+32c32,33
+< 5050
+---
+> EXCEPTION: undefinedVariable
+> file recur.s,line 1: variable function is undefined
+------------------------------------------
+recursion.s
+------------------------------------------
+23,423c23,24
+< 399
+< 398
+< 397
+< 396
+< 395
+< 394
+< 393
+< 392
+< 391
+< 390
+< 389
+< 388
+< 387
+< 386
+< 385
+< 384
+< 383
+< 382
+< 381
+< 380
+< 379
+< 378
+< 377
+< 376
+< 375
+< 374
+< 373
+< 372
+< 371
+< 370
+< 369
+< 368
+< 367
+< 366
+< 365
+< 364
+< 363
+< 362
+< 361
+< 360
+< 359
+< 358
+< 357
+< 356
+< 355
+< 354
+< 353
+< 352
+< 351
+< 350
+< 349
+< 348
+< 347
+< 346
+< 345
+< 344
+< 343
+< 342
+< 341
+< 340
+< 339
+< 338
+< 337
+< 336
+< 335
+< 334
+< 333
+< 332
+< 331
+< 330
+< 329
+< 328
+< 327
+< 326
+< 325
+< 324
+< 323
+< 322
+< 321
+< 320
+< 319
+< 318
+< 317
+< 316
+< 315
+< 314
+< 313
+< 312
+< 311
+< 310
+< 309
+< 308
+< 307
+< 306
+< 305
+< 304
+< 303
+< 302
+< 301
+< 300
+< 299
+< 298
+< 297
+< 296
+< 295
+< 294
+< 293
+< 292
+< 291
+< 290
+< 289
+< 288
+< 287
+< 286
+< 285
+< 284
+< 283
+< 282
+< 281
+< 280
+< 279
+< 278
+< 277
+< 276
+< 275
+< 274
+< 273
+< 272
+< 271
+< 270
+< 269
+< 268
+< 267
+< 266
+< 265
+< 264
+< 263
+< 262
+< 261
+< 260
+< 259
+< 258
+< 257
+< 256
+< 255
+< 254
+< 253
+< 252
+< 251
+< 250
+< 249
+< 248
+< 247
+< 246
+< 245
+< 244
+< 243
+< 242
+< 241
+< 240
+< 239
+< 238
+< 237
+< 236
+< 235
+< 234
+< 233
+< 232
+< 231
+< 230
+< 229
+< 228
+< 227
+< 226
+< 225
+< 224
+< 223
+< 222
+< 221
+< 220
+< 219
+< 218
+< 217
+< 216
+< 215
+< 214
+< 213
+< 212
+< 211
+< 210
+< 209
+< 208
+< 207
+< 206
+< 205
+< 204
+< 203
+< 202
+< 201
+< 200
+< 199
+< 198
+< 197
+< 196
+< 195
+< 194
+< 193
+< 192
+< 191
+< 190
+< 189
+< 188
+< 187
+< 186
+< 185
+< 184
+< 183
+< 182
+< 181
+< 180
+< 179
+< 178
+< 177
+< 176
+< 175
+< 174
+< 173
+< 172
+< 171
+< 170
+< 169
+< 168
+< 167
+< 166
+< 165
+< 164
+< 163
+< 162
+< 161
+< 160
+< 159
+< 158
+< 157
+< 156
+< 155
+< 154
+< 153
+< 152
+< 151
+< 150
+< 149
+< 148
+< 147
+< 146
+< 145
+< 144
+< 143
+< 142
+< 141
+< 140
+< 139
+< 138
+< 137
+< 136
+< 135
+< 134
+< 133
+< 132
+< 131
+< 130
+< 129
+< 128
+< 127
+< 126
+< 125
+< 124
+< 123
+< 122
+< 121
+< 120
+< 119
+< 118
+< 117
+< 116
+< 115
+< 114
+< 113
+< 112
+< 111
+< 110
+< 109
+< 108
+< 107
+< 106
+< 105
+< 104
+< 103
+< 102
+< 101
+< 100
+< 99
+< 98
+< 97
+< 96
+< 95
+< 94
+< 93
+< 92
+< 91
+< 90
+< 89
+< 88
+< 87
+< 86
+< 85
+< 84
+< 83
+< 82
+< 81
+< 80
+< 79
+< 78
+< 77
+< 76
+< 75
+< 74
+< 73
+< 72
+< 71
+< 70
+< 69
+< 68
+< 67
+< 66
+< 65
+< 64
+< 63
+< 62
+< 61
+< 60
+< 59
+< 58
+< 57
+< 56
+< 55
+< 54
+< 53
+< 52
+< 51
+< 50
+< 49
+< 48
+< 47
+< 46
+< 45
+< 44
+< 43
+< 42
+< 41
+< 40
+< 39
+< 38
+< 37
+< 36
+< 35
+< 34
+< 33
+< 32
+< 31
+< 30
+< 29
+< 28
+< 27
+< 26
+< 25
+< 24
+< 23
+< 22
+< 21
+< 20
+< 19
+< 18
+< 17
+< 16
+< 15
+< 14
+< 13
+< 12
+< 11
+< 10
+< 9
+< 8
+< 7
+< 6
+< 5
+< 4
+< 3
+< 2
+< 1
+< 0
+< bottom
+---
+> EXCEPTION: undefinedVariable
+> file recursion.s,line 1: variable var is undefined
+------------------------------------------
+reflect.s
+------------------------------------------
+38,49c38,39
+< x: a is 2, b is 3, c is 5
+< n is constructed via m's constructor
+< x: a is 2, b is 3, c is 8
+< 
+< m . constructor . name is x
+< n . constructor . name is x
+< 
+< changing m . a to 10
+< changing n . b to 10
+< 
+< x: a is 10, b is 3, c is 5
+< x: a is 2, b is 10, c is 8
+---
+> EXCEPTION: nonFunction
+> file reflect.s,line 1: attempted to call STRING as a function
+------------------------------------------
+reify.s
+------------------------------------------
+29,31c29,30
+< calling superclass:a
+< superclass:a: calling virtual function b
+< subclass:b
+---
+> EXCEPTION: undefinedVariable
+> file reify.s,line 1: variable function is undefined
 ------------------------------------------

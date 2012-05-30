@@ -16,19 +16,27 @@
         (define extreme nil)
         (define newRoot nil)
 
-        (if (leaf? root) (return 'ok))
+        (if (leaf? root)
+            (begin
+                (inspect root)
+                (println "it's a leaf")
+                (println "heapify level is " __level)
+                (return 'ok)
+                (inspect root))
+            )
         
         (set! extreme (findExtremalChild root))
 
-        (if (== extreme (getElement items root)) (return 'ok))
+        (if (= extreme (getElement items root)) (return 'ok))
 
-        (if (== extreme (getElement items (leftChild root)))
+        (if (= extreme (getElement items (leftChild root)))
             (set! newRoot (leftChild root))
             (set! newRoot (rightChild root))
             )
 
         (setElement items newRoot (getElement items root))
         (setElement items root extreme)
+
         (heapify newRoot)
         )
 
@@ -46,32 +54,35 @@
         )
 
     (define (build-heap)
-        (define i nil)
-        (for (set! i (- size 1)) (>= i 0) (set! i (- i 1))
-            (println "heapifying element " i)
+        (for (define i (- size 1)) (inspect (>= i 0)) (inspect (-- i))
+            (println "heapifying index " i)
+            (println "buildheap level is " __level)
             (heapify i)
-            (println "element " i " has been heapified")
+            (inspect r)
+            (println "index " i " has been heapified")
             )
+        (inspect i)
+        (println "root is now " (getElement items 0))
         )
 
     (define (leaf? x) (>= (leftChild x) size))
 
     (println "about to build-heap...")
     (build-heap)
+    (println "done with build-heap")
     this
     )
 
 (define (heap-sort items op)
-    (define i nil)
     (define h nil)
 
     (set! h (heap items op))
 
-    (while (> (get 'size h) 0)
-        (print ((get 'deleteExtreme h)))
-        (if (> (get 'size h) 0) (print " "))
-        )
-    (println "\n")
+    ;(while (> (h 'size) 0)
+    ;    (print ((h 'deleteExtreme)))
+    ;    (if (> (get 'size h) 0) (print " "))
+    ;    )
+    ;(println "\n")
     )
 
 (define (extremal op a b)
@@ -80,14 +91,25 @@
 
 (define a (array 3 6 3 9 4 10 5 29 4 6 0 20 25 16 88 0 31))
 
+(println "before heapsorting: " a)
 (heap-sort a >)
+(println "after heapsorting:  " a)
 
-(inspect a)
-(inspect (get 'parameters extremal))
+(inspect (get* extremal 'parameters))
 ------------------------------------------
+before heapsorting: [3,6,3,9,4,10,5,29,4,6,0,20,25,16,88,0,31]
 about to build-heap...
-heapifying element 16
-3 31 6 88 16 25 20 9 29 6 4 5 10 4 3 0 0
+(>= i 0) is #t
+heapifying index 16
+buildheap level is 3
+root is 16
+it's a leaf
+heapify level is 4
+r is <object 16626>
+             __label  : throw
+                code  : undefinedVariable
+               value  : "file heapsort.s,line 61: variable r is undefined"
+               trace  : nil
 
-a is [0,0,3,4,10,5,4,6,29,9,20,25,16,88,6,31,3]
-(get (quote parameters) extremal) is (op a b)
+EXCEPTION: undefinedVariable
+file heapsort.s,line 61: variable r is undefined

@@ -2,8 +2,8 @@
     (define total 1)
 
     (while (> n 1)
-        (set! 'total (* total n))
-        (set! 'n (- n 1))
+        (set! total (* total n))
+        (set! n (- n 1))
         )
     
     total
@@ -13,5 +13,4 @@
 
 (print "g(" x ") is " (g x) "\n")
 ------------------------------------------
-EXCEPTION: generalException
-file g.s,line 5: set identifier resolved to type CONS, not SYMBOL
+g(10) is 3628800

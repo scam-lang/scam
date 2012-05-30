@@ -33,12 +33,12 @@ an object was made!
 
 an object was made!
 
-z is <object 13136>
+z is <object 13132>
              __label  : environment
-           __context  : <object 12189>
+           __context  : <object 12185>
              __level  : 1
        __constructor  : <function anonymous()>
-                this  : <object 13136>
+                this  : <object 13132>
                    c  : 5
 
 EXCEPTION: undefinedVariable

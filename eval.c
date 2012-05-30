@@ -19,7 +19,7 @@ eval(int expr, int env)
     {
     int result;
     int level = ival(env_level(env));
-    int orig = expr; //orig is not gc safe!
+    //int orig = expr; //orig is not gc safe!
 
     //debug("initial eval",expr);
     //printf("env level is %d\n",level);

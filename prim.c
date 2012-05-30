@@ -157,6 +157,20 @@ lambda(int args)
     return  makeClosure(car(args),name,params,body,ADD_BEGIN);
     }
 
+/* (closure name params body env) */
+
+static int
+closure(int args)
+    {
+    int name = cadr(args);
+    int params = caddr(args);
+    int body = cadddr(args);
+    int env = caddddr(args);
+
+    return  makeClosure(env,name,params,body,ADD_BEGIN);
+    }
+
+
 static int
 not(int args)
     {
@@ -3682,6 +3696,18 @@ loadBuiltIns(int env)
         ucons(sharpSymbol,
             ucons(newSymbol("$params"),
                 ucons(dollarSymbol,0))),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = closure;
+    b = makeBuiltIn(env,
+        newSymbol("closure"),
+        ucons(sharpSymbol,
+            ucons(newSymbol("name"),
+                ucons(newSymbol("params"),
+                    ucons(newSymbol("body"),
+                        ucons(newSymbol("env"),0))))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
