@@ -24,6 +24,8 @@ eval(int expr, int env)
     //debug("initial eval",expr);
     //printf("env level is %d\n",level);
 
+    int returns = 0;
+
     while (1)
         {
         int tag;
