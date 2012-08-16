@@ -1,3 +1,7 @@
+scam (1.2)
+
+  * fixed return bug
+
 scam (1.1)
 
   * using an uninitialized variable now throws an exception

@@ -1,13 +1,11 @@
-SERVER=beastie.cs.ua.edu
-#SERVER=nixie.cs.ua.edu
+ver = `grep "VERSION =" ../scam.c | sed "s/.* \"//" | sed "s/\";//"`
+SERVER = beastie.cs.ua.edu
+arch = i386
+#arch = amd64
+#arch = OSX
+base = scam-$(ver)-$(arch)
 
-#don't forget to change version number in scam.c
-ver=1.1 # 1.1 not installed
-arch=i386
-#arch=amd64
-base=scam-$(ver)_$(arch)
-
-$(base).deb	: 
+deb	: 
 	rm -f -r debian
 	mkdir -p debian
 	mkdir -p debian/DEBIAN
@@ -34,13 +32,12 @@ $(base).deb	:
 	(cd ..; touch *.c; make;)
 	cp ../scam debian/usr/bin
 	cp ../*.lib debian/usr/lib/scam/
-
 	fakeroot dpkg-deb --build debian $(base).deb
 
-install	: $(base).deb
+install	: deb
 	scp $(base).deb $(SERVER):/var/www/scam/
 
-local	: $(base).deb
+local	: deb
 	cp $(base).deb /var/www/scam/
 
 clean	:
