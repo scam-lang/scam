@@ -437,6 +437,9 @@
 (define (defined? id env)
     (not (error? (catch (eval id env))))
     )
+(define (dot obj $name)
+    (get $name obj)
+    )
 
 
 ;{
