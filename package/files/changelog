@@ -1,3 +1,7 @@
+scam (1.4)
+
+  * fixed bug in is? -- now returns true for 'object
+
 scam (1.3)
 
   * added definition of dot to main.lib (fixes pretty.lib)

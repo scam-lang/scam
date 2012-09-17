@@ -106,7 +106,7 @@
     (cond
         ((null? x) #f)
         ((not (environment? x)) (eq? (type x) y))
-        ((and (environment? x) (or (eq? y 'environment) (eq? y '__object))) #t)
+        ((and (environment? x) (or (eq? y 'environment) (eq? y 'object))) #t)
         ((and (valid? (get '__constructor x)) (eq? (get* x '__constructor 'name) y)) #t)
         (else (and (local? 'parent x) (is? (get 'parent x) y)))
         )
