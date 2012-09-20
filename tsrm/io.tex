@@ -49,6 +49,16 @@ sole argument:
     (close p)
 \end{verbatim}
 
+You can retrieve the current input and output ports with the function
+calls:
+
+\begin{verbatim}
+    (getInputPort)
+    (getOutputPort)
+\end{verbatim}
+
+respectively.
+
 \section{Reading}
 
 Scam supplies built-in functions for reading characters,
@@ -168,7 +178,7 @@ The function {\it pp} acts much like {\it display}, unless it is
 passed an environment/object. In such cases, it prints out a table
 listing the variables defined in that scope.
 Since functions, thunks, exceptions, and errors are all encoded
-as objects, pp can be used to inspect them in greater detail.
+as objects, {\it pp} can be used to inspect them in greater detail.
 For example, consider this definition of square:
 
 \begin{verbatim}

@@ -114,8 +114,10 @@
 
 (define (object? x) (and (pair? x) (eq? (car x) '__object)))
 (define (closure? x) (and (object? x) (eq? (class x) 'closure)))
+(define (builtin? x) (and (object? x) (eq? (class x) 'builtIn)))
 (define (error? x) (and (object? x) (eq? (class x) 'error)))
 (define (environment? x) (and (object? x) (eq? (class x) 'environment)))
+(define function? closure?)
 
 
 (define (and # $)
@@ -440,7 +442,34 @@
 (define (dot obj $name)
     (get $name obj)
     )
-
+(define (builtinFunctions)
+    (define vars (cadr __builtin))
+    (define vals (caddr __builtin))
+    (println "-----Builtin Functions-----")
+    (while (valid? vars)
+        (if (neq? (car (string (car vars))) "_")
+            (if (builtin? (car vals))
+                (println "    " (car vals))
+                )
+            )
+        (set! vars (cdr vars))
+        (set! vals (cdr vals))
+        )
+    )
+(define (mainLibraryFunctions)
+    (define vars (cadr __main-lib))
+    (define vals (caddr __main-lib))
+    (println "-----Main Library Functions-----")
+    (while (valid? vars)
+        (if (neq? (car (string (car vars))) "_")
+            (if (closure? (car vals))
+                (println "    " (car vals))
+                )
+            )
+        (set! vars (cdr vars))
+        (set! vals (cdr vals))
+        )
+    )
 
 ;{
 (define x 0)
@@ -453,4 +482,6 @@
 (inspect (cadr '(1 2 3)))
 (inspect (caddr '(1 2 3)))
 (inspect (cdddr '(1 2 3)))
+(mainLibraryFunctions)
+(builtinFunctions)
 ;}
