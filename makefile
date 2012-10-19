@@ -3,6 +3,8 @@ CC = gcc
 OUT = scam
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o
+SOBJS = types.o cell.o slexer.o sparser.o prim.o env.o eval.o util.o pp.o
+#OBJS = types.o cell2.o lexer2.o parser2.o prim.o env.o eval.o util.o pp.o
 PROF = -pg
 
 ALL		: scam
@@ -11,11 +13,19 @@ scam		: $(OBJS) scam.o
 		$(CC) -o $(OUT) $(PROF) $(OBJS) scam.o -lm
 		cp $(OUT) ~/bin/
 
+sway		: $(SOBJS) scam.o
+		$(CC) -o sway2 $(PROF) $(OBJS) scam.o -lm
+		cp sway2 ~/bin/
+
 parser.o	: parser.c cell.h types.h lexer.h parser.h util.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g parser.c
+sparser.o	: sparser.c cell.h types.h lexer.h parser.h util.h
+		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sparser.c
 
 cell.o		: cell.c cell.h types.h
 		$(CC) -c $(PROF) -Wall -g cell.c
+#cell2.o		: cell2.c cell.h types.h
+#		$(CC) -c $(PROF) -Wall -g cell2.c
 
 env.o		: env.c cell.h types.h env.h
 		$(CC) -c $(PROF) -Wall -g env.c
@@ -28,6 +38,8 @@ eval.o		: eval.c cell.h types.h cell.h parser.h env.h eval.h
 
 lexer.o		: lexer.c cell.h types.h lexer.h  
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g lexer.c
+slexer.o		: slexer.c cell.h types.h lexer.h  
+		$(CC) -c $(PROF) $(IREADLINE) -Wall -g slexer.c
 
 types.o		: types.c types.h
 		$(CC) -c $(PROF) -Wall -g types.c
