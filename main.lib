@@ -234,6 +234,7 @@
         (else (iter @))
         )
     )
+(define integer int)
 (define (abs x) (if (< x 0) (- x) x))
 (define (even? n) (= (% n 2) 0))
 (define (odd? n) (= (% n 2) 1))

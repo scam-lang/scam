@@ -1528,11 +1528,19 @@ ccar(int args)
     char *t = type(supply);
 
     if (t != CONS && t != ARRAY && t != STRING)
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "attempt to take car of type %s",
-            SymbolTable[file(supply)],line(supply),
-            t);
+        {
+        if (supply == 0)
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to take car of an empty list",
+                SymbolTable[file(supply)],line(supply));
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to take car of type %s",
+                SymbolTable[file(supply)],line(supply),
+                t);
+        }
 
     if (type(supply) == STRING)
         {
@@ -1550,7 +1558,25 @@ ccar(int args)
 static int
 ccdr(int args)
     {
-    return cdr(car(args));
+    int supply = car(args);
+    char *t = type(supply);
+
+    if (t != CONS && t != ARRAY && t != STRING)
+        {
+        if (supply == 0)
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to take cdr of an empty list",
+                SymbolTable[file(supply)],line(supply));
+        else
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "attempt to take cdr of type %s",
+                SymbolTable[file(supply)],line(supply),
+                t);
+        }
+
+    return cdr(supply);
     }
 
 /* (cons a b) */
