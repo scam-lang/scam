@@ -2,15 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <assert.h>
 #include "cell.h"
 #include "types.h"
-#include "lexer.h"
 #include "parser.h"
-#include "pp.h"
-#include "prim.h"
+#include "lexer.h"
+#include "env.h"
 #include "util.h"
 
 #define TRACE 0
@@ -40,7 +37,7 @@ static int nakedBlock(void);
 static int varDef(void);
 static int varDefList(void);
 static int varDefItem(void);
-static int functionDef(void);
+static int functionDef(PARSER *);
 static int statement(void);
 static int optStatementSeq(void);
 static int definition(void);
@@ -75,40 +72,46 @@ static int isExprPending(void);
 static int isXCall(int);
 static int isBlockPending(void);
 
-/* error handling functions */
-
-static void errorContext(char *,int);
-static void clearDirective(FILE *);
-
 /* parser support */
 
-static int check(char *);
-static int match(char *);
-static int allWhiteSpace(char *);
+static int check(PARSER *,char *);
+static int match(PARSER *,char *);
+static FILE *openScamFile(char *);
 
 static char *lastSavedString = 0;
 
-void
-parserInit(char *fn)
+/* this is the function that intefaces the parser with other modules */
+
+PARSER *
+newParser(char *fileName)
     {
-    LineNumber = 1;
+    PARSER *p = (PARSER *) malloc(sizeof(PARSER));
+    p->pending = -1;
+    p->line = 1;
+    p->file = findSymbol(fileName);
+    p->pushedBack = 0;
+    p->input = openScamFile(fileName);
+    p->output = stdout;
 
-    if (fn == 0)
+    if (p->input == 0)
         {
-        Input = stdin;
-        getNextCharacter = consoleGetChar;
-        FileIndex = findSymbol("stdin");
-        }
-    else
-        {
-        //if (*fn == "/" || *fn == '.') printf("get prefix!\n");
-        Input = OpenFile(fn, "r");
-        getNextCharacter = fileGetChar;
-        FileIndex = findSymbol(fn);
-        clearDirective(Input);
+        freeParser(p);
+        return 0;
         }
 
-    Output = stdout;
+    return p;
+    }
+
+void
+freeParser(PARSER *p)
+    {
+    if (p->input != 0 && p->input != stdin)
+        fclose(p->input);
+
+    if (p->output != 0 && p->output != stdout)
+        fclose(p->output);
+
+    free(p);
     }
 
 /*
@@ -269,151 +272,23 @@ parserInit(char *fn)
 /* this is the function that interaces the parser with other modules */
 
 int
-parse(int mode,char *prmpt)
+parse(PARSER *p)
     {
-    int result;
+    int result,end;
 
-    if (TRACE) printf("in parse...\n");
+    //printf("starting to parse...\n");
+    if (check(p,END_OF_INPUT)) return 0;
 
-    Pending = -1;
+    result = functionDef(p);
+    rethrow(result,0);
+    push(result);
+    end = match(p,END_OF_INPUT);
+    result = pop();
+    rethrow(end,0);
 
-    if (mode == MULTI_LINE)
-        {
-        //printf("interactive parsing...\n");
-        result = parseInteractive(stdin,prmpt);
-        }
-    else if (mode == SINGLE_LINE)
-        {
-        char* buffer;
-        //printf("interactive parsing...\n");
-        buffer = readline(prmpt);
-        if (buffer == 0 || allWhiteSpace(buffer))
-            {
-            free(buffer);
-            result = cons(END_OF_INPUT,0,0);
-            }
-        else
-            {
-            result = parseInteractiveString(buffer,strlen(buffer));
-            free(buffer);
-            }
-        }
-    else //SINGLE_FILE
-        {
-        int end;
-        //printf("file parsing...\n");
-        result = nakedBlock();
-        rethrow(result,0);
-        end = match(END_OF_INPUT);
-        rethrow(end,0);
-        }
-
-    if (TRACE) ppf("leaving parse: ",result,"\n");
-
-    return result;
-    }
-
-int
-parseInteractive(FILE *fp,char *prmpt)
-    {
-    extern int env;
-
-    int result;
-    int swapping = Input != fp;
-    int oldPending;
-    int (*oldReader)(FILE *);
-    FILE *oldInput;
-    int oldFileIndex,oldLineNumber;
-    int oldSaves;
-
-    if (swapping)
-        {
-        oldPending = Pending;
-        oldInput = Input;
-        oldReader = getNextCharacter;
-        oldFileIndex = FileIndex;
-        oldLineNumber = LineNumber;
-
-        Input = fp;
-        if (fp == stdin)
-            getNextCharacter = consoleGetChar;
-        else
-            getNextCharacter = fileGetChar;
-        Pending = -1;
-        }
-
-    save(env,"parser:parseInteractive:env");
-    oldSaves = saveCount;
-
-    result = interactive();
-
-    assert(saveCount == oldSaves);
-
-    env = restore("parser:parseInteractive:env");
-
-    if (fp == stdin)
-        {
-        if (lastSavedString == 0 
-        || strcmp(savedCharacters,lastSavedString) != 0)
-            {
-            add_history(savedCharacters);
-            if (lastSavedString) free(lastSavedString);
-            lastSavedString = strdup(savedCharacters);
-            }
-        lastSaved = 0;
-        saveIndex = 0;
-        prompt = prmpt;
-        }
-
-    if (swapping)
-        {
-        LineNumber = oldLineNumber;
-        FileIndex = oldFileIndex;
-        Pending = oldPending;
-        getNextCharacter = oldReader;
-        Input = oldInput;
-        }
-
-    return result;
-    }
-
-int
-parseInteractiveString(char *buffer,int length)
-    {
-    int result;
-    int oldPending;
-    int (*oldReader)(FILE *);
-    FILE *oldInput;
-    int oldSaves = saveCount;
-
-    if (lastSavedString == 0 || strcmp(buffer,lastSavedString) != 0)
-        {
-        //printf("about to add to history...\n");
-        add_history(buffer);
-        //printf("history amended.\n");
-        if (lastSavedString) { free(lastSavedString); lastSaved = 0; }
-        lastSavedString = strdup(buffer);
-        }
-
-    oldPending = Pending;
-    oldInput = Input;
-    oldReader = getNextCharacter;
-
-    Input = 0;
-    InputString = buffer;
-    InputStringLength = length;
-    InputStringIndex = 0;
-    getNextCharacter = stringGetChar;
-    Pending = -1;
-
-    result = interactive();
-
-    assert(saveCount == oldSaves);
-
-    Pending = oldPending;
-    getNextCharacter = oldReader;
-    Input = oldInput;
-
+    assureMemory("parse",1,&result,(int *)0);
+    result = uconsfl(beginSymbol,result,file(result),line(result));
+    //printf("done parsing.\n");
     return result;
     }
 
@@ -434,7 +309,7 @@ nakedBlock()
 
     rethrow(a,0);
 
-    save(a,"parser.c:nakedBlock:a");
+    push(a,"parser.c:nakedBlock:a");
     b = optStatementSeq();
     a = restore("parser.c:nakedBlock:a");
 
@@ -465,7 +340,7 @@ optDefinitionSeq()
         {
         d = definition();
         rethrow(d,0);
-        save(d,"optDefinitionSeq:d");
+        push(d,"optDefinitionSeq:d");
         defs = optDefinitionSeq();
         d = restore("optDefinitionSeq:d");
         rethrow(defs,0);
@@ -505,7 +380,7 @@ interactive()
         rethrow(d,0);
         if (type(d) == XCALL)
             {
-            save(d,"parser:interactive:d");
+            push(d,"parser:interactive:d");
             m = match(SEMI);
             d = restore("parser:interactive:d");
             rethrow(m,0);
@@ -517,7 +392,7 @@ interactive()
         rethrow(d,0);
         if (type(car(d)) == XCALL)
             {
-            save(d,"parser:interactive:d");
+            push(d,"parser:interactive:d");
             m = match(SEMI);
             d = restore("parser:interactive:d");
             rethrow(m,0);
@@ -530,7 +405,7 @@ interactive()
 
     /* turn d into naked block */
 
-    save(d,"parser:interactive:d");
+    push(d,"parser:interactive:d");
     ensureMemory(2);
     d = restore("parser:interactive:d");
     
@@ -554,7 +429,7 @@ definition()
         {
         d = varDef();
         rethrow(d,0);
-        save(d,"parser:definition:d");
+        push(d,"parser:definition:d");
         m = match(SEMI);
         d = restore("parser:definition:d");
         rethrow(m,0);
@@ -570,7 +445,7 @@ definition()
         rethrow(d,0);
         if (type(d) != XCALL)
             {
-            save(d,"parser:definition:d");
+            push(d,"parser:definition:d");
             m = match(SEMI);
             d = restore("parser:definition:d");
             rethrow(m,0);
@@ -624,7 +499,7 @@ varDefList()
 
     item = varDefItem();
     rethrow(item,0);
-    save(item,"parser:varDefList:item");
+    push(item,"parser:varDefList:item");
 
     if (check(COMMA)) /* check is not gc-safe */
         {
@@ -655,7 +530,7 @@ varDefItem()
 
     v = match(ID);
     rethrow(v,0);
-    save(v,"parser:varDefItem:v");
+    push(v,"parser:varDefItem:v");
 
     check(ID); /* force a lex, if necessary (check is not gc-safe) */
 
@@ -670,9 +545,9 @@ varDefItem()
         init = newSymbol(UNINITIALIZED);
         }
 
-    rethrow(init,1); //for saved v
+    rethrow(init,1); //for push v
 
-    save(init,"parser:varDefItem:init");
+    push(init,"parser:varDefItem:init");
 
     ensureMemory(4);
 
@@ -693,7 +568,7 @@ varDefItem()
  */
 
 static int
-functionDef()
+functionDef(PARSER *p)
     {
     int f,v,params,body,result;
     int anonymous = 0;
@@ -716,7 +591,7 @@ functionDef()
         anonymous = 1;
         }
 
-    save(v,"parser:functionDef:v");
+    push(v,"parser:functionDef:v");
 
     m = match(OPEN_PARENTHESIS);
     rethrow(m,1);
@@ -724,7 +599,7 @@ functionDef()
     params = optParamList();
     rethrow(params,1);
 
-    save(params,"parser:functionDef:params");
+    push(params,"parser:functionDef:params");
 
     m = match(CLOSE_PARENTHESIS);
     rethrow(m,2);
@@ -735,7 +610,7 @@ functionDef()
     body = nakedBlock();
     rethrow(body,2);
 
-    save(body,"parser:functionDef:body");
+    push(body,"parser:functionDef:body");
 
     m = match(CLOSE_BRACE);
     rethrow(m,3);
@@ -917,7 +792,7 @@ optStatementSeq()
 
         item = statement();
         rethrow(item,0);
-        save(item,"parser:optStatementSeq:item");
+        push(item,"parser:optStatementSeq:item");
         others = optStatementSeq();
         item = restore("parser:optStatementSeq:item");
         rethrow(others,0);
@@ -958,7 +833,7 @@ statement()
 
     rethrow(r,0);
 
-    save(r,"parser:statement:r");
+    push(r,"parser:statement:r");
     s = cons(STATEMENT,r,0);
     r = restore("parser:statement:r");
 
@@ -969,7 +844,7 @@ statement()
 
     if (!isXCall(r))
         {
-        save(s,"parser:statement:s");
+        push(s,"parser:statement:s");
         //ppf("statement is: ",r,"\n");
         m = match(SEMI);
         s = restore("parser:statement:s");
@@ -1012,15 +887,15 @@ exprAssign()
         return a;
         }
 
-    save(a,"parser:exprAssign:a");
+    push(a,"parser:exprAssign:a");
     if (opType() == UPDATER)
         {
         b = match(ID);
         rethrow(b,1);
-        save(b,"parser:exprAssign:b");
+        push(b,"parser:exprAssign:b");
         c = exprAssign();
         rethrow(c,2);
-        save(c,"parser:exprAssign:c");
+        push(c,"parser:exprAssign:c");
         ensureMemory(3);
         c = restore("parser:exprAssign:c");
         b = restore("parser:exprAssign:b");
@@ -1063,16 +938,16 @@ exprConnect()
 
     result = a;
 
-    save(result,"parser:exprConnect:result");
+    push(result,"parser:exprConnect:result");
 
     while (opType() == LOGICAL_CONNECTIVE)
         {
         b = match(ID);
         rethrow(b,1);
-        save(b,"parser:exprConnect:b");
+        push(b,"parser:exprConnect:b");
         c = exprCompare();
         rethrow(c,2);
-        save(c,"parser:exprConnect:c");
+        push(c,"parser:exprConnect:c");
         ensureMemory(3);
         c = restore("parser:exprConnect:c");
         b = restore("parser:exprConnect:b");
@@ -1082,7 +957,7 @@ exprConnect()
         result = ucons(BINARY,b,result);
         line(result) = line(a);
         indent(result) = indent(a);
-        save(result,"parser:exprConnect:result");
+        push(result,"parser:exprConnect:result");
         }
 
     result = restore("parser:exprConnect:result");
@@ -1115,16 +990,16 @@ exprCompare()
         }
 
     result = a;
-    save(result,"parser:exprCompare:result");
+    push(result,"parser:exprCompare:result");
 
     while (opType() == LOGICAL_COMPARISON)
         {
         b = match(ID);
         rethrow(b,1);
-        save(b,"parser:exprCompare:b");
+        push(b,"parser:exprCompare:b");
         c = exprMath();
         rethrow(c,2);
-        save(c,"parser:exprCompare:c");
+        push(c,"parser:exprCompare:c");
         ensureMemory(3);
         c = restore("parser:exprCompare:c");
         b = restore("parser:exprCompare:b");
@@ -1134,7 +1009,7 @@ exprCompare()
         result = ucons(BINARY,b,result);
         line(result) = line(a);
         indent(result) = indent(a);
-        save(result,"parser:exprCompare:result");
+        push(result,"parser:exprCompare:result");
         }
 
     result = restore("parser:exprCompare:result");
@@ -1166,14 +1041,14 @@ exprMath()
     result = a;
     //ppf("exprMath: a was: ",a,"\n");
 
-    save(result,"parser:exprMath:result");
+    push(result,"parser:exprMath:result");
 
     while (opType() == ARITHMETIC)
         {
         b = match(ID);
         //ppf("exprMath: b was: ",b,"\n");
         rethrow(b,1);
-        save(b,"parser:exprMath:b");
+        push(b,"parser:exprMath:b");
         c = exprCall(0);
         //ppf("exprMath: c was: ",c,"\n");
         rethrow(c,2);
@@ -1834,126 +1709,75 @@ isBlockPending()
 /***** parser utilities ************************************************/
 
 static int
-match(char *t)
+match(PARSER *p,char *t)
     {
     int old;
+    int matches;
 
-    check(t); /* force lex */
-
-
-    if (!check(t))
+    matches = check(p,t);
+    if (!matches)
         {
-        char buffer[512];
-        char buffer2[512];
-
-        if (type(Pending) == ID || type(Pending) == SYMBOL)
-            sprintf(buffer, "expecting %s, found %s (%s) instead",
-                t,type(Pending),cellString(0,0,Pending));
-        else if (type(Pending) == INTEGER)
-            sprintf(buffer, "expecting %s, found %s (%d) instead",
-                t,type(Pending),ival(Pending));
-        else if (type(Pending) == REAL)
-            sprintf(buffer, "expecting %s, found %s (%f) instead",
-                t,type(Pending),rval(Pending));
+        if (isThrow(p->pending))
+            return p->pending;
         else
-            sprintf(buffer,
-                "expecting %s, found %s instead",t,type(Pending));;
-
-        errorContext(buffer2,sizeof(buffer2));
-        return throw("syntaxError","%s\n%s",
-            buffer,buffer2);
+            {
+            assureMemory("match:throw",1000,(int *)0);
+            return throw(syntaxExceptionSymbol,
+                "file %s,line %d: expecting %s, found %s instead",
+                SymbolTable[p->file],p->line,t,type(p->pending));
+            }
         }
 
-    if (TRACE > 1) printf("matched %s!\n",type(Pending));
-
-    old = Pending;
-    Pending = -1;
+    old = p->pending;
+    p->pending = -1;
     return old;
     }
 
 static int
-check(char *t)
+check(PARSER *p,char *t)
     {
-    if (TRACE > 1) printf("checking...\n");
-
-    if (Pending == -1)
+    if (p->pending == -1)
         {
-            //printf("about to lex...\n");
-        Pending = lex();
-        //printf("token is %s\n",type(Pending));
-        }
-    //else
-        //printf("no need to lex...\n");
-
-    //printf("type(Pending) is %s\n",type(Pending));
-    //if (type(Pending) == ID) ppf("Pending is ",Pending,"\n");
-
-    return type(Pending) == t;
-    }
-
-/* errorContext
- *
- * - place the remaining input into a buffer (for an exception)
- *
- * - change this to make sure buffer is not overwritten!
- *
- */
-
-static void
-errorContext(char *buffer,int size)
-    {
-    int index;
-    char ch;
-
-    buffer[0] = '\0';
-    strcat(buffer,"error occurred prior to: ");
-
-    index = strlen(buffer);
-
-    ch = getNextCharacter(Input);
-    while (ch != EOF && ch != '\n')
-        {
-        buffer[index++] = ch;
-        ch = getNextCharacter(Input);
+        //printf("about to lex...\n");
+        p->pending = lex(p);
+        //printf("token is %s\n",type(p->pending));
         }
 
-    buffer[index] = '\0';
+    //printf("type(p->pending) is %s\n",type(p->pending)); //if (type(p->pending) == ID) ppf("pending is ",p->pending,"\n");
 
-    if (ch == '\n')
-        strcat(buffer,"[END OF LINE]");
-    else if (ch == EOF)
-        strcat(buffer,"[END OF INPUT]");
-    }
-
-static void
-clearDirective(FILE *fp)
-    {
-    int ch;
-    
-    if (TRACE > 1) printf("in clearDirective...\n");
-
-    ch = getNextCharacter(fp);
-    //printf("first char is %c\n",ch);
-    if (ch == '#')
-        {
-        while (ch != '\n') ch = getNextCharacter(fp);
-        ++LineNumber;
-        }
+    if (isThrow(p->pending))
+        return 0;
     else
-        unread(ch);
-
-    if (TRACE > 1) printf("leaving clearDirective.\n");
+        return type(p->pending) == t;
     }
 
-static int
-allWhiteSpace(char *buffer)
-    {
-    while (*buffer != '\0')
-        {
-        if (!isspace(*buffer))
-            return 0;
-        ++buffer;
-        }
+extern char *Home;
 
-    return 1;
+static FILE *
+openScamFile(char *fileName)
+    {
+    char buffer[512];
+    FILE *fp;
+
+    //printf("looking for file in current directory\n");
+
+    fp = fopen(fileName,"r");
+    if (fp != 0) return fp;
+
+    snprintf(buffer,sizeof(buffer),"%s/scam/%s",Home,fileName);
+    //printf("looking for file in %s\n",buffer);
+    fp = fopen(buffer,"r");
+    if (fp != 0) return fp;
+    
+    snprintf(buffer,sizeof(buffer),"/usr/local/lib/scam/%s",fileName);
+    //printf("looking for file in %s\n",buffer);
+    fp = fopen(buffer,"r");
+    if (fp != 0) return fp;
+    
+    snprintf(buffer,sizeof(buffer),"/usr/lib/scam/%s",fileName);
+    //printf("looking for file in %s\n",buffer);
+    fp = fopen(buffer,"r");
+    if (fp != 0) return fp;
+
+    return 0;
     }

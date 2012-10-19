@@ -3,7 +3,7 @@ CC = gcc
 OUT = scam
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o
-SOBJS = types.o cell.o slexer.o sparser.o prim.o env.o eval.o util.o pp.o
+SOBJS = types.o cell.o lexer.o sparser.o prim.o env.o eval.o util.o pp.o
 #OBJS = types.o cell2.o lexer2.o parser2.o prim.o env.o eval.o util.o pp.o
 PROF = -pg
 
