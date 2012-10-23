@@ -13,6 +13,11 @@ scam		: $(OBJS) scam.o
 		$(CC) -o $(OUT) $(PROF) $(OBJS) scam.o -lm
 		cp $(OUT) ~/bin/
 
+install : scam
+		sudo mkdir -p /usr/local/lib/scam/
+		sudo cp $(OUT) /usr/local/bin
+		sudo cp *.lib /usr/local/lib/scam/
+
 sway		: $(SOBJS) scam.o
 		$(CC) -o sway2 $(PROF) $(OBJS) scam.o -lm
 		cp sway2 ~/bin/

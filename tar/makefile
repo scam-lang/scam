@@ -1,8 +1,8 @@
 ver = `grep "VERSION =" ../scam.c | sed "s/.* \"//" | sed "s/\";//"`
 SERVER = beastie.cs.ua.edu
 ARCH = i386
-#ARCH = amd64
-#ARCH = OSX
+ARCH = OSX
+ARCH = amd64
 
 tar		:	
 			(cd ..; touch *.c; make)
