@@ -37,6 +37,7 @@ int traceSymbol;
 int throwSymbol;
 int errorSymbol;
 int quoteSymbol;
+int parenSymbol;
 int anonymousSymbol;
 int lambdaSymbol;
 int dollarSymbol;
@@ -157,6 +158,7 @@ memoryInit(int memsize)
     throwSymbol          = newSymbol("throw");
     errorSymbol          = newSymbol("error");
     quoteSymbol          = newSymbol("quote");
+    parenSymbol          = newSymbol("paren");
     anonymousSymbol      = newSymbol("anonymous");
     lambdaSymbol         = newSymbol("lambda");
     dollarSymbol         = newSymbol("$");

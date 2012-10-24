@@ -108,6 +108,7 @@ extern int traceSymbol;
 extern int throwSymbol;
 extern int errorSymbol;
 extern int quoteSymbol;
+extern int parenSymbol;
 extern int anonymousSymbol;
 extern int lambdaSymbol;
 extern int dollarSymbol;
@@ -148,9 +149,19 @@ extern int DOTSymbol;
 extern int assignSymbol;
 extern int undefinedVariableSymbol;
 extern int uninitializedVariableSymbol;
-
 extern int readIndex;
 extern int writeIndex;
 extern int appendIndex;
 extern int stdinIndex;
 extern int stdoutIndex;
+
+extern int andAndSymbol;
+extern int orOrSymbol;
+extern int gtSymbol;
+extern int gteSymbol;
+extern int ltSymbol;
+extern int lteSymbol;
+extern int neqSymbol;
+extern int functionSymbol;
+extern int headAssignSymbol;
+extern int tailAssignSymbol;
