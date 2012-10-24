@@ -19,7 +19,7 @@ install : scam
 		sudo cp *.lib /usr/local/lib/scam/
 
 sway		: $(SOBJS) scam.o
-		$(CC) -o sway2 $(PROF) $(OBJS) scam.o -lm
+		$(CC) -o sway2 $(PROF) $(SOBJS) scam.o -lm
 		cp sway2 ~/bin/
 
 parser.o	: parser.c cell.h types.h lexer.h parser.h util.h

@@ -165,3 +165,5 @@ extern int neqSymbol;
 extern int functionSymbol;
 extern int headAssignSymbol;
 extern int tailAssignSymbol;
+extern int openBracketSymbol;
+extern int closeBracketSymbol;

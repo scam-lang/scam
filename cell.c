@@ -85,6 +85,19 @@ int appendIndex;
 int stdinIndex;
 int stdoutIndex;
 
+int andAndSymbol;
+int orOrSymbol;
+int gtSymbol;
+int gteSymbol;
+int ltSymbol;
+int lteSymbol;
+int neqSymbol;
+int functionSymbol;
+int headAssignSymbol;
+int tailAssignSymbol;
+int openBracketSymbol;
+int closeBracketSymbol;
+
 CELL *the_cars;
 CELL *new_cars;
 int *the_cdrs;
@@ -202,6 +215,19 @@ memoryInit(int memsize)
     appendIndex          = findSymbol("append");
     stdinIndex           = findSymbol("stdin");
     stdoutIndex          = findSymbol("stdout");
+
+    andAndSymbol         = findSymbol("&&");
+    orOrSymbol           = findSymbol("||");
+    gtSymbol             = findSymbol(">");
+    gteSymbol            = findSymbol(">=");
+    ltSymbol             = findSymbol("<");
+    lteSymbol            = findSymbol(">=");
+    neqSymbol            = findSymbol("!=");
+    functionSymbol       = findSymbol("function");
+    headAssignSymbol     = findSymbol("head=");
+    tailAssignSymbol     = findSymbol("tail=");
+    openBracketSymbol    = findSymbol("[");
+    closeBracketSymbol   = findSymbol("]");
 
     assert(stdoutIndex == findSymbol("stdout"));
 
