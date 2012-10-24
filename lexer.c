@@ -52,6 +52,18 @@ lex(PARSER *p)
             case ')': 
                 result = newPunctuation(CLOSE_PARENTHESIS);
                 break;
+            case '[': 
+                result = newPunctuation(OPEN_BRACKET);
+                break;
+            case ']': 
+                result = newPunctuation(CLOSE_BRACKET);
+                break;
+            case '{': 
+                result = newPunctuation(OPEN_BRACE);
+                break;
+            case '}': 
+                result = newPunctuation(CLOSE_BRACE);
+                break;
             case '\'': 
                 result = newPunctuation(QUOTE);
                 break;

@@ -73,6 +73,7 @@ int nonObjectSymbol;
 int returnSymbol;
 int levelSymbol;
 int eqSymbol;
+int eqEqSymbol;
 int dotSymbol;
 int DOTSymbol;
 int assignSymbol;
@@ -96,7 +97,7 @@ int functionSymbol;
 int headAssignSymbol;
 int tailAssignSymbol;
 int openBracketSymbol;
-int closeBracketSymbol;
+int xcallSymbol;
 
 CELL *the_cars;
 CELL *new_cars;
@@ -204,6 +205,7 @@ memoryInit(int memsize)
     nonObjectSymbol      = newSymbol("nonObject");
     returnSymbol         = newSymbol("return");
     eqSymbol             = newSymbol("=");
+    eqEqSymbol           = newSymbol("==");
     dotSymbol            = newSymbol(".");
     DOTSymbol            = newSymbol("dot");
     assignSymbol         = newSymbol("assign");
@@ -216,18 +218,18 @@ memoryInit(int memsize)
     stdinIndex           = findSymbol("stdin");
     stdoutIndex          = findSymbol("stdout");
 
-    andAndSymbol         = findSymbol("&&");
-    orOrSymbol           = findSymbol("||");
-    gtSymbol             = findSymbol(">");
-    gteSymbol            = findSymbol(">=");
-    ltSymbol             = findSymbol("<");
-    lteSymbol            = findSymbol(">=");
-    neqSymbol            = findSymbol("!=");
-    functionSymbol       = findSymbol("function");
-    headAssignSymbol     = findSymbol("head=");
-    tailAssignSymbol     = findSymbol("tail=");
-    openBracketSymbol    = findSymbol("[");
-    closeBracketSymbol   = findSymbol("]");
+    andAndSymbol         = newSymbol("&&");
+    orOrSymbol           = newSymbol("||");
+    gtSymbol             = newSymbol(">");
+    gteSymbol            = newSymbol(">=");
+    ltSymbol             = newSymbol("<");
+    lteSymbol            = newSymbol(">=");
+    neqSymbol            = newSymbol("!=");
+    functionSymbol       = newSymbol("function");
+    headAssignSymbol     = newSymbol("head=");
+    tailAssignSymbol     = newSymbol("tail=");
+    openBracketSymbol    = newSymbol("__select");
+    xcallSymbol          = newSymbol("__xcall");
 
     assert(stdoutIndex == findSymbol("stdout"));
 

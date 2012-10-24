@@ -18,8 +18,8 @@ install : scam
 		sudo cp $(OUT) /usr/local/bin
 		sudo cp *.lib /usr/local/lib/scam/
 
-sway		: $(SOBJS) scam.o
-		$(CC) -o sway2 $(PROF) $(SOBJS) scam.o -lm
+sway		: $(SOBJS) sway.o
+		$(CC) -o sway2 $(PROF) $(SOBJS) sway.o -lm
 		cp sway2 ~/bin/
 
 parser.o	: parser.c cell.h types.h lexer.h parser.h util.h
@@ -43,8 +43,6 @@ eval.o		: eval.c cell.h types.h cell.h parser.h env.h eval.h
 
 lexer.o		: lexer.c cell.h types.h lexer.h  
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g lexer.c
-slexer.o		: slexer.c cell.h types.h lexer.h  
-		$(CC) -c $(PROF) $(IREADLINE) -Wall -g slexer.c
 
 types.o		: types.c types.h
 		$(CC) -c $(PROF) -Wall -g types.c

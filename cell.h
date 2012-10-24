@@ -31,6 +31,8 @@ extern int uconsfl(int,int,int,int);
 extern int append(int,int);
 extern int length(int);
 
+#define name(a)     (SymbolTable[ival(a)])
+
 #define type(a)     (the_cars[a].type)
 #define ival(a)     (the_cars[a].ival)
 #define rval(a)     (the_cars[a].rval)
@@ -144,6 +146,7 @@ extern int nonObjectSymbol;
 extern int returnSymbol;
 extern int levelSymbol;
 extern int eqSymbol;
+extern int eqEqSymbol;
 extern int dotSymbol;
 extern int DOTSymbol;
 extern int assignSymbol;
@@ -166,4 +169,4 @@ extern int functionSymbol;
 extern int headAssignSymbol;
 extern int tailAssignSymbol;
 extern int openBracketSymbol;
-extern int closeBracketSymbol;
+extern int xcallSymbol;

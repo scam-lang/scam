@@ -36,6 +36,7 @@ lex(PARSER *p)
     int ch; 
 
     ch = skipWhiteSpace(p); 
+    printf("lex character is %c\n",ch);
 
     if (ch == EOF || strchr("()'`,",ch) != 0) /* single character tokens */ 
         {
@@ -67,11 +68,11 @@ lex(PARSER *p)
             case '\'': 
                 result = newPunctuation(QUOTE);
                 break;
-            case '`': 
-                result = newPunctuation(BACKQUOTE);
+            case ';': 
+                result = newPunctuation(SEMI);
                 break;
             case ',': 
-                result = newSymbol(",");
+                result = newPunctuation(COMMA);
                 break;
             default:
                 Fatal("INTERNAL ERROR: bad single character token\n");
@@ -226,7 +227,7 @@ lexSymbol(PARSER *p,int ch)
     index = 1;
 
     while ((ch = getNextCharacter(p)) && ch != EOF
-    && !isspace(ch) && strchr("();,`'",ch) == 0)
+    && !isspace(ch) && strchr("(){}[];,'",ch) == 0)
         {
         //printf("symbol: %c\n", ch);
             buffer[index++] = ch;
@@ -342,7 +343,7 @@ getNextCharacter(PARSER *p)
     else
         {
         ch = fgetc(p->input);
-        //printf("getNextCharacter: returning <%c>\n",ch);
+        printf("getNextCharacter: returning <%c>\n",ch);
         if (ch == '\n') ++(p->line);
         return ch;
         }

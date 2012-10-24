@@ -5,6 +5,7 @@ extern char *OPEN_PARENTHESIS;// = "OPEN_PARENTHESIS";
 extern char *QUOTE;//= "QUOTE";
 extern char *BACKQUOTE;//= "QUOTE";
 extern char *COMMA;// = "COMMA";
+extern char *SEMICOLON;// = "SEMICOLON";
 extern char *END_OF_INPUT;// = "END_OF_INPUT";
 
 /* scam keywords */

@@ -12,7 +12,9 @@
 #include "env.h"
 #include "util.h"
 
-#define TRACE 0
+extern void pp(FILE *,int);
+
+#define TRACE 1
 
 /* operator types */
 
@@ -23,27 +25,33 @@
 #define SELECT               4       /* . and [          */
 #define NOTanOP              5
 
-
 extern void debug(char *,int);
 
 /* recursive descent parsing function */
 
 static int expr(PARSER *);
-static int exprCall(int,PARSER *);
-static int exprSelect(int,PARSER *);
+static int exprAssign(PARSER *);
+static int exprConnect(PARSER *);
+static int exprCompare(PARSER *);
+static int exprMath(PARSER *);
+static int exprCall(PARSER *,int);
+static int exprSelect(PARSER *,int);
 static int primary(PARSER *);
+static int optArgList(PARSER *);
+static int argList(PARSER *);
 
 /* pending functions */
 
 static int isExprPending(PARSER *);
 static int opType(PARSER *);
-static int isIdentifier(int,int);
+static int isXCall(int);
 
 /* parser support */
 
 static int check(PARSER *,char *);
 static int match(PARSER *,char *);
 static FILE *openScamFile(char *);
+static void ppf(char *,int,char *);
 
 /*
  
@@ -170,14 +178,10 @@ static FILE *openScamFile(char *);
                | argList
                ;
 
-    argList : arg
-            | arg COMMA
-            | arg COMMA argList
+    argList : expr
+            | expr COMMA
+            | expr COMMA argList
             ;
-
-    arg : expr
-        | SEMI
-        ;
 
     optExtraArgs : extraArgs
                  | *empty*
@@ -235,6 +239,7 @@ parse(PARSER *p)
     //printf("starting to parse...\n");
     if (check(p,END_OF_INPUT)) return 0;
 
+    printf("parsing now, %s pending\n",type(p->pending));
     result = expr(p);
     rethrow(result,0);
     push(result);
@@ -242,8 +247,8 @@ parse(PARSER *p)
     result = pop();
     rethrow(end,0);
 
-    assureMemory("parse",1,&result,(int *)0);
-    result = uconsfl(beginSymbol,result,file(result),line(result));
+    //assureMemory("parse",1,&result,(int *)0);
+    //result = uconsfl(beginSymbol,result,file(result),line(result));
     //printf("done parsing.\n");
     return result;
     }
@@ -253,26 +258,23 @@ parse(PARSER *p)
 static int
 expr(PARSER *p)
     {
-    return exprCall(0,p);
+    return exprAssign(p);
     }
 
-#ifdef JUNK
-
-/* exprAssign : exprConnect
- *            | exprConnect SYMBOL(=,tail=,head=) exprAssign
+/* exprAssign : exprConnect (SYMBOL(=,tail=,head=) exprConnect)*
  *
  * exprAssign is left associative
  */
 
 static int
-exprAssign()
+exprAssign(PARSER *p)
     {
     int a,b,c;
     int result;
 
     if (TRACE) printf("in exprAssign...\n");
 
-    a = exprConnect();
+    a = exprConnect(p);
     rethrow(a,0);
 
     if (isXCall(a))
@@ -281,47 +283,44 @@ exprAssign()
         return a;
         }
 
-    save(a,"parser:exprAssign:a");
+    push(a);
+
     if (opType(p) == UPDATER)
         {
-        b = match(SYMBOL);
+        b = match(p,SYMBOL);
         rethrow(b,1);
-        save(b,"parser:exprAssign:b");
-        c = exprAssign();
+        push(b);
+        c = exprAssign(p);
         rethrow(c,2);
-        save(c,"parser:exprAssign:c");
-        ensureMemory(3);
-        c = restore("parser:exprAssign:c");
-        b = restore("parser:exprAssign:b");
-        a = restore("parser:exprAssign:a"); /* was result */
-        result = ucons(JOIN,c,0);
-        result = ucons(JOIN,a,result);
-        result = ucons(BINARY,b,result);
-        line(result) = line(b);
-        indent(result) = indent(a);
+        push(c);
+        assureMemory("exprAssign",3,(int *)0);
+        c = pop();
+        b = pop();
+        a = pop();
+        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
         }
     else
-        result = restore("parser:exprAssign:a"); /* was result */
+        result = pop();
 
     if (TRACE) ppf("leaving exprAssign: ",result,"\n");
 
     return result;
     }
 
-/* exprConnect : exprCompare (SYMBOL(<,<=,==,>=,>,!=) exprConnect)* 
+/* exprConnect : exprCompare SYMBOL[&&,||] exprCompare)* 
  *
- * exprAssign is left associative
+ * exprConnect is left associative
  */
 
 static int
-exprConnect()
+exprConnect(PARSER *p)
     {
     int a,b,c;
     int result;
 
     if (TRACE) printf("in exprConnect...\n");
 
-    a = exprCompare();
+    a = exprCompare(p);
     rethrow(a,0);
 
     if (isXCall(a))
@@ -332,49 +331,45 @@ exprConnect()
 
     result = a;
 
-    save(result,"parser:exprConnect:result");
+    push(result);
 
     while (opType(p) == LOGICAL_CONNECTIVE)
         {
-        b = match(SYMBOL);
+        b = match(p,SYMBOL);
         rethrow(b,1);
-        save(b,"parser:exprConnect:b");
-        c = exprCompare();
+        push(b);
+        c = exprCompare(p);
         rethrow(c,2);
-        save(c,"parser:exprConnect:c");
-        ensureMemory(3);
-        c = restore("parser:exprConnect:c");
-        b = restore("parser:exprConnect:b");
-        a = restore("parser:exprConnect:result");
-        result = ucons(JOIN,c,0);
-        result = ucons(JOIN,a,result);
-        result = ucons(BINARY,b,result);
-        line(result) = line(a);
-        indent(result) = indent(a);
-        save(result,"parser:exprConnect:result");
+        push(c);
+        assureMemory("exprConnect",3,(int *)0);
+        c = pop();
+        b = pop();
+        a = pop();
+        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
+        push(result);
         }
 
-    result = restore("parser:exprConnect:result");
+    result = pop();
 
     if (TRACE) ppf("leaving exprConnect: ",result,"\n");
 
     return result;
     }
 
-/* exprCompare : exprMath (SYMBOL(+,-,*,/,%) exprMath)*
+/* exprCompare : exprMath (SYMBOL[<,<=,==,!=,>=,>] exprMath)*
  *
  * exprCompare is left associative
  */
 
 static int
-exprCompare()
+exprCompare(PARSER *p)
     {
     int a,b,c;
     int result;
 
     if (TRACE) printf("in exprCompare...\n");
 
-    a = exprMath();
+    a = exprMath(p);
     rethrow(a,0);
 
     if (isXCall(a))
@@ -384,46 +379,43 @@ exprCompare()
         }
 
     result = a;
-    save(result,"parser:exprCompare:result");
+    push(result);
 
     while (opType(p) == LOGICAL_COMPARISON)
         {
-        b = match(SYMBOL);
+        b = match(p,SYMBOL);
         rethrow(b,1);
-        save(b,"parser:exprCompare:b");
-        c = exprMath();
+        push(b);
+        printf("about to call math\n");
+        c = exprMath(p);
         rethrow(c,2);
-        save(c,"parser:exprCompare:c");
-        ensureMemory(3);
-        c = restore("parser:exprCompare:c");
-        b = restore("parser:exprCompare:b");
-        a = restore("parser:exprCompare:result");
-        result = ucons(JOIN,c,0);
-        result = ucons(JOIN,a,result);
-        result = ucons(BINARY,b,result);
-        line(result) = line(a);
-        indent(result) = indent(a);
-        save(result,"parser:exprCompare:result");
+        push(c);
+        assureMemory("exprCompare",3,(int *)0);
+        c = pop();
+        b = pop();
+        a = pop();
+        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
+        push(result);
         }
 
-    result = restore("parser:exprCompare:result");
+    result = pop();
 
     if (TRACE) ppf("leaving exprCompare: ",result,"\n");
 
     return result;
     }
 
-/* exprMath : exprCall (SYMBOL exprCall)* */
+/* exprMath : exprCall (SYMBOL[+,-,*,/,%,^] exprCall)* */
 
 static int
-exprMath()
+exprMath(PARSER *p)
     {
     int a,b,c;
     int result;
 
     if (TRACE) printf("in exprMath...\n");
 
-    a = exprCall(0);
+    a = exprCall(p,0);
     rethrow(a,0);
 
     if (isXCall(a))
@@ -435,50 +427,44 @@ exprMath()
     result = a;
     //ppf("exprMath: a was: ",a,"\n");
 
-    save(result,"parser:exprMath:result");
+    push(result);
 
     while (opType(p) == ARITHMETIC)
         {
-        b = match(SYMBOL);
+        b = match(p,SYMBOL);
         //ppf("exprMath: b was: ",b,"\n");
         rethrow(b,1);
-        save(b,"parser:exprMath:b");
-        c = exprCall(0);
+        push(b);
+        c = exprCall(p,0);
         //ppf("exprMath: c was: ",c,"\n");
         rethrow(c,2);
-        save(c,"parser:exprMath:c");
-        ensureMemory(3);
-        c = restore("parser:exprMath:c");
-        b = restore("parser:exprMath:b");
-        a = restore("parser:exprMath:result");
+        push(c);
+        assureMemory("exprMath",3,(int *)0);
+        c = pop();
+        b = pop();
+        a = pop();
         //ppf("exprMath: a is: ",a,"\n");
         //ppf("exprMath: b is: ",b,"\n");
         //ppf("exprMath: c is: ",c,"\n");
-        result = ucons(JOIN,c,0);
-        result = ucons(JOIN,a,result);
-        result = ucons(BINARY,b,result);
-        line(result) = line(a);
-        indent(result) = indent(a);
+        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
         //ppf("exprMath: a was: ",result,"\n");
-        save(result,"parser:exprMath:result");
+        push(result);
         }
 
-    result = restore("parser:exprMath:result");
+    result = pop();
 
     if (TRACE) ppf("leaving exprMath: ",result,"\n");
 
     return result;
     }
-#endif
 
 /* exprCall : exprSelect
  *          | exprSelect OPAREN optArgList CPAREN optExtraArgs
- *          | exprSelect OPAREN optArgList CPAREN optExtraArgs
- *              SYMBOL(.) exprCall
+ *          | exprSelect OPAREN optArgList CPAREN optExtraArgs SYMBOL(.) exprCall
  */
 
 static int
-exprCall(int item,PARSER *p)
+exprCall(PARSER *p,int item)
     {
     int op,args,extra;
     int result;
@@ -487,7 +473,7 @@ exprCall(int item,PARSER *p)
     if (TRACE) printf("in exprCall...\n");
 
     if (item == 0)
-        op = exprSelect(0,p);
+        op = exprSelect(p,0);
     else
         op = item;
 
@@ -498,12 +484,19 @@ exprCall(int item,PARSER *p)
 
     if (check(p,OPEN_PARENTHESIS)) /* check is not gc-safe */
         {
-        m = match(p,OPEN_PARENTHESIS);
-        rethrow(args = optArgList(p),1);
+        //this is a function call
+        match(p,OPEN_PARENTHESIS);
+        printf("about to get args\n");
+        args = optArgList(p);
+        rethrow(args,1);
+        printf("done getting args\n");
+        printf("args is "); pp(stdout,args); printf("\n");
         push(args);
-        rethrow(m = match(p,CLOSE_PARENTHESIS),2);
+        m = match(p,CLOSE_PARENTHESIS);
+        rethrow(m,2);
         //modify the next line when extra args is implemented
-        rethrow(extra = 0); //optExtraArgs(p),2);
+        extra = 0; //optExtraArgs(p),2);
+        rethrow(extra,2);
         push(extra);
         //ppf("exprCall: extra was :",extra,"\n");
         assureMemory("exprCall",2,(int *)0);
@@ -515,13 +508,14 @@ exprCall(int item,PARSER *p)
         //ppf("exprCall: op is :",op,"\n");
         /* append is destructive, does not use cons */
         result = uconsfl(op,append(args,extra),file(op),line(op));
+        pp(stdout,result);
         if (extra != 0)
             {
             result = ucons(xcallSymbol,result);
             }
         if (opType(p) == SELECT)
             {
-            result = exprCall(exprSelect(result,p));
+            result = exprCall(p,exprSelect(p,result));
             }
         }
     else
@@ -539,7 +533,7 @@ exprCall(int item,PARSER *p)
  */
 
 static int
-exprSelect(int item,PARSER *p)
+exprSelect(PARSER *p,int item)
     {
     int a,b,c;
     int result;
@@ -559,23 +553,19 @@ exprSelect(int item,PARSER *p)
     while (opType(p) == SELECT)
         {
         /* opType forces a lex */
-        if (isIdentifier(p->pending,openBracketSymbol))
+        if (check(p,OPEN_BRACKET))
             {
-            int closer;
-            rethrow(b = match(p,SYMBOL),1);
-            push(b);
-            rethrow(c = expr(p),2);
+            match(p,OPEN_BRACKET);
+            c = expr(p);
+            rethrow(c,1);
             push(c);
-            closer = match(p,SYMBOL);
-            if (closer != closeBracketSymbol)
-                return throw(syntaxExceptionSymbol,
-                    "file %s,line %d: expected a close bracket, got %s instead",
-                    SymbolTable[p->file],p->line,
-                    SymbolTable[ival(closer)]);
+            match(p,CLOSE_BRACKET);
+            b = openBracketSymbol;
             }
         else /* must be dot */
             {
-            rethrow(b = match(p,SYMBOL),1);
+            b = match(p,SYMBOL);
+            rethrow(b,1);
             push(b);
             if (check(p,SYMBOL))
                 c = match(p,SYMBOL); //do not check for undefined here
@@ -614,6 +604,10 @@ primary(PARSER *p)
     int r;
     int result;
 
+    if (TRACE) printf("in primary...\n");
+    //printf("primary: %s pending\n",type(p->pending));
+    //getchar();
+
     if (check(p,INTEGER))
         result = match(p,INTEGER);
     else if (check(p,REAL))
@@ -622,32 +616,39 @@ primary(PARSER *p)
         result = match(p,STRING);
     else if (check(p,SYMBOL))
         {
-        if (isIdentifier(p->pending,returnSymbol))
+        if (sameSymbol(p->pending,returnSymbol))
             {
-            rethrow(r = expr(p),0);
+            r = expr(p);
+            rethrow(r,0);
             assureMemory("primary:return",2,&r,(int *)0);
             result = uconsfl(returnSymbol,ucons(r,0),file(r),line(r));
             }
-        else if (isIdentifier(p->pending,functionSymbol))
+        else if (sameSymbol(p->pending,functionSymbol))
             {
             fprintf(stderr,"lambdas not yet implemented\n");
             exit(-1);
             }
         else
+            {
             result = match(p,SYMBOL);
+            }
         }
     else if (check(p,QUOTE))
         {
         match(p,QUOTE);
-        rethrow(r = match(p,SYMBOL),0);
+        r = match(p,SYMBOL);
+        rethrow(r,0);
         assureMemory("primary:quote",2,&r,(int *)0);
         result = uconsfl(quoteSymbol,ucons(r,0),file(r),line(r));
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
+        int m;
+        match(p,OPEN_PARENTHESIS);
         r = expr(p);
         rethrow(r,0);
-        rethrow(match(p,CLOSE_PARENTHESIS),0);
+        m = match(p,CLOSE_PARENTHESIS);
+        rethrow(m,0);
         assureMemory("expr:openParen",2,&r,(int *)0);
         result = uconsfl(parenSymbol,ucons(r,0),file(r),line(r));
         }
@@ -666,6 +667,7 @@ primary(PARSER *p)
             SymbolTable[p->file],p->line,type(p->pending));
         }
 
+    if (TRACE) printf("leaving primary.\n");
     return result;
     }
 
@@ -674,46 +676,64 @@ primary(PARSER *p)
  */
 
 static int
-optArgList()
+optArgList(PARSER *p)
     {
-    if (check(OPEN_BRACE) || isExprPending())
-        return argList();
+    int result;
+
+    if (TRACE) printf("in optArgList...\n");
+
+    if (check(p,OPEN_BRACE) || isExprPending(p))
+        {
+        result = argList(p);
+        }
     else
-        return 0;
+        result = 0;
+
+    printf("arglist is: "); pp(stdout,result); printf("\n");
+    if (TRACE) printf("leaving optArgList.\n");
+
+    return result;
     }
 
-/* argList : arg
- *         | arg COMMA argList
+/* argList : expr
+ *         | expr COMMA argList
  */
 
 static int
-argList()
+argList(PARSER *p)
     {
     int a,b;
     int result;
 
-    a = arg();
+    if (TRACE) printf("in argList...\n");
+    a = expr(p);
     rethrow(a,0);
-    save(a,"parser:argList:a");
+    push(a);
 
-    if (check(COMMA)) /* check is not gc-safe */
+    //force check
+    check(p,0);
+    if (sameSymbol(p->pending,commaSymbol))
         {
-        match(COMMA);
-        if (check(CLOSE_PARENTHESIS))
+        match(p,SYMBOL);
+        if (check(p,CLOSE_PARENTHESIS))
             b = 0;
         else
-            b = argList();
-        a = restore("parser:argList:a");
-        rethrow(b,0);
+            b = argList(p);
+        rethrow(b,1);
         }
     else
         {
         b = 0;
-        a = restore("parser:argList:a");
         }
 
-    result = cons(JOIN,a,b);
+    assureMemory("argList",1,&b,(int *)0);
 
+    a = pop();
+    printf("arg is: "); pp(stdout,a); printf("\n");
+
+    result = uconsfl(a,b,file(a),line(a));
+
+    if (TRACE) printf("leaving argList.\n");
     return result;
     }
 
@@ -731,10 +751,16 @@ static int
 opType(PARSER *p)
     {
     int result;
-    int Pending = p->pending;
-
+    int Pending;
+    
     //force lex
     check(p,0);
+
+    Pending = p->pending;
+
+    //printf("Pending address is %d\n", Pending);
+    //printf("Pending type is %s\n", type(Pending));
+    //printf("Pending is %s\n", name(Pending));
 
     if (type(Pending) != SYMBOL)
         {
@@ -742,18 +768,18 @@ opType(PARSER *p)
         }
     else
         {
-        if (isIdentifier(Pending,assignSymbol)
-        ||  isIdentifier(Pending,headAssignSymbol)
-        ||  isIdentifier(Pending,tailAssignSymbol))
+        if (sameSymbol(Pending,eqSymbol)
+        ||  sameSymbol(Pending,headAssignSymbol)
+        ||  sameSymbol(Pending,tailAssignSymbol))
             result = UPDATER;
-        else if (isIdentifier(Pending,andAndSymbol) || isIdentifier(Pending,orOrSymbol))
+        else if (sameSymbol(Pending,andAndSymbol) || sameSymbol(Pending,orOrSymbol))
             result = LOGICAL_CONNECTIVE;
-        else if (isIdentifier(Pending,ltSymbol) || isIdentifier(Pending,gtSymbol)
-        || isIdentifier(Pending,eqSymbol) ||  isIdentifier(Pending,neqSymbol)
-        || isIdentifier(Pending,gteSymbol) || isIdentifier(Pending,lteSymbol))
+        else if (sameSymbol(Pending,ltSymbol) || sameSymbol(Pending,gtSymbol)
+        || sameSymbol(Pending,eqEqSymbol) ||  sameSymbol(Pending,neqSymbol)
+        || sameSymbol(Pending,gteSymbol) || sameSymbol(Pending,lteSymbol))
             result = LOGICAL_COMPARISON;
-        else if (isIdentifier(Pending,dotSymbol)
-        || isIdentifier(Pending,openBracketSymbol))
+        else if (sameSymbol(Pending,dotSymbol)
+        || sameSymbol(Pending,openBracketSymbol))
             result = SELECT;
         else
             result = ARITHMETIC;
@@ -799,7 +825,8 @@ check(PARSER *p,char *t)
         //printf("token is %s\n",type(p->pending));
         }
 
-    //printf("type(p->pending) is %s\n",type(p->pending)); //if (type(p->pending) == SYMBOL) ppf("pending is ",p->pending,"\n");
+    //printf("type(p->pending) is %s\n",type(p->pending));
+    //if (type(p->pending) == SYMBOL) ppf("pending is ",p->pending,"\n");
 
     if (isThrow(p->pending))
         return 0;
@@ -808,9 +835,9 @@ check(PARSER *p,char *t)
     }
 
 static int
-isIdentifier(int token,int sym)
+isXCall(int expr)
     {
-    return type(token) == SYMBOL && ival(token) == ival(sym);
+    return type(expr) == CONS && sameSymbol(car(expr),xcallSymbol);
     }
 
 extern char *Home;
@@ -842,4 +869,12 @@ openScamFile(char *fileName)
     if (fp != 0) return fp;
 
     return 0;
+    }
+
+static void
+ppf(char *s1,int expr,char *s2)
+    {
+    fprintf(stdout,"%s",s1);
+    pp(stdout,expr);
+    fprintf(stdout,"%s",s2);
     }
