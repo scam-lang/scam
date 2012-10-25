@@ -1148,7 +1148,7 @@ display(int args)
 
     //printf("writing to port %p\n",port);
     //debug("    ",car(args));
-    if (car(args) != 0) pp(port,car(args));
+    pp(port,car(args));
 
     return car(args);
     }
