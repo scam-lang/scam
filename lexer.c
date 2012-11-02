@@ -25,7 +25,7 @@
 
 #define FILENAMESIZE 256
 
-static int skipWhiteSpace(PARSER *);
+extern int skipWhiteSpace(PARSER *);
 static int lexNumber(PARSER *,int);
 static int lexSymbol(PARSER *,int);
 static int lexString(PARSER *);
@@ -36,6 +36,8 @@ lex(PARSER *p)
     int ch; 
 
     ch = skipWhiteSpace(p); 
+    printf("whitespace returns %c", ch);
+    getchar();
 
     if (ch == EOF || strchr("()'`,",ch) != 0) /* single character tokens */ 
         {
@@ -95,47 +97,6 @@ lex(PARSER *p)
         }
     } 
 
-static int
-skipWhiteSpace(PARSER *p)
-    {
-    int ch;
-
-    while ((ch = getNextCharacter(p))
-    && ch != EOF && (isspace(ch) || ch == ';'))
-        {
-        if (ch == ';')
-            { 
-            ch = getNextCharacter(p);
-            if (ch == '$') /* skip to end of file */
-                {
-                while ((ch = getNextCharacter(p)) && ch != EOF)
-                    continue;
-                }
-            else if (ch == '{') /* skip to close comment */
-                {
-                int prev = ch;
-                int lineNumber = p->line;
-                while ((ch = getNextCharacter(p))
-                && ch != EOF && (prev != ';' || ch != '}'))
-                    {
-                    prev = ch;
-                    }
-                if (ch == EOF)
-                    {
-                    return Fatal("file %s,line %d: unterminated comment\n",
-                            SymbolTable[p->file],lineNumber);
-                    }
-                }
-            else /* skip to end of line */
-                {
-                while (ch != EOF && ch != '\n')
-                    ch = getNextCharacter(p);
-                }
-            }
-        }
-
-    return ch;
-    }
 
 static int
 lexNumber(PARSER *p,int ch)
@@ -335,14 +296,14 @@ getNextCharacter(PARSER *p)
     if (p->pushedBack)
         {
         p->pushedBack = 0;
-        //printf("getNextCharacter: returning pushed back <%c>\n",pushBack);
+        printf("getNextCharacter: returning pushed back <%c>\n",p->pushBack);
         if (p->pushBack == '\n') ++(p->line);
         return p->pushBack;
         }
     else
         {
         ch = fgetc(p->input);
-        //printf("getNextCharacter: returning <%c>\n",ch);
+        printf("getNextCharacter: returning <%c> %d\n",ch, ch);
         if (ch == '\n') ++(p->line);
         return ch;
         }

@@ -2,8 +2,8 @@
 CC = gcc
 OUT = scam
 
-OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o
-SOBJS = types.o cell.o lexer.o sparser.o prim.o env.o eval.o util.o pp.o
+OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o whitespace.o
+SOBJS = types.o cell.o lexer.o sparser.o prim.o env.o eval.o util.o pp.o swhitespace.o
 #OBJS = types.o cell2.o lexer2.o parser2.o prim.o env.o eval.o util.o pp.o
 PROF = -pg
 
@@ -41,7 +41,7 @@ prim.o		: prim.c prim.h types.h cell.h
 eval.o		: eval.c cell.h types.h cell.h parser.h env.h eval.h
 		$(CC) -c $(PROF) -Wall -g eval.c
 
-lexer.o		: lexer.c cell.h types.h lexer.h  
+lexer.o		: lexer.c cell.h types.h lexer.h 
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g lexer.c
 
 types.o		: types.c types.h
@@ -50,11 +50,17 @@ types.o		: types.c types.h
 util.o		: util.c util.h types.h cell.h
 		$(CC) -c $(PROF) -Wall -g util.c
 
-pp.o		: pp.c pp.h 
+pp.o		: pp.c pp.h
 		$(CC) -c $(PROF) -Wall -g pp.c
 
 scam.o		: scam.c cell.h parser.h prim.h eval.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g scam.c
+
+whitespace.o : whitespace.c cell.h parser.h
+		$(CC) -c $(PROF) -Wall -g whitespace.c
+
+swhitespace.o : swhitespace.c cell.h parser.h
+		$(CC) -c $(PROF) -Wall -g swhitespace.c
 
 clean:
 		rm *.o scam
