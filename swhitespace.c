@@ -53,9 +53,6 @@ skipWhiteSpace(PARSER *p)
                   ch = getNextCharacter(p);
                   if (ch == EOF)
                       Fatal("SOURCE CODE ERROR: unterminated comment\n");
-                      /* Fatal("SOURCE CODE ERROR\n"
-                          "file %s, line %d: unterminated comment\n",
-                          cellString(0,0,fn), ln); */
                   more = ch != '/';
                   }
               }

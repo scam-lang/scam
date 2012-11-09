@@ -29,6 +29,8 @@ extern void debug(char *,int);
 
 /* recursive descent parsing function */
 
+static int optStatementSeq(PARSER *);
+static int statement(PARSER *);
 static int expr(PARSER *);
 static int exprAssign(PARSER *);
 static int exprConnect(PARSER *);
@@ -42,6 +44,8 @@ static int argList(PARSER *);
 
 /* pending functions */
 
+static int isStatementPending(PARSER *);
+static int isBlockPending(PARSER *);
 static int isExprPending(PARSER *);
 static int opType(PARSER *);
 static int isXCall(int);
@@ -240,7 +244,7 @@ parse(PARSER *p)
     if (check(p,END_OF_INPUT)) return 0;
 
     printf("parsing now, %s pending\n",type(p->pending));
-    result = expr(p);
+    result = statement(p);
     rethrow(result,0);
     push(result);
     end = match(p,END_OF_INPUT);
@@ -251,6 +255,100 @@ parse(PARSER *p)
     //result = uconsfl(beginSymbol,result,file(result),line(result));
     //printf("done parsing.\n");
     return result;
+    }
+
+/*    optStatementSeq : *empty*
+ *                   | statement optStatementSeq
+ *                   ;
+ */
+
+static int
+optStatementSeq(PARSER *p)
+    {
+    int result;
+
+    if (TRACE) printf("in optStatementSeq...\n");
+
+    if (check(p,SYMBOL) && check(p,OPEN_BRACKET))
+        {
+        assureMemory("expr:throw",1000,(int *)0);
+        return throw(syntaxExceptionSymbol,
+            "file %s,line %d: expected an expression, got %s instead",
+            SymbolTable[p->file],p->line,type(p->pending));
+        }
+
+    if (isStatementPending(p))
+        {
+        int item,others;
+
+        item = statement(p);
+        rethrow(item,0);
+        //save(item,"parser:optStatementSeq:item");
+        push(item);
+        others = optStatementSeq(p);
+        //item = restore("parser:optStatementSeq:item");
+        item = pop();
+        rethrow(others,0);
+        //result = cons(JOIN,item,others);
+        result = ucons(item,others);
+        }
+    else
+        {
+        result = 0;
+        }
+
+    if (TRACE) ppf("leaving optStatementSeq: ",result,"\n");
+
+    return result;
+    }
+
+/*    statement :  block
+ *             | expr SEMI
+ *             ;
+ */
+
+static int
+statement(PARSER *p)
+    {
+    int r,s;
+    int m;
+
+    if (TRACE) printf("in statement...\n");
+
+    if (isBlockPending(p))
+        {
+        assureMemory("expr:throw",1000,(int *)0);
+        return throw(syntaxExceptionSymbol,
+            "file %s,line %d: expected an expression, got %s instead",
+            SymbolTable[p->file],p->line,type(p->pending));
+        }
+
+    r = expr(p);
+
+    rethrow(r,0);
+
+    push(r);
+    //s = cons(STATEMENT,r,0);
+    s = ucons(r,0); //(xcallSymbol,result);
+    r = pop();
+
+    if (TRACE > 1) printf("statement subtype is %s\n", type(r));
+
+    line(s) = line(r);
+    //indent(s) = indent(r);
+
+    if (!isXCall(r))
+        {
+        push(s);
+        //ppf("statement is: ",r,"\n");
+        m = match(p, SEMI);
+        s = pop();
+        rethrow(m,0);
+        }
+
+    if (TRACE) ppf("leaving statement: ",s,"\n");
+
+    return s;
     }
 
 /* expr : exprAssign */
@@ -738,6 +836,18 @@ argList(PARSER *p)
     }
 
 /***** pending utilities ************************************************/
+
+static int
+isBlockPending(PARSER *p)
+    {
+    return check(p, OPEN_BRACE);
+    }
+
+static int
+isStatementPending(PARSER *p)
+    {
+    return isExprPending(p);
+    }
 
 static int
 isExprPending(PARSER *p)

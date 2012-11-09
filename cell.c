@@ -105,7 +105,7 @@ int *the_cdrs;
 int *new_cdrs;
 
 int MaxSymbols = 100;
-char **SymbolTable;
+char **SymbolTable; //same as char **symbols in sway?
 int SymbolCount;
 static int SymbolsIncrement = 100;
 int gcCount = 0;
