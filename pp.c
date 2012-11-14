@@ -155,7 +155,7 @@ void
 ppLevel(FILE *fp,int expr,int mode)
     {
     if (expr == 0)
-        fprintf(fp,"nil");
+        ; //fprintf(fp,"nil");
     else if (type(expr) == INTEGER)
         fprintf(fp,"%d",ival(expr));
     else if (type(expr) == REAL)

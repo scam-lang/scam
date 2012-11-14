@@ -36,8 +36,8 @@ lex(PARSER *p)
     int ch; 
 
     ch = skipWhiteSpace(p); 
-    printf("whitespace returns %c", ch);
-    getchar();
+    //printf("whitespace returns %c", ch);
+    //getchar();
 
     if (ch == EOF || strchr("()'`,",ch) != 0) /* single character tokens */ 
         {
@@ -296,14 +296,14 @@ getNextCharacter(PARSER *p)
     if (p->pushedBack)
         {
         p->pushedBack = 0;
-        printf("getNextCharacter: returning pushed back <%c>\n",p->pushBack);
+        //printf("getNextCharacter: returning pushed back <%c>\n",p->pushBack);
         if (p->pushBack == '\n') ++(p->line);
         return p->pushBack;
         }
     else
         {
         ch = fgetc(p->input);
-        printf("getNextCharacter: returning <%c> %d\n",ch, ch);
+        //printf("getNextCharacter: returning <%c> %d\n",ch, ch);
         if (ch == '\n') ++(p->line);
         return ch;
         }
