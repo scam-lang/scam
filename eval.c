@@ -176,6 +176,7 @@ evalCall(int call,int env, int mode)
             body = closure_body(closure);
             xenv = closure_context(closure);
             xenv = makeEnvironment(xenv,closure,params,eargs);
+
             env_level(xenv) = newInteger(ival(env_level(env)) + 1);
 
             //debug("calling",car(call));
@@ -253,7 +254,8 @@ evalExprList(int items,int env)
 
     push(env);
     push(items);
-    result = cons(eval(car(items),env), 0);
+    result = eval(car(items),env);
+    result = cons(result, 0);
     items = pop();
     env = pop();
 
@@ -273,7 +275,8 @@ evalExprList(int items,int env)
 
         rethrow(value,0);
 
-        assureMemory("evalExprList",1,&result,&spot,&env,&items,(int *) 0);
+        assureMemory("evalExprList",1,
+            &result,&spot,&env,&items,&value,(int *) 0);
 
         cdr(spot) = ucons(value,0);
         spot = cdr(spot);
@@ -439,7 +442,7 @@ unevaluatedArgList(args)
     if (args == 0)
         return 0;
     else
-        return ucons(car(args),unevaluatedArgList(cdr(args)));
+        return cons(car(args),unevaluatedArgList(cdr(args)));
     }
 
 static int

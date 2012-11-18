@@ -1,4 +1,5 @@
 
+(while #t
 (define (fib n)
     (if (< n 2)
         n
@@ -6,7 +7,9 @@
         )
     )
 
-(define x 27)
+(define x 20)
 
 (define result (fib x))
+(inspect result)
+)
 
