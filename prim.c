@@ -71,8 +71,6 @@ defineIdentifier(int name,int init,int env)
         rethrow(init,0);
         }
 
-     assureMemory("defineIdentifier",DEFINE_CELLS,&env,&name,&init,(int *)0);
-
      return defineVariable(env,name,init);
      }
         
@@ -1262,7 +1260,6 @@ cond(int args)
 static int
 wwhile(int args)
     {
-    int last = 0;
     int testResult;
     
     //printf("in while...\n");
@@ -1276,15 +1273,13 @@ wwhile(int args)
     while (sameSymbol(testResult,trueSymbol))
         {
         push(args);
-        last = evalList(caddr(args),car(args),ALL);
+        (void) evalList(caddr(args),car(args),ALL);
         args = pop();
 
         rethrow(last,0);
 
         push(args);
-        push(last);
         testResult = eval(cadr(args),car(args));
-        last = pop();
         args = pop();
 
         rethrow(testResult,0);
@@ -1292,7 +1287,7 @@ wwhile(int args)
         //debug("test result",testResult);
         }
 
-    return last;
+    return 0;
     }
 
 /* (set-car! spot value) */
@@ -1465,7 +1460,7 @@ iinclude(int args)
 static int
 eeval(int args)
     {
-    assureMemory("prim:eval",THUNK_CELLS,&args,(int *)0);
+    //assureMemory("prim:eval",THUNK_CELLS,&args,(int *)0);
     return makeThunk(car(args),cadr(args));
     //return eval(car(args),cadr(args));
     }
@@ -1477,9 +1472,11 @@ eeval(int args)
 static int
 apply(int args)
     {
+    int call;
     assureMemory("apply:",1,&args,(int *)0);
+    call = ucons(car(args),cadr(args));
 
-    return evalCall(cons(car(args),cadr(args)),0,NO_EVALUATION);
+    return evalCall(call,0,NO_EVALUATION);
     }
 
 
@@ -1584,8 +1581,7 @@ ccdr(int args)
 static int
 ccons(int args)
     {
-    assureMemory("cons",1,&args,(int *)0);
-    return ucons(car(args),cadr(args));
+    return cons(car(args),cadr(args));
     }
 
 /* (gensym id) */
@@ -2371,7 +2367,7 @@ array(int args)
     assureMemory("array",size,&args,(int *)0);
     for (i = 0; i < size; ++i)
         {
-        spot = cons(car(args),0);
+        spot = ucons(car(args),0);
         type(spot) = ARRAY;
         count(spot) = amount--;
         if (i == 0)
@@ -2396,7 +2392,7 @@ allocate(int args)
     assureMemory("allocate",size,(int *)0);
     for (i = 0; i < size; ++i)
         {
-        spot = cons(0,0);
+        spot = ucons(0,0);
         type(spot) = ARRAY;
         count(spot) = amount--;
         if (i == 0)
@@ -2656,7 +2652,7 @@ string_plus(int args)
     amount = size;
     for (i = 0; i < size; ++i)
         {
-        spot = cons(0,0);
+        spot = ucons(0,0);
         type(spot) = STRING;
         if (i < sizeA)
             {

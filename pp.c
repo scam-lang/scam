@@ -168,6 +168,10 @@ ppLevel(FILE *fp,int expr,int mode)
         ppCons(fp,expr,mode);
     else if (type(expr) == ARRAY)
         ppArray(fp,"[",expr,"]",mode);
+    else if (type(expr) == PAST)
+        printf(fp,"!PAST!");
+    else if (type(expr) == FUTURE)
+        printf(fp,"!FUTURE!");
     else if (expr == -1)
         printf("xcall!");
     else

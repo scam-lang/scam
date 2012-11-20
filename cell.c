@@ -652,11 +652,14 @@ gc()
     int *temp_cdrs;
     CELL *temp_cars;
 
-    //for (i = 0; i < StackPtr; ++i)
-    //    {
-    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
-    //    debug("",Stack[i]);
-    //    }
+    if (gcCount == 8)
+        {
+        for (i = 0; i < StackPtr; ++i)
+            {
+            printf("Stack[%d]:Location %d:",i,Stack[i]);
+            debug("",Stack[i]);
+            }
+        }
 
     /* transfer over symbols */
 
@@ -708,25 +711,36 @@ gc()
     the_cdrs = new_cdrs;
     new_cdrs = temp_cdrs;
 
-    //printf("after gc...");
-    //for (i = 0; i < StackPtr; ++i)
-    //    {
-    //    printf("Stack[%d]:Location %d:",i,Stack[i]);
-    //    debug("",Stack[i]);
-    //    }
+    if (gcCount == 8)
+        {
+        printf("after gc...");
+        for (i = 0; i < StackPtr; ++i)
+            {
+            printf("Stack[%d]:Location %d:",i,Stack[i]);
+            debug("",Stack[i]);
+            }
+        }
 
     ++gcCount;
     if (gcDisplay)
         printf("gc:%d, %d cells available\n",
             gcCount,MemorySize - MemorySpot);
 
-    //for (i = 0; i < MemorySize; ++i)
-    //    new_cars[i].type = PAST;
+    for (i = 0; i < MemorySize; ++i)
+        new_cars[i].type = PAST;
 
-    //for (i = MemorySpot; i < MemorySize; ++i)
-    //    the_cars[i].type = FUTURE;
+    for (i = MemorySpot; i < MemorySize; ++i)
+        the_cars[i].type = FUTURE;
     }
 
+
+void
+displayStack()
+    {
+    int i;
+    for (i = 0; i < StackPtr; ++i)
+        debug("stack ",Stack[i]);
+    }
 
 void
 assureMemory(char *tag,int needed, int *item, ...)
@@ -739,14 +753,14 @@ assureMemory(char *tag,int needed, int *item, ...)
 
     va_start(ap, item);
 
-    //printf("assureMemory: %s\n",tag);
-    if (MemorySpot + needed >= MemorySize)
+    if (MemorySpot + 2*needed >= MemorySize)
         {
         /* save items */
         //printf("gc called from %s\n",tag);
         //printf("needed %d cells, had %d cells available.\n",
         //    needed, MemorySize - MemorySpot);
         
+        printf("assureMemory: %s\n",tag);
         while (item != 0)
             {
             push(*item);

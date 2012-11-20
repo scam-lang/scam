@@ -13,7 +13,16 @@ getVariableValue(int var,int env)
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        //ppObject(stdout,env,0);
+        extern void displayStack(void);
+        ppObject(stdout,env,0);
+        printf("mem: %s: %d\n",type(var),var);
+        displayStack();
+        debug("var: ",var);
+        debug("env: ",env);
+        debug("env: ",env_context(env));
+        debug("env: ",env_context(env_context(env)));
+        debug("env: ",env_context(env_context(env_context(env))));
+        assert(0);
         return throw(undefinedVariableSymbol,
             "file %s,line %d: "
             "variable %s is undefined",
@@ -39,7 +48,7 @@ setVariableValue(int var,int val,int env)
         {
         return throw(exceptionSymbol,
             "file %s,line %d: "
-            "variable %s is undefined",
+            "Variable %s is undefined",
             SymbolTable[file(var)],line(var),
             SymbolTable[ival(var)]);
         }

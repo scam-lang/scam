@@ -68,11 +68,12 @@ eval(int expr, int env)
 
         /* no need to assure memory here */
 
-        push(env);
+        //don't think it is necessary to push env here 
+        //push(env);
         push(expr);
         result = evalCall(expr,env,NORMAL);
         expr = pop();
-        env = pop();
+        //env = pop();
 
         if (isReturn(result))
             {
@@ -99,9 +100,11 @@ eval(int expr, int env)
             {
             if (!(type(expr) == CONS) || !(sameSymbol(car(expr),beginSymbol)))
                 {
+                int et;
                 push(result);
-                error_trace(result) = cons(expr,error_trace(result));
+                et = cons(expr,error_trace(result));
                 result = pop();
+                error_trace(result) = et;
                 }
             break;
             }
@@ -125,6 +128,7 @@ int
 evalCall(int call,int env, int mode)
     {
     int closure,eargs;
+    int callingLevel = ival(env_level(env));
 
     //printf("evalCall...\n");
     if (mode == NORMAL)
@@ -177,7 +181,7 @@ evalCall(int call,int env, int mode)
             xenv = closure_context(closure);
             xenv = makeEnvironment(xenv,closure,params,eargs);
 
-            env_level(xenv) = newInteger(ival(env_level(env)) + 1);
+            env_level(xenv) = newInteger(callingLevel + 1);
 
             //debug("calling",car(call));
             result = makeThunk(body,xenv);
@@ -259,6 +263,8 @@ evalExprList(int items,int env)
     items = pop();
     env = pop();
 
+    push(result);
+
     spot = result;
     items = cdr(items);
 
@@ -268,7 +274,9 @@ evalExprList(int items,int env)
         //debug("items before",items);
         push(env);
         push(items);
+        push(spot);
         value = eval(car(items),env);
+        spot = pop();
         items = pop();
         env = pop();
         //debug("items after",items);
@@ -276,7 +284,7 @@ evalExprList(int items,int env)
         rethrow(value,0);
 
         assureMemory("evalExprList",1,
-            &result,&spot,&env,&items,&value,(int *) 0);
+            &spot,&env,&items,&value,(int *) 0);
 
         cdr(spot) = ucons(value,0);
         spot = cdr(spot);
@@ -284,6 +292,7 @@ evalExprList(int items,int env)
         items = cdr(items);
         }
 
+    result = pop();
     return result;
     }
 
