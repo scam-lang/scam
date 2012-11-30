@@ -79,7 +79,9 @@ lex(PARSER *p)
                 result = newSymbol(",");
                 break;*/
             default:
-                Fatal("INTERNAL ERROR: bad single character token\n");
+                Fatal("%s,line %d: "
+                    "INTERNAL ERROR: bad single character token\n",
+                    SymbolTable[p->file],p->line);
             }
         file(result) = p->file;
         line(result) = p->line;
