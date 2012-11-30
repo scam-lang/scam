@@ -11,12 +11,13 @@
 #define STACKSIZE (4096 * 4)
 
 int MemorySpot;
-int MemorySize =  2 * 2 * 2 * 2 * 4 * 16 * 32 * 64; 
+int MemorySize =  2 * 2 * 2 * 2 * 4 * 16 * 32 * 64;
 //int MemorySize =  18500;
 int StackPtr = 0;
 int StackSize = STACKSIZE;
 int *Stack;
 
+int varSymbol;
 int zero;
 int one;
 int contextSymbol;
@@ -153,6 +154,7 @@ memoryInit(int memsize)
 
     specialSymbolBottom = MemorySpot;
 
+    varSymbol            = newSymbol("var");
     labelSymbol          = newSymbol("__label");
     contextSymbol        = newSymbol("__context");
     levelSymbol          = newSymbol("__level");
@@ -401,6 +403,26 @@ newPunctuation(char *t)
     type(result) = t;
     return result;
     }
+
+/*
+int
+newIdentifier(char *s)
+    {
+    int index = findSymbol(s);
+    int result;
+
+    if (index < specialSymbolBottom)
+        return index;
+
+    assureMemory("newIdentifier",1,(int *)0);
+
+    result = ucons(0,0);
+    type(result) = ID;
+    ival(result) = index;
+    return result;
+    }
+*/
+
 
 int
 cellStrCmp(int a,int b)

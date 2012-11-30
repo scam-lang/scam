@@ -76,11 +76,10 @@ main(int argc,char **argv,char **envv)
     /* main.lib level of environment */
 
     env = makeEnvironment(env,0,0,0);
-
+#ifdef junk
     p = newParser("sway.main.lib");
     if (p == 0)
         Fatal("file sway.main.lib could not be opened for reading\n",argv[argIndex]);
-
     // indicate that main.lib has already been processed
 
     assureMemory("sway.main.lib",DEFINE_CELLS + 1,&env,&ptree,(int *)0);
@@ -105,7 +104,7 @@ main(int argc,char **argv,char **envv)
     if (isThrow(result)) goto ERROR;
 
     /* user level of environment */
-
+#endif
     env = makeEnvironment(env,0,0,0);
 
     p = newParser(argv[argIndex]);

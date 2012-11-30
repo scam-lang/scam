@@ -21,6 +21,7 @@ char *SYMBOL = "SYMBOL";
 char *THUNK = "THUNK";
 char *PAST = "PAST";
 char *FUTURE = "FUTURE";
+char *UNINITIALIZED = "UNINITIALIZED";
 
 /* scam types for an imperative front-end */
 

@@ -1,5 +1,5 @@
-/*  
- *  the scam lexical analyzer 
+/*
+ *  the scam lexical analyzer
  *
  *  written by John C. Lusth
  *
@@ -31,50 +31,53 @@ static int lexSymbol(PARSER *,int);
 static int lexString(PARSER *);
 
 int
-lex(PARSER *p) 
-    { 
-    int ch; 
+lex(PARSER *p)
+    {
+    int ch;
 
-    ch = skipWhiteSpace(p); 
+    ch = skipWhiteSpace(p);
     //printf("whitespace returns %c", ch);
     //getchar();
 
-    if (ch == EOF || strchr("()'`,",ch) != 0) /* single character tokens */ 
+    if (ch == EOF || strchr("()'`,;",ch) != 0) /* single character tokens */
         {
         int result;
 
-        switch(ch) 
-            { 
-            case EOF: 
+        switch(ch)
+            {
+            case EOF:
                 result = newPunctuation(END_OF_INPUT);
                 break;
-            case '(': 
+            case '(':
                 result = newPunctuation(OPEN_PARENTHESIS);
                 break;
-            case ')': 
+            case ')':
                 result = newPunctuation(CLOSE_PARENTHESIS);
                 break;
-            case '[': 
+            case '[':
                 result = newPunctuation(OPEN_BRACKET);
                 break;
-            case ']': 
+            case ']':
                 result = newPunctuation(CLOSE_BRACKET);
                 break;
-            case '{': 
+            case '{':
                 result = newPunctuation(OPEN_BRACE);
                 break;
-            case '}': 
+            case '}':
                 result = newPunctuation(CLOSE_BRACE);
                 break;
-            case '\'': 
+            case '\'':
                 result = newPunctuation(QUOTE);
                 break;
-            case '`': 
+            case '`':
                 result = newPunctuation(BACKQUOTE);
                 break;
-            case ',': 
-                result = newSymbol(",");
+            case ';':
+                result = newPunctuation(SEMI);
                 break;
+            /*case ',':
+                result = newSymbol(",");
+                break;*/
             default:
                 Fatal("INTERNAL ERROR: bad single character token\n");
             }

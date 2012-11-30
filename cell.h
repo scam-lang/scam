@@ -78,6 +78,7 @@ extern int newSymbolFromIndex(int);
 extern int newInteger(int);
 extern int newReal(double);
 extern int newPunctuation(char *);
+//extern int newIdentifier(char *);
 
 extern char **SymbolTable;
 extern int SymbolCount;
@@ -90,6 +91,7 @@ extern char *cellStringTr(char *,int,int);
 extern int rootList;
 extern void assureMemory(char *,int,int *,...);
 
+extern int varSymbol;
 extern int zero;
 extern int one;
 extern int contextSymbol;
@@ -170,3 +172,4 @@ extern int headAssignSymbol;
 extern int tailAssignSymbol;
 extern int openBracketSymbol;
 extern int xcallSymbol;
+//entry for variable_definition_list?

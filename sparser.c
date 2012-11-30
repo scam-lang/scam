@@ -1,4 +1,4 @@
-#include <stdio.h>
+# include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -14,7 +14,7 @@
 
 extern void pp(FILE *,int);
 
-#define TRACE 1
+#define TRACE 2
 
 /* operator types */
 
@@ -29,6 +29,13 @@ extern void debug(char *,int);
 
 /* recursive descent parsing function */
 
+static int nakedBlock(PARSER *);
+static int functionDef(PARSER *);
+static int varDef(PARSER *);
+static int varDefList(PARSER *);
+static int varDefItem(PARSER *);
+static int optParamList(PARSER *);
+static int paramList(PARSER *);
 static int optStatementSeq(PARSER *);
 static int statement(PARSER *);
 static int expr(PARSER *);
@@ -44,6 +51,7 @@ static int argList(PARSER *);
 
 /* pending functions */
 
+static int isDefinitionPending(PARSER *p);
 static int isStatementPending(PARSER *);
 static int isBlockPending(PARSER *);
 static int isExprPending(PARSER *);
@@ -58,7 +66,7 @@ static FILE *openScamFile(char *);
 static void ppf(char *,int,char *);
 
 /*
- 
+
 //Sway Grammar
 //
 //   TERMINALS are in (mostly) uppercase
@@ -73,7 +81,7 @@ static void ppf(char *,int,char *);
 //DEFINITION RULES
 
     optDefinitionSeq | *empty*
-                     : definition optDefinitionSeq 
+                     : definition optDefinitionSeq
                      ;
 
     definition : functionDef
@@ -84,19 +92,19 @@ static void ppf(char *,int,char *);
 
     //Note: SYMBOL[include] means an identifier whose string name is "include"
 
-    //Note: include function calls are considered definitions 
+    //Note: include function calls are considered definitions
 
     functionDef : FUNCTION OPAREN optParamList block
                 ;
 
     varDef : VAR varDefList
            ;
-    
+
     varDefList : varDefItem
                | varDefItem COMMA varDefList
                ;
-           
-    varDefItem : SYMBOL 
+
+    varDefItem : SYMBOL
                | VAR SYMBOL SYMBOL[=] expr
                ;
 
@@ -105,7 +113,7 @@ static void ppf(char *,int,char *);
                  ;
 
     paramList : SYMBOL
-              | SYMBOL COMMA 
+              | SYMBOL COMMA
               | SYMBOL COMMA paramList
               ;
 
@@ -122,7 +130,7 @@ static void ppf(char *,int,char *);
                     | statement optStatementSeq
                     ;
 
-    statement :  block 
+    statement :  block
               | expr SEMI
               ;
 
@@ -137,7 +145,7 @@ static void ppf(char *,int,char *);
     exprAssign : exprConnect
                | exprConnect SYMBOL[=,tail=,head=] exprAssign
                ;
-    
+
     //Note: exprAssign is left associative, the others right associative
 
     exprConnect : exprCompare [SYMBOL[&&,||] exprConnect]*
@@ -190,7 +198,7 @@ static void ppf(char *,int,char *);
     optExtraArgs : extraArgs
                  | *empty*
                  ;
-                 
+
     extraArgs : block
               | block ELSE block
               | block ELSE exprSelect OPAREN optArgList CPAREN extrArgs
@@ -244,7 +252,7 @@ parse(PARSER *p)
     if (check(p,END_OF_INPUT)) return 0;
 
     printf("parsing now, %s pending\n",type(p->pending));
-    result = statement(p);
+    result = optStatementSeq(p);
     rethrow(result,0);
     push(result);
     end = match(p,END_OF_INPUT);
@@ -254,6 +262,383 @@ parse(PARSER *p)
     //assureMemory("parse",1,&result,(int *)0);
     //result = uconsfl(beginSymbol,result,file(result),line(result));
     //printf("done parsing.\n");
+    return result;
+    }
+
+/*    definition : functionDef
+ *             | varDef
+ *             | SYMBOL[include] OPAREN expr CPAREN
+ *             | SYMBOL[includeOnce] OPAREN SYMBOL COMMA expr CPAREN
+ */            ;
+
+static int
+definition(PARSER *p)
+    {
+    int d;
+    int m;
+
+    if (TRACE) printf("in definition...\n");
+
+    if (check(p,SYMBOL) && sameSymbol(p->pending,varSymbol))
+        {
+        d = varDef(p);
+        rethrow(d,0);
+        push(d);
+        m = match(p,SEMI);
+        d = pop();
+        rethrow(m,0);
+        }
+    else if (check(p,SYMBOL) && sameSymbol(p->pending,functionSymbol))
+        {
+        d = functionDef(p);
+        rethrow(d,0);
+        }
+    else /* must be call to include or includeOnce */
+        {
+        d = expr(p);
+        rethrow(d,0);
+        if (type(car(d)) != xcallSymbol)
+            {
+            push(d);
+            m = match(p,SEMI);
+            d = pop();
+            rethrow(m,0);
+            }
+        }
+
+    if (TRACE) ppf("leaving definition: ",d,"\n");
+
+    return d;
+    }
+
+/*    optDefinitionSeq | *empty*
+ *                   : definition optDefinitionSeq
+ *                   ;
+ */
+
+static int
+optDefinitionSeq(PARSER *p)
+    {
+    int d,defs;
+    int result;
+
+    if (TRACE) printf("in optDefinitionSeq...\n");
+
+    if (isDefinitionPending(p))
+        {
+        d = definition(p);
+        rethrow(d,0);
+        push(d);
+        defs = optDefinitionSeq(p);
+        d = pop();
+        rethrow(defs,0);
+        result = ucons(d,defs);
+        if (TRACE > 1) ppf("definitions now are: ",result,"\n");
+        }
+    else
+        {
+        if (TRACE > 1) printf("no definitions present\n");
+            result = 0;
+        }
+
+    if (TRACE) ppf("leaving optDefinitionSeq: ",result,"\n");
+
+    return result;
+    }
+
+/*    nakedBlock : optDefinitionSeq optStatementSeq
+ *             ;
+ */
+
+static int
+nakedBlock(PARSER *p)
+    {
+    int a,b,result;
+
+    if (TRACE) printf("in nakedBlock...\n");
+
+    a = optDefinitionSeq(p);
+
+    rethrow(a,0);
+
+    push(a);
+    b = optStatementSeq(p);
+    a = pop();
+
+    rethrow(b,0);
+
+    result = append(a,b);  /* append is gc-safe */
+
+    //assureMemory("varDefItem",6,(int *)0);
+    result = ucons(result,0);
+
+    if (TRACE) ppf("leaving nakedBlock: ",result,"\n");
+
+    return result;
+    }
+
+/*
+ *  functionDef : FUNCTION OPAREN optParamList block
+ *              ;
+ */
+
+static int
+functionDef(PARSER *p)
+    {
+    int f,v,params,body,result;
+    int anonymous = 0;
+    int m;
+
+    if (TRACE) printf("in functionDef...\n");
+
+    f = match(p,SYMBOL);
+    rethrow(f,0);
+    //assert(isIdentifier(f,"function"));
+    assert(sameSymbol(f,functionSymbol));
+
+    if (check(p,SYMBOL))
+        v = match(p,SYMBOL);
+    else
+        {
+        v = newSymbol("anonymous");
+        anonymous = 1;
+        }
+
+    push(v);
+
+    m = match(p,OPEN_PARENTHESIS);
+    rethrow(m,1);
+
+    params = optParamList(p);
+    rethrow(params,1);
+
+    push(params);
+
+    m = match(p,CLOSE_PARENTHESIS);
+    rethrow(m,2);
+
+    m = match(p,OPEN_BRACE);
+    rethrow(m,2);
+
+    body = nakedBlock(p);
+    rethrow(body,2);
+
+    push(body);
+
+    m = match(p,CLOSE_BRACE);
+    rethrow(m,3);
+
+    if (anonymous)
+        {
+        m = match(p,SEMI);
+        rethrow(m,3);
+        }
+
+    //ensureMemory(6);
+    assureMemory("varDefItem",6,(int *)0);
+
+    body = pop();
+    params = pop();
+    v = pop();
+
+    if (car(body) == 0)
+        {
+        return throw(syntaxExceptionSymbol,
+            "file %s, line %d: blocks must contain at least one statement",
+            SymbolTable[p->file], p->line, type(p->pending));
+        }
+
+    /*
+    result = ucons(JOIN,v,0);
+    result = ucons(JOIN,body,result);
+    result = ucons(FUNCTION,params,result);
+    result = ucons(FUNCTION_DEFINITION,v,result);
+    */
+
+    //indent the name so that we can find the indent after the call
+
+    assureMemory("func name",4,&body,&params,&v,(int *)0);
+    result = ucons(body,0);
+    result = ucons(params,result);
+    result = ucons(v,result);
+    result = ucons(functionSymbol,result);
+
+
+    if (TRACE) ppf("leaving functionDef: ",result,"\n");
+
+    return result;
+    }
+/*
+ *  varDef : VAR varDefList
+ *         ;
+ */
+
+static int
+varDef(PARSER *p)
+    {
+    int v;
+    int m;
+
+    if (TRACE) printf("in varDef...\n");
+
+    m = match(p,SYMBOL);
+    rethrow(m,0);
+    //assert(isIdentifier(m,"var"));
+    assert(sameSymbol(m,varSymbol));
+    v = varDefList(p);
+    rethrow(v,0);
+    //type(v) = VARIABLE_DEFINITION_LIST;
+
+    if (TRACE) ppf("leaving varDef: ",v,"\n");
+
+    return v;
+    }
+
+/*
+ *  varDefList : varDefItem
+ *             | varDefItem COMMA varDefList
+ *             ;
+ */
+
+static int
+varDefList(PARSER *p)
+    {
+    int item,result;
+
+    if (TRACE) printf("in varDefList...\n");
+
+    item = varDefItem(p);
+    rethrow(item,0);
+    //save(item,"parser:varDefList:item");
+    push(item);
+
+    if (check(p,COMMA)) /* check is not gc-safe */
+        {
+        match(p,COMMA);
+        result = varDefList(p);
+        //item = restore("parser:varDefList:item");
+        item = pop();
+        rethrow(result,0);
+        }
+    else
+        {
+        item = pop();
+        result = 0;
+        }
+
+    //result = cons(JOIN,item,result);
+    result = ucons(item, result);
+
+    if (TRACE) ppf("leaving varDefList: ",result,"\n");
+
+    return result;
+    }
+
+/*    varDefItem : SYMBOL
+ *              | VAR SYMBOL SYMBOL[=] expr
+ *              ;
+ */
+
+
+static int
+varDefItem(PARSER *p)
+    {
+    int v,init,result;
+
+    if (TRACE) printf("in varDefItem...\n");
+
+    v = match(p,SYMBOL);
+    rethrow(v,0);
+    push(v);
+
+    check(p,SYMBOL); // force a lex, if necessary (check is not gc-safe)
+
+    //if (isIdentifier(Pending,ASSIGN))
+    if (sameSymbol(p->pending,eqSymbol))
+        {
+        match(p,SYMBOL); // ASSIGN
+        init = expr(p);
+        }
+    else
+        {
+        if (TRACE > 1) printf("no initializer\n");
+        init = newSymbol(UNINITIALIZED);
+        //init = newSymbol(uninitializedVariable);
+        }
+
+    rethrow(init,1); //for saved v
+
+    push(init);
+
+    //ensureMemory(4);
+    assureMemory("varDefItem",4,(int *)0);
+
+    init = pop();
+    v = pop();
+
+    result = ucons(init,0);
+    result = ucons(v,result);
+    result = ucons(newSymbol("var"),result);
+
+    if (TRACE) ppf("leaving varDefItem: ",result,"\n");
+
+    return result;
+    }
+
+
+/*    optParamList : *empty*
+ *                | paramList
+ *                ;
+ */
+
+static int
+optParamList(PARSER *p)
+    {
+    if (check(p,SYMBOL))
+        return paramList(p);
+    else
+        return 0;
+    }
+
+/*    paramList : SYMBOL
+ *             | SYMBOL COMMA
+ *             | SYMBOL COMMA paramList
+ *             ;
+ */
+
+static int
+paramList(PARSER *p)
+    {
+    int a,b;
+    int result;
+
+    if (TRACE) printf("in paramList...\n");
+
+    a = match(p,SYMBOL);
+    rethrow(a,0);
+
+    push(a);
+
+    if (check(p,COMMA)) /* check is not gc-safe */
+        {
+        match(p,COMMA);
+        if (check(p,SYMBOL))
+            b = paramList(p);
+        else
+            b = 0;
+        a = pop();
+        rethrow(b,0);
+        }
+    else
+        {
+        a = pop();
+        b = 0;
+        }
+
+    result = ucons(a,b);
+
+    if (TRACE) ppf("leaving paramList: ",result,"`\n");
+
     return result;
     }
 
@@ -290,7 +675,9 @@ optStatementSeq(PARSER *p)
         item = pop();
         rethrow(others,0);
         //result = cons(JOIN,item,others);
+        assureMemory("function name",2,&item,&others,(int *)0);
         result = ucons(item,others);
+        result = ucons(beginSymbol,result);
         }
     else
         {
@@ -310,7 +697,7 @@ optStatementSeq(PARSER *p)
 static int
 statement(PARSER *p)
     {
-    int r,s;
+    int r;
     int m;
 
     if (TRACE) printf("in statement...\n");
@@ -324,31 +711,24 @@ statement(PARSER *p)
         }
 
     r = expr(p);
-
+    printf("statement got expression \n");
     rethrow(r,0);
-
-    push(r);
-    //s = cons(STATEMENT,r,0);
-    s = ucons(r,0); //(xcallSymbol,result);
-    r = pop();
+    printf("statement no error\n");
 
     if (TRACE > 1) printf("statement subtype is %s\n", type(r));
 
-    line(s) = line(r);
-    //indent(s) = indent(r);
-
     if (!isXCall(r))
         {
-        push(s);
-        //ppf("statement is: ",r,"\n");
+        ppf("statement is: ",r,"\n");
+        ppf("pending is: ", p->pending, "\n");
         m = match(p, SEMI);
-        s = pop();
+        printf("statement match semi\n");
         rethrow(m,0);
         }
 
-    if (TRACE) ppf("leaving statement: ",s,"\n");
+    if (TRACE) ppf("leaving statement: ",r,"\n");
 
-    return s;
+    return r;
     }
 
 /* expr : exprAssign */
@@ -405,7 +785,7 @@ exprAssign(PARSER *p)
     return result;
     }
 
-/* exprConnect : exprCompare SYMBOL[&&,||] exprCompare)* 
+/* exprConnect : exprCompare SYMBOL[&&,||] exprCompare)*
  *
  * exprConnect is left associative
  */
@@ -838,6 +1218,17 @@ argList(PARSER *p)
 /***** pending utilities ************************************************/
 
 static int
+isDefinitionPending(PARSER *p)
+    {
+    //return check(VAR) || check(FUNCTION) || isIdentifier(Pending,"include")
+    check(p,SYMBOL);
+    return sameSymbol(p->pending,varSymbol)
+        || sameSymbol(p->pending,functionSymbol);
+        //|| sameSymbol(p->pending,"include")
+        //|| sameSymbol(p->pending,"includeOnce");
+    }
+
+static int
 isBlockPending(PARSER *p)
     {
     return check(p, OPEN_BRACE);
@@ -862,7 +1253,7 @@ opType(PARSER *p)
     {
     int result;
     int Pending;
-    
+
     //force lex
     check(p,0);
 

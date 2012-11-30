@@ -16,7 +16,7 @@ skipWhiteSpace(PARSER *p)
     && ch != EOF && (isspace(ch) || ch == ';'))
         {
         if (ch == ';')
-            { 
+            {
             ch = getNextCharacter(p);
             if (ch == '$') /* skip to end of file */
                 {

@@ -22,6 +22,7 @@ extern char *CONS;// = "THUNK";
 extern char *ARRAY;// = "ARRAY";
 extern char *PAST;// = "PAST";
 extern char *FUTURE;// = "FUTURE";
+extern char *UNINITIALIZED;// = "UNINITIALIZED";
 
 /* scam types for an imperative front-end */
 
