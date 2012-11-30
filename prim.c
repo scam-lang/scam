@@ -1260,7 +1260,7 @@ cond(int args)
 static int
 wwhile(int args)
     {
-    int testResult;
+    int testResult,last;
     
     //printf("in while...\n");
 
@@ -1273,7 +1273,7 @@ wwhile(int args)
     while (sameSymbol(testResult,trueSymbol))
         {
         push(args);
-        (void) evalList(caddr(args),car(args),ALL);
+        last = evalList(caddr(args),car(args),ALL);
         args = pop();
 
         rethrow(last,0);
