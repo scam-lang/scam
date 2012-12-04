@@ -13,16 +13,16 @@ getVariableValue(int var,int env)
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        extern void displayStack(void);
-        ppObject(stdout,env,0);
-        printf("mem: %s: %d\n",type(var),var);
-        displayStack();
-        debug("var: ",var);
-        debug("env: ",env);
-        debug("env: ",env_context(env));
-        debug("env: ",env_context(env_context(env)));
-        debug("env: ",env_context(env_context(env_context(env))));
-        assert(0);
+        //extern void displayStack(void);
+        //ppObject(stdout,env,0);
+        //printf("mem: %s: %d\n",type(var),var);
+        //displayStack();
+        //debug("var: ",var);
+        //debug("env: ",env);
+        //debug("env: ",env_context(env));
+        //debug("env: ",env_context(env_context(env)));
+        //debug("env: ",env_context(env_context(env_context(env))));
+        //assert(0);
         return throw(undefinedVariableSymbol,
             "file %s,line %d: "
             "variable %s is undefined",
