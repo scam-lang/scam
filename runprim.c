@@ -102,7 +102,7 @@ defineFunction(int name,int parameters,int body,int env)
 
     body = ucons(makeRunner(runLookup,beginSymbol),body);
     body = makeRunner(runCall,body);
-    debug("define body: ",body);
+    //debug("define body: ",body);
 
     closure = makeClosure(env,name,parameters,body,NO_BEGIN);
 
@@ -133,7 +133,7 @@ define(int args)
         car(actualArgs) = first;
         }
 
-    debug("define args: ",actualArgs);
+    //debug("define args: ",actualArgs);
 
     if (type(first) == SYMBOL)
         return defineIdentifier(first,rest,car(args));

@@ -232,7 +232,7 @@ run(int runner,int env)
 
     while (1)
         {
-        debug("run: ",runner);
+        //debug("run: ",runner);
         assert(type(runner) == RUNNER);
 
         f = fval(cdr(runner));
