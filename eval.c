@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
+#include <stdarg.h>
 #include "cell.h"
 #include "types.h"
 #include "parser.h"
@@ -246,7 +247,7 @@ evalBuiltIn(int args,int builtIn)
     return prim(args);
     }
 
-/* evalList expects a regular list of expressions */
+/* evalExprList expects a regular list of expressions */
 
 int
 evalExprList(int items,int env)
@@ -446,7 +447,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
  */
 
 static int
-unevaluatedArgList(args)
+unevaluatedArgList(int args)
     {
     if (args == 0)
         return 0;
@@ -455,7 +456,7 @@ unevaluatedArgList(args)
     }
 
 static int
-evaluatedArgList(args,env)
+evaluatedArgList(int args,int env)
     {
     int first;
     int rest;
