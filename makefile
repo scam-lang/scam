@@ -7,6 +7,7 @@ SOBJS = types.o cell.o lexer.o sparser.o prim.o env.o eval.o util.o pp.o swhites
 #OBJS = types.o cell2.o lexer2.o parser2.o prim.o env.o eval.o util.o pp.o
 ROBJS = types.o cell.o lexer.o parser.o runprim.o env.o run.o util.o pp.o whitespace.o
 PROF = -pg
+PROF = 
 
 ALL		: scam
 

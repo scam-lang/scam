@@ -26,7 +26,7 @@ eval(int expr,int env)
 static int
 analyze(int expr)
     {
-    if (type(expr) == INTEGER) return makeRunner(runIdentity,expr);
+    if (type(expr) == INTEGER) return expr; //makeRunner(runIdentity,expr);
     if (type(expr) == REAL) return makeRunner(runIdentity,expr);
     if (type(expr) == STRING) return makeRunner(runIdentity,expr);
     if (sameSymbol(expr,trueSymbol)) return makeRunner(runIdentity,expr);
@@ -233,10 +233,15 @@ run(int runner,int env)
     while (1)
         {
         //debug("run: ",runner);
-        assert(type(runner) == RUNNER);
+        //assert(type(runner) == RUNNER);
 
-        f = fval(cdr(runner));
-        result = f(car(runner),env);
+        if (type(runner) == RUNNER)
+            {
+            f = fval(cdr(runner));
+            result = f(car(runner),env);
+            }
+        else
+            result = runner;
 
         if (isReturn(result))
             {
