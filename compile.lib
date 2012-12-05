@@ -1,3 +1,5 @@
+(define else #t) 
+
 ; mini parser for alpha-substitution
 ; todo! handle function call to scope
 
@@ -7,9 +9,9 @@
     ; dispatch function for generic definitions
 
     (define (rewrite-definition expr names free)
-        (if (symbol? (cadr expr))
-            (rewrite-variable-definition (cadr expr) expr names free)
-            (rewrite-function-definition (cadr expr) expr names free)
+        (if (symbol? (car (cdr expr)))
+            (rewrite-variable-definition (car (cdr expr)) expr names free)
+            (rewrite-function-definition (car (cdr expr)) expr names free)
             )
         )
     ; rewrite a function definition
@@ -74,12 +76,12 @@
         ;(println "rewrite-get: id: " id " name: " names)
         (cond
             ((gensym? id) id)
-            ((and (null? names) (not (defined? id free))) id)
+            ((if (null? names) (not (defined? id free))) id)
             ((null? names) (get id free))           ;free variable
             (else
                 (define target (assoc id (car names)))
                 (if (neq? target #f)
-                    (cadr target)    ;bound variable
+                    (car (cdr target))    ;bound variable
                     (rewrite-get id (cdr names) free)
                     )
                 )
@@ -89,8 +91,15 @@
     ;
     ;(println "rewrite: expr: " expr " names: " names)
     (cond
-        ((literal? expr) expr)
-        ((symbol? expr) (rewrite-get expr names free))
+        ((null? expr) expr)
+        ((eq? expr #t) expr)
+        ((eq? expr #f) expr)
+        ((eq? (type expr) 'STRING) expr)
+        ((eq? (type expr) 'ARRAY) expr)
+        ((eq? (type expr) 'INTEGER) expr)
+        ((eq? (type expr) 'REAL) expr)
+        ((if (pair? expr) (eq? (car expr) 'quote)) expr)
+        ((eq? (type expr) 'SYMBOL) (rewrite-get expr names free))
         ((eq? (car expr) 'define) (rewrite-definition expr names free))
         ((eq? (car expr) 'scope) (rewrite-scope expr names free))
         (else
@@ -124,4 +133,42 @@
     (define names (list (make-assoc (get 'parameters f) $)))
     (define body (rewrite (get 'code f) names (get 'context f)))
     (eval body #)
+    )
+
+(define (make-assoc xs ys)
+    (cond
+        ((null? xs) nil)
+        (else (cons (list (car xs) (car ys)) (make-assoc (cdr xs) (cdr ys))))
+        )
+    )
+
+(define (assoc x y)
+    (cond
+        ((null? y) #f)
+        ((equal? x (car (car y))) (car y))
+        (else (assoc x (cdr y)))
+        )
+    )
+
+(define (equal? a b)
+    (cond
+        ((null? a)
+            ;(println "returning" (null? b))
+            (null? b))
+        ((pair? a)
+            ;(println "pair returning "
+            ;(and (pair? b) (equal? (car a) (car b)) (equal? (cdr a) (cdr b))))
+            (and (pair? b) (equal? (car a) (car b)) (equal? (cdr a) (cdr b))))
+        ((eq? (type a) 'STRING)
+            (string-equal? a b))
+        ((eq? (type a) 'ARRAY) 
+            (array-equal? a b))
+        (else
+            ;(println "else returning "(eq? a b))
+            (eq? a b))
+        )
+    )
+
+(define (defined? id env)
+    (not (eq? (type (catch (eval id env))) 'ERROR))
     )
