@@ -77,7 +77,8 @@
         (cond
             ((gensym? id) id)
             ((if (null? names) (not (defined? id free))) id)
-            ((null? names) (get id free))           ;free variable
+            ((null? names)
+                (if (defined? id free) (get id free) id)) ;free variable
             (else
                 (define target (assoc id (car names)))
                 (if (neq? target #f)
@@ -102,6 +103,7 @@
         ((eq? (type expr) 'SYMBOL) (rewrite-get expr names free))
         ((eq? (car expr) 'define) (rewrite-definition expr names free))
         ((eq? (car expr) 'scope) (rewrite-scope expr names free))
+        ((eq? (car expr) 'environment) expr)
         (else
             (cons
                 (rewrite (car expr) names free)
@@ -113,7 +115,8 @@
 
 ; compilation and macro functions ;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (compile f env)
+(define (compile # f @)
+    (define env (if (valid? @) (car @) #))
     ;(pp f)
     (set 'code
         (rewrite 
@@ -125,6 +128,24 @@
         f) 
     ;(pp (dot f code))
     f
+    )
+
+(define (compile-env # @)
+    (define env (if (valid? @) (car @) #))
+    (define vars (car (cdr env)))
+    (define vals (car (cdr (cdr env))))
+    (while (valid? vars)
+        (if (closure? (car vals))
+            (begin
+                (display "compiling ")
+                (display (car vars))
+                (display "...\n")
+                (compile (car vals) env)
+                )
+            )
+        (set! vars (cdr vars))
+        (set! vals (cdr vals))
+        )
     )
 
 (define (macro # f $)
@@ -170,5 +191,7 @@
     )
 
 (define (defined? id env)
-    (not (eq? (type (catch (eval id env))) 'ERROR))
+    (not (eq? (type (catch (get id env))) 'error))
     )
+
+(define (closure? x) (and (object? x) (eq? (class x) 'closure)))
