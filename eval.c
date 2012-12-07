@@ -30,26 +30,30 @@ eval(int expr, int env)
     while (1)
         {
         int tag;
+        char *etype;
 
-        if (level > 0)
-            {
+        //if (level > 0)
+            //{
             //debug("eval",expr);
             //printf("env level is %d\n",ival(env_level(env)));
             //debug(" env",env);
-            }
+            //}
 
         if (expr == 0) { result = 0; break; }
-        if (type(expr) == INTEGER) { result = expr; break; }
-        if (type(expr) == REAL)    { result = expr; break; }
-        if (type(expr) == STRING)  { result = expr; break; }
-        if (type(expr) == SYMBOL)
+
+        etype = type(expr);
+
+        if (etype == INTEGER) { result = expr; break; }
+        if (etype == REAL)    { result = expr; break; }
+        if (etype == STRING)  { result = expr; break; }
+        if (etype == SYMBOL)
             {
             int index = ival(expr);
-            if (index == ival(trueSymbol))
+            if (index == trueIndex)
                 result = trueSymbol;
-            else if (index == ival(falseSymbol))
+            else if (index == falseIndex)
                 result = falseSymbol;
-            else if (index == ival(nilSymbol))
+            else if (index == nilIndex)
                 result = 0;
             else
                 result = getVariableValue(expr,env);
@@ -57,7 +61,7 @@ eval(int expr, int env)
             }
 
         //printf("eval type is %s\n",type(expr));
-        assert(type(expr) == CONS);
+        //assert(type(expr) == CONS);
 
         tag  = car(expr);
 
@@ -487,3 +491,82 @@ evaluatedArgList(int args,int env)
         return ucons(first,rest);
         }
     }
+
+static int
+processArguments2(int name,int params,int args,int env,int mode,int fi,int li)
+    {
+    int first,rest,result;
+
+    //debug("p-a",params);
+    if (params == 0 && args == 0)
+        return 0;
+
+    while (params != 0)
+        {
+        if (args == 0)
+            {
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "too few arguments to function %s",
+                SymbolTable[fi],li,
+                SymbolTable[ival(name)]);
+            }
+
+        if (sameSymbol(car(params),atSymbol))
+            {
+            if (mode == NORMAL)
+                {
+                arg = eval(car(arg),env);
+                throw(arg,0);
+                }
+            else
+                arg = car(arg);
+            args = cdr(args);
+            if (args == 0) params = 0;
+            }
+        else if (sameSymbol(car(params),dollarSymbol))
+            {
+            arg = unevaluatedArgList(args);
+            args = cdr(args);
+            if (args == 0) params = 0;
+            }
+        else if (sameSymbol(car(params),sharpSymbol))
+            {
+            arg = env;
+            params = cdr(params);
+            }
+        else if (*SymbolTable[ival(car(params))] == '$')
+            {
+            arg = car(arg);
+            args = cdr(args);
+            params = cdr(params);
+            }
+        else
+            {
+            if (mode == NORMAL)
+                {
+                arg = eval(car(args),env);
+                rethrow(arg,0);
+                }
+            else
+                arg = car(args);
+            }
+
+        result = ucons(arg,0);
+        if (spot == 0)
+            {
+            spot = result;
+            }
+        else
+            {
+            }
+    return throw(exceptionSymbol,
+        "file %s,line %d: "
+        "too many arguments to function %s",
+        SymbolTable[fi],li,
+        SymbolTable[ival(name)]);
+
+    //debug("p-a result",result);
+    return result;
+    }
+
