@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 #include <math.h>
 #include "types.h"
 #include "env.h"
@@ -1216,7 +1217,7 @@ iif(int args)
             return makeThunk(car(otherwise),car(args));
             }
         else
-            return 0;
+            return falseSymbol;
         }
     else
         {
@@ -2299,7 +2300,9 @@ oopen(int args)
 static int
 ttime(int args)
     {
-    return newInteger((int) time(0));
+    struct timeval tv;
+    gettimeofday(&tv,(struct timezone *)0);
+    return newReal(tv.tv_sec + tv.tv_usec / 1000000.0);
     }
 
 static int

@@ -6,11 +6,11 @@ char *BACKQUOTE = "BACKQUOTE";
 char *COMMA = "COMMA";
 char *END_OF_INPUT = "END_OF_INPUT";
 
-/* xcheme keywords */
+/* scam keywords */
 
 char *BAD_NUMBER = "BAD_NUMBER";
 
-/* xcheme internal types */
+/* scam internal types */
 
 char *CONS = "CONS";
 char *ARRAY = "ARRAY";
@@ -22,6 +22,7 @@ char *THUNK = "THUNK";
 char *PAST = "PAST";
 char *FUTURE = "FUTURE";
 char *UNINITIALIZED = "UNINITIALIZED";
+char *RUNNER = "RUNNER";
 
 /* scam types for an imperative front-end */
 

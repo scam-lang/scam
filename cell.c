@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <sys/time.h>
 #include "cell.h"
 #include "types.h"
 #include "util.h"
@@ -86,6 +87,10 @@ int writeIndex;
 int appendIndex;
 int stdinIndex;
 int stdoutIndex;
+
+int nilIndex;
+int trueIndex;
+int falseIndex;
 
 int andAndSymbol;
 int orOrSymbol;
@@ -214,12 +219,6 @@ memoryInit(int memsize)
     undefinedVariableSymbol = newSymbol("undefinedVariable");
     uninitializedVariableSymbol = newSymbol("uninitializedVariable");
 
-    readIndex            = findSymbol("read");
-    writeIndex           = findSymbol("write");
-    appendIndex          = findSymbol("append");
-    stdinIndex           = findSymbol("stdin");
-    stdoutIndex          = findSymbol("stdout");
-
     andAndSymbol         = newSymbol("&&");
     orOrSymbol           = newSymbol("||");
     gtSymbol             = newSymbol(">");
@@ -232,6 +231,16 @@ memoryInit(int memsize)
     tailAssignSymbol     = newSymbol("tail=");
     openBracketSymbol    = newSymbol("__select");
     xcallSymbol          = newSymbol("__xcall");
+
+    readIndex            = findSymbol("read");
+    writeIndex           = findSymbol("write");
+    appendIndex          = findSymbol("append");
+    stdinIndex           = findSymbol("stdin");
+    stdoutIndex          = findSymbol("stdout");
+
+    nilIndex = ival(nilSymbol);
+    trueIndex = ival(trueSymbol);
+    falseIndex = ival(falseSymbol);
 
     assert(stdoutIndex == findSymbol("stdout"));
 
@@ -269,8 +278,10 @@ ucons(int a,int b)
     spot = the_cars + MemorySpot;
     spot->type = CONS;
     spot->ival = a;
+    /*
     spot->line = line(a);
     spot->file = file(a);
+    */
     spot->transferred = 0;
 
     the_cdrs[MemorySpot] = b;
@@ -625,7 +636,7 @@ transfer(int limit)
         /* only cons cells and arrays point to other items */
         /* these pointed-to items need to be transferred */
 
-        if (new_cars[spot].type == CONS)
+        if (new_cars[spot].type == CONS || new_cars[spot].type == RUNNER)
             {
             /* transfer over the cdr, if necessary */
 
@@ -659,6 +670,10 @@ transfer(int limit)
 
             new_cars[spot].ival = cdr(old);
             }
+        else
+            {
+            //printf("not transferring type: %s\n",new_cars[spot].type);
+            }
 
         ++spot;
         }
@@ -667,14 +682,23 @@ transfer(int limit)
     return spot;
     }
 
+#define GC_TARGET -1
+
 void 
 gc()
     {
     int i,spot,stackStart;
     int *temp_cdrs;
     CELL *temp_cars;
+    struct timeval tv;
+    double startTime;
+    double gcTime;
+    static double totalTime = 0;
 
-    if (gcCount == 8)
+    gettimeofday(&tv,(struct timezone *)0);
+    startTime = tv.tv_sec + tv.tv_usec / 1000000.0;
+
+    if (gcCount == GC_TARGET)
         {
         for (i = 0; i < StackPtr; ++i)
             {
@@ -733,7 +757,7 @@ gc()
     the_cdrs = new_cdrs;
     new_cdrs = temp_cdrs;
 
-    if (gcCount == 8)
+    if (gcCount == GC_TARGET)
         {
         printf("after gc...");
         for (i = 0; i < StackPtr; ++i)
@@ -743,16 +767,22 @@ gc()
             }
         }
 
+    gettimeofday(&tv,(struct timezone *)0);
+    gcTime = (tv.tv_sec + tv.tv_usec / 1000000.0) - startTime;
+    totalTime += gcTime;
+
     ++gcCount;
     if (gcDisplay)
-        printf("gc:%d, %d cells available\n",
-            gcCount,MemorySize - MemorySpot);
+        printf("gc:%d, %d cells available in %fs (%fs total)\n",
+            gcCount,MemorySize - MemorySpot, gcTime, totalTime);
 
+    /*
     for (i = 0; i < MemorySize; ++i)
         new_cars[i].type = PAST;
 
     for (i = MemorySpot; i < MemorySize; ++i)
         the_cars[i].type = FUTURE;
+    */
     }
 
 
@@ -782,7 +812,7 @@ assureMemory(char *tag,int needed, int *item, ...)
         //printf("needed %d cells, had %d cells available.\n",
         //    needed, MemorySize - MemorySpot);
         
-        printf("assureMemory: %s\n",tag);
+        //printf("assureMemory: %s\n",tag);
         while (item != 0)
             {
             push(*item);

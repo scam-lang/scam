@@ -172,6 +172,11 @@ ppLevel(FILE *fp,int expr,int mode)
         fprintf(fp,"!PAST!");
     else if (type(expr) == FUTURE)
         fprintf(fp,"!FUTURE!");
+    else if (type(expr) == RUNNER)
+        {
+        fprintf(fp,"RUNNER:");
+        ppLevel(fp,car(expr),mode);
+        }
     else if (expr == -1)
         printf("xcall!");
     else

@@ -75,9 +75,9 @@ lex(PARSER *p)
             case ';':
                 result = newPunctuation(SEMI);
                 break;
-            /*case ',':
+            case ',':
                 result = newSymbol(",");
-                break;*/
+                break;
             default:
                 Fatal("%s,line %d: "
                     "INTERNAL ERROR: bad single character token\n",

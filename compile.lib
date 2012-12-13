@@ -73,12 +73,25 @@
     ; look up bindings in the name env ;   free variables
 
     (define (rewrite-get id names free)
+        (define value)
         ;(println "rewrite-get: id: " id " name: " names)
         (cond
             ((gensym? id) id)
-            ((if (null? names) (not (defined? id free))) id)
             ((null? names)
-                (if (defined? id free) (get id free) id)) ;free variable
+                (if (not (defined? id free))
+                    id
+                    (begin
+                        (define value (get id free))
+                        (if (closure? value)
+                            value
+                            (if (builtin? value)
+                                value
+                                id
+                                )
+                            )
+                        )
+                    )
+                )
             (else
                 (define target (assoc id (car names)))
                 (if (neq? target #f)
@@ -148,6 +161,28 @@
         )
     )
 
+(define (replace # f vars @)
+    (define i)
+    (define env (if (valid? @) (car @) #))
+    (define (helper var val expr)
+        (cond 
+            ((null? expr) nil)
+            ((eq? (type expr) 'CONS)
+                (if (eq? (car expr) var)
+                    (set-car! expr val)
+                    (helper var val (car expr))
+                    )
+                (helper var val (cdr expr))
+                )
+            )
+        )
+    (inspect vars)
+    (for-each2 i vars
+        (helper i (env i) (get 'code f))
+        )
+    'done
+    )
+
 (define (macro # f $)
     ; # is bound to the calling environment
     ; $ is bound to a list of unevaluated arguments
@@ -195,3 +230,4 @@
     )
 
 (define (closure? x) (and (object? x) (eq? (class x) 'closure)))
+(define (builtin? x) (and (object? x) (eq? (class x) 'builtIn)))

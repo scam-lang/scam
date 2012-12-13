@@ -11,7 +11,7 @@ typedef struct cellobj
 
     int ival;
     double rval;
-    int (*fval)(void);
+    int (*fval)(int,int);
     } CELL;
 
 extern int MemorySpot;
@@ -154,11 +154,16 @@ extern int DOTSymbol;
 extern int assignSymbol;
 extern int undefinedVariableSymbol;
 extern int uninitializedVariableSymbol;
+
 extern int readIndex;
 extern int writeIndex;
 extern int appendIndex;
 extern int stdinIndex;
 extern int stdoutIndex;
+
+extern int nilIndex;
+extern int trueIndex;
+extern int falseIndex;
 
 extern int andAndSymbol;
 extern int orOrSymbol;
