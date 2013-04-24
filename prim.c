@@ -111,6 +111,7 @@ define(int args)
     int actualArgs = cadr(args);
     int first,rest;
     
+    debug("def args: ",args);
     if (actualArgs == 0)
         return throw(exceptionSymbol,
             "file %s,line %d: "
@@ -3554,6 +3555,15 @@ loadBuiltIns(int env)
         newSymbol("define"),
         ucons(sharpSymbol,
             ucons(dollarSymbol,0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = define;
+    b = makeBuiltIn(env,
+        newSymbol("__define"),
+        ucons(newSymbol("env"),
+            ucons(newSymbol("rest"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

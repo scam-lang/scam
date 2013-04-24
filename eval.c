@@ -492,6 +492,7 @@ evaluatedArgList(int args,int env)
         }
     }
 
+/*
 static int
 processArguments2(int name,int params,int args,int env,int mode,int fi,int li)
     {
@@ -569,4 +570,5 @@ processArguments2(int name,int params,int args,int env,int mode,int fi,int li)
     //debug("p-a result",result);
     return result;
     }
+*/
 
