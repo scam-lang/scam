@@ -2,10 +2,8 @@
 CC = gcc
 OUT = scam
 
-OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o whitespace.o
-SOBJS = types.o cell.o lexer.o sparser.o prim.o env.o eval.o util.o pp.o swhitespace.o
-#OBJS = types.o cell2.o lexer2.o parser2.o prim.o env.o eval.o util.o pp.o
-ROBJS = types.o cell.o lexer.o parser.o runprim.o env.o run.o util.o pp.o whitespace.o
+OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
+       sway-lexer.o sway-parser.o sway-pp.c
 PROF = 
 PROF = -pg
 
@@ -20,23 +18,11 @@ install : scam
 		sudo cp $(OUT) /usr/local/bin
 		sudo cp *.lib /usr/local/lib/scam/
 
-sway		: $(SOBJS) sway.o
-		$(CC) -o sway2 $(PROF) $(SOBJS) sway.o -lm
-		cp sway2 ~/bin/
-
-rscam	: $(ROBJS) scam.o
-		$(CC) -o rscam $(PROF) $(ROBJS) scam.o -lm
-		cp rscam ~/bin/
-
 parser.o	: parser.c cell.h types.h lexer.h parser.h util.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g parser.c
-sparser.o	: sparser.c cell.h types.h lexer.h parser.h util.h
-		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sparser.c
 
 cell.o		: cell.c cell.h types.h
 		$(CC) -c $(PROF) -Wall -g cell.c
-#cell2.o		: cell2.c cell.h types.h
-#		$(CC) -c $(PROF) -Wall -g cell2.c
 
 env.o		: env.c cell.h types.h env.h
 		$(CC) -c $(PROF) -Wall -g env.c
@@ -68,14 +54,8 @@ whitespace.o : whitespace.c cell.h parser.h
 swhitespace.o : swhitespace.c cell.h parser.h
 		$(CC) -c $(PROF) -Wall -g swhitespace.c
 
-# analyzed scam specific files
-
-run.o		: run.c cell.h types.h cell.h parser.h env.h run.h
-		$(CC) -c $(PROF) -Wall -g run.c
-
-runprim.o		: runprim.c prim.h types.h cell.h
-		$(CC) -c $(PROF) -Wall -g runprim.c
-
+sway-parser.o	: sway-parser.c cell.h types.h lexer.h sway-parser.h util.h
+		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sway-parser.c
 
 clean:
 		rm *.o scam

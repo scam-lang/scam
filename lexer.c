@@ -25,10 +25,12 @@
 
 #define FILENAMESIZE 256
 
-extern int skipWhiteSpace(PARSER *);
+static int skipWhiteSpace(PARSER *);
 static int lexNumber(PARSER *,int);
 static int lexSymbol(PARSER *,int);
 static int lexString(PARSER *);
+
+char *symbolStop;
 
 int
 lex(PARSER *p)
@@ -92,7 +94,10 @@ lex(PARSER *p)
     else if (ch == '\"') 
         return lexString(p); 
     else if (isprint(ch))
+        {
+        symbolStop = "();,`'";
         return lexSymbol(p,ch);
+        }
     else 
         {
         assureMemory("lex:unknown",1000,(int *)0);
@@ -320,4 +325,46 @@ unread(int ch,PARSER *p)
     if (ch == '\n') --(p->line);
     p->pushedBack = 1;
     p->pushBack = ch;
+    }
+
+static int
+skipWhiteSpace(PARSER *p)
+    {
+    int ch;
+
+    while ((ch = getNextCharacter(p))
+    && ch != EOF && (isspace(ch) || ch == ';'))
+        {
+        if (ch == ';')
+            {
+            ch = getNextCharacter(p);
+            if (ch == '$') /* skip to end of file */
+                {
+                while ((ch = getNextCharacter(p)) && ch != EOF)
+                    continue;
+                }
+            else if (ch == '{') /* skip to close comment */
+                {
+                int prev = ch;
+                int lineNumber = p->line;
+                while ((ch = getNextCharacter(p))
+                && ch != EOF && (prev != ';' || ch != '}'))
+                    {
+                    prev = ch;
+                    }
+                if (ch == EOF)
+                    {
+                    return Fatal("file %s,line %d: unterminated comment\n",
+                            SymbolTable[p->file],lineNumber);
+                    }
+                }
+            else /* skip to end of line */
+                {
+                while (ch != EOF && ch != '\n')
+                    ch = getNextCharacter(p);
+                }
+            }
+        }
+
+    return ch;
     }
