@@ -8,11 +8,11 @@
 #include "cell.h"
 #include "types.h"
 #include "parser.h"
-#include "lexer.h"
 #include "env.h"
 #include "util.h"
 
-extern void pp(FILE *,int);
+extern void swayPP(FILE *,int);
+extern int swayLex(PARSER *);
 
 #define TRACE 2
 
@@ -29,14 +29,13 @@ extern void debug(char *,int);
 
 /* recursive descent parsing function */
 
-static int nakedBlock(PARSER *);
 static int functionDef(PARSER *);
 static int varDef(PARSER *);
 static int varDefList(PARSER *);
 static int varDefItem(PARSER *);
 static int optParamList(PARSER *);
 static int paramList(PARSER *);
-static int optStatementSeq(PARSER *);
+static int nakedBlock(PARSER *);
 static int statement(PARSER *);
 static int expr(PARSER *);
 static int exprAssign(PARSER *);
@@ -62,7 +61,6 @@ static int isXCall(int);
 
 static int check(PARSER *,char *);
 static int match(PARSER *,char *);
-static FILE *openScamFile(char *);
 static void ppf(char *,int,char *);
 
 /*
@@ -75,24 +73,14 @@ static void ppf(char *,int,char *);
 
 //START RULE
 
-    nakedBlock : optDefinitionSeq optStatementSeq
+    nakedBlock : *empty*
+               | statement nakedBlock
+               | definition nakedBlock
                ;
-
-//DEFINITION RULES
-
-    optDefinitionSeq | *empty*
-                     : definition optDefinitionSeq
-                     ;
 
     definition : functionDef
                | varDef
-               | SYMBOL[include] OPAREN expr CPAREN
-               | SYMBOL[includeOnce] OPAREN SYMBOL COMMA expr CPAREN
                ;
-
-    //Note: SYMBOL[include] means an identifier whose string name is "include"
-
-    //Note: include function calls are considered definitions
 
     functionDef : FUNCTION OPAREN optParamList block
                 ;
@@ -119,19 +107,9 @@ static void ppf(char *,int,char *);
 
 //BLOCKS and STATEMENTS
 
-    block : OBRACE optDefinitionSeq optStatementSeq CBRACE
+    block : OBRACE nakedBlock CBRACE
 
-    //Note: blocks with definitions extend the current environment -
-    //      a block without definitions is tagged a naked block -
-    //      a block that is the body of a function definitions is
-    //      tagged a naked block
-
-    optStatementSeq : *empty*
-                    | statement optStatementSeq
-                    ;
-
-    statement :  block
-              | expr SEMI
+    statement :  expr SEMI
               ;
 
 //EXPRESSIONS
@@ -209,42 +187,8 @@ static void ppf(char *,int,char *);
 
 */
 
-/* this is the function that intefaces the parser with other modules */
-
-PARSER *
-newParser(char *fileName)
-    {
-    PARSER *p = (PARSER *) malloc(sizeof(PARSER));
-    p->pending = -1;
-    p->line = 1;
-    p->file = findSymbol(fileName);
-    p->pushedBack = 0;
-    p->input = openScamFile(fileName);
-    p->output = stdout;
-
-    if (p->input == 0)
-        {
-        freeParser(p);
-        return 0;
-        }
-
-    return p;
-    }
-
-void
-freeParser(PARSER *p)
-    {
-    if (p->input != 0 && p->input != stdin)
-        fclose(p->input);
-
-    if (p->output != 0 && p->output != stdout)
-        fclose(p->output);
-
-    free(p);
-    }
-
 int
-parse(PARSER *p)
+swayParse(PARSER *p)
     {
     int result,end;
 
@@ -252,24 +196,24 @@ parse(PARSER *p)
     if (check(p,END_OF_INPUT)) return 0;
 
     printf("parsing now, %s pending\n",type(p->pending));
-    result = optStatementSeq(p);
+    result = nakedBlock(p);
     rethrow(result,0);
     push(result);
     end = match(p,END_OF_INPUT);
     result = pop();
     rethrow(end,0);
 
-    //assureMemory("parse",1,&result,(int *)0);
-    //result = uconsfl(beginSymbol,result,file(result),line(result));
-    //printf("done parsing.\n");
+    assureMemory("swayParse",1,&result,(int *)0);
+    result = uconsfl(beginSymbol,result,file(result),line(result));
+    printf("done parsing.\n");
+    ppf("sway parser returns\n",result,"\n");
     return result;
     }
 
 /*    definition : functionDef
- *             | varDef
- *             | SYMBOL[include] OPAREN expr CPAREN
- *             | SYMBOL[includeOnce] OPAREN SYMBOL COMMA expr CPAREN
- */            ;
+ *               | varDef
+ *               ;
+ */
 
 static int
 definition(PARSER *p)
@@ -297,7 +241,7 @@ definition(PARSER *p)
         {
         d = expr(p);
         rethrow(d,0);
-        if (type(car(d)) != xcallSymbol)
+        if (!sameSymbol(car(d),xcallSymbol))
             {
             push(d);
             m = match(p,SEMI);
@@ -309,72 +253,6 @@ definition(PARSER *p)
     if (TRACE) ppf("leaving definition: ",d,"\n");
 
     return d;
-    }
-
-/*    optDefinitionSeq | *empty*
- *                   : definition optDefinitionSeq
- *                   ;
- */
-
-static int
-optDefinitionSeq(PARSER *p)
-    {
-    int d,defs;
-    int result;
-
-    if (TRACE) printf("in optDefinitionSeq...\n");
-
-    if (isDefinitionPending(p))
-        {
-        d = definition(p);
-        rethrow(d,0);
-        push(d);
-        defs = optDefinitionSeq(p);
-        d = pop();
-        rethrow(defs,0);
-        result = ucons(d,defs);
-        if (TRACE > 1) ppf("definitions now are: ",result,"\n");
-        }
-    else
-        {
-        if (TRACE > 1) printf("no definitions present\n");
-            result = 0;
-        }
-
-    if (TRACE) ppf("leaving optDefinitionSeq: ",result,"\n");
-
-    return result;
-    }
-
-/*    nakedBlock : optDefinitionSeq optStatementSeq
- *             ;
- */
-
-static int
-nakedBlock(PARSER *p)
-    {
-    int a,b,result;
-
-    if (TRACE) printf("in nakedBlock...\n");
-
-    a = optDefinitionSeq(p);
-
-    rethrow(a,0);
-
-    push(a);
-    b = optStatementSeq(p);
-    a = pop();
-
-    rethrow(b,0);
-
-    result = append(a,b);  /* append is gc-safe */
-
-    //assureMemory("varDefItem",6,(int *)0);
-    result = ucons(result,0);
-
-    if (TRACE) ppf("leaving nakedBlock: ",result,"\n");
-
-    return result;
     }
 
 /*
@@ -393,7 +271,7 @@ functionDef(PARSER *p)
 
     f = match(p,SYMBOL);
     rethrow(f,0);
-    //assert(isIdentifier(f,"function"));
+
     assert(sameSymbol(f,functionSymbol));
 
     if (check(p,SYMBOL))
@@ -420,7 +298,11 @@ functionDef(PARSER *p)
     m = match(p,OPEN_BRACE);
     rethrow(m,2);
 
+    printf("about to parse function body\n");
+    getchar();
+
     body = nakedBlock(p);
+
     rethrow(body,2);
 
     push(body);
@@ -458,11 +340,9 @@ functionDef(PARSER *p)
     //indent the name so that we can find the indent after the call
 
     assureMemory("func name",4,&body,&params,&v,(int *)0);
-    result = ucons(body,0);
-    result = ucons(params,result);
-    result = ucons(v,result);
-    result = ucons(functionSymbol,result);
-
+    result = ucons(v,params);
+    result = ucons(result,body);
+    result = uconsfl(defineSymbol,result,file(v),line(v));
 
     if (TRACE) ppf("leaving functionDef: ",result,"\n");
 
@@ -642,17 +522,19 @@ paramList(PARSER *p)
     return result;
     }
 
-/*    optStatementSeq : *empty*
- *                   | statement optStatementSeq
+/*    nakedBlock : *empty*
+ *                   | statement nakedBlock
+ *                   | definition nakedBlock
  *                   ;
  */
 
 static int
-optStatementSeq(PARSER *p)
+nakedBlock(PARSER *p)
     {
     int result;
+    int item,others;
 
-    if (TRACE) printf("in optStatementSeq...\n");
+    if (TRACE) printf("in nakedBlock...\n");
 
     if (check(p,SYMBOL) && check(p,OPEN_BRACKET))
         {
@@ -662,29 +544,35 @@ optStatementSeq(PARSER *p)
             SymbolTable[p->file],p->line,type(p->pending));
         }
 
-    if (isStatementPending(p))
+    ppf("pending: ",p->pending,"\n");
+    if (isDefinitionPending(p))
         {
-        int item,others;
-
-        item = statement(p);
+        item = definition(p);
         rethrow(item,0);
-        //save(item,"parser:optStatementSeq:item");
         push(item);
-        others = optStatementSeq(p);
-        //item = restore("parser:optStatementSeq:item");
+        others = nakedBlock(p);
         item = pop();
         rethrow(others,0);
-        //result = cons(JOIN,item,others);
-        assureMemory("function name",2,&item,&others,(int *)0);
+        assureMemory("definition",1,&item,&others,(int *)0);
         result = ucons(item,others);
-        result = ucons(beginSymbol,result);
+        }
+    else if (isStatementPending(p))
+        {
+        item = statement(p);
+        rethrow(item,0);
+        push(item);
+        others = nakedBlock(p);
+        item = pop();
+        rethrow(others,0);
+        assureMemory("statement",1,&item,&others,(int *)0);
+        result = ucons(item,others);
         }
     else
         {
         result = 0;
         }
 
-    if (TRACE) ppf("leaving optStatementSeq: ",result,"\n");
+    if (TRACE) ppf("leaving nakedBlock: ",result,"\n");
 
     return result;
     }
@@ -701,13 +589,14 @@ statement(PARSER *p)
     int m;
 
     if (TRACE) printf("in statement...\n");
+    getchar();
 
     if (isBlockPending(p))
         {
         assureMemory("expr:throw",1000,(int *)0);
         return throw(syntaxExceptionSymbol,
-            "file %s,line %d: expected an expression, got %s instead",
-            SymbolTable[p->file],p->line,type(p->pending));
+            "file %s,line %d: expected an expression, got a block instead",
+            SymbolTable[p->file],p->line);
         }
 
     r = expr(p);
@@ -955,7 +844,8 @@ exprCall(PARSER *p,int item)
     else
         op = item;
 
-    //ppf("exprCall: op was: ",op,"\n");
+    ppf("exprCall: op was: ",op,"\n");
+    getchar();
     rethrow(op,0);
 
     push(op);
@@ -968,7 +858,7 @@ exprCall(PARSER *p,int item)
         args = optArgList(p);
         rethrow(args,1);
         printf("done getting args\n");
-        printf("args is "); pp(stdout,args); printf("\n");
+        ppf("args is ",args,"\n");
         push(args);
         m = match(p,CLOSE_PARENTHESIS);
         rethrow(m,2);
@@ -986,7 +876,7 @@ exprCall(PARSER *p,int item)
         //ppf("exprCall: op is :",op,"\n");
         /* append is destructive, does not use cons */
         result = uconsfl(op,append(args,extra),file(op),line(op));
-        pp(stdout,result);
+        ppf("result is ",result,"\n");
         if (extra != 0)
             {
             result = ucons(xcallSymbol,result);
@@ -1094,8 +984,13 @@ primary(PARSER *p)
         result = match(p,STRING);
     else if (check(p,SYMBOL))
         {
+        printf("primary symbol\n");
+        getchar();
         if (sameSymbol(p->pending,returnSymbol))
             {
+            printf("it's a return\n");
+            getchar();
+            match(p,SYMBOL);
             r = expr(p);
             rethrow(r,0);
             assureMemory("primary:return",2,&r,(int *)0);
@@ -1167,7 +1062,7 @@ optArgList(PARSER *p)
     else
         result = 0;
 
-    printf("arglist is: "); pp(stdout,result); printf("\n");
+    ppf("arglist is ",result,"\n");
     if (TRACE) printf("leaving optArgList.\n");
 
     return result;
@@ -1207,7 +1102,7 @@ argList(PARSER *p)
     assureMemory("argList",1,&b,(int *)0);
 
     a = pop();
-    printf("arg is: "); pp(stdout,a); printf("\n");
+    ppf("arg is ",a,"\n");
 
     result = uconsfl(a,b,file(a),line(a));
 
@@ -1220,12 +1115,9 @@ argList(PARSER *p)
 static int
 isDefinitionPending(PARSER *p)
     {
-    //return check(VAR) || check(FUNCTION) || isIdentifier(Pending,"include")
     check(p,SYMBOL);
     return sameSymbol(p->pending,varSymbol)
         || sameSymbol(p->pending,functionSymbol);
-        //|| sameSymbol(p->pending,"include")
-        //|| sameSymbol(p->pending,"includeOnce");
     }
 
 static int
@@ -1237,7 +1129,7 @@ isBlockPending(PARSER *p)
 static int
 isStatementPending(PARSER *p)
     {
-    return isExprPending(p);
+    return isExprPending(p) || isBlockPending(p);
     }
 
 static int
@@ -1322,7 +1214,7 @@ check(PARSER *p,char *t)
     if (p->pending == -1)
         {
         //printf("about to lex...\n");
-        p->pending = lex(p);
+        p->pending = swayLex(p);
         //printf("token is %s\n",type(p->pending));
         }
 
@@ -1341,40 +1233,10 @@ isXCall(int expr)
     return type(expr) == CONS && sameSymbol(car(expr),xcallSymbol);
     }
 
-extern char *Home;
-
-static FILE *
-openScamFile(char *fileName)
-    {
-    char buffer[512];
-    FILE *fp;
-
-    //printf("looking for file in current directory\n");
-
-    fp = fopen(fileName,"r");
-    if (fp != 0) return fp;
-
-    snprintf(buffer,sizeof(buffer),"%s/scam/%s",Home,fileName);
-    //printf("looking for file in %s\n",buffer);
-    fp = fopen(buffer,"r");
-    if (fp != 0) return fp;
-    
-    snprintf(buffer,sizeof(buffer),"/usr/local/lib/scam/%s",fileName);
-    //printf("looking for file in %s\n",buffer);
-    fp = fopen(buffer,"r");
-    if (fp != 0) return fp;
-    
-    snprintf(buffer,sizeof(buffer),"/usr/lib/scam/%s",fileName);
-    //printf("looking for file in %s\n",buffer);
-    fp = fopen(buffer,"r");
-    if (fp != 0) return fp;
-
-    return 0;
-    }
-
 static void
 ppf(char *s1,int expr,char *s2)
     {
+    extern void pp(FILE *,int);
     fprintf(stdout,"%s",s1);
     pp(stdout,expr);
     fprintf(stdout,"%s",s2);

@@ -11,5 +11,6 @@ typedef struct parsertag
     } PARSER;
 
 extern int parse(PARSER *);
+extern int swayParse(PARSER *);
 extern PARSER *newParser(char *);
 extern void freeParser(PARSER *);

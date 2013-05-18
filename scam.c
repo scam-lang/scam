@@ -31,6 +31,7 @@ char *PROGRAM_VERSION = "1.4";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
+int Scam = 1;
 
 char *LibraryName = "SCAM_LIB";
 char *LibraryPointer = "/usr/local/lib/scam/";
@@ -120,7 +121,10 @@ main(int argc,char **argv,char **envv)
     defineVariable(env,s,trueSymbol);
 
     push(env);
-    result = parse(p);
+    if (Scam)
+        result = parse(p);
+    else
+        result = swayParse(p);
     ptree = result;
     env = pop();
 

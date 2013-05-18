@@ -17,26 +17,27 @@
 #include "cell.h"
 #include "types.h"
 #include "parser.h"
-#include "lexer.h"
 #include "env.h"
 #include "util.h"
 
-#define LINUX 0
-
-#define FILENAMESIZE 256
+extern char *symbolStop;
 
 static int swaySkipWhiteSpace(PARSER *);
 
+extern int lexNumber(PARSER *,char);
+extern int lexSymbol(PARSER *,char);
+extern int lexString(PARSER *);
 
 int
-swaylex(PARSER *p) 
+swayLex(PARSER *p) 
     { 
     int ch; 
 
+    symbolStop = "(){}[];,'";
     ch = swaySkipWhiteSpace(p); 
-    printf("lex character is %c\n",ch);
+    printf("sway lex character is %c\n",ch);
 
-    if (ch == EOF || strchr("()'`,",ch) != 0) /* single character tokens */ 
+    if (ch == EOF || strchr(symbolStop,ch) != 0) /* single character tokens */ 
         {
         int result;
 
@@ -85,7 +86,6 @@ swaylex(PARSER *p)
         return lexString(p); 
     else if (isprint(ch))
         {
-        symbolStop = "(){}[];,'";
         return lexSymbol(p,ch);
         }
     else 
@@ -103,35 +103,53 @@ swaySkipWhiteSpace(PARSER *p)
     int ch;
 
     while ((ch = getNextCharacter(p))
-    && ch != EOF && (isspace(ch) || ch == ';'))
+    && ch != EOF && (isspace(ch) || ch == '/'))
         {
-        if (ch == ';')
-            { 
+        printf("in sway whitespace <%c>\n", ch);
+        if (ch == '/')
+            {
             ch = getNextCharacter(p);
-            if (ch == '$') /* skip to end of file */
+            printf("got slash <%c>\n", ch);
+            if (ch == '/')
+              {
+              ch = getNextCharacter(p);
+              printf("got another slash <%c>\n", ch);
+              if (ch == '/') /*skip to end of file*/
                 {
-                while ((ch = getNextCharacter(p)) && ch != EOF)
-                    continue;
-                }
-            else if (ch == '{') /* skip to close comment */
-                {
-                int prev = ch;
-                int lineNumber = p->line;
-                while ((ch = getNextCharacter(p))
-                && ch != EOF && (prev != ';' || ch != '}'))
+                while (ch != EOF) //while (!feof(p))
                     {
-                    prev = ch;
-                    }
-                if (ch == EOF)
-                    {
-                    return Fatal("file %s,line %d: unterminated comment\n",
-                            SymbolTable[p->file],lineNumber);
-                    }
-                }
-            else /* skip to end of line */
-                {
-                while (ch != EOF && ch != '\n')
                     ch = getNextCharacter(p);
+                    }
+                }
+              else /* skip to end of line */
+                  {
+                  printf("skipping to end of line");
+                  while (ch != EOF && ch != '\n')
+                      ch = getNextCharacter(p);
+                  unread(ch, p);
+                  }
+              }
+            else if (ch == '*')
+              {
+              int more = 1;
+              while (more)
+                  {
+                  while ((ch = getNextCharacter(p))
+                  && ch != EOF && ch != '*')
+                  {
+                      continue;
+                  }
+                  ch = getNextCharacter(p);
+                  if (ch == EOF)
+                      Fatal("SOURCE CODE ERROR: unterminated comment\n");
+                  more = ch != '/';
+                  }
+              }
+            else
+                {
+                    unread(ch, p);
+                    ch = '/';
+                    break;
                 }
             }
         }

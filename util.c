@@ -124,6 +124,12 @@ ProcessOptions(int argc, char **argv)
                 gcDisplay = !gcDisplay;
                 }
                 break;
+            case 'i':
+                {
+                extern int Scam;
+                Scam = 0;
+                }
+                break;
             case 'M':
                 {
                 extern int MemorySize;

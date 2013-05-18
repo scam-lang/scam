@@ -17,7 +17,6 @@
 #include "cell.h"
 #include "types.h"
 #include "parser.h"
-#include "lexer.h"
 #include "env.h"
 #include "util.h"
 
@@ -25,10 +24,13 @@
 
 #define FILENAMESIZE 256
 
+void unread(int,PARSER *);
+int getNextCharacter(PARSER *);
+
 static int skipWhiteSpace(PARSER *);
-static int lexNumber(PARSER *,int);
-static int lexSymbol(PARSER *,int);
-static int lexString(PARSER *);
+int lexNumber(PARSER *,int);
+int lexSymbol(PARSER *,int);
+int lexString(PARSER *);
 
 char *symbolStop;
 
@@ -108,7 +110,7 @@ lex(PARSER *p)
     } 
 
 
-static int
+int
 lexNumber(PARSER *p,int ch)
     {
     char s[512] = "";
@@ -186,7 +188,7 @@ lexNumber(PARSER *p,int ch)
     return result;
     }
 
-static int
+int
 lexSymbol(PARSER *p,int ch)
     {
     int index;
@@ -223,7 +225,7 @@ lexSymbol(PARSER *p,int ch)
     return result;
     }
 
-static int
+int
 lexString(PARSER *p)
     {
     int ch;

@@ -3,7 +3,7 @@ CC = gcc
 OUT = scam
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
-       sway-lexer.o sway-parser.o sway-pp.c
+       sway-lexer.o sway-parser.o # sway-pp.c
 PROF = 
 PROF = -pg
 
@@ -18,7 +18,7 @@ install : scam
 		sudo cp $(OUT) /usr/local/bin
 		sudo cp *.lib /usr/local/lib/scam/
 
-parser.o	: parser.c cell.h types.h lexer.h parser.h util.h
+parser.o	: parser.c cell.h types.h parser.h util.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g parser.c
 
 cell.o		: cell.c cell.h types.h
@@ -33,7 +33,7 @@ prim.o		: prim.c prim.h types.h cell.h
 eval.o		: eval.c cell.h types.h cell.h parser.h env.h eval.h
 		$(CC) -c $(PROF) -Wall -g eval.c
 
-lexer.o		: lexer.c cell.h types.h lexer.h 
+lexer.o		: lexer.c cell.h types.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g lexer.c
 
 types.o		: types.c types.h
@@ -54,7 +54,7 @@ whitespace.o : whitespace.c cell.h parser.h
 swhitespace.o : swhitespace.c cell.h parser.h
 		$(CC) -c $(PROF) -Wall -g swhitespace.c
 
-sway-parser.o	: sway-parser.c cell.h types.h lexer.h sway-parser.h util.h
+sway-parser.o	: sway-parser.c cell.h types.h parser.h util.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sway-parser.c
 
 clean:

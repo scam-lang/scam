@@ -8,11 +8,11 @@
 #include "cell.h"
 #include "types.h"
 #include "parser.h"
-#include "lexer.h"
 #include "env.h"
 #include "util.h"
 
 extern void debug(char *,int);
+extern int lex(PARSER *);
 
 /* recursive descent parsing function */
 
