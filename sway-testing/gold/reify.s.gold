@@ -1,0 +1,31 @@
+function b() { println("oops!"); }
+
+function superclass()
+    {
+    function a()
+        {
+        println("superclass:a: calling virtual function b");
+        b();
+        }
+    function b() { println("yipes!"); }
+
+    this;
+    }
+
+function subclass()
+    {
+    function b()
+        {
+        println("subclass:b");
+        }
+    proxy(superclass());
+    }
+
+var s = subclass();
+
+println("calling superclass:a");
+s . a();
+------------------------------------------
+calling superclass:a
+superclass:a: calling virtual function b
+subclass:b

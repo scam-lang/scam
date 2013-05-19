@@ -1,0 +1,19 @@
+include("basics");
+
+function +(x,y)
+    {
+    println("local + is ", +);
+    println("non-local + is ", context . +);
+    println("non-non-local + is ", context . context . +);
+    println("shadowed + is ", shadowed(:+));
+
+    (shadowed(:+))(x,y);
+    }
+var x = 3 + 4;
+println("x is ", x);
+------------------------------------------
+local + is <function +(x,y)>
+non-local + is <function +(x,y)>
+non-non-local + is <function +(a,b)>
+shadowed + is <function +(a,b)>
+x is 7

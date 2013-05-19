@@ -1,0 +1,5 @@
+for ((i = 1234567; i < 2345678; ++i)) ;
+    do
+	echo memory size: $i
+        sway -m $i big.s
+    done

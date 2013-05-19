@@ -1,0 +1,115 @@
+    function term(a,n)
+        {
+        function value(x) { if(a == 0,0,a * (x ^ n)); }
+        function toString() { "" + a + "x^" + n; }
+	function diff()
+	    {
+	    term(a * n,n - 1);
+	    }
+        this;
+        }
+
+    function plus(p,q)
+	{
+	function value(x) { p . value(x) + q . value(x); }
+	function toString() { p . toString() + " + " + q . toString(); }
+	function diff()
+	    {
+	    var dp/dx = p . diff();
+	    var dq/dx = q . diff();
+	    plus(dp/dx,dq/dx);
+	    }
+	this;
+	}
+
+    function line(m,b)
+	{
+	plus(term(m,1),term(b,0));
+	}
+
+    var f = line(3,-5);
+    var f' = f . diff();
+    var f'' = f' . diff();
+
+var dummy = inspect(f' . toString());
+var dummy = inspect(f' . value(0));
+var dummy = inspect(f' . value(5));
+
+var dummy = inspect(f'' . toString());
+var dummy = inspect(f'' . value(0));
+var dummy = inspect(f'' . value(5));
+
+    function term(a,n)
+        {
+	function value(x) { if(a == 0,0,a * (x ^ n)); }
+	function diff() { term(a * n,n - 1); }
+	function zero?() { a == 0; }
+	function one?() { a == 1 && n == 0; }
+	function toString()
+	    {
+	    if (a == 0) { "0"; }
+	    else if (n == 0) { "" + a; }
+	    else if (n == 1 && a == 1) { "x"; }
+	    else if (n == 1) { "" + a + "x"; }
+	    else if (a == 1) { "x^" + n; }
+	    else { "" + a + "x^" + n; }
+	    }
+	this;
+	}
+
+    var f = line(3,-5);
+    var f' = f . diff();
+    var f'' = f' . diff();
+
+var dummy = println("-------------------------------------");
+var dummy = inspect(f . toString());
+var dummy = inspect(f' . toString());
+var dummy = inspect(f'' . toString());
+var dummy = inspect(f'' . value(0));
+var dummy = inspect(f'' . value(5));
+
+    function sum(p,q)
+	{
+	function value(x) { p . value(x) + q . value(x); }
+	function toString() { p . toString() + " + " + q . toString(); }
+	function diff()
+	    {
+	    var dp/dx = p . diff();
+	    var dq/dx = q . diff();
+	    sum(dp/dx,dq/dx);
+	    }
+	function zero?() { p . zero?() && q . zero?(); }
+	function one?()
+	    {
+	    (p . zero?() && q . one?()) || (p . one?() && q . zero?());
+	    }
+	if (p . zero?()) { q; }
+	else if (q . zero?()) { p; }
+	else { this; }
+	}
+
+    var f = line(3,-5);
+    var f' = f . diff();
+    var f'' = f' . diff();
+
+var dummy = println("-------------------------------------");
+var dummy = inspect(f . toString());
+var dummy = inspect(f' . toString());
+var dummy = inspect(f'' . toString());
+var dummy = inspect(f'' . value(0));
+var dummy = inspect(f'' . value(5));
+
+    var z = term(4,3) sum term(3,2) sum term(2,1) sum term(1,0);
+    var z' = z . diff();
+    var z'' = z' . diff();
+    var z''' = z'' . diff();
+    
+var dummy = println("-------------------------------------");
+var dummy = inspect(z . toString());
+var dummy = inspect(z' . toString());
+var dummy = inspect(z'' . toString());
+var dummy = inspect(z''' . toString());
+var dummy = inspect(z'' . value(1));
+var dummy = inspect(z'' . value(2));
+var dummy = inspect(z''' . value(1));
+var dummy = inspect(z''' . value(2));

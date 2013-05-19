@@ -1,0 +1,36 @@
+include("basics");
+include("objects");
+
+function x(c)
+    {
+    var a = 2,b = 3;
+    function toString()
+        {
+	"x: a is " + a + ", b is " + b + ", c is " + c;
+	}
+    this;
+    }
+
+var m = x(5);
+var n = m . constructor(8);
+
+println(m . toString());
+println("n is constructed via m's constructor");
+println(n . toString());
+println();
+
+inspect(m . constructor . name);
+inspect(n . constructor . name);
+
+println();
+
+println("changing m . a to 10");
+println("changing n . b to 10");
+
+println();
+
+m . a = 10;
+n . b = 10;
+
+println(m . toString());
+println(n . toString());

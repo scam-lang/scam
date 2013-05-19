@@ -1,0 +1,38 @@
+function stack()
+    {
+    var store = :null;
+    function pop()
+        {
+        var p = head(store);
+        store = tail(store);
+        p;
+        }
+    function push(item)
+        {
+        store = item join store;
+        item;
+        }
+    function empty?()
+        {
+        return store == :null;
+        }
+    this;
+    }
+
+function stack()
+    {
+    function pop()
+        {
+        if (empty?(),throw(:stackException,"popped an empty stack"));
+        pop . prior();
+        }
+    extends(stack . prior());
+    this;
+    }
+
+var s = stack();
+
+pp(stack);
+inspect(s . push(5));
+inspect(s . pop());
+inspect(s . pop());

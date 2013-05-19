@@ -1,0 +1,32 @@
+var a = "wow";
+function Object()
+    {
+    function getField()
+	{
+	return symbol("a");
+	}
+    var a = 2;
+    this;
+    }
+
+var obj = Object();
+
+print("obj's a was ",obj . a," (should be 2)\n");
+obj . a = "hello";
+print("obj's a is ",obj . a," (should be hello)\n");
+obj . (obj . getField()) = 3.2;
+print("obj's a now is ",obj . (obj . getField())," (should be 3.2)\n");
+
+if (symbol("a") == symbol("a"))
+    {
+    print("separate calls to symbol(\"a\") compare equal\n");
+    }
+else
+    {
+    print("separate calls to symbol(\"a\") do not compare equal\n");
+    }
+println("a was ", a);
+symbol("a") = 5;
+println("a is ", a);
+obj . getField() = 6;
+println("a now is ", a);

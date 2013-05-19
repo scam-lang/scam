@@ -1,0 +1,18 @@
+include("style");
+
+function f()
+    {
+    function g(x) { x * x; }
+var z;
+    z = 5;
+    while (x == 3)
+        {
+        x = 4
+        f(x);
+        }
+    y == x;
+    }
+------------------------------------------
+EVALUATION ERROR: :styleViolation
+tyro2.s,line 6: 
+indentation is not properly aligned, should be 4 spaces, not 0

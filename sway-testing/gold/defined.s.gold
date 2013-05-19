@@ -1,0 +1,19 @@
+var methods = array(symbol("++"),:+);
+
+var i = 0;
+
+while (i < length(methods))
+    {
+    if (defined?(methods . i,this))
+        {
+        println(methods . i, " is defined!");
+        }
+    else
+        {
+        println(methods . i, " is not defined");
+        }
+    i = i + 1;
+    }
+------------------------------------------
+++ is not defined
++ is defined!
