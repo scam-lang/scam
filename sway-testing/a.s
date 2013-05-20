@@ -3,7 +3,7 @@ function sqr(x)
     return x * x;
     }
 
-function a+b(a, b)
+function a+b(a,b)
     {
     return sqr(a + b);
     }
