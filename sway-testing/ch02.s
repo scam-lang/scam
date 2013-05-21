@@ -1,9 +1,9 @@
     var x = 1000000;
     var f = 1.0 / 16;
     function smaller(amount,fraction)
-	{
-	inspect(amount * fraction);
-	}
+        {
+        inspect(amount * fraction);
+        }
 
 
 

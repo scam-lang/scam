@@ -1,3 +1,5 @@
+include("sway.lib");
+
     /* from ch03 */
 
     function ratio(w,dw,h)

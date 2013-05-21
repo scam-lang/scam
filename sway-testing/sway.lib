@@ -1,0 +1,20 @@
+var null = nil;
+function paren(expr) { expr; }
+function &&(#,$x,$y) { if (eval($x,#),eval($y,#),#f); }
+function ||(#,$x,$y) { if (eval($x,#),#t,eval($y,#)); }
+function .(x,$y) { get($y,x); }
+function =(#,$a,b)
+    {
+    if (symbol?($a))
+        {
+        set($a,b,#);
+        }
+    else if (list?($a) && car($a) == '.)
+        {
+        set(caddr($a),b,eval(cadr($a),#));
+        }
+    else
+        {
+        throw('assignmentException,string+("cannot assign to ",string($a)));
+        }
+    }
