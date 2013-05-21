@@ -35,7 +35,7 @@ swayLex(PARSER *p)
 
     symbolStop = "(){}[];,'";
     ch = swaySkipWhiteSpace(p); 
-    //printf("sway lex character is %c\n",ch);
+    printf("sway lex character is %c\n",ch);
 
     if (ch == EOF || strchr(symbolStop,ch) != 0) /* single character tokens */ 
         {
@@ -53,7 +53,7 @@ swayLex(PARSER *p)
                 result = newPunctuation(CLOSE_PARENTHESIS);
                 break;
             case '[': 
-                result = newPunctuation(OPEN_BRACKET);
+                result = openBracketSymbol;
                 break;
             case ']': 
                 result = newPunctuation(CLOSE_BRACKET);

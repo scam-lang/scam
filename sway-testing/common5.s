@@ -1,4 +1,4 @@
-include("inherit.s");
+include("sway.lib");
 
 var z = 
     {

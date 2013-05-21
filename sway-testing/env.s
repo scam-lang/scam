@@ -1,4 +1,4 @@
-include("sway.s");
+include("sway.lib");
 
 var spot = SwayEnv;
 

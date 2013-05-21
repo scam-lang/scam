@@ -39,11 +39,12 @@ lex(PARSER *p)
     {
     int ch;
 
+    symbolStop = "();,`'";
     ch = skipWhiteSpace(p);
     //printf("whitespace returns %c", ch);
     //getchar();
 
-    if (ch == EOF || strchr("()'`,;",ch) != 0) /* single character tokens */
+    if (ch == EOF || strchr(symbolStop,ch) != 0) /* single character tokens */
         {
         int result;
 
@@ -96,10 +97,7 @@ lex(PARSER *p)
     else if (ch == '\"') 
         return lexString(p); 
     else if (isprint(ch))
-        {
-        symbolStop = "();,`'";
         return lexSymbol(p,ch);
-        }
     else 
         {
         assureMemory("lex:unknown",1000,(int *)0);
@@ -157,7 +155,7 @@ lexNumber(PARSER *p,int ch)
 
     s[count] = '\0';
 
-    if (digits && strchr(" \t\n();,",ch) == 0)
+    if (digits && strchr(" \t\n)];,",ch) == 0)
         {
         assureMemory("lexNumber:illegal",1000,(int *)0);
         return throw(lexicalExceptionSymbol,
@@ -199,7 +197,7 @@ lexSymbol(PARSER *p,int ch)
     index = 1;
 
     while ((ch = getNextCharacter(p)) && ch != EOF
-    && !isspace(ch) && strchr("();,`'",ch) == 0)
+    && !isspace(ch) && strchr(symbolStop,ch) == 0)
         {
         //printf("symbol: %c\n", ch);
             buffer[index++] = ch;

@@ -230,7 +230,7 @@ memoryInit(int memsize)
     functionSymbol       = newSymbol("function");
     headAssignSymbol     = newSymbol("head=");
     tailAssignSymbol     = newSymbol("tail=");
-    openBracketSymbol    = newSymbol("__select");
+    openBracketSymbol    = newSymbol("[");
     fillerSymbol         = newSymbol("__filler");
     setBangSymbol        = newSymbol("set!");
 

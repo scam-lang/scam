@@ -198,7 +198,7 @@ swayParse(PARSER *p)
     //printf("starting to parse...\n");
     if (check(p,END_OF_INPUT)) return 0;
 
-    printf("parsing now, %s pending\n",type(p->pending));
+    //printf("parsing now, %s pending\n",type(p->pending));
     result = nakedBlock(p);
     rethrow(result,0);
     push(result);
@@ -208,9 +208,9 @@ swayParse(PARSER *p)
 
     assureMemory("swayParse",1,&result,(int *)0);
     result = ucons2(beginSymbol,result);
-    printf("done parsing.\n");
-    ppf("sway parser returns\n",result,"\n");
-    getchar();
+    //printf("done parsing.\n");
+    //ppf("sway parser returns\n",result,"\n");
+    //getchar();
     return result;
     }
 
@@ -290,7 +290,7 @@ functionDef(PARSER *p)
     m = match(p,OPEN_BRACE);
     rethrow(m,2);
 
-    printf("about to parse function body\n");
+    //printf("about to parse function body\n");
 
     body = nakedBlock(p);
 
@@ -538,7 +538,7 @@ nakedBlock(PARSER *p)
             SymbolTable[p->file],p->line,type(p->pending));
         }
 
-    ppf("pending: ",p->pending,"\n");
+    //ppf("pending: ",p->pending,"\n");
     if (check(p,OPEN_BRACE))
         {
         assureMemory2(1000);
@@ -591,20 +591,19 @@ statement(PARSER *p)
 
     if (TRACE) printf("in statement...\n");
 
-
     r = expr(p);
-    printf("statement got expression \n");
+    //printf("statement got expression \n");
     rethrow(r,0);
-    printf("statement no error\n");
+    //printf("statement no error\n");
 
     if (TRACE > 1) printf("statement subtype is %s\n", type(r));
 
     if (!isXCall(r))
         {
-        ppf("statement is: ",r,"\n");
-        ppf("pending is: ", p->pending, "\n");
+        //ppf("statement is: ",r,"\n");
+        //ppf("pending is: ", p->pending, "\n");
         m = match(p, SEMI);
-        printf("statement match semi\n");
+        //printf("statement match semi\n");
         rethrow(m,0);
         }
 
@@ -627,7 +626,7 @@ block(PARSER *p)
     rethrow(m,1); //for saved b
     assureMemory2(1);
     b = pop();
-    b = ucons2(beginSymbol,b);
+    b = ucons2(scopeSymbol,b);
     return b;
     }
 
@@ -764,7 +763,7 @@ exprCompare(PARSER *p)
         b = match(p,SYMBOL);
         rethrow(b,1);
         push(b);
-        printf("about to call math\n");
+        //printf("about to call math\n");
         c = exprMath(p);
         rethrow(c,2);
         push(c);
@@ -855,7 +854,7 @@ exprCall(PARSER *p,int item)
     else
         op = item;
 
-    ppf("exprCall: op was: ",op,"\n");
+    //ppf("exprCall: op was: ",op,"\n");
     //getchar();
     rethrow(op,0);
 
@@ -865,16 +864,16 @@ exprCall(PARSER *p,int item)
         {
         //this is a function call
         match(p,OPEN_PARENTHESIS);
-        printf("about to get args\n");
+        //printf("about to get args\n");
         args = optArgList(p);
-        rethrow(args,1);
-        printf("done getting args\n");
-        ppf("args is ",args,"\n");
+        rethrow(args,1); //for saved op
+        //printf("done getting args\n");
+        //ppf("args is ",args,"\n");
         push(args);
         m = match(p,CLOSE_PARENTHESIS);
-        rethrow(m,2);
+        rethrow(m,2); //for saved op,args
         extra = optExtraArgs(p);
-        rethrow(extra,2);
+        rethrow(extra,2); //for saved op,args
         push(extra);
         //ppf("exprCall: extra was :",extra,"\n");
         assureMemory2(2);
@@ -886,7 +885,7 @@ exprCall(PARSER *p,int item)
         //ppf("exprCall: op is :",op,"\n");
         /* append is destructive, does not use cons */
         result = ucons(op,append(args,extra));
-        ppf("result is ",result,"\n");
+        //ppf("result is ",result,"\n");
         if (extra != 0)
             {
             result = ucons2(fillerSymbol,result);
@@ -1005,17 +1004,23 @@ exprSelect(PARSER *p,int item)
     result = a;
     push(result);
 
+    check(p,0);
+    ppf("selct op is ",p->pending,"\n");
     while (opType(p) == SELECT)
         {
+        printf("it's a select!\n");
         /* opType forces a lex */
-        if (check(p,OPEN_BRACKET))
+        if (sameSymbol(p->pending,openBracketSymbol))
             {
-            match(p,OPEN_BRACKET);
+            printf("it's a bracket!\n");
+            b = match(p,SYMBOL);
+            rethrow(b,1);
+            push(b);
             c = expr(p);
-            rethrow(c,1);
+            rethrow(c,2);
+            ppf("bracketed expression is ",c,"\n");
             push(c);
             match(p,CLOSE_BRACKET);
-            b = openBracketSymbol;
             }
         else /* must be dot */
             {
@@ -1148,7 +1153,7 @@ optArgList(PARSER *p)
     else
         result = 0;
 
-    ppf("arglist is ",result,"\n");
+    //ppf("arglist is ",result,"\n");
     if (TRACE) printf("leaving optArgList.\n");
 
     return result;
@@ -1168,11 +1173,11 @@ argList(PARSER *p)
     a = expr(p);
     rethrow(a,0);
     push(a);
-    ppf("leading arg is ",a,"\n");
+    //ppf("leading arg is ",a,"\n");
 
     //force check
     check(p,0);
-    ppf("pending is ",p->pending,"\n");
+    //ppf("pending is ",p->pending,"\n");
     if (check(p,COMMA))
         {
         match(p,COMMA);
@@ -1187,7 +1192,7 @@ argList(PARSER *p)
     assureMemory("argList",1,&b,(int *)0);
 
     a = pop();
-    ppf("arg is ",a,"\n");
+    //ppf("arg is ",a,"\n");
 
     result = ucons(a,b);
 

@@ -1,7 +1,4 @@
 include("sway.lib");
-//include("inherit.s");
-
-function +=($v,value,#) { set!($v,eval($v,#) + value,#); }
 
 var common = 0;
 

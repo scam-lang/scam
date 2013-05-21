@@ -1,4 +1,4 @@
-include("inherit.s");
+include("sway.lib");
 
 var z-common = { var count = 0; this; };
 
@@ -10,7 +10,6 @@ function z()
     this;
     }
 
-function code($x) { $x; }
 function x()
     {
     var parent = z();
@@ -28,8 +27,9 @@ function y()
     }
 
 var xish = new(x());
+inspect(xish . common . count);
 var yish = new(y());
-var zish = new(z());
+inspect(xish . common . count);
 
 println("x's common count is ", xish . common . count);
 println("y's common count is ", yish . common . count);

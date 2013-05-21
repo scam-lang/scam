@@ -1,3 +1,4 @@
+var SwayEnv = ScamEnv;
 var null = nil;
 function paren(expr) { expr; }
 function &&(#,$x,$y) { if (eval($x,#),eval($y,#),#f); }
@@ -18,3 +19,64 @@ function =(#,$a,b)
         throw('assignmentException,string+("cannot assign to ",string($a)));
         }
     }
+
+// Java style inheritance in three functions (really two, super is not needed)
+// linear time
+
+function __resetClosures(static,obj)
+    {
+    function update(current,rest)
+        {
+        if (closure?(current))
+            {
+            //println("setting context of ",current," to ",static);
+            set('__context,static,current);
+            }
+        if (rest != nil) { update(car(rest),cdr(rest)); }
+        }
+    var values = cdr(cdr(cdr(cdr(cdr(localValues(obj))))));
+    //println("locals are ",values);
+    if (values != nil) { update(car(values),cdr(values)); }
+    obj;
+    }
+function __inherit(child,parents,reification,static)
+    {
+    if (null?(parents))
+        {
+        set('__context,static,child);
+        }
+    else
+        {
+        set('__context ,
+                __inherit(__resetClosures(reification,car(parents)),
+                       cdr(parents),reification,static),
+                child);
+        }
+    child;
+    }
+function new(child)
+    {
+    function chain(x) { if (null?(x),nil,cons(x,chain(get('parent,x)))); }
+    __inherit(child,chain(get('parent,child)),child,get('__context,child));
+    }
+function super(child)
+    {
+    get('__context,child);
+    }
+function extend(#,parent)
+    {
+    var top = 
+        if(local?('__inherit-top,parent),get('__inherit-top,parent),parent);
+    
+    //println("in extend...");
+    addSymbol('__inherit-top,top,#);
+    
+    set('__context,get('__context,#),top);
+    set('__context,parent,#);
+    #;
+    }
+function mixin(object,@)
+    {
+    __inherit(object,@,object,get('__context,object));
+    }
+

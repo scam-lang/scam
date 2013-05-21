@@ -12,7 +12,7 @@
                 )
         (if (valid? rest) (update (car rest) (cdr rest)))
         )
-    (define values (localValues obj))
+    (define values (cdr (cdr (cdr (cdr (cdr (localValues obj)))))))
     ;(println "locals are " values)
     (if (!= values nil) (update (car values) (cdr values)))
     obj

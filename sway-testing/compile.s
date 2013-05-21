@@ -19,7 +19,7 @@ function rewrite-variable-definition(id,expr,names,free)
     {
     var newid = if (gensym?(id),id,rewrite-define(id,gensym(id),names));
     // add the identifier to names
-    cons(:define,
+    cons('define,
         cons(newid, 
             rewrite(cddr(expr),names,free)));
     }
@@ -32,7 +32,7 @@ function rewrite-function-definition(sig,expr,names,free)
     var newid = if (gensym?(id),id,rewrite-define(id,gensym(id),names));
     var next  = rewrite-extend(cdr(sig),cdr(sig),names);
     // add function name to name environment
-    cons(:define,
+    cons('define,
         cons(cons(newid,rewrite(cdr(sig),next,free)),
             rewrite(cddr(expr),next,free)));
     }
@@ -53,7 +53,7 @@ function rewrite-definition(expr,names,free)
 
 function rewrite-scope(expr,names,free)
     {
-    cons(:scope,rewrite(cdr(expr),rewrite-extend(null,null,names),free));
+    cons('scope,rewrite(cdr(expr),rewrite-extend(null,null,names),free));
     }
 
 // look up bindings in the name env
@@ -122,10 +122,10 @@ function rewrite(expr,names,free)
 
 function compile(f,env)
     {
-    set!(:code,
+    set!('code,
         rewrite(
-            get(:code,f),
-            rewrite-extend(get(:parameters,f),get(:parameters,f),null),
+            get('code,f),
+            rewrite-extend(get('parameters,f),get('parameters,f),null),
             env
             ),
         f);
@@ -136,7 +136,7 @@ function macro(#,f,$)
     {
     // # is bound to the calling environment
     // $ is bound to a list of unevaluated arguments
-    var names = list(make-assoc(get(:parameters,f),$));
-    var body = rewrite(get(:code,f),names,get(:context,f));
+    var names = list(make-assoc(get('parameters,f),$));
+    var body = rewrite(get('code,f),names,get('context,f));
     eval(body,#);
     }
