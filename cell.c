@@ -81,6 +81,7 @@ int DOTSymbol;
 int assignSymbol;
 int undefinedVariableSymbol;
 int uninitializedVariableSymbol;
+int fillerSymbol;
 
 int readIndex;
 int writeIndex;
@@ -103,7 +104,7 @@ int functionSymbol;
 int headAssignSymbol;
 int tailAssignSymbol;
 int openBracketSymbol;
-int xcallSymbol;
+int setBangSymbol;
 
 CELL *the_cars;
 CELL *new_cars;
@@ -230,7 +231,8 @@ memoryInit(int memsize)
     headAssignSymbol     = newSymbol("head=");
     tailAssignSymbol     = newSymbol("tail=");
     openBracketSymbol    = newSymbol("__select");
-    xcallSymbol          = newSymbol("__xcall");
+    fillerSymbol         = newSymbol("__filler");
+    setBangSymbol        = newSymbol("set!");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");
@@ -278,10 +280,27 @@ ucons(int a,int b)
     spot = the_cars + MemorySpot;
     spot->type = CONS;
     spot->ival = a;
-    /*
     spot->line = line(a);
     spot->file = file(a);
-    */
+    spot->transferred = 0;
+
+    the_cdrs[MemorySpot] = b;
+
+    ++MemorySpot;
+
+    return MemorySpot - 1;
+    }
+
+int
+ucons2(int a,int b)
+    {
+    CELL *spot;
+
+    spot = the_cars + MemorySpot;
+    spot->type = CONS;
+    spot->ival = a;
+    spot->line = line(b);
+    spot->file = file(b);
     spot->transferred = 0;
 
     the_cdrs[MemorySpot] = b;
@@ -792,6 +811,17 @@ displayStack()
     int i;
     for (i = 0; i < StackPtr; ++i)
         debug("stack ",Stack[i]);
+    }
+
+void
+assureMemory2(int needed)
+    {
+    if (MemorySpot + 2*needed >= MemorySize)
+        {
+        gc();
+        if (MemorySpot + needed >= MemorySize)
+            Fatal("gc failed: out of memory\n");
+        }
     }
 
 void

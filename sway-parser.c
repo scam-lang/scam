@@ -37,6 +37,7 @@ static int optParamList(PARSER *);
 static int paramList(PARSER *);
 static int nakedBlock(PARSER *);
 static int statement(PARSER *);
+static int block(PARSER *);
 static int expr(PARSER *);
 static int exprAssign(PARSER *);
 static int exprConnect(PARSER *);
@@ -47,6 +48,8 @@ static int exprSelect(PARSER *,int);
 static int primary(PARSER *);
 static int optArgList(PARSER *);
 static int argList(PARSER *);
+static int extraArgs(PARSER *);
+static int optExtraArgs(PARSER *);
 
 /* pending functions */
 
@@ -204,9 +207,10 @@ swayParse(PARSER *p)
     rethrow(end,0);
 
     assureMemory("swayParse",1,&result,(int *)0);
-    result = uconsfl(beginSymbol,result,file(result),line(result));
+    result = ucons2(beginSymbol,result);
     printf("done parsing.\n");
     ppf("sway parser returns\n",result,"\n");
+    getchar();
     return result;
     }
 
@@ -232,22 +236,10 @@ definition(PARSER *p)
         d = pop();
         rethrow(m,0);
         }
-    else if (check(p,SYMBOL) && sameSymbol(p->pending,functionSymbol))
+    else // function definition
         {
         d = functionDef(p);
         rethrow(d,0);
-        }
-    else /* must be call to include or includeOnce */
-        {
-        d = expr(p);
-        rethrow(d,0);
-        if (!sameSymbol(car(d),xcallSymbol))
-            {
-            push(d);
-            m = match(p,SEMI);
-            d = pop();
-            rethrow(m,0);
-            }
         }
 
     if (TRACE) ppf("leaving definition: ",d,"\n");
@@ -256,7 +248,7 @@ definition(PARSER *p)
     }
 
 /*
- *  functionDef : FUNCTION OPAREN optParamList block
+ *  functionDef : FUNCTION optSymbol OPAREN optParamList block
  *              ;
  */
 
@@ -299,7 +291,6 @@ functionDef(PARSER *p)
     rethrow(m,2);
 
     printf("about to parse function body\n");
-    getchar();
 
     body = nakedBlock(p);
 
@@ -317,7 +308,7 @@ functionDef(PARSER *p)
         }
 
     //ensureMemory(6);
-    assureMemory("varDefItem",6,(int *)0);
+    assureMemory2(6);
 
     body = pop();
     params = pop();
@@ -342,7 +333,7 @@ functionDef(PARSER *p)
     assureMemory("func name",4,&body,&params,&v,(int *)0);
     result = ucons(v,params);
     result = ucons(result,body);
-    result = uconsfl(defineSymbol,result,file(v),line(v));
+    result = ucons2(defineSymbol,result);
 
     if (TRACE) ppf("leaving functionDef: ",result,"\n");
 
@@ -369,8 +360,15 @@ varDef(PARSER *p)
     rethrow(v,0);
     //type(v) = VARIABLE_DEFINITION_LIST;
 
-    if (TRACE) ppf("leaving varDef: ",v,"\n");
 
+    if (cdr(v) == 0)
+        v = car(v);
+    else
+        {
+        assureMemory("var def",1,&v,(int *) 0);
+        v = ucons2(beginSymbol,v);
+        }
+    if (TRACE) ppf("leaving varDef: ",v,"\n");
     return v;
     }
 
@@ -433,32 +431,28 @@ varDefItem(PARSER *p)
 
     check(p,SYMBOL); // force a lex, if necessary (check is not gc-safe)
 
-    //if (isIdentifier(Pending,ASSIGN))
     if (sameSymbol(p->pending,eqSymbol))
         {
         match(p,SYMBOL); // ASSIGN
         init = expr(p);
+        rethrow(init,1); //for saved v
+        push(init);
+        assureMemory2(3);
+        init = pop();
+        v = pop();
+        result = ucons(init,0);
+        result = ucons(v,result);
+        result = ucons2(defineSymbol,result);
         }
     else
         {
         if (TRACE > 1) printf("no initializer\n");
-        init = newSymbol(UNINITIALIZED);
-        //init = newSymbol(uninitializedVariable);
+        assureMemory2(2);
+        v = pop();
+        result = ucons(v,0);
+        result = ucons2(defineSymbol,result);
         }
 
-    rethrow(init,1); //for saved v
-
-    push(init);
-
-    //ensureMemory(4);
-    assureMemory("varDefItem",4,(int *)0);
-
-    init = pop();
-    v = pop();
-
-    result = ucons(init,0);
-    result = ucons(v,result);
-    result = ucons(newSymbol("var"),result);
 
     if (TRACE) ppf("leaving varDefItem: ",result,"\n");
 
@@ -538,14 +532,21 @@ nakedBlock(PARSER *p)
 
     if (check(p,SYMBOL) && check(p,OPEN_BRACKET))
         {
-        assureMemory("expr:throw",1000,(int *)0);
+        assureMemory2(1000);
         return throw(syntaxExceptionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
         }
 
     ppf("pending: ",p->pending,"\n");
-    if (isDefinitionPending(p))
+    if (check(p,OPEN_BRACE))
+        {
+        assureMemory2(1000);
+        return throw(syntaxExceptionSymbol,
+            "file %s,line %d: expected an expression, got a block instead",
+            SymbolTable[p->file],p->line);
+        }
+    else if (isDefinitionPending(p))
         {
         item = definition(p);
         rethrow(item,0);
@@ -589,15 +590,7 @@ statement(PARSER *p)
     int m;
 
     if (TRACE) printf("in statement...\n");
-    getchar();
 
-    if (isBlockPending(p))
-        {
-        assureMemory("expr:throw",1000,(int *)0);
-        return throw(syntaxExceptionSymbol,
-            "file %s,line %d: expected an expression, got a block instead",
-            SymbolTable[p->file],p->line);
-        }
 
     r = expr(p);
     printf("statement got expression \n");
@@ -618,6 +611,24 @@ statement(PARSER *p)
     if (TRACE) ppf("leaving statement: ",r,"\n");
 
     return r;
+    }
+
+/* block : OBRACE nakedBlock CBRACE */
+
+static int
+block(PARSER *p)
+    {
+    int b,m;
+
+    match(p,OPEN_BRACE);
+    b = nakedBlock(p);
+    push(b);
+    m = match(p,CLOSE_BRACE);
+    rethrow(m,1); //for saved b
+    assureMemory2(1);
+    b = pop();
+    b = ucons2(beginSymbol,b);
+    return b;
     }
 
 /* expr : exprAssign */
@@ -660,11 +671,11 @@ exprAssign(PARSER *p)
         c = exprAssign(p);
         rethrow(c,2);
         push(c);
-        assureMemory("exprAssign",3,(int *)0);
+        assureMemory2(3);
         c = pop();
         b = pop();
         a = pop();
-        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
+        result = ucons(b,ucons(a,ucons(c,0)));
         }
     else
         result = pop();
@@ -708,11 +719,11 @@ exprConnect(PARSER *p)
         c = exprCompare(p);
         rethrow(c,2);
         push(c);
-        assureMemory("exprConnect",3,(int *)0);
+        assureMemory2(3);
         c = pop();
         b = pop();
         a = pop();
-        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
+        result = ucons(b,ucons(a,ucons(c,0)));
         push(result);
         }
 
@@ -757,11 +768,11 @@ exprCompare(PARSER *p)
         c = exprMath(p);
         rethrow(c,2);
         push(c);
-        assureMemory("exprCompare",3,(int *)0);
+        assureMemory2(3);
         c = pop();
         b = pop();
         a = pop();
-        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
+        result = ucons(b,ucons(a,ucons(c,0)));
         push(result);
         }
 
@@ -806,14 +817,14 @@ exprMath(PARSER *p)
         //ppf("exprMath: c was: ",c,"\n");
         rethrow(c,2);
         push(c);
-        assureMemory("exprMath",3,(int *)0);
+        assureMemory2(3);
         c = pop();
         b = pop();
         a = pop();
         //ppf("exprMath: a is: ",a,"\n");
         //ppf("exprMath: b is: ",b,"\n");
         //ppf("exprMath: c is: ",c,"\n");
-        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
+        result = ucons(b,ucons(a,ucons(c,0)));
         //ppf("exprMath: a was: ",result,"\n");
         push(result);
         }
@@ -845,7 +856,7 @@ exprCall(PARSER *p,int item)
         op = item;
 
     ppf("exprCall: op was: ",op,"\n");
-    getchar();
+    //getchar();
     rethrow(op,0);
 
     push(op);
@@ -862,12 +873,11 @@ exprCall(PARSER *p,int item)
         push(args);
         m = match(p,CLOSE_PARENTHESIS);
         rethrow(m,2);
-        //modify the next line when extra args is implemented
-        extra = 0; //optExtraArgs(p),2);
+        extra = optExtraArgs(p);
         rethrow(extra,2);
         push(extra);
         //ppf("exprCall: extra was :",extra,"\n");
-        assureMemory("exprCall",2,(int *)0);
+        assureMemory2(2);
         extra = pop();
         args = pop();
         op = pop();
@@ -875,11 +885,11 @@ exprCall(PARSER *p,int item)
         //ppf("exprCall: args is :",args,"\n");
         //ppf("exprCall: op is :",op,"\n");
         /* append is destructive, does not use cons */
-        result = uconsfl(op,append(args,extra),file(op),line(op));
+        result = ucons(op,append(args,extra));
         ppf("result is ",result,"\n");
         if (extra != 0)
             {
-            result = ucons(xcallSymbol,result);
+            result = ucons2(fillerSymbol,result);
             }
         if (opType(p) == SELECT)
             {
@@ -895,6 +905,83 @@ exprCall(PARSER *p,int item)
 
     return result;
     }
+
+/*  optExtraArgs : extraArgs
+ *               | *empty*
+ */
+
+static int
+optExtraArgs(PARSER *p)
+    {
+    if (isBlockPending(p))
+        return extraArgs(p);
+    else
+        return 0;
+    }
+
+/*  extraArgs : block
+ *            | block ELSE block
+ *            | block ELSE exprSelect OPAREN optArgList CPAREN extrArgs
+ */
+
+static int
+extraArgs(PARSER *p)
+    {
+    int b,c,result;
+
+    b = block(p);
+    rethrow(b,0);
+    push(b);
+    check(p,0);
+    if (sameSymbol(elseSymbol,p->pending))
+        {
+        match(p,SYMBOL);
+        if (isBlockPending(p))
+            {
+            c = block(p);
+            rethrow(c,1); //for saved b
+            push(c);
+            assureMemory2(2);
+            c = pop();
+            b = pop();
+            result = ucons(b,ucons(c,0));
+            }
+        else  /* parse an extended call */
+            {
+            int op,args,extra,m;
+            op = exprSelect(p,0);
+            rethrow(op,1); //for saved b
+            push(op);
+            m = match(p,OPEN_PARENTHESIS);
+            rethrow(m,2); //for saved b,op
+            args = optArgList(p);
+            rethrow(args,2); //for saved b,op
+            push(args);
+            m = match(p,CLOSE_PARENTHESIS);
+            rethrow(m,3);
+            extra = extraArgs(p);
+            rethrow(extra,3); //for saved b,op,args
+            push(extra);
+            assureMemory2(3);
+            extra = pop();
+            args = pop();
+            op = pop();
+            b = pop();
+            result = ucons(op,append(args,extra));
+            result = ucons(result,0);
+            result = ucons(b,result);
+            }
+        }
+    else
+        {
+        assureMemory2(1);
+        b = pop();
+        result = ucons(b,0);
+        }
+
+    return result;
+    }
+
 
 /* exprSelect : primary [SYMBOL(.) primary]*
  *            | primary [OBRACKET expr CBRACKET]*
@@ -942,11 +1029,11 @@ exprSelect(PARSER *p,int item)
             rethrow(c,2);
             push(c);
             }
-        assureMemory("exprSelect",3,(int *)0);
+        assureMemory2(3);
         c = pop();
         b = pop();
         a = pop();
-        result = uconsfl(b,ucons(a,ucons(c,0)),file(b),line(b));
+        result = ucons(b,ucons(a,ucons(c,0)));
         push(result);
         }
 
@@ -984,22 +1071,20 @@ primary(PARSER *p)
         result = match(p,STRING);
     else if (check(p,SYMBOL))
         {
-        printf("primary symbol\n");
-        getchar();
         if (sameSymbol(p->pending,returnSymbol))
             {
             printf("it's a return\n");
-            getchar();
             match(p,SYMBOL);
             r = expr(p);
             rethrow(r,0);
             assureMemory("primary:return",2,&r,(int *)0);
-            result = uconsfl(returnSymbol,ucons(r,0),file(r),line(r));
+            result = ucons2(returnSymbol,ucons(r,0));
             }
         else if (sameSymbol(p->pending,functionSymbol))
             {
-            fprintf(stderr,"lambdas not yet implemented\n");
-            exit(-1);
+            r = functionDef(p);
+            rethrow(r,0);
+            result = r;
             }
         else
             {
@@ -1012,7 +1097,7 @@ primary(PARSER *p)
         r = match(p,SYMBOL);
         rethrow(r,0);
         assureMemory("primary:quote",2,&r,(int *)0);
-        result = uconsfl(quoteSymbol,ucons(r,0),file(r),line(r));
+        result = ucons2(quoteSymbol,ucons(r,0));
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
@@ -1023,18 +1108,19 @@ primary(PARSER *p)
         m = match(p,CLOSE_PARENTHESIS);
         rethrow(m,0);
         assureMemory("expr:openParen",2,&r,(int *)0);
-        result = uconsfl(parenSymbol,ucons(r,0),file(r),line(r));
+        result = ucons2(parenSymbol,ucons(r,0));
         }
     else if (check(p,OPEN_BRACE))
         {
-        fprintf(stderr,"blocks not yet implemented\n");
-        exit(-1);
+        r = block(p);
+        rethrow(r,0);
+        result = r;
         }
     else if (isThrow(p->pending))
         return p->pending;
     else
         {
-        assureMemory("expr:throw",1000,(int *)0);
+        assureMemory2(1000);
         return throw(syntaxExceptionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
@@ -1082,16 +1168,15 @@ argList(PARSER *p)
     a = expr(p);
     rethrow(a,0);
     push(a);
+    ppf("leading arg is ",a,"\n");
 
     //force check
     check(p,0);
-    if (sameSymbol(p->pending,commaSymbol))
+    ppf("pending is ",p->pending,"\n");
+    if (check(p,COMMA))
         {
-        match(p,SYMBOL);
-        if (check(p,CLOSE_PARENTHESIS))
-            b = 0;
-        else
-            b = argList(p);
+        match(p,COMMA);
+        b = argList(p);
         rethrow(b,1);
         }
     else
@@ -1104,7 +1189,7 @@ argList(PARSER *p)
     a = pop();
     ppf("arg is ",a,"\n");
 
-    result = uconsfl(a,b,file(a),line(a));
+    result = ucons(a,b);
 
     if (TRACE) printf("leaving argList.\n");
     return result;
@@ -1129,7 +1214,7 @@ isBlockPending(PARSER *p)
 static int
 isStatementPending(PARSER *p)
     {
-    return isExprPending(p) || isBlockPending(p);
+    return isExprPending(p);
     }
 
 static int
@@ -1196,7 +1281,7 @@ match(PARSER *p,char *t)
             return p->pending;
         else
             {
-            assureMemory("match:throw",1000,(int *)0);
+            assureMemory2(1000);
             return throw(syntaxExceptionSymbol,
                 "file %s,line %d: expecting %s, found %s instead",
                 SymbolTable[p->file],p->line,t,type(p->pending));
@@ -1230,7 +1315,7 @@ check(PARSER *p,char *t)
 static int
 isXCall(int expr)
     {
-    return type(expr) == CONS && sameSymbol(car(expr),xcallSymbol);
+    return type(expr) == CONS && sameSymbol(car(expr),fillerSymbol);
     }
 
 static void

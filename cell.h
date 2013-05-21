@@ -27,6 +27,7 @@ extern int *new_cdrs;
 
 extern int cons(int,int);
 extern int ucons(int,int);
+extern int ucons2(int,int);
 extern int uconsfl(int,int,int,int);
 extern int append(int,int);
 extern int length(int);
@@ -90,6 +91,7 @@ extern char *cellStringTr(char *,int,int);
 
 extern int rootList;
 extern void assureMemory(char *,int,int *,...);
+extern void assureMemory2(int);
 
 extern int varSymbol;
 extern int zero;
@@ -154,6 +156,7 @@ extern int DOTSymbol;
 extern int assignSymbol;
 extern int undefinedVariableSymbol;
 extern int uninitializedVariableSymbol;
+extern int fillerSymbol;
 
 extern int readIndex;
 extern int writeIndex;
@@ -165,6 +168,7 @@ extern int nilIndex;
 extern int trueIndex;
 extern int falseIndex;
 
+extern int setBangSymbol;
 extern int andAndSymbol;
 extern int orOrSymbol;
 extern int gtSymbol;
@@ -176,5 +180,3 @@ extern int functionSymbol;
 extern int headAssignSymbol;
 extern int tailAssignSymbol;
 extern int openBracketSymbol;
-extern int xcallSymbol;
-//entry for variable_definition_list?

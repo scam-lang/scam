@@ -170,6 +170,12 @@
     (evalList $ e)
     )
 
+(define (pause)
+    (define old (setPort 'stdin))
+    (readRawChar)
+    (setPort old)
+    )
+
 (define (let* # $inits $)
     (define v nil)
     (define e (scope this))

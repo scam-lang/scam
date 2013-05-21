@@ -65,11 +65,15 @@ eval(int expr, int env)
 
         tag  = car(expr);
 
-        if (type(tag) == SYMBOL && ival(tag) == ival(objectSymbol))
+        if (sameSymbol(tag,objectSymbol))
             {
             result = expr;
             break;
             }
+
+        /* skip over filler symbol, which is used for sway parsing */
+
+        if (sameSymbol(tag,fillerSymbol)) expr = cdr(expr);
 
         /* no need to assure memory here */
 

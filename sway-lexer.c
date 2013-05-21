@@ -35,7 +35,7 @@ swayLex(PARSER *p)
 
     symbolStop = "(){}[];,'";
     ch = swaySkipWhiteSpace(p); 
-    printf("sway lex character is %c\n",ch);
+    //printf("sway lex character is %c\n",ch);
 
     if (ch == EOF || strchr(symbolStop,ch) != 0) /* single character tokens */ 
         {
@@ -105,15 +105,15 @@ swaySkipWhiteSpace(PARSER *p)
     while ((ch = getNextCharacter(p))
     && ch != EOF && (isspace(ch) || ch == '/'))
         {
-        printf("in sway whitespace <%c>\n", ch);
+        //printf("in sway whitespace <%c>\n", ch);
         if (ch == '/')
             {
             ch = getNextCharacter(p);
-            printf("got slash <%c>\n", ch);
+            //printf("got slash <%c>\n", ch);
             if (ch == '/')
               {
               ch = getNextCharacter(p);
-              printf("got another slash <%c>\n", ch);
+              //printf("got another slash <%c>\n", ch);
               if (ch == '/') /*skip to end of file*/
                 {
                 while (ch != EOF) //while (!feof(p))
@@ -123,7 +123,7 @@ swaySkipWhiteSpace(PARSER *p)
                 }
               else /* skip to end of line */
                   {
-                  printf("skipping to end of line");
+                  //printf("skipping to end of line");
                   while (ch != EOF && ch != '\n')
                       ch = getNextCharacter(p);
                   unread(ch, p);

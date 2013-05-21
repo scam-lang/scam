@@ -20,6 +20,7 @@ extern char *LibraryName;
 extern char *LibraryPointer;
 extern char *ArgumentsName;
 extern char *EnvironmentName;
+extern int Scam;
 
 extern void gc(void);
 
@@ -111,7 +112,7 @@ define(int args)
     int actualArgs = cadr(args);
     int first,rest;
     
-    debug("def args: ",args);
+    //debug("def args: ",args);
     if (actualArgs == 0)
         return throw(exceptionSymbol,
             "file %s,line %d: "
@@ -1444,7 +1445,10 @@ iinclude(int args)
             SymbolTable[file(args)],line(args),
             buffer);
 
-    ptree = parse(p);
+    if (Scam)
+        ptree = parse(p);
+    else
+        ptree = swayParse(p);
     fclose(p->input);
     free(p);
 
