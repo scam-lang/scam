@@ -80,3 +80,41 @@ function mixin(object,@)
     __inherit(object,@,object,get('__context,object));
     }
 
+var __pretty-indent = "    ";
+
+function ppFunctionDefinition(expr,indent)
+    {
+    print(indent,"function ",expr . name);
+    print(get('parameters,expr));
+    print("\n");
+    ppBlock(get('code,expr),string+(indent,__pretty-indent));
+    }
+
+function ppBlock(expr,indent)
+    {
+    print(indent,"{\n");
+    ppStatements(cdr(expr),indent);
+    print(indent,"}\n");
+    }
+
+function ppStatements(expr,indent)
+    {
+    while (expr != null)
+        {
+        println(indent,car(expr),";");
+        expr = cdr(expr);
+        }
+    }
+
+function pretty(expr)
+    {
+    prettyIndent(expr,"");
+    }
+
+function prettyIndent(expr,indent)
+    {
+    print(indent,"{\n");
+    ppStatements(cdr(expr),string+(indent,__pretty-indent));
+    print(indent,__pretty-indent,"}\n");
+    }
+
