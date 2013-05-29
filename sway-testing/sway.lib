@@ -82,7 +82,22 @@ function mixin(object,@)
 
 var __pretty-indent = "    ";
 
-function ppFunctionDefinition(expr,indent)
+function ppDefinition(expr,indent)
+    {
+    if (list?(cadr(expr))) // function definition
+        {
+        print(indent,"function ",car(cadr(expr)),cdr(cadr(expr)),\n");
+        ppBlock(cdr(expr));
+        }
+    else
+        {
+        print(expr,";"\n");
+        }
+    }
+        
+
+
+function ppClosure(expr,indent)
     {
     print(indent,"function ",expr . name);
     print(get('parameters,expr));
@@ -101,7 +116,15 @@ function ppStatements(expr,indent)
     {
     while (expr != null)
         {
-        println(indent,car(expr),";");
+        var item = car(expr);
+        if (list?(item) && car(item) == 'define)
+            {
+            ppDefinition(item,indent);
+            }
+        else
+            {
+            println(indent,item,";");
+            }
         expr = cdr(expr);
         }
     }
