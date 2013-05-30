@@ -146,7 +146,7 @@ ERROR:
     //int last;
     //debug("thrown",result);
     debug("EXCEPTION",error_code(result));
-    pp(stdout,error_value(result));
+    scamPP(stdout,error_value(result));
     printf("\n");
     if (TraceBack)
         {

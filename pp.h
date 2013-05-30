@@ -1,5 +1,7 @@
-extern void pp(FILE *,int);
-extern void ppLevel(FILE *,int,int);
+extern void scamPP(FILE *,int);
+extern void swayPP(FILE *,int);
+extern void scamPP(FILE *,int);
+extern void swayPPLevel(FILE *,int,int);
 extern void ppObject(FILE *,int,int);
 extern void ppList(FILE *,char *,int,char *,int);
 extern void ppArray(FILE *,char *,int,char *,int);

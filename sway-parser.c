@@ -59,6 +59,7 @@ static int isBlockPending(PARSER *);
 static int isExprPending(PARSER *);
 static int opType(PARSER *);
 static int isXCall(int);
+static int hasDefinitions(int);
 
 /* parser support */
 
@@ -606,6 +607,10 @@ statement(PARSER *p)
         //printf("statement match semi\n");
         rethrow(m,0);
         }
+    else
+        {
+        r = cddr(r); // strip xcall tags
+        }
 
     if (TRACE) ppf("leaving statement: ",r,"\n");
 
@@ -621,12 +626,16 @@ block(PARSER *p)
 
     match(p,OPEN_BRACE);
     b = nakedBlock(p);
+    rethrow(b,0);
     push(b);
     m = match(p,CLOSE_BRACE);
     rethrow(m,1); //for saved b
     assureMemory2(1);
     b = pop();
-    b = ucons2(scopeSymbol,b);
+    if (hasDefinitions(b))
+        b = ucons2(scopeSymbol,b);
+    else
+        b = ucons2(beginSymbol,b);
     return b;
     }
 
@@ -670,11 +679,13 @@ exprAssign(PARSER *p)
         c = exprAssign(p);
         rethrow(c,2);
         push(c);
-        assureMemory2(3);
+        assureMemory2(5);
         c = pop();
         b = pop();
         a = pop();
         result = ucons(b,ucons(a,ucons(c,0)));
+        // add tags for pretty printing
+        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
         }
     else
         result = pop();
@@ -718,11 +729,12 @@ exprConnect(PARSER *p)
         c = exprCompare(p);
         rethrow(c,2);
         push(c);
-        assureMemory2(3);
+        assureMemory2(5);
         c = pop();
         b = pop();
         a = pop();
         result = ucons(b,ucons(a,ucons(c,0)));
+        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
         push(result);
         }
 
@@ -767,11 +779,12 @@ exprCompare(PARSER *p)
         c = exprMath(p);
         rethrow(c,2);
         push(c);
-        assureMemory2(3);
+        assureMemory2(5);
         c = pop();
         b = pop();
         a = pop();
         result = ucons(b,ucons(a,ucons(c,0)));
+        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
         push(result);
         }
 
@@ -816,7 +829,7 @@ exprMath(PARSER *p)
         //ppf("exprMath: c was: ",c,"\n");
         rethrow(c,2);
         push(c);
-        assureMemory2(3);
+        assureMemory2(5);
         c = pop();
         b = pop();
         a = pop();
@@ -824,6 +837,7 @@ exprMath(PARSER *p)
         //ppf("exprMath: b is: ",b,"\n");
         //ppf("exprMath: c is: ",c,"\n");
         result = ucons(b,ucons(a,ucons(c,0)));
+        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
         //ppf("exprMath: a was: ",result,"\n");
         push(result);
         }
@@ -874,9 +888,10 @@ exprCall(PARSER *p,int item)
         rethrow(m,2); //for saved op,args
         extra = optExtraArgs(p);
         rethrow(extra,2); //for saved op,args
+        //ppf("extra: ",extra,"\n");
         push(extra);
         //ppf("exprCall: extra was :",extra,"\n");
-        assureMemory2(2);
+        assureMemory2(3);
         extra = pop();
         args = pop();
         op = pop();
@@ -888,7 +903,7 @@ exprCall(PARSER *p,int item)
         //ppf("result is ",result,"\n");
         if (extra != 0)
             {
-            result = ucons2(fillerSymbol,result);
+            result = ucons2(fillerSymbol,ucons2(xcallSymbol,result));
             }
         if (opType(p) == SELECT)
             {
@@ -900,7 +915,7 @@ exprCall(PARSER *p,int item)
         result = pop();
         }
 
-    if (TRACE) printf("leaving exprCall.\n");
+    if (TRACE) ppf("leaving exprCall: ",result,"\n");
 
     return result;
     }
@@ -1320,14 +1335,33 @@ check(PARSER *p,char *t)
 static int
 isXCall(int expr)
     {
-    return type(expr) == CONS && sameSymbol(car(expr),fillerSymbol);
+    return type(expr) == CONS && sameSymbol(car(expr),fillerSymbol)
+        && sameSymbol(cadr(expr),xcallSymbol);
     }
+
+static int
+hasDefinitions(int expr)
+    {
+    while (expr != 0)
+        {
+        int item = car(expr);
+        if (type(item) == CONS)
+            {
+            if (sameSymbol(car(item),defineSymbol)) return 1;
+            if (sameSymbol(car(item),beginSymbol)) return 1;
+            }
+        expr = cdr(expr);
+        }
+    return 0;
+    }
+
+
 
 static void
 ppf(char *s1,int expr,char *s2)
     {
-    extern void pp(FILE *,int);
+    extern void scamPP(FILE *,int);
     fprintf(stdout,"%s",s1);
-    pp(stdout,expr);
+    scamPP(stdout,expr);
     fprintf(stdout,"%s",s2);
     }

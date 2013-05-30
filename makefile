@@ -3,7 +3,7 @@ CC = gcc
 OUT = scam
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
-       sway-lexer.o sway-parser.o # sway-pp.c
+       sway-lexer.o sway-parser.o sway-pp.c
 PROF = 
 PROF = -pg
 

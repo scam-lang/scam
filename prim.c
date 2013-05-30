@@ -1149,7 +1149,7 @@ display(int args)
 
     //printf("writing to port %p\n",port);
     //debug("    ",car(args));
-    pp(port,car(args));
+    scamPP(port,car(args));
 
     return car(args);
     }
@@ -1194,10 +1194,7 @@ ppp(int args)
     int a = car(args);
     FILE *port = OpenPorts[CurrentOutputIndex];
 
-    if (type(a) == CONS && sameSymbol(car(a),objectSymbol))
-        ppTable(port,a,0);
-    else
-        pp(port,a);
+    scamPP(port,a);
     return 0;
     }
 
@@ -1391,9 +1388,9 @@ inspect(int args)
     result = eval(cadr(args),car(args));
     args = pop();
 
-    pp(stdout,cadr(args));
+    scamPP(stdout,cadr(args));
     fprintf(stdout," is ");
-    pp(stdout,result);
+    scamPP(stdout,result);
     fprintf(stdout,"\n");
     return result;
     }
@@ -2433,6 +2430,8 @@ llength(int args)
             }
         return newInteger(size);
         }
+    else if (type(item) == SYMBOL)
+        return newInteger(strlen(SymbolTable[ival(car(args))]));
     else
         return throw(exceptionSymbol,
             "file %s,line %d: "

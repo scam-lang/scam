@@ -82,6 +82,8 @@ int assignSymbol;
 int undefinedVariableSymbol;
 int uninitializedVariableSymbol;
 int fillerSymbol;
+int xcallSymbol;
+int binaryOpSymbol;
 
 int readIndex;
 int writeIndex;
@@ -233,6 +235,8 @@ memoryInit(int memsize)
     openBracketSymbol    = newSymbol("[");
     fillerSymbol         = newSymbol("__filler");
     setBangSymbol        = newSymbol("set!");
+    xcallSymbol          = newSymbol("__xcall");
+    binaryOpSymbol       = newSymbol("__binaryOp");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");

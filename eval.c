@@ -71,10 +71,6 @@ eval(int expr, int env)
             break;
             }
 
-        /* skip over filler symbol, which is used for sway parsing */
-
-        if (sameSymbol(tag,fillerSymbol)) expr = cdr(expr);
-
         /* no need to assure memory here */
 
         //don't think it is necessary to push env here 

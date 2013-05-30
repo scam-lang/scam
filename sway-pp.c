@@ -11,94 +11,42 @@
 #include "pp.h"
 #include "prim.h"
 
-#define MAX_CSV 10
-
-extern char **Included;
-extern char **SymbolNames;
-
-extern void Fatal(char *, ...);
-
-int ppFlatLimit = 65;
-int ppLength = 0;
-
-int ppFlags = 0;
-
-FILE *ppOutput;
-
-int ppIndent = 0;
-int ppAllowEmpty = 1;
-
-static void ppBlock(int);
-void ppSeq(int);
-static void ppVarDef(int);
-static void ppVarDefList(int);
-static void ppStatement(int);
-static void ppCall(int);
-static void ppBinary(int);
-static void ppPrintIndent(void);
-static void ppString(int);
-static void ppSymbol(int);
-static void ppParenthesizedExpr(int);
-static void ppJoin(int);
-static void ppClosure(int);
-static void ppEnv(int);
-static void ppXArgs(int);
-static void ppCSV(int);
-static void ppArray(int);
-
-static void putCharInString(int);
-static void putStringInString(char *);
-static void putIntInString(int);
-static void putRealInString(double);
-static void putRealInBuffer(double,char *);
-
-static void putCharInFile(int);
-static void putStringInFile(char *);
-static void putIntInFile(int);
-static void putRealInFile(double);
-
-void (*ppPutChar)(int) = putCharInFile;
-void (*ppPutString)(char *) = putStringInFile;
-void (*ppPutInt)(int) = putIntInFile;
-void (*ppPutReal)(double) = putRealInFile;
-
-static char *ppBuffer;
-static int  ppBufferIndex;
-static int  ppBufferSize;
-static int ppLastChar = 0;
-
-static void
-pp(int t)
+void
+swayPP(FILE *fp,int expr)
     {
-    //printf("pp type is %s\n",type(t));
+    swayPPLevel(fp,expr,0);
+    }
 
-    if (type(t) == END_OF_INPUT)
-        ppPutString("END_OF_INPUT");
-    else if (type(t) == INTEGER)
-        ppPutInt(ival(t));
-    else if (type(t) == REAL)
-        ppPutReal(rval(t));
-    else if (type(t) == STRING)
-        ppString(t);
-    else if (type(t) == SYMBOL)
-        ppSymbol(t);
-    else if (type(t) == EVALUATED)
-        pp(car(t));
-    else if (type(t) == ID)
-        ppPutString(symbols[ival(t)]);
-    else if (type(t) == INPUT)
-        {
-        ppPutString("<input port ");
-        ppPutInt(ival(t));
-        ppPutString(">");
-        }
-    else if (type(t) == OUTPUT)
-        {
-        ppPutString("<output port ");
-        ppPutInt(ival(t));
-        ppPutString(">");
-        }
-    else if (type(t) == BLOCK || type(t) == NAKED_BLOCK)
+void
+swayPPLevel(FILE *fp,int expr,int mode)
+    {
+    printf("in swayPPLevel...\n");
+    if (expr == 0)
+        ; //fprintf(fp,"nil");
+    else if (type(expr) == INTEGER)
+        fprintf(fp,"%d",ival(expr));
+    else if (type(expr) == REAL)
+        fprintf(fp,"%f",rval(expr));
+    else if (type(expr) == STRING)
+        ppString(fp,expr,mode);
+    else if (type(expr) == SYMBOL)
+        fprintf(fp,"%s",SymbolTable[ival(expr)]);
+    /*
+    else if (type(expr) == ARRAY)
+        ppArray(fp,"[",expr,"]",mode);
+    else if (type(expr) != CONS)
+        fprintf(fp,"%s",type(expr));
+    else if (sameSymbol(expr,beginSymbol))
+        ppBlock(fp,expr,mode);
+    else if (sameSymbol(expr,defineSymbol))
+        ppDefine(fp,expr,mode);
+    else if (sameSymbol(expr,fillerSymbol)) // xcall
+        ppXCall(fp,expr,mode);
+    else
+    */
+        printf("%s",type(expr));
+    }
+/*
         ppBlock(t);
     else if (type(t) == VARIABLE_DEFINITION_LIST)
         ppVarDefList(t);
@@ -787,3 +735,4 @@ ppStack(char *filename)
     ppFlags &= ~ppEXPAND;
     fclose(fp);
     }
+*/

@@ -157,6 +157,8 @@ extern int assignSymbol;
 extern int undefinedVariableSymbol;
 extern int uninitializedVariableSymbol;
 extern int fillerSymbol;
+extern int xcallSymbol;
+extern int binaryOpSymbol;
 
 extern int readIndex;
 extern int writeIndex;

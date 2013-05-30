@@ -7,6 +7,8 @@
 
 int ppQuoting = 0;
 
+static void ppLevel(FILE *,int,int);
+
 void
 ppList(FILE *fp,char *open,int items,char *close,int mode)
     {
@@ -14,10 +16,6 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
     while (items != 0)
         {
         ppLevel(fp,car(items),mode + 1);
-        if (transferred(items))
-            {
-            fprintf(fp,"[NEW(%d)]",cdr(items));
-            }
         items = cdr(items);
         if (items)
             {
@@ -42,10 +40,6 @@ ppArray(FILE *fp,char *open,int items,char *close,int mode)
     while (size != 0)
         {
         ppLevel(fp,car(items),mode + 1);
-        if (transferred(items))
-            {
-            fprintf(fp,"[NEW(%d)]",cdr(items));
-            }
         if (cdr(items) != 0)
             fprintf(fp,",");
         ++items;
@@ -60,7 +54,11 @@ ppObject(FILE *fp,int expr,int mode)
     if (sameSymbol(object_label(expr),thunkSymbol))
         fprintf(fp,"<thunk %d>",expr);
     else if (sameSymbol(object_label(expr),errorSymbol))
-        fprintf(fp,"<error %d>",expr);
+        {
+        fprintf(fp,"<error ");
+        ppLevel(fp,error_code(expr),mode+1);
+        fprintf(fp," %d>",expr);
+        }
     else if (sameSymbol(object_label(expr),builtInSymbol))
         {
         fprintf(fp,"<builtIn ");
@@ -75,9 +73,15 @@ ppObject(FILE *fp,int expr,int mode)
         ppList(fp,"(",closure_parameters(expr),")",mode);
         fprintf(fp,">");
         }
+    else if (env_constructor(expr) == 0)
+        {
+        fprintf(fp,"<environment %d>",expr);
+        }
     else
         {
-        ppTable(fp,expr,mode);
+        fprintf(fp,"<object ");
+        ppLevel(fp,closure_name(env_constructor(expr)),mode+1);
+        fprintf(fp," %d>",expr);
         }
     }
 
@@ -117,9 +121,7 @@ void ppCons(FILE *fp,int expr,int mode)
     int old = ppQuoting;
 
     ppQuoting = 1;
-    if (transferred(expr))
-        fprintf(fp,"<XXX %s:%d>",type(car(expr)),car(expr));
-    else if (sameSymbol(car(expr),objectSymbol))
+    if (sameSymbol(car(expr),objectSymbol))
         ppObject(fp,expr,mode);
     else
         ppList(fp,"(",expr,")",mode);
@@ -146,12 +148,12 @@ ppString(FILE *fp,int expr,int mode)
     }
 
 void
-pp(FILE *fp,int expr)
+scamPP(FILE *fp,int expr)
     {
     ppLevel(fp,expr,0);
     }
 
-void
+static void
 ppLevel(FILE *fp,int expr,int mode)
     {
     if (expr == 0)
@@ -172,13 +174,6 @@ ppLevel(FILE *fp,int expr,int mode)
         fprintf(fp,"!PAST!");
     else if (type(expr) == FUTURE)
         fprintf(fp,"!FUTURE!");
-    else if (type(expr) == RUNNER)
-        {
-        fprintf(fp,"RUNNER:");
-        ppLevel(fp,car(expr),mode);
-        }
-    else if (expr == -1)
-        printf("xcall!");
     else
         printf("%s",type(expr));
 
