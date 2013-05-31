@@ -1198,6 +1198,16 @@ ppp(int args)
     return 0;
     }
 
+static int
+pppTable(int args)
+    {
+    int a = car(args);
+    FILE *port = OpenPorts[CurrentOutputIndex];
+
+    ppTable(port,a,0);
+    return 0;
+    }
+
 /* (if # test $then $) */
 
 static int
@@ -3601,6 +3611,14 @@ loadBuiltIns(int env)
     BuiltIns[count] = ppp;
     b = makeBuiltIn(env,
         newSymbol("pp"),
+        ucons(newSymbol("a"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = pppTable;
+    b = makeBuiltIn(env,
+        newSymbol("ppTable"),
         ucons(newSymbol("a"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);

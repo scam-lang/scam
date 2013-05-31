@@ -5,6 +5,8 @@
 #include "env.h"
 #include "util.h"
 
+extern int Scam;
+
 int ppQuoting = 0;
 
 static void ppLevel(FILE *,int,int);
@@ -20,7 +22,9 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
         if (items)
             {
             if (type(items) == CONS)
+                {
                 fprintf(fp," ");
+                }
             else
                 {
                 fprintf(fp," . ");
@@ -41,7 +45,9 @@ ppArray(FILE *fp,char *open,int items,char *close,int mode)
         {
         ppLevel(fp,car(items),mode + 1);
         if (cdr(items) != 0)
-            fprintf(fp,",");
+            {
+            fprintf(fp," ");
+            }
         ++items;
         --size;
         }
@@ -103,7 +109,15 @@ ppTable(FILE *fp,int expr,int mode)
                 fprintf(fp,"* : ");
             else
                 fprintf(fp,"  : ");
-            ppLevel(fp,car(vals),mode+1);
+            if (car(vals) == 0)
+                fprintf(fp,"nil");
+            else
+                {
+                int old = ppQuoting;
+                ppQuoting = 1;
+                ppLevel(fp,car(vals),mode+1);
+                ppQuoting = old;
+                }
             fprintf(fp,"\n");
             if (transferred(vars) || transferred(vals))
                 {

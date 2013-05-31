@@ -23,7 +23,8 @@ function square(x)
 
 function bundle(x,y) { this; }
 
-ppClosure(square,"");
+pretty(square);
+ppTable(square);
 inspect(this);
 inspect(square);
 inspect(+);
