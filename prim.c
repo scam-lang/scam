@@ -245,7 +245,6 @@ isLessThanOrEqualTo(int args)
     {
     int a,b,result;
     char *aType,*bType;
-    int fi,li;
 
     args = car(args);
 
@@ -255,9 +254,6 @@ isLessThanOrEqualTo(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     result = 1;
 
@@ -279,7 +275,7 @@ isLessThanOrEqualTo(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '<=': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 aType,bType);
 
         if (!result) break;
@@ -289,8 +285,8 @@ isLessThanOrEqualTo(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -302,7 +298,6 @@ isNumericEqualTo(int args)
     {
     int a,b,result;
     char *aType,*bType;
-    int fi,li;
 
     args = car(args);
 
@@ -312,9 +307,6 @@ isNumericEqualTo(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     result = 1;
 
@@ -336,7 +328,7 @@ isNumericEqualTo(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '=': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 aType,bType);
 
         if (!result) break;
@@ -346,8 +338,8 @@ isNumericEqualTo(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -359,7 +351,6 @@ isGreaterThan(int args)
     {
     int a,b,result;
     char *aType,*bType;
-    int fi,li;
 
     args = car(args);
 
@@ -369,9 +360,6 @@ isGreaterThan(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     result = 1;
 
@@ -393,7 +381,7 @@ isGreaterThan(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '>': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 aType,bType);
 
         if (!result) break;
@@ -403,8 +391,8 @@ isGreaterThan(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -417,7 +405,6 @@ isGreaterThanOrEqualTo(int args)
     {
     int a,b,result;
     char *aType,*bType;
-    int fi,li;
 
     args = car(args);
 
@@ -427,9 +414,6 @@ isGreaterThanOrEqualTo(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     result = 1;
 
@@ -451,7 +435,7 @@ isGreaterThanOrEqualTo(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '>=': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 aType,bType);
 
         if (!result) break;
@@ -461,8 +445,8 @@ isGreaterThanOrEqualTo(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -474,7 +458,6 @@ isEq(int args)
     {
     int a,b,result;
     char *aType;
-    int fi,li;
 
     args = car(args);
 
@@ -484,9 +467,6 @@ isEq(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     result = 1;
 
@@ -513,8 +493,8 @@ isEq(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -526,7 +506,6 @@ isNotEq(int args)
     {
     int a,b,result;
     char *aType;
-    int fi,li;
 
     args = car(args);
 
@@ -536,9 +515,6 @@ isNotEq(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     result = 1;
 
@@ -565,8 +541,8 @@ isNotEq(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -576,7 +552,6 @@ isNotEq(int args)
 static int
 plus(int args)
     {
-    int fi,li;
     int a,b,result;
     int itotal = 0;
     double rtotal = 0;
@@ -588,9 +563,6 @@ plus(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     oldType = type(a);
     itotal = ival(a);
@@ -616,7 +588,7 @@ plus(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '+': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 oldType,newType);
 
         args = cdr(args);
@@ -630,11 +602,11 @@ plus(int args)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "wrong types for '+': %s",
-            SymbolTable[fi],li,
+            SymbolTable[file(args)],line(args),
             oldType);
 
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -644,7 +616,6 @@ plus(int args)
 static int
 minus(int args)
     {
-    int fi,li;
     int a,b,result;
     int itotal = 0;
     double rtotal = 0;
@@ -657,9 +628,6 @@ minus(int args)
     a = car(args);
     args = cdr(args);
 
-
-    fi = file(a);
-    li = line(a);
 
     oldType = type(a);
     itotal = ival(a);
@@ -691,7 +659,7 @@ minus(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '-': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 oldType,newType);
 
         args = cdr(args);
@@ -705,11 +673,11 @@ minus(int args)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "wrong types for '-': %s",
-            SymbolTable[fi],li,
+            SymbolTable[file(args)],line(args),
             oldType);
 
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -719,7 +687,6 @@ minus(int args)
 static int
 times(int args)
     {
-    int fi,li;
     int a,b,result;
     int itotal = 0;
     double rtotal = 0;
@@ -731,9 +698,6 @@ times(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     oldType = type(a);
     itotal = ival(a);
@@ -759,7 +723,7 @@ times(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '*': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 oldType,newType);
 
         args = cdr(args);
@@ -773,11 +737,11 @@ times(int args)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "wrong types for '*': %s",
-            SymbolTable[fi],li,
+            SymbolTable[file(args)],line(args),
             oldType);
 
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -787,7 +751,6 @@ times(int args)
 static int
 divides(int args)
     {
-    int fi,li;
     int a,b,result;
     int itotal = 0;
     double rtotal = 0;
@@ -799,9 +762,6 @@ divides(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     oldType = type(a);
     itotal = ival(a);
@@ -817,7 +777,7 @@ divides(int args)
             return throw(mathExceptionSymbol,
                 "file %s,line %d: "
                 "divide by zero",
-                SymbolTable[fi],li
+                SymbolTable[file(args)],line(args)
                 );
 
         if (oldType == INTEGER && newType == INTEGER)
@@ -835,7 +795,7 @@ divides(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '/': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 oldType,newType);
 
         args = cdr(args);
@@ -849,11 +809,11 @@ divides(int args)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "wrong types for '/': %s",
-            SymbolTable[fi],li,
+            SymbolTable[file(args)],line(args),
             oldType);
 
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -863,7 +823,6 @@ divides(int args)
 static int
 mod(int args)
     {
-    int fi,li;
     int a,b,result;
     int itotal = 0;
     char *oldType,*newType;
@@ -874,9 +833,6 @@ mod(int args)
 
     a = car(args);
     args = cdr(args);
-
-    fi = file(a);
-    li = line(a);
 
     oldType = type(a);
     itotal = ival(a);
@@ -892,7 +848,7 @@ mod(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '/': %s and %s",
-                SymbolTable[fi],li,
+                SymbolTable[file(args)],line(args),
                 oldType,newType);
 
         args = cdr(args);
@@ -900,8 +856,8 @@ mod(int args)
 
     result = newInteger(itotal);
 
-    file(result) = fi;
-    line(result) = li;
+    file(result) = file(args);
+    line(result) = line(args);
 
     return result;
     }
@@ -1543,12 +1499,12 @@ ccar(int args)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "attempt to take car of an empty list",
-                SymbolTable[file(supply)],line(supply));
+                SymbolTable[file(args)],line(args));
         else
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "attempt to take car of type %s",
-                SymbolTable[file(supply)],line(supply),
+                SymbolTable[file(args)],line(args),
                 t);
         }
 
@@ -1576,13 +1532,13 @@ ccdr(int args)
         if (supply == 0)
             return throw(exceptionSymbol,
                 "file %s,line %d: "
-                "attempt to take cdr of an empty list",
-                SymbolTable[file(supply)],line(supply));
+                "attempt to take cdr of an empty collection",
+                SymbolTable[file(args)],line(args));
         else
             return throw(exceptionSymbol,
                 "file %s,line %d: "
                 "attempt to take cdr of type %s",
-                SymbolTable[file(supply)],line(supply),
+                SymbolTable[file(args)],line(args),
                 t);
         }
 
