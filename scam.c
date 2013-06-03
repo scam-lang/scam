@@ -52,9 +52,9 @@ main(int argc,char **argv,char **envv)
     argIndex = ProcessOptions(argc, argv);
 
     if (argc-argIndex == 0)
-	{
+        {
         Fatal("usage: %s INPUT_FILE [ARGUMENTS]\n", PROGRAM_NAME);
-	}
+        }
 
     memoryInit(0);
 
@@ -145,20 +145,24 @@ main(int argc,char **argv,char **envv)
 ERROR:
     //int last;
     //debug("thrown",result);
-    debug("EXCEPTION",error_code(result));
-    scamPP(stdout,error_value(result));
-    printf("\n");
     if (TraceBack)
         {
         int spot = error_trace(result);
+        int prettySetup = ucons(prettyStatementSymbol,ucons(ucons(quoteSymbol,
+               ucons(0,0)),ucons(0,0)));
+        printf("EXCEPTION TRACE:\n");
         while (spot != 0)
             {
-            fprintf(stdout,"   from %s,line %d: ",
-                SymbolTable[file(spot)],line(spot));
-            debug(0,car(spot));
+            fprintf(stdout,"   from %s,line %d:\n",
+                filename(spot),line(spot));
+            car(cdr(car(cdr(prettySetup)))) = car(spot);
+            eval(prettySetup,env);
             spot = cdr(spot);
             }
         }
+    debug("EXCEPTION",error_code(result));
+    scamPP(stdout,error_value(result));
+    printf("\n");
 
     return -1;
     }

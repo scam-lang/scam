@@ -84,182 +84,13 @@ var __pretty-indent = "    ";
 
 function pretty(expr,@)
     {
-    function vardef(item)
-        {
-        print(car(item));
-        if (valid?(cdr(item)))
-            {
-            print(" = ");
-            expression(cadr(item));
-            }
-        }
-    function definition(expr,indent)
-        {
-        if (car(expr) == 'begin)
-            {
-            print(indent,"var ");
-            expr = cdr(expr);
-            while (expr != null)
-                {
-                var item = car(expr);
-                vardef(cdr(item));
-                if (valid?(cdr(expr)))
-                    {
-                    print(",");
-                    }
-                expr = cdr(expr);
-                }
-            println(";");
-            }
-        else if (list?(cadr(expr))) // function definition
-            {
-            print(indent,"function ",car(cadr(expr)));
-            args(cdr(cadr(expr)));
-            block(cdr(expr),string+(indent,__pretty-indent));
-            }
-        else
-            {
-            print(indent,"var ");
-            vardef(cdr(expr));
-            println(";");
-            }
-        }
-    function args(a)
-        {
-        print("(");
-        while (a != null)
-            {
-            expression(car(a));
-            a = cdr(a);
-            if (a != null,print(","));
-            }
-        print(")");
-        }
     function closure(expr,indent)
         {
         print(indent,"function ",expr . name);
-        args(get('parameters,expr));
+        prettyArgs(get('parameters,expr));
         print("\n");
-        block(get('code,expr),string+(indent,__pretty-indent));
+        prettyBlock(get('code,expr),string+(indent,__pretty-indent));
         }
-    function block(expr,indent)
-        {
-        print(indent,"{\n");
-        statements(cdr(expr),indent);
-        print(indent,"}\n");
-        }
-    function statements(expr,indent)
-        {
-        var xtype,item;
-        while (expr != null)
-            {
-            item = car(expr);
-            //inspect(item);
-            if (list?(item))
-                {
-                if (car(item) == 'define)
-                    {
-                    definition(item,indent);
-                    }
-                else if (car(item) == 'begin) // multiple definition
-                    {
-                    definition(item,indent);
-                    }
-                else if ((xtype = xcall?(item)) > 0)
-                    {
-                    xCall(item,indent,indent,xtype);
-                    }
-                else 
-                    {
-                    print(indent);
-                    expression(item);
-                    println(";");
-                    }
-                }
-            else
-                {
-                println(indent,item,";");
-                }
-            expr = cdr(expr);
-            }
-        }
-    function expression(item)
-        {
-        //inspect(item);
-        //inspect(atom?(item));
-        if (null?(item))
-            {
-            print("null");
-            }
-        else if (string?(item))
-            {
-            print("\"",item,"\"");
-            }
-        else if (atom?(item))
-            {
-            print(item);
-            }
-        else if (length(item) == 3 && symbol?(car(item)) && length(car(item)) <= 2)
-            {
-            expression(cadr(item));
-            print(" ");
-            expression(car(item));
-            print(" ");
-            expression(caddr(item));
-            }
-        else
-            {
-            expression(car(item));
-            args(cdr(item));
-            }
-        }
-        function xCall(expr,indent1,indent2,xtype)
-            {
-            var args,count;
-            print(indent1,car(expr)," (");
-            args = cdr(expr);
-            count = length(args) - if(xtype > 1,2,1);
-            while (count > 0)
-                {
-                expression(car(args));
-                args = cdr(args);
-                count -= 1;
-                if (count > 0,print(","));
-                }
-            print(")\n");
-            block(car(args),indent2 string+ __pretty-indent);
-            if (xtype == 2)
-                {
-                println(indent2,"else");
-                block(cadr(args),indent2 string+ __pretty-indent);
-                }
-            else if (xtype == 3)
-                {
-                print(indent2,"else ");
-                xCall(cadr(args),"",indent2,xcall?(cadr(args)));
-                }
-            }
-        function xcall?(item)
-            {
-            while (item != null)
-                {
-                if (block?(car(item)))
-                    {
-                    if (null?(cdr(item)),return 1);
-                    if (null?(cddr(item)))
-                        {
-                        if (block?(cadr(item)),return 2);
-                        if (xcall?(cadr(item)),return 3);
-                        }
-                    }
-                item = cdr(item);
-                }
-            return 0;
-            }
-        function block?(expr)
-            {
-            list?(expr) && (car(expr) == 'scope || car(expr) == 'begin);
-            }
     var indent = if(valid?(@),car(@),"");
     if (closure?(expr))
         {
@@ -272,6 +103,178 @@ function pretty(expr,@)
         }
     else
         {
-        pp(expr);
+        print(expr);
         }
+    }
+    
+function prettyStatement(item,indent)
+    {
+    var xtype;
+    //inspect(item);
+    if (list?(item))
+        {
+        if (car(item) == 'define)
+            {
+            prettyDefinition(item,indent);
+            }
+        else if (car(item) == 'begin) // multiple definition
+            {
+            prettyDefinition(item,indent);
+            }
+        else if ((xtype = xcall?(item)) > 0)
+            {
+            prettyXCall(item,indent,indent,xtype);
+            }
+        else 
+            {
+            print(indent);
+            prettyExpression(item);
+            println(";");
+            }
+        }
+    else
+        {
+        println(indent,item,";");
+        }
+    }
+function prettyDefinition(expr,indent)
+    {
+    function vardef(item)
+        {
+        print(car(item));
+        if (valid?(cdr(item)))
+            {
+            print(" = ");
+            prettyExpression(cadr(item));
+            }
+        }
+    if (car(expr) == 'begin) //multiple variable definition
+        {
+        print(indent,"var ");
+        expr = cdr(expr);
+        while (expr != null)
+            {
+            var item = car(expr);
+            vardef(cdr(item));
+            if (valid?(cdr(expr)))
+                {
+                print(",");
+                }
+            expr = cdr(expr);
+            }
+        println(";");
+        }
+    else if (list?(cadr(expr))) // function definition
+        {
+        print(indent,"function ",car(cadr(expr)));
+        prettyArgs(cdr(cadr(expr)));
+        prettyBlock(cdr(expr),string+(indent,__pretty-indent));
+        }
+    else
+        {
+        print(indent,"var ");
+        vardef(cdr(expr));
+        println(";");
+        }
+    }
+function prettyArgs(a)
+    {
+    print("(");
+    while (a != null)
+        {
+        prettyExpression(car(a));
+        a = cdr(a);
+        if (a != null,print(","));
+        }
+    print(")");
+    }
+function prettyExpression(item)
+    {
+    //inspect(item);
+    if (null?(item))
+        {
+        print("null");
+        }
+    else if (string?(item))
+        {
+        print("\"",item,"\"");
+        }
+    else if (atom?(item))
+        {
+        print(item);
+        }
+    else if (length(item) == 3 && symbol?(car(item)) && length(car(item)) <= 2)
+        {
+        prettyExpression(cadr(item));
+        print(" ");
+        prettyExpression(car(item));
+        print(" ");
+        prettyExpression(caddr(item));
+        }
+    else
+        {
+        prettyExpression(car(item));
+        prettyArgs(cdr(item));
+        }
+    }
+function prettyBlock(expr,indent)
+    {
+    function statements(expr,indent)
+        {
+        while (expr != null)
+            {
+            prettyStatement(car(expr),indent);
+            expr = cdr(expr);
+            }
+        }
+    print(indent,"{\n");
+    statements(cdr(expr),indent);
+    print(indent,"}\n");
+    }
+function prettyXCall(expr,indent1,indent2,xtype)
+    {
+    var args,count;
+    print(indent1,car(expr)," (");
+    args = cdr(expr);
+    count = length(args) - if(xtype > 1,2,1);
+    while (count > 0)
+        {
+        prettyExpression(car(args));
+        args = cdr(args);
+        count -= 1;
+        if (count > 0,print(","));
+        }
+    print(")\n");
+    prettyBlock(car(args),indent2 string+ __pretty-indent);
+    if (xtype == 2)
+        {
+        println(indent2,"else");
+        prettyBlock(cadr(args),indent2 string+ __pretty-indent);
+        }
+    else if (xtype == 3)
+        {
+        print(indent2,"else ");
+        prettyXCall(cadr(args),"",indent2,xcall?(cadr(args)));
+        }
+    }
+function xcall?(item)
+    {
+    while (item != null)
+        {
+        if (block?(car(item)))
+            {
+            if (null?(cdr(item)),return 1);
+            if (null?(cddr(item)))
+                {
+                if (block?(cadr(item)),return 2);
+                if (xcall?(cadr(item)),return 3);
+                }
+            }
+        item = cdr(item);
+        }
+    return 0;
+    }
+function block?(expr)
+    {
+    list?(expr) && (car(expr) == 'scope || car(expr) == 'begin);
     }

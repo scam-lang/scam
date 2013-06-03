@@ -1144,10 +1144,12 @@ fmt(int args)
     return newString(buffer);
     }
 
+/* (pp # item) */
+
 static int
 ppp(int args)
     {
-    int a = car(args);
+    int a = cadr(args);
     FILE *port = OpenPorts[CurrentOutputIndex];
 
     scamPP(port,a);
@@ -3567,7 +3569,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = ppp;
     b = makeBuiltIn(env,
         newSymbol("pp"),
-        ucons(newSymbol("a"),0),
+        ucons(sharpSymbol,
+            ucons(newSymbol("a"),0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

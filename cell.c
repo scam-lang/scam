@@ -84,6 +84,7 @@ int uninitializedVariableSymbol;
 int fillerSymbol;
 int xcallSymbol;
 int binaryOpSymbol;
+int prettyStatementSymbol;
 
 int readIndex;
 int writeIndex;
@@ -237,6 +238,7 @@ memoryInit(int memsize)
     setBangSymbol        = newSymbol("set!");
     xcallSymbol          = newSymbol("__xcall");
     binaryOpSymbol       = newSymbol("__binaryOp");
+    prettyStatementSymbol= newSymbol("prettyStatement");
 
     readIndex            = findSymbol("read");
     writeIndex           = findSymbol("write");

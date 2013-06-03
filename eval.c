@@ -317,18 +317,14 @@ evalList(int items,int env,int mode)
 
         if (isThrow(result))
             {
-            if (isReturn(result))
-               {
-               //debug("a return was found",thunk_code(error_value(result)));
-               //printf("   return level: %d\n",
-               //    ival(env_level(thunk_context(error_value(result)))));
-               //printf("    env level: %d\n",ival(env_level(env)));
-               //debug("    expressions",items);
-               }
-            //if (isReturn(result) && ival(env_level(env) < thunk_context(error_value(result)))
-            //    return error_value(result);
-            //else
-            //    return result;
+            if (!isReturn(result))
+                {
+                int et;
+                push(result);
+                et = cons(car(items),error_trace(result));
+                result = pop();
+                error_trace(result) = et;
+                }
             return result;
             }
         //if (isThrow(result))
@@ -344,7 +340,18 @@ evalList(int items,int env,int mode)
         return makeThunk(car(items),env);
         }
     else
-        return eval(car(items),env);
+        {
+        result = eval(car(items),env);
+        if (isThrow(result) && !isReturn(result))
+            {
+            int et;
+            push(result);
+            et = cons(car(items),error_trace(result));
+            result = pop();
+            error_trace(result) = et;
+            }
+        return result;
+        }
     }
 
 static int

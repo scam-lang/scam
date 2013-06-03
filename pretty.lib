@@ -58,6 +58,7 @@
         ((not (pair? expr)) (print indent expr) #t)
         ((closure? expr) (ppFunction expr indent) #f)
         ((eq? (car expr) 'begin) (ppBlock expr indent) #f)
+        ((eq? (car expr) 'scope) (ppBlock expr indent) #f)
         ((eq? (car expr) 'cond) (ppCond expr indent) #f)
         ((eq? (car expr) 'if) (ppTestBlock expr indent) #f)
         ((eq? (car expr) 'while) (ppTestBlock expr indent) #f)
@@ -73,6 +74,3 @@
     (compile pretty #)
     (compile prettyIndent #)
     )
-
-2
-3

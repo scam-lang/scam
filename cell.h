@@ -159,6 +159,7 @@ extern int uninitializedVariableSymbol;
 extern int fillerSymbol;
 extern int xcallSymbol;
 extern int binaryOpSymbol;
+extern int prettyStatementSymbol;
 
 extern int readIndex;
 extern int writeIndex;
