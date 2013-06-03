@@ -31,13 +31,17 @@ char *PROGRAM_VERSION = "1.4";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
-int Scam = 1;
+int SCAM = 1;
+int SWAY = 2;
+int Syntax = SCAM;
 
 char *LibraryName = "SCAM_LIB";
 char *LibraryPointer = "/usr/local/lib/scam/";
 char *ArgumentsName = "ScamArgs";
 char *EnvironmentName = "ScamEnv";
 char *Home = "~";
+
+static void addToEnvironment(int,char *,int );
 
 int 
 main(int argc,char **argv,char **envv)
@@ -77,67 +81,21 @@ main(int argc,char **argv,char **envv)
     /* main.lib level of environment */
 
     env = makeEnvironment(env,0,0,0);
-
-    p = newParser("main.lib");
-    if (p == 0)
-        Fatal("file main.lib could not be opened for reading\n",argv[argIndex]);
-
-    // indicate that main.lib has already been processed
-
-    assureMemory("scam:main.lib",DEFINE_CELLS + 1,&env,&ptree,(int *)0);
-    s = newSymbol("__included_main.lib");
-    defineVariable(env,s,trueSymbol);
-
-    push(env);
-    result = parse(p);
-    ptree = result;
-    env = pop();
-
-    freeParser(p);
-
+    result = addToEnvironment(env,"main.lib",SCAM);
     if (isThrow(result)) goto ERROR;
 
-    /* now evaluate main.lib */
+    /* add in Sway compatibility code, if necessary */
 
-    push(env);
-    result = eval(result,env);
-    env = pop();
-
-    if (isThrow(result)) goto ERROR;
+    if (Syntax == SWAY)
+        {
+        result = addToEnvironment(env,"sway.lib",SWAY);
+        if (isThrow(result)) goto ERROR;
+        }
 
     /* user level of environment */
 
     env = makeEnvironment(env,0,0,0);
-
-    p = newParser(argv[argIndex]);
-    if (p == 0)
-        Fatal("file %s could not be opened for reading\n",argv[argIndex]);
-
-    // indicate that the user file has already been processed
-
-    assureMemory("scam:user",DEFINE_CELLS + 1,&env,&ptree,(int *)0);
-    snprintf(buffer,sizeof(buffer),"__included_%s",argv[argIndex]);
-    s = newSymbol(buffer);
-    defineVariable(env,s,trueSymbol);
-
-    push(env);
-    if (Scam)
-        result = parse(p);
-    else
-        result = swayParse(p);
-    ptree = result;
-    env = pop();
-
-    freeParser(p);
-
-    if (isThrow(ptree)) goto ERROR;
-
-    /* now evaluate the user file */
-
-    push(env);
-    result = eval(ptree,env);
-    env = pop();
-
+    result = addToEnvironment(env,argv[argIndex],Syntax);
     if (isThrow(result)) goto ERROR;
 
     return 0;
@@ -165,4 +123,44 @@ ERROR:
     printf("\n");
 
     return -1;
+    }
+
+static void
+addToEnvironment(int env,char *fileName,int mode)
+    {
+    int ptree,result,s;
+    PARSER *p;
+    char buffer[1024];
+
+    p = newParser(fileName);
+    if (p == 0)
+        Fatal("file %s could not be opened for reading\n",fileName);
+
+    // indicate that file has already been processed
+
+    assureMemory("addToEnvironment",DEFINE_CELLS + 1,&env,(int *)0);
+    snprintf(buffer,sizeof(buffer),"__included_%s",fileName);
+    s = newSymbol(buffer);
+    defineVariable(env,s,trueSymbol);
+
+    // now parse the file
+
+    push(env);
+    if (Syntax == SCAM)
+        ptree = scamParse(p);
+    else
+        ptree = swayParse(p);
+    env = pop();
+
+    freeParser(p);
+
+    if (isThrow(ptree)) goto ERROR;
+
+    /* now evaluate the file */
+
+    push(env);
+    result = eval(ptree,env);
+    env = pop();
+
+    return result;
     }

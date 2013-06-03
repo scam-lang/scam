@@ -5,8 +5,6 @@
 #include "env.h"
 #include "util.h"
 
-extern int Scam;
-
 int ppQuoting = 0;
 
 static void ppLevel(FILE *,int,int);

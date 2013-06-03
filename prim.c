@@ -20,7 +20,9 @@ extern char *LibraryName;
 extern char *LibraryPointer;
 extern char *ArgumentsName;
 extern char *EnvironmentName;
-extern int Scam;
+extern int Syntax;
+extern int SCAM;
+extern int SYNTAX;
 
 extern void gc(void);
 
@@ -1410,8 +1412,8 @@ iinclude(int args)
             SymbolTable[file(args)],line(args),
             buffer);
 
-    if (Scam)
-        ptree = parse(p);
+    if (Syntax == SCAM)
+        ptree = scamParse(p);
     else
         ptree = swayParse(p);
     fclose(p->input);

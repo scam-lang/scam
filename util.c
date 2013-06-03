@@ -126,8 +126,9 @@ ProcessOptions(int argc, char **argv)
                 break;
             case 'i':
                 {
-                extern int Scam;
-                Scam = 0;
+                extern int SWAY;
+                extern int Syntax;
+                Syntax = SWAY;
                 }
                 break;
             case 'M':

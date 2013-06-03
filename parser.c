@@ -90,11 +90,11 @@ freeParser(PARSER *p)
     }
 
 int
-parse(PARSER *p)
+scamParse(PARSER *p)
     {
     int result,end;
 
-    //printf("starting to parse...\n");
+    //printf("starting to scamParse...\n");
     if (check(p,END_OF_INPUT)) return 0;
 
     result = exprSeq(p);
@@ -104,7 +104,7 @@ parse(PARSER *p)
     result = pop();
     rethrow(end,0);
 
-    assureMemory("parse",1,&result,(int *)0);
+    assureMemory("scamParse",1,&result,(int *)0);
     result = uconsfl(beginSymbol,result,file(result),line(result));
     //printf("done parsing.\n");
     return result;
