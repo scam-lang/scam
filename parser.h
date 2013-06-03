@@ -10,6 +10,9 @@ typedef struct parsertag
     FILE *output;
     } PARSER;
 
+#define SCAM 1
+#define SWAY 2
+
 extern int scamParse(PARSER *);
 extern int swayParse(PARSER *);
 extern PARSER *newParser(char *);

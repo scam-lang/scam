@@ -31,8 +31,6 @@ char *PROGRAM_VERSION = "1.4";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
-int SCAM = 1;
-int SWAY = 2;
 int Syntax = SCAM;
 
 char *LibraryName = "SCAM_LIB";
@@ -41,17 +39,15 @@ char *ArgumentsName = "ScamArgs";
 char *EnvironmentName = "ScamEnv";
 char *Home = "~";
 
-static void addToEnvironment(int,char *,int );
+static int addToEnvironment(int,char *,int );
 
 int 
 main(int argc,char **argv,char **envv)
     {
     int argIndex;
     int i;
-    int ptree,env,s;
+    int env;
     int result;
-    char buffer[512];
-    PARSER *p;
 
     argIndex = ProcessOptions(argc, argv);
 
@@ -108,7 +104,7 @@ ERROR:
         int spot = error_trace(result);
         int prettySetup = ucons(prettyStatementSymbol,ucons(ucons(quoteSymbol,
                ucons(0,0)),ucons(0,0)));
-        printf("EXCEPTION TRACE:\n");
+        printf("EXCEPTION TRACE --------------------\n");
         while (spot != 0)
             {
             fprintf(stdout,"   from %s,line %d:\n",
@@ -118,6 +114,7 @@ ERROR:
             spot = cdr(spot);
             }
         }
+    printf("------------------------------------\n");
     debug("EXCEPTION",error_code(result));
     scamPP(stdout,error_value(result));
     printf("\n");
@@ -125,7 +122,7 @@ ERROR:
     return -1;
     }
 
-static void
+static int
 addToEnvironment(int env,char *fileName,int mode)
     {
     int ptree,result,s;
@@ -146,7 +143,7 @@ addToEnvironment(int env,char *fileName,int mode)
     // now parse the file
 
     push(env);
-    if (Syntax == SCAM)
+    if (mode == SCAM)
         ptree = scamParse(p);
     else
         ptree = swayParse(p);
@@ -154,7 +151,7 @@ addToEnvironment(int env,char *fileName,int mode)
 
     freeParser(p);
 
-    if (isThrow(ptree)) goto ERROR;
+    rethrow(ptree,0);
 
     /* now evaluate the file */
 

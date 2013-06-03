@@ -3,7 +3,7 @@ CC = gcc
 OUT = scam
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
-       sway-lexer.o sway-parser.o sway-pp.c
+       sway-lexer.o sway-parser.o
 PROF = 
 PROF = -pg
 
@@ -48,11 +48,8 @@ pp.o		: pp.c pp.h
 scam.o		: scam.c cell.h parser.h prim.h eval.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g scam.c
 
-whitespace.o : whitespace.c cell.h parser.h
-		$(CC) -c $(PROF) -Wall -g whitespace.c
-
-swhitespace.o : swhitespace.c cell.h parser.h
-		$(CC) -c $(PROF) -Wall -g swhitespace.c
+sway-lexer.o	: sway-parser.c cell.h types.h util.h
+		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sway-lexer.c
 
 sway-parser.o	: sway-parser.c cell.h types.h parser.h util.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sway-parser.c

@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include "parser.h"
 #include "util.h"
 
 extern char *PROGRAM_NAME;
@@ -126,7 +127,6 @@ ProcessOptions(int argc, char **argv)
                 break;
             case 'i':
                 {
-                extern int SWAY;
                 extern int Syntax;
                 Syntax = SWAY;
                 }

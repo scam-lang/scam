@@ -21,8 +21,6 @@ extern char *LibraryPointer;
 extern char *ArgumentsName;
 extern char *EnvironmentName;
 extern int Syntax;
-extern int SCAM;
-extern int SYNTAX;
 
 extern void gc(void);
 
