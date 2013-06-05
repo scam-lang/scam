@@ -18,4 +18,5 @@ var c = bundle(b,b);
 c . x . y = 'WORLD;
 
 inspect(b . y);
+inspect(c . x . y);
 inspect(c . y . y);

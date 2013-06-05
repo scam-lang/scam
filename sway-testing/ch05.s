@@ -1,17 +1,17 @@
-    /* from ch04 */
+/* from ch04 */
 
-    function term(a,n)
+function term(a,n)
+   {
+   function value(x)
        {
-       function value(x)
-           {
-           a * (x ^ n);
-           }
-        this;
-        }
+       a * (x ^ n);
+       }
+    this;
+    }
 
-    /* new stuff */
+/* new stuff */
 
-    var c = term(7,0);
-       
-    inspect(c . value(10));
-    inspect(c . value(1000));
+var c = term(7,0);
+   
+inspect(c . value(10));
+inspect(c . value(1000));

@@ -1,53 +1,51 @@
-include("sway.lib");
+/* from ch03 */
 
-    /* from ch03 */
+function ratio(w,dw,h)
+    {
+    var dh = h(w + dw) - h(w);
+    dh / dw;
+    }
 
-    function ratio(w,dw,h)
-        {
-        var dh = h(w + dw) - h(w);
-        dh / dw;
-        }
+/* new stuff */
 
-    /* new stuff */
+function y(x)
+    {
+    2 * (x ^ 3);
+    }
 
-    function y(x)
-        {
-        2 * (x ^ 3);
-        }
+function dy/dx(x)
+    {
+    6 * (x ^ 2);
+    }
 
-    function dy/dx(x)
-        {
-        6 * (x ^ 2);
-        }
+ function test(x)
+     {
+     var fraction = 1.0 / 1000000.0;
+     var dx = x * fraction;
+ println("for x = ",x);
+     inspect(ratio(x,dx,y));
+     inspect(dy/dx(x));
+ println();
+     }
 
-     function test(x)
-         {
-         var fraction = 1.0 / 1000000.0;
-         var dx = x * fraction;
-	 println("for x = ",x);
-         inspect(ratio(x,dx,y));
-         inspect(dy/dx(x));
-	 println();
-         }
-
-    function term(a,n)
+function term(a,n)
+   {
+   function value(x)
        {
-       function value(x)
-           {
-           a * (x ^ n);
-           }
-        this;
-        }
+       a * (x ^ n);
+       }
+    this;
+    }
 
-    function powerRule(p)
-        {
-        var a = p . a;
-        var n = p . n;
-        term(a * n,n - 1);
-        }
+function powerRule(p)
+    {
+    var a = p . a;
+    var n = p . n;
+    term(a * n,n - 1);
+    }
 
-    var p = term(2,3);
-    var dp/dx = powerRule(p);
+var p = term(2,3);
+var dp/dx = powerRule(p);
 
 test(10);
 test(20);

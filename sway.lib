@@ -4,6 +4,24 @@ function paren(expr) { expr; }
 function &&(#,$x,$y) { if (eval($x,#),eval($y,#),#f); }
 function ||(#,$x,$y) { if (eval($x,#),#t,eval($y,#)); }
 function .(x,$y) { get($y,x); }
+function +(a,b)
+    {
+    var + = __context . __context . +;
+    if (type(a) == 'STRING,
+        a string+ string(b),
+        if (null?(a) && string?(b),
+            b,
+            a + b));
+    }
+function inspect(#,$item)
+    {
+    var r = catch(eval($item,#));
+    pretty($item,"");
+    print(" is ");
+    pretty(r);
+    println();
+    r;
+    }
 function =(#,$a,b)
     {
     if (symbol?($a))

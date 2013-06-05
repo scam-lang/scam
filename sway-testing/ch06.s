@@ -1,80 +1,84 @@
-    /* from ch05 */
+/* from ch05 */
 
-    function term(a,n)
+function term(a,n)
+   {
+   function value(x)
        {
-       function value(x)
-           {
-           a * (x ^ n);
-           }
-        this;
-        }
+       a * (x ^ n);
+       }
+    this;
+    }
 
-    /* new stuff */
+/* new stuff */
 
-    function plus(p,q) //p and q are terms 
+function plus(p,q) //p and q are terms 
+    {
+    function value(x)
         {
-        function value(x)
-            {
-            p . value(x) + q . value(x);
-            }
-        this;
+        p . value(x) + q . value(x);
         }
+    this;
+    }
 
-    var a = term(-5,2);
-    var b = term(7,0);
-    var z = plus(a,b);
+var a = term(-5,2);
+var b = term(7,0);
+var z = plus(a,b);
 
-    function term(a,n)
+inspect(a . value(1));
+inspect(b . value(1));
+inspect(z . value(1));
+
+function term(a,n)
+    {
+    function value(x) { a * (x ^ n); }
+    function toString()
         {
-        function value(x) { a * (x ^ n); }
-        function toString()
-            {
-            "" + a + "x^" + n;
-            }
-        this;
+        "" string+ a string+ "x^" string+ n;
         }
+    this;
+    }
 
-    var t = term(3,2);
+var t = term(3,2);
 
-    function plus(p,q) //p and q are terms or plus
+function plus(p,q) //p and q are terms or plus
+    {
+    function value(x) { p . value(x) + q . value(x); }
+    function toString()
         {
-        function value(x) { p . value(x) + q . value(x); }
-        function toString()
-            {
-            p . toString() + " + " + q . toString();
-            }
-        this;
+        p . toString() string+ " + " string+ q . toString();
         }
+    this;
+    }
 
-    function powerRule(obj)
+function powerRule(obj)
+    {
+    //println("powerRule: ",obj . toString());
+    if (obj is? 'term)
         {
-	//println("powerRule: ",obj . toString());
-        if (obj is :term)
-            {
-            var a = obj . a;
-            var n = obj . n;
-            term(a * n,n - 1);
-            }
-        else if (obj is :plus)
-            {
-            var dp/dx = powerRule(obj . p);
-            var dq/dx = powerRule(obj . q);
-            plus(dp/dx,dq/dx);
-            }
-        else
-            {
-            throw(:calculusError,"powerRule: unknown object");
-            }
+        var a = obj . a;
+        var n = obj . n;
+        term(a * n,n - 1);
         }
+    else if (obj is? 'plus)
+        {
+        var dp/dx = powerRule(obj . p);
+        var dq/dx = powerRule(obj . q);
+        plus(dp/dx,dq/dx);
+        }
+    else
+        {
+        throw(:calculusError,"powerRule: unknown object");
+        }
+    }
 
-    var aa = term(-5,0);
-    var bb = plus(term(3,1),aa);
-    var cc = plus(term(4,2),bb);
-    var dc/dx = powerRule(cc);
+var aa = term(-5,0);
+var bb = plus(term(3,1),aa);
+var cc = plus(aa,bb);
+var dc/dx = powerRule(cc);
 
-inspect(a . value(3) + b . value(3));
-inspect(z . value(3));
-inspect(t . toString());
+inspect(aa . value(3));
+inspect(bb . value(3));
+inspect(cc . value(3));
 inspect(cc . toString()); //STRING: 4x^2 + 3x^1 + -5x^0
 inspect(dc/dx . toString());
 
