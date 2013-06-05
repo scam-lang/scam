@@ -1,14 +1,15 @@
-include("inherit.s");
+//include("inherit.s");
 
 function f(@)
     {
-    if (@ == :null)
+    if (@ == null)
         {
         0;
         }
     else
         {
-        @ . 0 + apply(f,tail(@));
+        inspect(@);
+        car(@) + apply(f,tail(@));
         }
     }
 
@@ -18,9 +19,9 @@ function g($)
 
     while (size > 0)
         {
-	total = total + force($ . (size - 1));
-	size = size - 1;
-	}
+        total = total + force(getElement(1,$,(size - 1)));
+        size = size - 1;
+        }
 
     return total;
     }

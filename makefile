@@ -48,7 +48,7 @@ pp.o		: pp.c pp.h
 scam.o		: scam.c cell.h parser.h prim.h eval.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g scam.c
 
-sway-lexer.o	: sway-parser.c cell.h types.h util.h
+sway-lexer.o	: sway-lexer.c cell.h types.h parser.h env.h util.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sway-lexer.c
 
 sway-parser.o	: sway-parser.c cell.h types.h parser.h util.h

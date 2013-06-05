@@ -21,6 +21,8 @@
 #include "util.h"
 
 extern char *symbolStop;
+extern void unread(int,PARSER *);
+extern int getNextCharacter(PARSER *);
 
 static int swaySkipWhiteSpace(PARSER *);
 

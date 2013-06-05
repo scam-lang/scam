@@ -2907,6 +2907,25 @@ ascii(int args)
     return newInteger(ival(a));
     }
         
+/* (ord char) */
+
+static int
+ord(int args)
+    {
+    return newInteger(ival(car(args)));
+    }
+
+/* (char int) */
+
+static int
+cchar(int args)
+    {
+    char buffer[2];
+    buffer[0] = ival(car(args));
+    buffer[1] = '\0';
+    return newString(buffer);
+    }
+
 static int
 iint(int args)
     {
@@ -3110,6 +3129,22 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("ascii"),
         ucons(newSymbol("str"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ord;
+    b = makeBuiltIn(env,
+        newSymbol("ord"),
+        ucons(newSymbol("char"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = cchar;
+    b = makeBuiltIn(env,
+        newSymbol("char"),
+        ucons(newSymbol("int"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;

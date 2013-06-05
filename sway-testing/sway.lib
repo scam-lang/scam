@@ -190,14 +190,23 @@ function prettyArgs(a)
     }
 function prettyExpression(item)
     {
-    //inspect(item);
     if (null?(item))
         {
         print("null");
         }
     else if (string?(item))
         {
-        print("\"",item,"\"");
+        var ch;
+        print("\"");
+        while (item != null)
+            {
+            ch = if(car(item) string-equal? "\n","\\n",
+                    if(car(item) string-equal? "\t","\\t",
+                        car(item)));
+            print(ch);
+            item = cdr(item);
+            }
+        print("\"");
         }
     else if (atom?(item))
         {

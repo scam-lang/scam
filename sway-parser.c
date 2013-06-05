@@ -14,7 +14,7 @@
 extern void swayPP(FILE *,int);
 extern int swayLex(PARSER *);
 
-#define TRACE 2
+#define TRACE 0
 
 /* operator types */
 
@@ -65,7 +65,7 @@ static int hasDefinitions(int);
 
 static int check(PARSER *,char *);
 static int match(PARSER *,char *);
-static void ppf(char *,int,char *);
+void ppf(char *,int,char *);
 
 /*
 
@@ -1357,7 +1357,7 @@ hasDefinitions(int expr)
 
 
 
-static void
+void
 ppf(char *s1,int expr,char *s2)
     {
     extern void scamPP(FILE *,int);

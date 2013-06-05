@@ -80,10 +80,11 @@ main(int argc,char **argv,char **envv)
     result = addToEnvironment(env,"main.lib",SCAM);
     if (isThrow(result)) goto ERROR;
 
-    /* add in Sway compatibility code, if necessary */
+    /* add in Sway compatibility layer, if necessary */
 
     if (Syntax == SWAY)
         {
+        env = makeEnvironment(env,0,0,0);
         result = addToEnvironment(env,"sway.lib",SWAY);
         if (isThrow(result)) goto ERROR;
         }
@@ -103,11 +104,11 @@ ERROR:
         {
         int spot = error_trace(result);
         int prettySetup = ucons(prettyStatementSymbol,ucons(ucons(quoteSymbol,
-               ucons(0,0)),ucons(0,0)));
+               ucons(0,0)),ucons(newString("    "),0)));
         printf("EXCEPTION TRACE --------------------\n");
         while (spot != 0)
             {
-            fprintf(stdout,"   from %s,line %d:\n",
+            fprintf(stdout,"from %s,line %d:\n",
                 filename(spot),line(spot));
             car(cdr(car(cdr(prettySetup)))) = car(spot);
             eval(prettySetup,env);

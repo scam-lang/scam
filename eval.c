@@ -14,6 +14,7 @@ static int evalBuiltIn(int,int);
 static int processArguments(int,int,int,int,int,int,int);
 static int evaluatedArgList(int,int);
 static int unevaluatedArgList(int);
+static void addTrace(int,int);
 
 int
 eval(int expr, int env)
@@ -103,14 +104,7 @@ eval(int expr, int env)
             }
         else if (isThrow(result))
             {
-            if (!(type(expr) == CONS) || !(sameSymbol(car(expr),beginSymbol)))
-                {
-                int et;
-                push(result);
-                et = cons(expr,error_trace(result));
-                result = pop();
-                error_trace(result) = et;
-                }
+            addTrace(expr,result);
             break;
             }
 
@@ -319,11 +313,7 @@ evalList(int items,int env,int mode)
             {
             if (!isReturn(result))
                 {
-                int et;
-                push(result);
-                et = cons(car(items),error_trace(result));
-                result = pop();
-                error_trace(result) = et;
+                addTrace(car(items),result);
                 }
             return result;
             }
@@ -343,14 +333,29 @@ evalList(int items,int env,int mode)
         {
         result = eval(car(items),env);
         if (isThrow(result) && !isReturn(result))
-            {
-            int et;
-            push(result);
-            et = cons(car(items),error_trace(result));
-            result = pop();
-            error_trace(result) = et;
-            }
+            addTrace(car(items),result);
         return result;
+        }
+    }
+
+static void
+addTrace(int item,int error)
+    {
+    int et;
+
+    if (type(item) == CONS && sameSymbol(car(item),beginSymbol)) return;
+
+    assureMemory("addTrace",1,&error,(int *) 0);
+
+    et = error_trace(error);
+
+    if (error_trace(error) == 0)
+        {
+        error_trace(error) = cons(item,0);
+        }
+    else if (file(item) != file(car(et)) || line(item) != line(car(et)))
+        {
+        error_trace(error) = cons(item,et);
         }
     }
 
