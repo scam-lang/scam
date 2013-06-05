@@ -62,7 +62,7 @@
     forresult
     )
 
-(define (for-each2 # $indexVar items $)
+(define (for-all # $indexVar items $)
     (define result #f)
     (while (!= items nil)
         (set $indexVar (car items) #)
@@ -161,7 +161,7 @@
     (define v nil)
     (define e (scope this))
     (set '__context # e)
-    (for-each2 v $inits
+    (for-all v $inits
         (addSymbol (car v) (eval (car (cdr v)) #) e)
         ;(println "adding " (car v) " from " $inits)
         ;(println "    its value is " (eval (car (cdr v)) #))
@@ -180,7 +180,7 @@
     (define v nil)
     (define e (scope this))
     (set '__context # e)
-    (for-each2 v $inits
+    (for-all v $inits
         (addSymbol (car v) (eval (car (cdr v)) e) e)
         )
     (evalList $ e)
@@ -486,7 +486,7 @@
 (set! x 2)
 (inspect x)
 (inspect (get 'assoc this))
-(for-each2 x '(1 2 3 4)
+(for-all x '(1 2 3 4)
     (inspect x)
     )
 (inspect (cadr '(1 2 3)))

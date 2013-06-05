@@ -125,6 +125,18 @@ function prettyStatement(item,indent)
             {
             prettyXCall(item,indent,indent,xtype);
             }
+        else if (car(item) == 'while)
+            {
+            prettyLoop(item,1,indent,indent);
+            }
+        else if (car(item) == 'for-all)
+            {
+            prettyLoop(item,2,indent,indent);
+            }
+        else if (car(item) == 'for)
+            {
+            prettyLoop(item,3,indent,indent);
+            }
         else 
             {
             print(indent);
@@ -265,6 +277,31 @@ function prettyXCall(expr,indent1,indent2,xtype)
         print(indent2,"else ");
         prettyXCall(cadr(args),"",indent2,xcall?(cadr(args)));
         }
+    }
+function prettyLoop(item,count,indent1,indent2)
+    {
+    print(indent1,car(item)," (");
+    while (count > 1)
+        {
+        prettyExpression(cadr(item));
+        print(",");
+        item = cdr(item);
+        count -= 1;
+        }
+    prettyExpression(cadr(item));
+    print(")\n");
+    prettyBlock(cdr(item),indent2 string+ __pretty-indent);
+    }
+function prettyFor(item,indent1,indent2)
+    {
+    print(indent1,"for (");
+    prettyExpression(cadr(item));
+    print(",");
+    prettyExpression(caddr(item));
+    print(",");
+    prettyExpression(cadddr(item));
+    print(")\n");
+    prettyBlock(cdddr(item),indent2 string+ __pretty-indent);
     }
 function xcall?(item)
     {

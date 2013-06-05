@@ -19,6 +19,8 @@
 #include "pp.h"
 #include "util.h"
 
+extern void ppf(char *,int,char *);
+
 #define ENV_HOME "HOME="
 
 extern int nextStackPtr;
@@ -102,6 +104,7 @@ ERROR:
     //debug("thrown",result);
     if (TraceBack)
         {
+        int presult;
         int spot = error_trace(result);
         int prettySetup = ucons(prettyStatementSymbol,ucons(ucons(quoteSymbol,
                ucons(0,0)),ucons(newString("    "),0)));
@@ -111,7 +114,12 @@ ERROR:
             fprintf(stdout,"from %s,line %d:\n",
                 filename(spot),line(spot));
             car(cdr(car(cdr(prettySetup)))) = car(spot);
-            eval(prettySetup,env);
+            presult = eval(prettySetup,env);
+            if (isThrow(presult))
+                {
+                ppf("pretty print error: ",error_value(result),"\n");
+                break;
+                }
             spot = cdr(spot);
             }
         }
