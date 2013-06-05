@@ -11,31 +11,32 @@ function for(init, #, $test, $increment, $body)
 
 for(i = 1, i < 10, i = i + 2)
     {
-    print("the value of i is ");
+    print("the increasing value of i is ");
     print(i);
     print("\n");
     }
 
+
 for(i = 10, i > 0, i = i - 1, 
     {
-    print("the value of i is ");
+    print("the decreasing value of i is ");
     print(i);
     print("\n");
     });
 
 ------------------------------------------
-the value of i is 1
-the value of i is 3
-the value of i is 5
-the value of i is 7
-the value of i is 9
-the value of i is 10
-the value of i is 9
-the value of i is 8
-the value of i is 7
-the value of i is 6
-the value of i is 5
-the value of i is 4
-the value of i is 3
-the value of i is 2
-the value of i is 1
+the increasing value of i is 1
+the increasing value of i is 3
+the increasing value of i is 5
+the increasing value of i is 7
+the increasing value of i is 9
+the decreasing value of i is 10
+the decreasing value of i is 9
+the decreasing value of i is 8
+the decreasing value of i is 7
+the decreasing value of i is 6
+the decreasing value of i is 5
+the decreasing value of i is 4
+the decreasing value of i is 3
+the decreasing value of i is 2
+the decreasing value of i is 1

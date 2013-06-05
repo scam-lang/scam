@@ -1,5 +1,3 @@
-include("sway.lib");
-
 function bundle(x,y) { this; }
 
 var b;

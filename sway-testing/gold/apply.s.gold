@@ -1,22 +1,25 @@
+//include("inherit.s");
+
 function f(@)
     {
-    if (@ == :null)
+    if (@ == null)
         {
         0;
         }
     else
         {
-        @ . 0 + apply(f,tail(@));
+        inspect(@);
+        car(@) + apply(f,tail(@));
         }
     }
 
-function g($)
+function g(#,$)
     {
     var total = 0, size = length($);
 
     while (size > 0)
         {
-        total = total + force($ . (size - 1));
+        total = total + eval(getElement($,(size - 1)),#);
         size = size - 1;
         }
 
@@ -26,5 +29,9 @@ function g($)
 print("sum (via f): ",f(1,2,3,4),"\n");
 print("sum (via g): ",g(1,2,3,4),"\n");
 ------------------------------------------
+@ is (1 2 3 4)
+@ is (2 3 4)
+@ is (3 4)
+@ is (4)
 sum (via f): 10
 sum (via g): 10

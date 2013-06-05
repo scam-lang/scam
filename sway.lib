@@ -94,7 +94,6 @@ function pretty(expr,@)
     var indent = if(valid?(@),car(@),"");
     if (closure?(expr))
         {
-        inspect(expr);
         closure(expr,indent);
         }
     else if (object?(expr))
@@ -103,7 +102,7 @@ function pretty(expr,@)
         }
     else
         {
-        print(expr);
+        prettyExpression(expr);
         }
     }
     

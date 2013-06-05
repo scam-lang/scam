@@ -1,5 +1,3 @@
-include("sway.lib");
-
 var i = 0;
 
 function for(init, #, $test, $increment, $body)
@@ -13,16 +11,15 @@ function for(init, #, $test, $increment, $body)
 
 for(i = 1, i < 10, i = i + 2)
     {
-    print("the value of i is ");
+    print("the increasing value of i is ");
     print(i);
     print("\n");
-    pause();
     }
 
 
 for(i = 10, i > 0, i = i - 1, 
     {
-    print("the value of i is ");
+    print("the decreasing value of i is ");
     print(i);
     print("\n");
     });

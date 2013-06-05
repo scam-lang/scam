@@ -13,13 +13,13 @@ function f(@)
         }
     }
 
-function g($)
+function g(#,$)
     {
     var total = 0, size = length($);
 
     while (size > 0)
         {
-        total = total + force(getElement(1,$,(size - 1)));
+        total = total + eval(getElement($,(size - 1)),#);
         size = size - 1;
         }
 

@@ -1020,20 +1020,20 @@ exprSelect(PARSER *p,int item)
     push(result);
 
     check(p,0);
-    ppf("selct op is ",p->pending,"\n");
+    //ppf("select op is ",p->pending,"\n");
     while (opType(p) == SELECT)
         {
-        printf("it's a select!\n");
+        //printf("it's a select!\n");
         /* opType forces a lex */
         if (sameSymbol(p->pending,openBracketSymbol))
             {
-            printf("it's a bracket!\n");
+            //printf("it's a bracket!\n");
             b = match(p,SYMBOL);
             rethrow(b,1);
             push(b);
             c = expr(p);
             rethrow(c,2);
-            ppf("bracketed expression is ",c,"\n");
+            //ppf("bracketed expression is ",c,"\n");
             push(c);
             match(p,CLOSE_BRACKET);
             }
@@ -1093,7 +1093,7 @@ primary(PARSER *p)
         {
         if (sameSymbol(p->pending,returnSymbol))
             {
-            printf("it's a return\n");
+            //printf("it's a return\n");
             match(p,SYMBOL);
             r = expr(p);
             rethrow(r,0);

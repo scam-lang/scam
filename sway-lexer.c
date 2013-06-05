@@ -37,7 +37,7 @@ swayLex(PARSER *p)
 
     symbolStop = "(){}[];,'";
     ch = swaySkipWhiteSpace(p); 
-    printf("sway lex character is %c\n",ch);
+    //printf("sway lex character is %c\n",ch);
 
     if (ch == EOF || strchr(symbolStop,ch) != 0) /* single character tokens */ 
         {
