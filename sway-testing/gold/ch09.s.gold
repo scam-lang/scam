@@ -1,5 +1,5 @@
-    function variable(name)
-        {
+function variable(name)
+    {
         function value(x) { x; }
         function toString() { "" + name; }
         function diff(wrtv)
@@ -16,14 +16,14 @@
         this;
         }
 
-    function term(a,iv,n)
-        {
+function term(a,iv,n)
+    {
         function value(x) { a * (x ^ n); }
         function zero?() { a == 0; }
         function one?() { a == 1 && n == 0; }
         function ivstr()
             {
-            if (iv is :variable)
+            if (iv is? 'variable)
                 {
                 iv . toString();
                 }
@@ -45,7 +45,7 @@
             {
             term(a * n,iv,n - 1) times iv . diff(wrtv);
             }
-        if (type(iv) == :SYMBOL) { iv = variable(iv); }
+        if (type(iv) == 'SYMBOL) { iv = variable(iv); }
         this;
         }
 
@@ -86,24 +86,24 @@
         else { this; }
         }
 
-    var t = term(4,:x,3);
-    var t' = t . diff(:x);
+var t = term(4,'x,3);
+var tp = t . diff('x);
 
-    var dummy = inspect(t . toString());
-    var dummy = inspect(t' . toString());
+inspect(t . toString());
+inspect(tp . toString());
 
-    var s = term(1,:x,2) plus term(17,:x,0);
+var s = term(1,'x,2) plus term(17,'x,0);
 
-    var dummy = inspect(s . toString());
+inspect(s . toString());
 
-    var w = term(3,s,2);
-    var w' = w . diff(:x);
+var w = term(3,s,2);
+var wp = w . diff('x);
 
-    var dummy = inspect(w . toString());
-    var dummy = inspect(w' . toString());
+inspect(w . toString());
+inspect(wp . toString());
 ------------------------------------------
 t . toString() is "4x^3"
-t' . toString() is "12x^2"
+tp . toString() is "12x^2"
 s . toString() is "x^2 + 17"
 w . toString() is "3(x^2 + 17)^2"
-w' . toString() is "6(x^2 + 17) * 2x"
+wp . toString() is "6(x^2 + 17) * 2x"

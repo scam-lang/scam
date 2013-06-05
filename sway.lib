@@ -9,8 +9,8 @@ function +(a,b)
     var + = __context . __context . +;
     if (type(a) == 'STRING,
         a string+ string(b),
-        if (null?(a) && string?(b),
-            b,
+        if (null?(a),
+            string(b),
             a + b));
     }
 function inspect(#,$item)

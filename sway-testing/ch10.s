@@ -1,120 +1,120 @@
-    function variable(name)
+function variable(name)
+    {
+    function value(x) { x; }
+    function toString() { "" + name; }
+    function diff(wrtv)
         {
-	function value(x) { x; }
-	function toString() { "" + name; }
-	function diff(wrtv)
-	    {
-	    if (wrtv == name)
-	        {
-		term(1,wrtv,0);   //really, the number one
-		}
-	    else
-	        {
-		term(0,wrtv,0);   //really, the number zero
-		}
-	    }
-	this;
-	}
+        if (wrtv == name)
+            {
+            term(1,wrtv,0);   //really, the number one
+            }
+        else
+            {
+            term(0,wrtv,0);   //really, the number zero
+            }
+        }
+    this;
+    }
 
-    function term(a,iv,n)
+function term(a,iv,n)
+    {
+    function value(x) { a * (x ^ n); }
+    function zero?() { a == 0; }
+    function one?() { a == 1 && n == 0; }
+    function ivstr()
         {
-	function value(x) { a * (x ^ n); }
-	function zero?() { a == 0; }
-	function one?() { a == 1 && n == 0; }
-	function ivstr()
-	    {
-	    if (iv is :variable)
-	        {
-		iv . toString();
-		}
-	    else
-	        {
-		"(" + iv . toString() + ")";
-		}
-	    }
-	function toString()
-	    {
-	    if (a == 0) { "0"; }
-	    else if (n == 0) { "" + a; }
-	    else if (n == 1 && a == 1) { "" + iv . toString(); }
-	    else if (n == 1) { "" + a + ivstr(); }
-	    else if (a == 1) { "" + ivstr() + "^" + n; }
-	    else { "" + a + ivstr() + "^" + n; }
-	    }
-	function diff(wrtv)
-	    {
-	    term(a * n,iv,n - 1) times iv . diff(wrtv);
-	    }
-	if (type(iv) == :SYMBOL) { iv = variable(iv); }
-	this;
-	}
+        if (iv is 'variable)
+            {
+            iv . toString();
+            }
+        else
+            {
+            "(" + iv . toString() + ")";
+            }
+        }
+    function toString()
+        {
+        if (a == 0) { "0"; }
+        else if (n == 0) { "" + a; }
+        else if (n == 1 && a == 1) { "" + iv . toString(); }
+        else if (n == 1) { "" + a + ivstr(); }
+        else if (a == 1) { "" + ivstr() + "^" + n; }
+        else { "" + a + ivstr() + "^" + n; }
+        }
+    function diff(wrtv)
+        {
+        term(a * n,iv,n - 1) times iv . diff(wrtv);
+        }
+    if (type(iv) == 'SYMBOL) { iv = variable(iv); }
+    this;
+    }
 
-    function plus(p,q)
-	{
-	function value(x) { p . value(x) + q . value(x); }
-	function zero?() { p . zero?() && q . zero?(); }
-	function one?()
-	    {
-	    (p . zero?() && q . one?()) || (p . one?() && q . zero?());
-	    }
-	function toString() { p . toString() + " + " + q . toString(); }
-	function diff(wrtv)
-	    {
-	    var dp/dx = p . diff(wrtv);
-	    var dq/dx = q . diff(wrtv);
-	    plus(dp/dx,dq/dx);
-	    }
-	if (p . zero?()) { q; }
-	else if (q . zero?()) { p; }
-	else { this; }
-	}
+function plus(p,q)
+    {
+    function value(x) { p . value(x) + q . value(x); }
+    function zero?() { p . zero?() && q . zero?(); }
+    function one?()
+        {
+        (p . zero?() && q . one?()) || (p . one?() && q . zero?());
+        }
+    function toString() { p . toString() + " + " + q . toString(); }
+    function diff(wrtv)
+        {
+        var dp/dx = p . diff(wrtv);
+        var dq/dx = q . diff(wrtv);
+        plus(dp/dx,dq/dx);
+        }
+    if (p . zero?()) { q; }
+    else if (q . zero?()) { p; }
+    else { this; }
+    }
 
-    function minus(p,q)
-	{
-	function value(x) { p . value(x) - q . value(x); }
-	function zero?() { p . zero?() && q . zero?(); }
-	function one?()
-	    {
-	    (p . zero?() && q . one?()) || (p . one?() && q . zero?());
-	    }
-	function toString() { p . toString() + " - " + q . toString(); }
-	function diff(wrtv)
-	    {
-	    var dp/dx = p . diff(wrtv);
-	    var dq/dx = q . diff(wrtv);
-	    minus(dp/dx,dq/dx);
-	    }
-	if (p . zero?()) { q; }
-	else if (q . zero?()) { p; }
-	else { this; }
-	}
+function minus(p,q)
+    {
+    function value(x) { p . value(x) - q . value(x); }
+    function zero?() { p . zero?() && q . zero?(); }
+    function one?()
+        {
+        (p . zero?() && q . one?()) || (p . one?() && q . zero?());
+        }
+    function toString() { p . toString() + " - " + q . toString(); }
+    function diff(wrtv)
+        {
+        var dp/dx = p . diff(wrtv);
+        var dq/dx = q . diff(wrtv);
+        minus(dp/dx,dq/dx);
+        }
+    if (p . zero?()) { q; }
+    else if (q . zero?()) { p; }
+    else { this; }
+    }
 
-    function times(p,q)
-	{
-	function value(x) { p . value(x) + q . value(x); }
-	function toString() { p . toString() + " * " + q . toString(); }
-	function diff(wrtv)
-	    {
-	    var dp/dx = p . diff(wrtv);
-	    var dq/dx = q . diff(wrtv);
-	    (p times dq/dx) plus (q times dp/dx);
-	    }
-	if (p . zero?()) { p; }
-	else if (q . zero?()) { q; }
-	else if (p . one?()) { q; }
-	else if (q . one?()) { p; }
-	else { this; }
-	}
+function times(p,q)
+    {
+    function value(x) { p . value(x) + q . value(x); }
+    function toString() { p . toString() + " * " + q . toString(); }
+    function diff(wrtv)
+        {
+        var dp/dx = p . diff(wrtv);
+        var dq/dx = q . diff(wrtv);
+        (p times dq/dx) plus (q times dp/dx);
+        }
+    if (p . zero?()) { p; }
+    else if (q . zero?()) { q; }
+    else if (p . one?()) { q; }
+    else if (q . one?()) { p; }
+    else { this; }
+    }
 
-    var y = term(1,:x,2) minus term(6,:x,1) plus term(10,:x,0);
-    var y' = y . diff(:x);
+var y = term(1,'x,2) minus term(6,'x,1) plus term(10,'x,0);
+var yp = y . diff('x);
 
-    var dummy = inspect(y . value(2));
-    var dummy = inspect(y . value(3));
-    var dummy = inspect(y . value(4));
+inspect(y . value(2));
+inspect(y . value(3));
+inspect(y . value(4));
 
-    var dummy = inspect(y' . value(2));
-    var dummy = inspect(y' . value(3));
-    var dummy = inspect(y' . value(4));
-    var dummy = inspect(y' . value(2.75));
-    var dummy = inspect(y' . value(3.25));
+inspect(yp . value(2));
+inspect(yp . value(3));
+inspect(yp . value(4));
+inspect(yp . value(2.75));
+inspect(yp . value(3.25));
