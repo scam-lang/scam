@@ -1,0 +1,30 @@
+function bundle(x,y) { this; }
+
+var b;
+
+b = bundle(2,3);
+
+inspect(b . x);
+inspect(b . y);
+
+b . x = 'hello;
+b . y = 'world;
+
+inspect(b . x);
+inspect(b . y);
+
+var c = bundle(b,b);
+
+c . x . y = 'WORLD;
+
+inspect(b . y);
+inspect(c . x . y);
+inspect(c . y . y);
+------------------------------------------
+b . x is 2
+b . y is 3
+b . x is hello
+b . y is world
+b . y is WORLD
+c . x . y is WORLD
+c . y . y is WORLD
