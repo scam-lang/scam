@@ -83,7 +83,6 @@ extern int newPunctuation(char *);
 
 extern char **SymbolTable;
 extern int SymbolCount;
-extern int MaxSymbols;
 extern int findSymbol(char *);
 
 extern char *cellString(char *,int,int);

@@ -1,6 +1,7 @@
 # these, if linux
 CC = gcc
 OUT = scam
+OPTS = -pthread
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
        sway-lexer.o sway-parser.o
@@ -10,7 +11,7 @@ PROF = -pg
 ALL		: scam
 
 scam		: $(OBJS) scam.o
-		$(CC) -o $(OUT) $(PROF) $(OBJS) scam.o -lm
+		$(CC) -o $(OUT) $(OPTS) $(PROF) $(OBJS) scam.o -lm
 		cp $(OUT) ~/bin/
 
 install : scam

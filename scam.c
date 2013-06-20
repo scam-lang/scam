@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <pthread.h>
 #include <assert.h>
 #include "cell.h"
 #include "types.h"
@@ -41,6 +42,9 @@ char *ArgumentsName = "ScamArgs";
 char *EnvironmentName = "ScamEnv";
 char *Home = "~";
 
+pthread_mutex_t Mutex;
+pthread_mutexattr_t Attr;
+
 static int addToEnvironment(int,char *,int );
 
 int 
@@ -57,6 +61,14 @@ main(int argc,char **argv,char **envv)
         {
         Fatal("usage: %s INPUT_FILE [ARGUMENTS]\n", PROGRAM_NAME);
         }
+
+    /* initialize the mutex */
+
+    pthread_mutexattr_init(&Attr);
+    pthread_mutexattr_settype(&Attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&Mutex, &Attr);
+
+    /* initialize memory */
 
     memoryInit(0);
 

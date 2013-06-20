@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <pthread.h>
 #include "cell.h"
 #include "types.h"
 #include "parser.h"
@@ -9,6 +10,8 @@
 #include "prim.h"
 #include "pp.h"
 #include "util.h"
+
+extern pthread_mutex_t Mutex;
 
 static int evalBuiltIn(int,int);
 static int processArguments(int,int,int,int,int,int,int);
@@ -74,12 +77,12 @@ eval(int expr, int env)
 
         /* no need to assure memory here */
 
-        //don't think it is necessary to push env here 
-        //push(env);
+        //acquire recursive mutex here
+        pthread_mutex_lock(&Mutex);
+
         push(expr);
         result = evalCall(expr,env,NORMAL);
         expr = pop();
-        //env = pop();
 
         if (isReturn(result))
             {
@@ -105,16 +108,26 @@ eval(int expr, int env)
         else if (isThrow(result))
             {
             addTrace(expr,result);
+            //release the recursive mutex here because we are breaking out
+            pthread_mutex_unlock(&Mutex);
             break;
             }
 
-        if (!isThunk(result)) break;
+        if (!isThunk(result))
+            {
+            //release the recursive mutex here because we are breaking out
+            pthread_mutex_unlock(&Mutex);
+            break;
+            }
 
         expr = thunk_code(result);
         env = thunk_context(result);
 		
 		// Keep the level at lowest setting to properly handle returns
 		level = ival(env_level(env))<level?ival(env_level(env)):level;
+
+        //release the recursive mutex here since we did not break out
+        pthread_mutex_unlock(&Mutex);
         }
 
     //debug("final result",result);
