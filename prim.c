@@ -15,7 +15,10 @@
 #include "eval.h"
 #include "pp.h"
 #include "util.h"
-
+#include <sys/wait.h>
+#include <sys/shm.h>
+#include <sys/stat.h>
+ 
 extern char *LibraryName;
 extern char *LibraryPointer;
 extern char *ArgumentsName;
@@ -29,6 +32,9 @@ FILE *OpenPorts[20];
 int MaxPorts = sizeof(OpenPorts) / sizeof(FILE *);
 int CurrentInputIndex;
 int CurrentOutputIndex;
+
+CELL *shared;
+int sharedSize = 0;
 
 static int
 scamBoolean(int item)
@@ -3030,7 +3036,7 @@ lline(int args)
     return newInteger(line(car(args)));
     }
 
-/* (line item) */
+/* (file item) */
 
 static int
 ffile(int args)
@@ -3040,11 +3046,209 @@ ffile(int args)
     return newString(buffer);
     }
 
+/* (sleep seconds) */
+
+int
+ssleep(int args)
+    {
+    sleep(ival(car(args)));
+    return 0;
+    }
+
+/* (pexecute # index $) */
+
+int
+pexecute(int args)
+    {
+    int env;
+    int sharedID;
+    int result;
+    int i,count,spot,attach;
+ 
+    env = car(args);
+    sharedSize = ival(cadr(args));
+    if (sharedSize <= 0) sharedSize = 1;
+
+    //printf("shared size is %d\n", sharedSize);
+
+    /* allocate one more for the error code */
+    sharedID = shmget(IPC_PRIVATE,
+        (sharedSize + 1) * sizeof(CELL),S_IRUSR|S_IWUSR);
+ 
+    if (sharedID < 0)
+        {
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: failed to allocate shared memory of size %d",
+            SymbolTable[file(args)],line(args),sharedSize);
+        }
+
+    shared = (CELL *) shmat(sharedID,(void *) 0,0);
+ 
+    if (shared == (CELL *) -1)
+        {
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: failed to attach shared memory",
+            SymbolTable[file(car(args))],line(car(args)));
+        }
+ 
+    /* initialize the shared memory */
+
+    for (i = 0; i < sharedSize + 1; ++i)
+        {
+        shared[i].type = INTEGER;
+        shared[i].ival = 0;
+        }
+    shared[0].ival = -1;
+
+    spot = caddr(args); /* skip over the environment and the size */
+
+    count = 0;
+    while (spot != 0) /* loop over lambdas */
+        {
+        int pid = fork();
+        if (pid == 0)
+            {
+            debug("forking ",car(spot));
+            result = eval(car(spot),env);
+            if (isThrow(result))
+                shared[0].ival = count;
+            exit(0); //what if the child throws an exception?
+            }
+        else
+            {
+            ++count;
+            spot = cdr(spot);
+            }
+        }
+
+    /* wait for all the children to finish */
+
+    spot = caddr(args); /* skip over the environment and the size */
+    while (spot != 0)
+        {
+        wait((void *) 0);
+        spot = cdr(spot);
+        }
+
+    /* check for an error code */
+
+    if (shared[0].ival >= 0)
+        {
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: the lambda with index %d failed",
+            SymbolTable[file(args)],line(args),shared[0].ival);
+        }
+
+    /* convert shared memory to an array */
+
+    assureMemory("pexecute",sharedSize * 2,(int *)0);
+
+    result = 0;
+    attach = 0;
+    for (i = 0; i < sharedSize; ++i)
+        {
+        spot = ucons(0,0);
+        type(spot) = ARRAY;
+        count(spot) = sharedSize - i;
+        if (i == 0)
+            result = spot;
+        else
+            cdr(attach) = spot;
+        attach = spot;
+        }
+
+    for (i = 0; i < sharedSize; ++i)
+        {
+        spot = ucons(0,0);
+        /* first slot is reserved for an error code */
+        the_cars[spot] = shared[i+1];
+        car(result + i) = spot;
+        }
+
+    if ((shmdt(shared)) == -1)
+        {
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: failed to detach shared memory",
+            SymbolTable[file(car(args))],line(car(args)));
+        }
+
+    if ((shmctl(sharedID, IPC_RMID, NULL)) == -1)
+        {
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: failed to free shared memory",
+            SymbolTable[file(car(args))],line(car(args)));
+        }
+
+    debug("result: ",result);
+    return result;
+    }
+
+/* (sharedSet index value) */
+
+int
+sharedSet(int args)
+    {
+    int slot = ival(car(args));
+    int value = cadr(args);
+
+    /* first slot is reserved for an error code */
+    shared[slot+1] = the_cars[value];
+
+    return value;
+    }
+
+/* (sharedGet index) */
+
+int
+sharedGet(int args)
+    {
+    int index = ival(car(args));
+    int result = ucons(0,0);
+    /* first slot is reserved for an error code */
+    the_cars[result] = shared[index+1];
+    return result;
+    }
+
 void
 loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = ssleep;
+    b = makeBuiltIn(env,
+        newSymbol("sleep"),
+        ucons(newSymbol("index"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = pexecute;
+    b = makeBuiltIn(env,
+        newSymbol("pexecute"),
+        ucons(sharpSymbol,
+            ucons(newSymbol("index"),
+                ucons(dollarSymbol,0))),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = sharedGet;
+    b = makeBuiltIn(env,
+        newSymbol("sharedGet"),
+        ucons(newSymbol("index"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = sharedSet;
+    b = makeBuiltIn(env,
+        newSymbol("sharedSet"),
+        ucons(newSymbol("index"),
+            ucons(newSymbol("value"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = ggc;
     b = makeBuiltIn(env,

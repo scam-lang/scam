@@ -1,7 +1,7 @@
 # these, if linux
 CC = gcc
 OUT = scam
-OPTS = -pthread
+OPTS = 
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
        sway-lexer.o sway-parser.o

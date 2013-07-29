@@ -71,6 +71,7 @@ int messageSymbol;
 int spacerSymbol;
 int defineSymbol;
 int exceptionSymbol;
+int parallelExceptionSymbol;
 int mathExceptionSymbol;
 int lexicalExceptionSymbol;
 int syntaxExceptionSymbol;
@@ -214,6 +215,7 @@ memoryInit(int memsize)
     spacerSymbol         = newSymbol(" SPACER");
     defineSymbol         = newSymbol("define");
     exceptionSymbol      = newSymbol("generalException");
+    parallelExceptionSymbol      = newSymbol("parallelException");
     mathExceptionSymbol  = newSymbol("mathException");
     lexicalExceptionSymbol = newSymbol("lexicalException");
     syntaxExceptionSymbol = newSymbol("syntaxException");
