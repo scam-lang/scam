@@ -6,9 +6,11 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
+#include "types.h"
 #include "cell.h"
  
 extern CELL *shared;
+extern int sharedSize;
 extern int throw(int,char *,...);
 extern int eval(int,int);
  
@@ -19,11 +21,13 @@ pexecute(int args)
     int size;
     int sharedID;
     int result;
+    int i,spot,attach;
  
     env = car(args);
     size = ival(cadr(args)) * sizeof(CELL);
+    if (size > 0) sharedSize = size;
 
-    sharedID = shmget(IPC_PRIVATE,size,S_IRUSR|S_IWUSR);
+    sharedID = shmget(IPC_PRIVATE,sharedSize,S_IRUSR|S_IWUSR);
  
     if (sharedID < 0)
         {
@@ -41,6 +45,14 @@ pexecute(int args)
             SymbolTable[file(car(args))],line(car(args)));
         }
  
+    /* initialize the shared memory */
+
+    for (i = 0; i < sharedSize; ++i)
+         {
+         shared[i].type = INTEGER;
+         shared[i].ival = 0;
+         }
+
     args = cddr(args); /* skip over the environment and the size */
 
     while (cdr(args) != 0) /* loop over lambdas, except the last */
@@ -57,7 +69,24 @@ pexecute(int args)
 
     wait((void *) 0); // will this wait for all children?
 
-    result = eval(car(args),env); /* run the cleanup routine */
+    /* convert shared memory to an array */
+
+    assureMemory("pexecute",sharedSize,(int *)0);
+
+    result = 0;
+    attach = 0;
+    for (i = 0; i < sharedSize; ++i)
+        {
+        spot = ucons(0,0);
+        the_cars[spot] = shared[i];
+        type(spot) = ARRAY;
+        count(spot) = sharedSize - i;
+        if (i == 0)
+            result = spot;
+        else
+            cdr(attach) = spot;
+        attach = spot;
+        }
 
     if ((shmdt(shared)) == -1)
         {
@@ -75,3 +104,28 @@ pexecute(int args)
 
     return result;
     }
+
+/* (sharedSet index value) */
+
+int
+sharedSet(int args)
+    {
+    int slot = ival(car(args));
+    int value = cadr(args);
+
+    shared[slot] = the_cars[value];
+
+    return value;
+    }
+
+/* (sharedGet index) */
+
+int
+sharedGet(int args)
+    {
+    int index = ival(car(args));
+    int result = ucons(0,0);
+    the_cars[result] = shared[index];
+    return result;
+    }
+
