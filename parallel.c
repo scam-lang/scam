@@ -5,101 +5,73 @@
 #include <stdlib.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
+#include <sys/stat.h>
+#include "cell.h"
  
-float *a;
-float *b;
-float *c;
-float *d;
+extern CELL *shared;
+extern int throw(int,char *,...);
+extern int eval(int,int);
  
 int
 pexecute(int args)
     {
+    int env;
     int size;
-    
+    int sharedID;
+    int result;
  
-pid_t pid,pid1,pid2;
-pid_t cpid,cpid1,cpid2;
-int status;
-int shmid;
-CELL *shm_ptr;
- 
-    size = ival(car(args)) * sizeof(CELL);
+    env = car(args);
+    size = ival(cadr(args)) * sizeof(CELL);
 
-    shmid=shmget(IPC_PRIVATE,size,S_IRUSR|S_IWUSR);
+    sharedID = shmget(IPC_PRIVATE,size,S_IRUSR|S_IWUSR);
  
-    if (shmid < 0)
+    if (sharedID < 0)
         {
-        return throw(exceptionSymbol,"
-            file %s,line %d: failed to allocate shared memory",
-            SymbolTable[file(car(args)]),line(car(args)));
+        return throw(exceptionSymbol,
+            "file %s,line %d: failed to allocate shared memory",
+            SymbolTable[file(car(args))],line(car(args)));
         }
 
-    shm_ptr=(CELL *)shmat(shmid,(void *)0,0);
+    shared = (CELL *) shmat(sharedID,(void *) 0,0);
  
-    if (shm_ptr == (float *)(-1))
-{
-    perror("shmat:shm_ptr");
-    exit(1);
-}
+    if (shared == (CELL *) -1)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: failed to attach shared memory",
+            SymbolTable[file(car(args))],line(car(args)));
+        }
  
-a=shm_ptr;
-b=(shm_ptr+1);
-c=(shm_ptr+2);
-d=(shm_ptr+3);
- 
- 
-if ((pid = fork()) == 0)
-{
-    *a=1+1;
-    printf("a: (in Proc)= %.2f\n",*a);
-    sleep(2);
-    exit(0);
-} else if ((pid1=fork()) == 0)
-{
-    *b=3+3;
-    printf("b: (in Proc)= %.2f\n",*b);
-    sleep(2);
-    exit(0);
-} else if ((pid2=fork()) == 0)
-{
-    *c=4+4;
-    printf("c: (in Proc)= %.2f\n",*c);
-    sleep(2);
-    exit(0);
-} else {   
-     
-    if ((cpid=wait(&status)) == pid)
-    {
-        printf("Child %d returned\n",pid);
+    args = cddr(args); /* skip over the environment and the size */
+
+    while (cdr(args) != 0) /* loop over lambdas, except the last */
+        {
+        int pid = fork();
+        if (pid == 0)
+            {
+            result = eval(car(args),env);
+            exit(0); //what if the child throws an exception?
+            }
+        else
+            args = cdr(args);
+        }
+
+    wait((void *) 0); // will this wait for all children?
+
+    result = eval(car(args),env); /* run the cleanup routine */
+
+    if ((shmdt(shared)) == -1)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: failed to detach shared memory",
+            SymbolTable[file(car(args))],line(car(args)));
+        }
+
+    if ((shmctl(sharedID, IPC_RMID, NULL)) == -1)
+        {
+        return throw(exceptionSymbol,
+            "file %s,line %d: failed to free shared memory",
+            SymbolTable[file(car(args))],line(car(args)));
+        }
+
+    return result;
     }
-    if ((cpid1=wait(&status)) == pid1)
-    {
-        printf("Child %d returned\n",pid1);
-    }
-    if ((cpid2=wait(&status)) == pid2)
-    {
-        printf("Child %d returned\n",pid2);
-    }
-     
-    printf("a: (in Parent)=%.2f\n", *a);
-    printf("b: (in Parent)=%.2f\n", *b);
-    printf("c: (in Parent)=%.2f\n", *c);
- 
-    *d=*a+*b+*c;
-    printf("d=%.2f\n", *d);
- 
-}
- 
-if ((shmdt(shm_ptr)) == -1)
-{
-    perror("shmdt");
-} else {
-    if ((shmctl(shmid, IPC_RMID, NULL)) == -1)
-    {
-        perror("shmctl");
-    }
-}
- 
-return 0;
- 
-}
