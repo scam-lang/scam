@@ -3237,7 +3237,7 @@ pexecute(int args)
         return throw(parallelExceptionSymbol,
             "file %s,line %d: parallel execution of expression %d (zero-based) "
             "failed\n"
-            "try using the simulation *pexecute for more information",
+            "try using the non-parallel *pexecute for more information",
             SymbolTable[file(args)],line(args),shared[0].ival);
         }
 
