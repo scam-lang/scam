@@ -34,6 +34,7 @@ int CurrentInputIndex;
 int CurrentOutputIndex;
 
 CELL *shared;
+int sharedID;
 int sharedSize = 0;
 
 static int
@@ -3055,19 +3056,10 @@ ssleep(int args)
     return 0;
     }
 
-/* (pexecute # index $) */
-
-int
-pexecute(int args)
+static int
+acquireSharedMemory(int args)
     {
-    int env;
-    int sharedID;
-    int result;
-    int i,count,spot,attach;
- 
-    env = car(args);
-    sharedSize = ival(cadr(args));
-    if (sharedSize <= 0) sharedSize = 1;
+    int i;
 
     //printf("shared size is %d\n", sharedSize);
 
@@ -3098,50 +3090,19 @@ pexecute(int args)
         shared[i].type = INTEGER;
         shared[i].ival = 0;
         }
-    shared[0].ival = -1;
+    shared[0].ival = -1; //set error code to -1 (no child erred)
 
-    spot = caddr(args); /* skip over the environment and the size */
+    return 0;
+    }
 
-    count = 0;
-    while (spot != 0) /* loop over lambdas */
-        {
-        int pid = fork();
-        if (pid == 0)
-            {
-            debug("forking ",car(spot));
-            result = eval(car(spot),env);
-            if (isThrow(result))
-                shared[0].ival = count;
-            exit(0); //what if the child throws an exception?
-            }
-        else
-            {
-            ++count;
-            spot = cdr(spot);
-            }
-        }
-
-    /* wait for all the children to finish */
-
-    spot = caddr(args); /* skip over the environment and the size */
-    while (spot != 0)
-        {
-        wait((void *) 0);
-        spot = cdr(spot);
-        }
-
-    /* check for an error code */
-
-    if (shared[0].ival >= 0)
-        {
-        return throw(parallelExceptionSymbol,
-            "file %s,line %d: the lambda with index %d failed",
-            SymbolTable[file(args)],line(args),shared[0].ival);
-        }
+static int
+convertSharedMemory(int args)
+    {
+    int i,attach,spot,result;
 
     /* convert shared memory to an array */
 
-    assureMemory("pexecute",sharedSize * 2,(int *)0);
+    assureMemory("*pexecute",sharedSize * 2,&args,(int *)0);
 
     result = 0;
     attach = 0;
@@ -3179,7 +3140,113 @@ pexecute(int args)
             SymbolTable[file(car(args))],line(car(args)));
         }
 
+    return result;
+    }
+
+/* (spexecute # index $) */
+
+int
+spexecute(int args)
+    {
+    int env;
+    int result;
+    int spot;
+ 
+    env = car(args);
+    sharedSize = ival(cadr(args));
+    if (sharedSize <= 0) sharedSize = 1;
+
+    result = acquireSharedMemory(args);
+    rethrow(result,0);
+
+    spot = caddr(args); /* skip over the environment and the size */
+
+    push(args);
+    while (spot != 0) /* loop over lambdas */
+        {
+        push(env);
+        push(spot);
+        result = eval(car(spot),env);
+        spot = pop();
+        env = pop();
+        rethrow(result,0);
+        spot = cdr(spot);
+        }
+    args = pop();
+
+    result = convertSharedMemory(args);
+
+
     debug("result: ",result);
+
+    return result;
+    }
+
+/* (pexecute # size $) */
+
+int
+pexecute(int args)
+    {
+    int env;
+    int result;
+    int spot,count;
+ 
+    env = car(args);
+    sharedSize = ival(cadr(args));
+    if (sharedSize <= 0) sharedSize = 1;
+
+    //printf("shared size is %d\n", sharedSize);
+
+    result = acquireSharedMemory(args);
+    rethrow(result,0);
+
+    spot = caddr(args); /* skip over the environment and the size */
+
+    count = 0;
+    while (spot != 0) /* loop over lambdas */
+        {
+        int pid = fork();
+        if (pid == 0)
+            {
+            //debug("forking ",car(spot));
+            result = eval(car(spot),env);
+            if (isThrow(result))
+                shared[0].ival = count;
+            exit(0);
+            }
+        else
+            {
+            ++count;
+            spot = cdr(spot);
+            }
+        }
+
+    /* wait for all the children to finish */
+
+    spot = caddr(args); /* skip over the environment and the size */
+    while (spot != 0)
+        {
+        wait((void *) 0);
+        spot = cdr(spot);
+        }
+
+    /* check for an error code */
+
+    if (shared[0].ival >= 0)
+        {
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: parallel execution of expression %d (zero-based) "
+            "failed\n"
+            "try using the simulation *pexecute for more information",
+            SymbolTable[file(args)],line(args),shared[0].ival);
+        }
+
+    /* convert shared memory to an array */
+
+    result = convertSharedMemory(args);
+
+    debug("result: ",result);
+
     return result;
     }
 
@@ -3218,7 +3285,17 @@ loadBuiltIns(int env)
     BuiltIns[count] = ssleep;
     b = makeBuiltIn(env,
         newSymbol("sleep"),
-        ucons(newSymbol("index"),0),
+        ucons(newSymbol("seconds"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = spexecute;
+    b = makeBuiltIn(env,
+        newSymbol("*pexecute"),
+        ucons(sharpSymbol,
+            ucons(newSymbol("size"),
+                ucons(dollarSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -3227,7 +3304,7 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("pexecute"),
         ucons(sharpSymbol,
-            ucons(newSymbol("index"),
+            ucons(newSymbol("size"),
                 ucons(dollarSymbol,0))),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
