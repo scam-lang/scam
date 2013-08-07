@@ -11,7 +11,7 @@ PROF = -pg
 ALL		: scam
 
 scam		: $(OBJS) scam.o
-		$(CC) -o $(OUT) $(OPTS) $(PROF) $(OBJS) scam.o -lm
+		$(CC) -o $(OUT) $(OPTS) $(PROF) $(OBJS) scam.o -lm -pthread
 		cp $(OUT) ~/bin/
 
 install : scam

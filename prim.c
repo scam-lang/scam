@@ -18,6 +18,8 @@
 #include <sys/wait.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
+#include <semaphore.h>
+#include <sched.h>
  
 extern char *LibraryName;
 extern char *LibraryPointer;
@@ -33,9 +35,11 @@ int MaxPorts = sizeof(OpenPorts) / sizeof(FILE *);
 int CurrentInputIndex;
 int CurrentOutputIndex;
 
+int sharedSize = 1;
 CELL *shared;
 int sharedID;
-int sharedSize = 0;
+sem_t *semaphore;
+int semaphoreID;
 
 static int
 scamBoolean(int item)
@@ -3066,8 +3070,9 @@ acquireSharedMemory(int args)
     /* allocate one more for the error code */
     sharedID = shmget(IPC_PRIVATE,
         (sharedSize + 1) * sizeof(CELL),S_IRUSR|S_IWUSR);
+    semaphoreID = shmget(IPC_PRIVATE,sizeof(sem_t),S_IRUSR|S_IWUSR);
  
-    if (sharedID < 0)
+    if (sharedID < 0 || semaphoreID < 0)
         {
         return throw(parallelExceptionSymbol,
             "file %s,line %d: failed to allocate shared memory of size %d",
@@ -3075,8 +3080,9 @@ acquireSharedMemory(int args)
         }
 
     shared = (CELL *) shmat(sharedID,(void *) 0,0);
+    semaphore = (sem_t *) shmat(semaphoreID,(void *) 0,0);
  
-    if (shared == (CELL *) -1)
+    if (shared == (CELL *) -1 || semaphore == (sem_t *) -1)
         {
         return throw(parallelExceptionSymbol,
             "file %s,line %d: failed to attach shared memory",
@@ -3091,6 +3097,7 @@ acquireSharedMemory(int args)
         shared[i].ival = 0;
         }
     shared[0].ival = -1; //set error code to -1 (no child erred)
+    sem_init(semaphore,1,1);
 
     return 0;
     }
@@ -3102,7 +3109,7 @@ convertSharedMemory(int args)
 
     /* convert shared memory to an array */
 
-    assureMemory("*pexecute",sharedSize * 2,&args,(int *)0);
+    assureMemory("convertSharedMemory",sharedSize * 2,&args,(int *)0);
 
     result = 0;
     attach = 0;
@@ -3126,24 +3133,27 @@ convertSharedMemory(int args)
         car(result + i) = spot;
         }
 
-    if ((shmdt(shared)) == -1)
+    sem_destroy(semaphore);
+
+    if ((shmdt(shared)) == -1 || shmdt(semaphore))
         {
         return throw(parallelExceptionSymbol,
             "file %s,line %d: failed to detach shared memory",
-            SymbolTable[file(car(args))],line(car(args)));
+            SymbolTable[file(args)],line(args));
         }
 
-    if ((shmctl(sharedID, IPC_RMID, NULL)) == -1)
+    if ((shmctl(sharedID, IPC_RMID, (void *) 0)) == -1
+    ||  (shmctl(semaphoreID, IPC_RMID, (void *) 0)) == -1)
         {
         return throw(parallelExceptionSymbol,
             "file %s,line %d: failed to free shared memory",
-            SymbolTable[file(car(args))],line(car(args)));
+            SymbolTable[file(args)],line(args));
         }
 
     return result;
     }
 
-/* (spexecute # index $) */
+/* (spexecute # $) */
 
 int
 spexecute(int args)
@@ -3153,13 +3163,11 @@ spexecute(int args)
     int spot;
  
     env = car(args);
-    sharedSize = ival(cadr(args));
-    if (sharedSize <= 0) sharedSize = 1;
 
     result = acquireSharedMemory(args);
     rethrow(result,0);
 
-    spot = caddr(args); /* skip over the environment and the size */
+    spot = cadr(args); /* skip over the environment */
 
     push(args);
     while (spot != 0) /* loop over lambdas */
@@ -3176,13 +3184,12 @@ spexecute(int args)
 
     result = convertSharedMemory(args);
 
-
-    debug("result: ",result);
+    //debug("result: ",result);
 
     return result;
     }
 
-/* (pexecute # size $) */
+/* (pexecute # $) */
 
 int
 pexecute(int args)
@@ -3192,15 +3199,13 @@ pexecute(int args)
     int spot,count;
  
     env = car(args);
-    sharedSize = ival(cadr(args));
-    if (sharedSize <= 0) sharedSize = 1;
 
     //printf("shared size is %d\n", sharedSize);
 
     result = acquireSharedMemory(args);
     rethrow(result,0);
 
-    spot = caddr(args); /* skip over the environment and the size */
+    spot = cadr(args); /* skip over the environment */
 
     count = 0;
     while (spot != 0) /* loop over lambdas */
@@ -3223,7 +3228,7 @@ pexecute(int args)
 
     /* wait for all the children to finish */
 
-    spot = caddr(args); /* skip over the environment and the size */
+    spot = cadr(args); /* skip over the environment */
     while (spot != 0)
         {
         wait((void *) 0);
@@ -3237,7 +3242,7 @@ pexecute(int args)
         return throw(parallelExceptionSymbol,
             "file %s,line %d: parallel execution of expression %d (zero-based) "
             "failed\n"
-            "try using the non-parallel *pexecute for more information",
+            "try using *pexecute instead of pexecute for more information",
             SymbolTable[file(args)],line(args),shared[0].ival);
         }
 
@@ -3245,18 +3250,25 @@ pexecute(int args)
 
     result = convertSharedMemory(args);
 
-    debug("result: ",result);
+    //debug("result: ",result);
 
     return result;
     }
 
-/* (sharedSet index value) */
+/* (setShared index value) */
 
 int
-sharedSet(int args)
+setShared(int args)
     {
     int slot = ival(car(args));
     int value = cadr(args);
+
+    if (slot < 0 || slot >= sharedSize)
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: "
+            "index (%d) into shared memory is out of bounds\n",
+            SymbolTable[file(args)],line(args),
+            slot);
 
     /* first slot is reserved for an error code */
     shared[slot+1] = the_cars[value];
@@ -3264,16 +3276,70 @@ sharedSet(int args)
     return value;
     }
 
-/* (sharedGet index) */
+/* (getShared index) */
 
 int
-sharedGet(int args)
+getShared(int args)
     {
-    int index = ival(car(args));
+    int slot = ival(car(args));
+
+    if (slot < 0 || slot >= sharedSize)
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: "
+            "index (%d) into shared memory is out of bounds\n",
+            SymbolTable[file(args)],line(args),
+            slot);
+
     int result = ucons(0,0);
     /* first slot is reserved for an error code */
-    the_cars[result] = shared[index+1];
+    the_cars[result] = shared[slot+1];
     return result;
+    }
+
+/* (setSharedSize size) */
+
+int
+setSharedSize(int args)
+    {
+    int old = sharedSize;
+    sharedSize = ival(car(args));
+    return newInteger(old);
+    }
+
+/* (getSharedSize) */
+
+int
+getSharedSize(int args)
+    {
+    return newInteger(sharedSize);
+    }
+
+/* (yield) */
+
+int
+yield(int args)
+    {
+    sched_yield();
+    sched_yield();
+    return 0;
+    }
+
+/* (acquire) */
+
+int
+acquire(int args)
+    {
+    sem_wait(semaphore);
+    return 0;
+    }
+
+/* (release) */
+
+int
+release(int args)
+    {
+    sem_post(semaphore);
+    return 0;
     }
 
 void
@@ -3281,6 +3347,30 @@ loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = acquire;
+    b = makeBuiltIn(env,
+        newSymbol("acquire"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = release;
+    b = makeBuiltIn(env,
+        newSymbol("release"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = yield;
+    b = makeBuiltIn(env,
+        newSymbol("yield"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = ssleep;
     b = makeBuiltIn(env,
@@ -3294,8 +3384,7 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("*pexecute"),
         ucons(sharpSymbol,
-            ucons(newSymbol("size"),
-                ucons(dollarSymbol,0))),
+            ucons(dollarSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
@@ -3304,25 +3393,40 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbol("pexecute"),
         ucons(sharpSymbol,
-            ucons(newSymbol("size"),
-                ucons(dollarSymbol,0))),
+            ucons(dollarSymbol,0)),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = sharedGet;
+    BuiltIns[count] = getShared;
     b = makeBuiltIn(env,
-        newSymbol("sharedGet"),
+        newSymbol("getShared"),
         ucons(newSymbol("index"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = sharedSet;
+    BuiltIns[count] = setShared;
     b = makeBuiltIn(env,
-        newSymbol("sharedSet"),
+        newSymbol("setShared"),
         ucons(newSymbol("index"),
             ucons(newSymbol("value"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = getSharedSize;
+    b = makeBuiltIn(env,
+        newSymbol("getSharedSize"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = setSharedSize;
+    b = makeBuiltIn(env,
+        newSymbol("setSharedSize"),
+        ucons(newSymbol("size"),0),
         newInteger(count));
     defineVariable(env,closure_name(b),b);
     ++count;
