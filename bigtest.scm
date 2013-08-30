@@ -31,7 +31,7 @@
 
 (define (runs #)
     (define s)
-    (for-each2 s exercises
+    (for-all s exercises
         ((eval s #))
         ((eval (symbol (string+ "jcl-" (string s))) #))
         )

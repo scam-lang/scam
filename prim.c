@@ -3061,7 +3061,7 @@ ssleep(int args)
     }
 
 static int
-acquireSharedMemory(int args)
+allocateSharedMemory(int args)
     {
     int i;
 
@@ -3164,7 +3164,7 @@ spexecute(int args)
  
     env = car(args);
 
-    result = acquireSharedMemory(args);
+    result = allocateSharedMemory(args);
     rethrow(result,0);
 
     spot = cadr(args); /* skip over the environment */
@@ -3202,7 +3202,7 @@ pexecute(int args)
 
     //printf("shared size is %d\n", sharedSize);
 
-    result = acquireSharedMemory(args);
+    result = allocateSharedMemory(args);
     rethrow(result,0);
 
     spot = cadr(args); /* skip over the environment */

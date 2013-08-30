@@ -177,7 +177,7 @@
             )
         )
     (inspect vars)
-    (for-each2 i vars
+    (for-all i vars
         (helper i (env i) (get 'code f))
         )
     'done
