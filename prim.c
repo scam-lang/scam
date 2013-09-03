@@ -19,6 +19,7 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <semaphore.h>
+//#include <pthread.h>
 #include <sched.h>
  
 extern char *LibraryName;
@@ -39,7 +40,10 @@ int sharedSize = 1;
 CELL *shared;
 int sharedID;
 sem_t *semaphore;
+//pthread_mutex_t *semaphore;
 int semaphoreID;
+
+static int semaphoreDebugging = 0;
 
 static int
 scamBoolean(int item)
@@ -3071,6 +3075,7 @@ allocateSharedMemory(int args)
     sharedID = shmget(IPC_PRIVATE,
         (sharedSize + 1) * sizeof(CELL),S_IRUSR|S_IWUSR);
     semaphoreID = shmget(IPC_PRIVATE,sizeof(sem_t),S_IRUSR|S_IWUSR);
+    //semaphoreID = shmget(IPC_PRIVATE,sizeof(pthread_mutex_t),S_IRUSR|S_IWUSR);
  
     if (sharedID < 0 || semaphoreID < 0)
         {
@@ -3081,8 +3086,10 @@ allocateSharedMemory(int args)
 
     shared = (CELL *) shmat(sharedID,(void *) 0,0);
     semaphore = (sem_t *) shmat(semaphoreID,(void *) 0,0);
+    //semaphore = (pthread_mutex_t *) shmat(semaphoreID,(void *) 0,0);
  
     if (shared == (CELL *) -1 || semaphore == (sem_t *) -1)
+    //if (shared == (CELL *) -1 || semaphore == (pthread_mutex_t *) -1)
         {
         return throw(parallelExceptionSymbol,
             "file %s,line %d: failed to attach shared memory",
@@ -3098,6 +3105,7 @@ allocateSharedMemory(int args)
         }
     shared[0].ival = -1; //set error code to -1 (no child erred)
     sem_init(semaphore,1,1);
+    //pthread_mutex_init(semaphore,(pthread_mutexattr_t *)0);
 
     return 0;
     }
@@ -3134,6 +3142,14 @@ convertSharedMemory(int args)
         }
 
     sem_destroy(semaphore);
+    /*
+    if (pthread_mutex_destroy(semaphore) != 0)
+        {
+        return throw(parallelExceptionSymbol,
+            "file %s,line %d: attempt to free a locked mutex",
+            SymbolTable[file(args)],line(args));
+        }
+    */
 
     if ((shmdt(shared)) == -1 || shmdt(semaphore))
         {
@@ -3196,7 +3212,7 @@ pexecute(int args)
     {
     int env;
     int result;
-    int spot,count;
+    int spot;
  
     env = car(args);
 
@@ -3207,7 +3223,6 @@ pexecute(int args)
 
     spot = cadr(args); /* skip over the environment */
 
-    count = 0;
     while (spot != 0) /* loop over lambdas */
         {
         int pid = fork();
@@ -3216,12 +3231,11 @@ pexecute(int args)
             //debug("forking ",car(spot));
             result = eval(car(spot),env);
             if (isThrow(result))
-                shared[0].ival = count;
+                shared[0].ival = getpid();
             exit(0);
             }
         else
             {
-            ++count;
             spot = cdr(spot);
             }
         }
@@ -3240,8 +3254,7 @@ pexecute(int args)
     if (shared[0].ival >= 0)
         {
         return throw(parallelExceptionSymbol,
-            "file %s,line %d: parallel execution of expression %d (zero-based) "
-            "failed\n"
+            "file %s,line %d: parallel execution of process %d failed\n"
             "try using *pexecute instead of pexecute for more information",
             SymbolTable[file(args)],line(args),shared[0].ival);
         }
@@ -3324,12 +3337,34 @@ yield(int args)
     return 0;
     }
 
+/* (debugSemaphore mode) */
+
+int
+debugSemaphore(int args)
+    {
+    semaphoreDebugging = car(args);
+    return 0;
+    }
+
+/* (getPID) */
+
+int
+getPID(int args)
+    {
+    return newInteger(getpid());
+    }
+
 /* (acquire) */
 
 int
 acquire(int args)
     {
+    if (semaphoreDebugging)
+        fprintf(stdout,"process %d is acquiring...\n",getpid());
     sem_wait(semaphore);
+    //pthread_mutex_lock(semaphore);
+    if (semaphoreDebugging)
+        fprintf(stdout,"process %d has acquired.\n",getpid());
     return 0;
     }
 
@@ -3338,7 +3373,12 @@ acquire(int args)
 int
 release(int args)
     {
+    if (semaphoreDebugging)
+        fprintf(stdout,"process %d is releasing...\n",getpid());
     sem_post(semaphore);
+    //pthread_mutex_unlock(semaphore);
+    if (semaphoreDebugging)
+        fprintf(stdout,"process %d has released.\n",getpid());
     return 0;
     }
 
@@ -3347,6 +3387,22 @@ loadBuiltIns(int env)
     {
     int b;
     int count = 0;
+
+    BuiltIns[count] = getPID;
+    b = makeBuiltIn(env,
+        newSymbol("getpid"),
+        0,
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = debugSemaphore;
+    b = makeBuiltIn(env,
+        newSymbol("debugSemaphore"),
+        ucons(newSymbol("mode"),0),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = acquire;
     b = makeBuiltIn(env,

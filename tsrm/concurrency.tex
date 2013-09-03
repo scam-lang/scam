@@ -9,15 +9,16 @@ detail the built-in concurrency and concurrency control
 functions and give details on
 their use.
 
-\subsection{Parallel execution of expressions)
+\subsection{Parallel execution of expressions}
 
-Expressions in Scam be evaluated in parallel with the variadic function
+Expressions in Scam can be evaluated in parallel with the variadic function
 {\it pexecute}:
 
 \begin{verbatim}
     (pexecute expr1 expr2 ... exprN)
 \end{verbatim}
 
+Each of the expressions will execute in parallel in separate processes.
 Conventionally, the expressions are calls to no-argument functions, as in:
 
 \begin{verbatim}
@@ -28,7 +29,7 @@ In the above example, the functions {\it f} and {\it g}
 and the body of the lambda
 will all be executed in parallel.
 
-The result of a call to pexecute will be an array of all the values
+The result of a call to {\it pexecute} will be an array of all the values
 in shared memory. The next subsection explains how to set up shared
 memory and how individual processes running in parallel can access
 it.
@@ -48,8 +49,8 @@ As an example, the call:
 increases shared memory to 10 elements.
 
 Each expressions running in parallel has an associated process. Each process
-can access the shared memory using the setShared and getShared functions.
-For example:
+can access the shared memory using the {\it setShared} and {\it getShared}
+functions.  For example:
 
 \begin{verbatim}
     (setShared i (+ (getShared i) 1))
@@ -59,8 +60,9 @@ increments the value at shared memory location {\it i}. Note that there
 is no implicit control over access to shared memory. Competing processes
 may very well trash each other's updates to a shared memory location.
 
-Shared memory is allocated when {\it pexecute} is called and is released
-just before {\it pexecute} terminates.
+Shared memory is allocated when {\it pexecute} is called and each element
+is initialized to zero. It is released
+just before {\it pexecute} terminates. 
 
 To control access, Scam provides a binary semaphore, as described
 in the next subsection.
@@ -80,7 +82,7 @@ Likewise, to release the semaphore, a process would issue a call to:
     (release)
 \end{verbatim}
 
-Thus, to protect the updated of a shared memory location, all processes
+Thus, to protect the update of a shared memory location, all processes
 would follow the following pattern:
 
 \begin{verbatim}
@@ -100,573 +102,51 @@ a process to release the semaphore if the process ids matched.
 
 The built-in semaphore is stored in shared memory.
 
-\subsection{Debugging concurrency problems)
+\subsection{Debugging concurrency problems}
 
 Getting concurrent execution correct is often a difficult process.
 One can get a little information about the use of the semaphore 
 by calling the {\it debugSemaphore} function:
 
+\begin{verbatim}
     (debugSemaphore #t)
     (debugSemaphore #f)
-
-\begin{enumerate}
-\item
-    encapsulation
-\item
-    inheritance
-\item
-    polymorphism
-\end{enumerate}
-
-Encapsulation in this sense means that a programmer
-can bundle {\it data} and {\it methods} into a single entity.
-We've seen that a Scam function can
-have local variables and local functions.
-So, if we consider local variables (including the formal
-parameters) as data and local
-functions as methods, we see that Scam can encapsulate
-in the object-oriented sense.
-
-Inheritance is the ability to use the data and methods
-of one kind of object by another as if they were defined
-in the other object to begin with.
-
-Polymorphism means that an object that inherits appears
-to be both kinds of object, the kind of object it is
-itself and the kind of object from which it inherits.
-
-\section{Simple encapsulation}
-
-The previous chapter was concerned with encapsulation;
-let us review.
-
-A notion that simplifies encapsulation in Scam is to use
-environments themselves as objects. Since an environment can be thought
-of as a table of the variable names currently in scope, along with their
-values, and an object can be thought of as a table of instance variables
-and method names, along with their values, the association of these two
-entities is not unreasonable.
-
-Thus, to create an object, we need only cause a new scope to come into
-being. A convenient way to do this is to make a function call. The call
-causes a new environment to be created, in which the arguments to the
-call are bound to the formal parameters and under which the function body
-is evaluated. Our function need only return a pointer to the current
-execution environment to create an object.  Under such a scenario, we
-can view the the function definition as a class definition with the
-formal parameters serving as instance variables and locally defined
-functions serving as instance methods.  
-
-Scam 
-allows the current execution environment
-to be referenced and returned.
-Here is an example of object creation in Scam:
-
-\begin{verbatim}
-    (define (bundle a b)
-        (define (total base) (+ base a b))
-        (define (toString) (string+ "a:" a ", b:" b))
-        this    ;return the execution environment
-        )
-
-    (define obj (bundle 3 4))
-
-    (inspect ((obj 'display)))  ;call the display function
-    (inspect ((obj 'total) 0))  ;call the total function
 \end{verbatim}
 
-The variable {\it this} is always bound to the current execution
-enironment or scope. Since, in Scam, objects and environments the same,
-this can be roughly thought of as a self reference to an object. The
-the object can be called as if it were a function as long as the arguments
-in the call resolve to field names.
-The {\it inspect} function prints the unevaluated argument followed by
-its evaluation.
-
-Running the above program yields the following output:
+The first call turns debugging on while the second turns debugging off. When
+on, attempts to acquire the semaphore produce output (on stdout) of
+the form:
 
 \begin{verbatim}
-    ((obj 'display)) is a:3, b:4
-    ((obj 'total) 0) is 7
+    process XXXX is acquiring...
 \end{verbatim}
 
-It can be seen from the code and the output that encapsulation via this
-method produces objects that can be manipulated in an intuitive manner.
-
-It should be stated that encapsulation is considered merely a device for
-holding related data together; whether the capsule is transparent or
-not is not considered important for the purposes of this paper. Thus,
-in the above example, all components are publicly visible. 
-
-\section{Three common types of inheritance}
-
-Any specification of inheritance semantics must be (relatively)
-consistent with the afore-mentioned intuition about inheritance.
-With regards to inheritance behavior pragmatics, there seems to be three
-forms of inheritance behavior that make up this intuition.  Taking the
-names given by Bertrand Meyer in ``The Many Faces of Inheritance: 
-A Taxonomy of Taxonomies'',
-the three are {\it extension},
-{\it reification}, and {\it variation}.  In extension inheritance,
-the heir simply adds features in addition to the features of the
-ancestor; the heir is indistinguishable from the ancestor, modulo the
-original features.  In reification inheritance, the heir completes,
-at least partially, an incompletely specified ancestor.  An example of
-reification inheritance is the idea of an abstract base class in Java.
-In variation inheritance, the heir adds no new features but overrides
-some of the ancestor's features. Unlike extension inheritance, the heir
-is distinguishable from the ancestor, modulo the original features. The
-three inheritance types are not mutually exclusive; as a practical matter,
-all three types of inheritance could be exhibited in a single instance
-of general inheritance.  Any definition of inheritance should capture
-the intent of these forms.
-As it turns out, it is very easy to implement these three forms
-of inheritance in Scam.
-
-Scam uses a novel approach to inheritance. Other languages 
-processors pass
-a pointer to the object in question to all object methods.
-This pointer is known as a self-reference. This passing of
-a self-reference may be hidden from the programmer or may
-be made explicit. In any case, Scam displenses with self-references
-and implements inheritance through the manipulation of scope.
-
-\subsection{Extension inheritance}
-
-In order to provide inheritance by manipulating scope, it must be
-possible to both get and set the static scope, at runtime, of objects
-and function closures.  There are two functions that will help us
-perform those tasks. They are
-{\it getEnclosingScope} and {\it setEnclosingScope} and are defined
-in the supplemental library, {\it inherit.lib}.
-While at first
-glance it may seem odd to change a static scope at runtime,
-these functions translate into getting and setting
-the{\it  \_\_context} pointer of an environment (or closure).
-
-Recall that in extension inheritance, the subclass strictly adds
-new features to a superclass and that a subclass object and a
-superclass object are indistinguishable, behavior-wise, with regards
-to the features provided by the superclass.  
-Consider two objects, {\it child} and {\it parent}. The extension
-inheritance of {\it child} from {\it parent} can be implemented with
-the following pseudocode:
+where XXXX is replaced by the process id of the acquiring process.
+If the semaphore is actually acquired, debugging emits:
 
 \begin{verbatim}
-    setEnclosingScope(parent,getEnclosingScope(child));
-    setEnclosingScope(child,parent);
+    process XXXX has acquired.
 \end{verbatim}
 
-As a concrete example, consider the following Scam program:
+On the releasing side, debugging emits messages of the form:
 
 \begin{verbatim}
-    (include "inherit.lib")
-
-    (define (c) "happy")
-    (define (parent)
-        (define (b) "slap")
-        this
-        )
-    (define (child)
-        (define (a) "jacks")
-        (define temp (parent))
-        (setEnclosingScope temp (getEnclosingScope this))
-        (setEnclosingScope this temp)
-        this
-        )
-
-    (define obj (child))
-
-    (inspect ((obj 'b)))
-    (inspect ((obj 'a)))
-    (inspect ((obj 'c)))
+    process XXXX is releasing...
+    process XXXX has released.
 \end{verbatim}
 
-Running this program yields the following output:
+When a process executing in parallel throws an exception, {\it pexecute} will
+produce an error message similar to:
 
 \begin{verbatim}
-    ((obj 'a)) is jacks
-    ((obj 'b)) is slap
-    ((obj 'c)) is happy
+    file philosophers,line 356: parallel execution of process 5827 failed
+    try using *pexecute for more information
 \end{verbatim}
 
-The call to {\it a} immediately finds the child's method.  The call to
-{\it b} results in a search of the child. Failing to find a binding
-for {\it b} in {\it child}, the enclosing scope of {\it child} is
-searched. Since the enclosing scope of {\it child} has been reset to {\it
-parent}, {\it parent} is searched for {\it b} and a binding is found.
-In the final call to {\it c}, a binding is not found in either the
-child or the parent, so the enclosing scope of {\it parent} is searched.
-That has been reset to {\sc child}'s enclosing scope. There a binding
-is found. So even if the parent object is created in a scope different
-from the child, the correct behavior ensues.
-
-For an arbitrarily long inheritance chain, {\it p1} inherits from {\it
-p2}, which inherits from {\it p3} and so on, the most distant ancestor
-of the child object receives the child's enclosing scope:
-
-\begin{verbatim}
-    setEnclosingScope(pN,getEnclosingScope(p1))
-    setEnclosingScope(p1,p2);
-    setEnclosingScope(p2,p3);
-    ...
-    setEnclosingScope(pN-1,pN)
-\end{verbatim}
-
-It should be noted that the code examples in this and the next subsections
-hard-wire the inheritance manipulations. As will be seen further on,
-Scam automates these tasks.
-
-\subsection{Reification inheritance}
-
-As stated earlier, reification inheritance concerns a subclass fleshing
-out a partially completed implementation by the superclass. A consequence
-of this finishing aspect is that, unlike extension inheritance, the
-superclass must have access to subclass methods.  A typical approach
-to handling this problem is rather inelegant, passing a reference to
-the original object as hidden, or not so hidden,
-parameter to all methods.  Within method
-bodies, method calls are routed through this reference. Inheritance in
-Python is done just this way; the object reference is bound to the
-first formal parameter in all object methods.
-
-That said, our approach for extension inheritance
-does not work for reification inheritance. Suppose a parent method
-references a method provided by the child. In Scam,
-when a function definition is encountered, a closure is
-created and this closure holds a pointer to the definition environment. It
-is this pointer that implements static scoping in such interpreters.
-
-For parent methods, then, the enclosing scope is the parent.  When the
-function body of the method is being evaluated, the reference to the
-method supplied by the child goes unresolved, since it is not found in
-the parent method. The enclosing scope of the parent method, the parent
-itself, is searched next.  The reference remains unresolved. Next the
-enclosing scope of the parent is searched, which has been reset to the
-enclosing scope of the child. Again, the reference goes unresolved (or
-resolved by happenstance should a binding appear in some enclosing scope
-of the child).
-
-The solution to this problem is to reset the enclosing scopes of the
-parent methods to the child. In pseudocode:
-
-\begin{verbatim}
-    setEnclosingScope(parent,getEnclosingScope(child));
-    setEnclosingScope(child,parent);
-    for each method m of parent
-        setEnclosingScope(m,child)
-\end{verbatim}
-
-Now, reification inheritance works as expected. Here is an example:
-
-\begin{verbatim}
-    (include "inherit.lib")
-
-    (define (parent)
-        (define (ba) (string+ (b) (a)))
-        (define (b) "slap")
-        this
-        )
-    (define (child)
-        (define (a) "jacks")
-        (define temp (parent))
-        (setEnclosingScope temp (getEnclosingScope this))
-        (setEnclosingScope this temp)
-        (setEnclosingScope (temp 'ba) this)
-        this
-        )
-
-    (define obj (child))
-
-    (inspect ((obj 'ba)))
-\end{verbatim}
-
-The output of this program is:
-
-\begin{verbatim}
-    ((obj 'ba)) is "slapjacks"
-\end{verbatim}
-
-As can be seen, the reference to {\it a} in the function {\it ba} is
-resolved correctly, due to the resetting of {\it ba}'s enclosing scope
-by {\it child}.
-
-For longer inheritance chains, the pseudocode of the previous subsection
-is modified accordingly:
-
-\begin{verbatim}
-    setEnclosingScope(pN,getEnclosingScope(p1))
-    setEnclosingScope(p1,p2);
-    for each method m of p2: setEnclosingScope(m,p1)
-    setEnclosingScope(p2,p3);
-    for each method m of p3: setEnclosingScope(m,p1)
-    ...
-    setEnclosingScope(pN-1,pN)
-    for each method m of pN: setEnclosingScope(m,p1)
-\end{verbatim}
-
-All ancestors of the child has the enclosing scopes of their methods reset.
-
-\subsection{Variation inheritance}
-
-Variation inheritance captures the idea of a subclass overriding a
-superclass method. If functions are naturally virtual (as in Java),
-then the overriding function is always called preferentially over the
-overridden function.
-
-If {\it child} is redefined as follows:
-
-\begin{verbatim}
-    (define (child)
-        (define (b) "jumping")
-        (define (a) "jacks")
-        (define temp (parent))
-        (setEnclosingScope temp (getEnclosingScope this))
-        (setEnclosingScope this temp)
-        (setEnclosingScope (temp 'ab) this)
-        this
-        )
-\end{verbatim}
-
-then the new version of {\it b} overrides the parent version.  The output
-now becomes:
-
-\begin{verbatim}
-    ((obj 'ba)) is jumpingjacks 
-\end{verbatim}
-
-This demonstrates that both reification and variation inheritance can be
-implemented using the same mechanism.  Another benefit is that instance
-variables and instance methods are treated uniformly. Unlike virtual
-functions in Java and C++, instance variables in those languages shadow
-superclass instance variables of the same name, but only for subclass
-methods.  For superclass methods, the superclass version of the instance
-variable is visible, while the subclass version is shadowed.  With this
-approach, both instance variables and instance methods are virtual,
-eliminating the potential error of shadowing a superclass instance
-variable. Here is an example:
-
-\begin{verbatim}
-    (include "inherit.lib")
-
-    (define (parent)
-        (define x 0)
-        (define (toString) (string+ "x:" x))
-        this
-        )
-    (define (child)
-        (define x 1)
-        (define temp (parent))
-        (setEnclosingScope temp (getEnclosingScope this))
-        (setEnclosingScope this temp)
-        (setEnclosingScope (temp 'toString) this)
-        this
-        )
-
-    (define p-obj (parent))
-    (define c-obj (child))
-
-    (inspect ((p-obj 'toString)))
-    (inspect ((c-obj 'toString)))
-\end{verbatim}
-
-The output:
-
-\begin{verbatim}
-    ((p-obj 'toString)) is x:0
-    ((c-obj 'toString)) is x:1
-\end{verbatim}
-
-demonstrates the virtuality of the instance variable \emph{x}.  Even
-though the program calls the superclass version of \emph{toString},
-the subclass version of \emph{x} is referenced.
-
-\subsection{Implementing Inheritance in Scam}
-
-Since environments are objects in Scam, implementing the {\it
-getEnclosingScope} and {\it setEnclosingScope} functions are trivial:
-
-\begin{verbatim}
-    (define (setEnclosingScope a b) (set '__context b a))
-    (define (getEnclosingScope a) (a '__context))
-\end{verbatim}
-
-Moreover, the task of resetting the enclosing scopes of the parties
-involved can be automated. Scam provides a library, 
-named {\it inherit.lib}, written in Scam that
-provides a number of inheritance mechanisms. The first (and simplest)
-is ad-hoc inheritance. Suppose we have objects {\it a}, {\it b}, and{\it  c}
-and we wish
-{\it a} to inherit from {\it b} and {\it c}
-(and if both {\it b} and {\it c} provide functionality,
-we prefer {\it b}'s implementation).
-To do so, we call the {\it mixin} function:
-
-\begin{verbatim}
-    (mixin a b c)
-\end{verbatim}
-
-A definition of {\it mixin} could be:
-
-\begin{verbatim}
-    (define (mixin object @)  ; @ points to a list of remaining args
-        (define outer (getEnclosingScope object))
-        (define spot object)
-        (while (not (null? (cdr @)))
-            (define current (car @))
-            (resetClosures current object)
-            (setEnclosingScope spot current)
-            (assign spot current)
-            (assign @ (cdr @)
-            )
-        (setEnclosingScope (car @) outer)
-        (resetClosures (car @) object)
-        )
-\end{verbatim}
-
-The other type of inheritance emulates the {\it extends} operation in
-Java.  For this type of inheritance, the convention is that an object
-must declare a parent. In the constructor for an object, the parent
-instance variable is set to the parent object, usually obtained via the
-parent constructor.  Here is an example:
-
-\begin{verbatim}
-    (define (b)
-        (define parent nil)
-        ...
-        this
-        )
-    (define (a)
-        (define parent (b))     ;setting the parent 
-        ...
-        this
-        )
-\end{verbatim}
-
-Now, to instantiate an object, the {\it new} function is called:
-
-\begin{verbatim}
-    (define obj (new (a)))
-\end{verbatim}
-
-The {\it new} function follows the parent pointers to reset the enclosing
-scopes appropriately. Here is a possible implementation of {\it new},
-which follows the definition of {\it mixin} closely:
-
-\begin{verbatim}
-    (define (new object)
-        (define outer (getEnclosingScope object))
-        (define spot object)
-        (define current (spot 'parent))
-        (while (not (null? current))
-            (resetClosures current object)
-            (setEnclosingScope spot current)
-            (assign spot current)
-            (define current (spot 'parent))
-            )
-        (setEnclosingScope spot outer)
-        (resetClosures spot object)
-        )
-\end{verbatim}
-
-Other forms of inheritance are possible as well. The flexibility of this
-approach does not require inheritance to be built into the language.
-
-\subsection{Darwinian versus Lamarckian Inheritance}
-
-The behavior of the inheritance scheme implemented in this paper differs
-from the inheritance schemes of the major industrial-strength languages
-in one important way.  In Java, for example, if a superclass method
-references a variable defined in an outer scope (this can happen
-with nested classes), those references are resolved the same way,
-{\it whether or not} an object of that class was instantiated as a
-stand-alone object or as part of an instantiation of a subclass object.
-This is remeniscent of the inheritance theory of Jean-Baptiste Lamarck,
-who postulated that the environment influences inheritance. In Java,
-the superclass retains traces of its environment which can influence
-the behavior of a subclass object.
-
-With selfless inheritance, the static scopes of the superclass objects
-are replaced with the static scope of the subclass object, a purely
-Darwinian outcome. The superclass objects contributes the methods
-and instance variables (say, the genes of the superclass) but none of
-the environmental influences.  Thus, the subclass object must provide
-bindings for the non-local references either through its own definitions
-or in its definition environment.
-
-\section{Polymorphism}
-
-Polymorphism is a word that literally means ``having multiple shapes''.
-With regards to object-orientation, polymorphism means one kind of object
-can look like another kind of object. One concrete example of this
-involves inheritance: if object {\it child} inherits from object {\it parent},
-does the {\it child} look like a {\it parent} object
-as well as a {\it child} object? In
-other words, can a variable that points to a parent object also
-point to a child object? This question is of critical importance
-for statically typed languages such as C++ and Java, but is not
-so important for dynamically-typed languages like Scam.
-This is because a Scam variable can point to any type of entity,
-so the question of whether a variable can point to either a child
-or a parent is moot.
-
-That said, it is often useful in an dynamically-typed, object-oriented
-language to ask whether or not a variable points to an object that
-looks like some other object. The {\it is?} function, introduced in the
-previous chapter, can answer these questions. Consider this set
-of constructors:
-
-\begin{verbatim}
-    (include "inherit.lib")
-
-    (define (p)
-        (define parent nil)
-        this
-        )
-
-    (define (c)
-        (define parent (p))
-        this
-        )
-\end{verbatim}
-
-Here, we have {\it b} inheriting from {\it a}.
-If we create an {\it a} object and a {\it b} object using {\it new}:
-
-\begin{verbatim}
-    (define p-obj (new (p)))
-    (define c-obj (new (c)))
-\end{verbatim}
-
-we can now ask what kinds of objects they are:
-
-\begin{verbatim}
-    (inspect (is? p-obj 'p))
-    (inspect (is? c-obj 'c))
-\end{verbatim}
-
-As expected, the output is:
-
-\begin{verbatim}
-    (is? p-obj 'p) is #t
-    (is? c-obj 'c) is #t
-\end{verbatim}
-
-However, a typical view in the object-oriented world is that a
-child object {\it is also} a parent object,
-since it inherits all the fields and
-methods of the {\it parent}. The {\it is?} function conforms to this idea:
-
-\begin{verbatim}
-    (is? c-obj 'p)
-\end{verbatim}
-
-evaluates to true.
-Conversely, the typical view is that the parent object {\it is not}
-a child object. The expression:
-
-\begin{verbatim}
-    (is? p-obj 'c)
-\end{verbatim}
-
-evaluates to false.
+One can print the process id of a process
+using the no-argument {\it getpid} function.
+Additionally, if a process terminates with an exception,
+calling {\it *pexecute} rather than {\it pexecute} may reveal the
+exception that caused the failure.
+The *pexecute function simulates concurrency, but actually runs the
+given expressions sequentially.
