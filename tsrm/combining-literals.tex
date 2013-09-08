@@ -142,6 +142,22 @@ quotient times the divisor plus the remainder is equal to the original
 dividend?'. The Scam interpreter will respond that, indeed, it is
 true. 
 
+\section{Combining strings}
+
+To concatenate strings together, one uses the {\it string+} operator.
+Like \verb!+! and \verb!-,! {\it string+} is variadic;
+we can concatenate any number of
+strings at one time. Strings are concatenated from left to right.
+For examle, the expression:
+
+\begin{verbatim}
+    (string+ "a" "b" "c")
+\end{verbatim}
+
+produces the new string \verb!"abc"!. Note that the strings passed
+to {\it string+} are
+unmodified.
+
 \section{Comparing things}
 
 Remember the {\sc Boolean} literals, {\tt \#t} and {\tt \#t}?

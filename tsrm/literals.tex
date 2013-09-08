@@ -125,12 +125,6 @@ Strings are sequences of characters delineated by double quotation marks:
     -> "z" 
 \end{verbatim}
 
-Scam accepts both double quotes and single quotes to
-delineate strings. In this text, we will use the convention
-that double quotes are used for strings of multiple 
-characters and single quotes for strings consisting of
-a single character.
-
 Characters in a string can be {\it escaped} (or quoted)
 with the backslash character,
 which changes the meaning of some characters. For example, the character
@@ -163,6 +157,10 @@ between the double quotes is known as an empty string.
 Unlike some languages, there is no character type in Scam. A single
 character {\verb+a+}, for example, is entered as the string
 {\verb+"a"+}.
+
+Strings are treated like arrays in terms of accessing the individual
+`characters' of a string. You can read more about arrays and strings
+in a subsequent chapter.
 
 \section{Symbols}
 
