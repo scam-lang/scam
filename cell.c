@@ -96,6 +96,7 @@ int writeIndex;
 int appendIndex;
 int stdinIndex;
 int stdoutIndex;
+int stderrIndex;
 
 int nilIndex;
 int trueIndex;
@@ -252,6 +253,7 @@ memoryInit(int memsize)
     appendIndex          = findSymbol("append");
     stdinIndex           = findSymbol("stdin");
     stdoutIndex          = findSymbol("stdout");
+    stderrIndex          = findSymbol("stderr");
 
     nilIndex = ival(nilSymbol);
     trueIndex = ival(trueSymbol);

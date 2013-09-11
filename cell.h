@@ -166,6 +166,7 @@ extern int writeIndex;
 extern int appendIndex;
 extern int stdinIndex;
 extern int stdoutIndex;
+extern int stderrIndex;
 
 extern int nilIndex;
 extern int trueIndex;

@@ -1167,7 +1167,10 @@ ppp(int args)
     int a = cadr(args);
     FILE *port = OpenPorts[CurrentOutputIndex];
 
-    scamPP(port,a);
+    if (isObject(a))
+        ppTable(port,a,0);
+    else
+        scamPP(port,a);
     return 0;
     }
 
@@ -1622,7 +1625,7 @@ addOpenPort(FILE *fp,int portType,int fi,int li)
     int i;
     int maxPorts = sizeof(OpenPorts) / sizeof(FILE *);
 
-    for (i = 2; i < maxPorts; ++i)
+    for (i = 3; i < maxPorts; ++i)
         {
         //printf("port[%d] is %p\n",i,OpenPorts[i]);
         if (OpenPorts[i] == 0)
@@ -1669,6 +1672,12 @@ setPort(int args)
             {
             old = CurrentOutputIndex;
             CurrentOutputIndex = 1;
+            return ucons(outputPortSymbol,ucons(newInteger(old),0));
+            }
+        else if (ival(target) == stderrIndex)
+            {
+            old = CurrentOutputIndex;
+            CurrentOutputIndex = 2;
             return ucons(outputPortSymbol,ucons(newInteger(old),0));
             }
         else 
@@ -4389,6 +4398,8 @@ loadBuiltIns(int env)
 
     OpenPorts[0] = stdin;
     OpenPorts[1] = stdout;
+    OpenPorts[2] = stderr;
+
     CurrentInputIndex = 0;
     CurrentOutputIndex = 1;
     }
