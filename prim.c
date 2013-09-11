@@ -1222,8 +1222,22 @@ cond(int args)
     while (cases != 0)
         {
         int result;
-        int condition = caar(cases);
+        int condition;
+        int rule = car(cases);
 
+        if (type(rule) != CONS)
+            {
+            return throw(exceptionSymbol,
+                "file %s,line %d: "
+                "malformed case in cond",
+                SymbolTable[file(car(cases))],line(car(cases))
+                );
+            }
+
+        condition = car(rule);
+
+        //debug("cases: ",cases);
+        //debug("condition: ",condition);
         push(env);
         push(cases);
         result = eval(condition,env);
