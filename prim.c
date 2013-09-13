@@ -1409,6 +1409,13 @@ iinclude(int args)
     PARSER *p;
 
     if (type(fileName) != STRING)
+        {
+        push(env);
+        fileName = eval(fileName,env);
+        env = pop();
+        }
+
+    if (type(fileName) != STRING)
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "include argument was type %s, not STRING",
