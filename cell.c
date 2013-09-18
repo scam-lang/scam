@@ -115,6 +115,8 @@ int tailAssignSymbol;
 int openBracketSymbol;
 int setBangSymbol;
 
+int nilString;
+
 /* the following symbols need to be moved to a struct for multi-threading */
 
 int StackPtr = 0;
@@ -265,6 +267,8 @@ memoryInit(int memsize)
 
     zero = newInteger(0);
     one = newInteger(1);
+
+    nilString = newString("nil");
 
     rootBottom = MemorySpot;
     }

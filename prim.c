@@ -1120,7 +1120,10 @@ display(int args)
 
     //printf("writing to port %p\n",port);
     //debug("    ",car(args));
-    scamPP(port,car(args));
+    if (car(args) == 0)
+        scamPP(port,nilString);
+    else
+        scamPP(port,car(args));
 
     return car(args);
     }
