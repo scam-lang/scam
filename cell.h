@@ -184,5 +184,3 @@ extern int functionSymbol;
 extern int headAssignSymbol;
 extern int tailAssignSymbol;
 extern int openBracketSymbol;
-
-extern int nilString;

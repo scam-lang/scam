@@ -34,8 +34,13 @@ different sequence each time, a common trick is to set the
 state with the current time at the start of the program:
 
 \begin{verbatim}
-    (randomSeed (time))
+    (randomSeed (integer (time)))
 \end{verbatim}
+
+Note that \verb!(integer (time))! changes rather slowly, as computers go, since
+it marks the number of seconds since the beginning of the epoch.
+So setting the seed once at the beginning of a program is probably
+OK; setting the seed multiple times within a program may be problematic.
 
 \section{The {\it random} library}
 

@@ -1,3 +1,11 @@
+scam (1.6)
+
+  * fixed error messages bug
+
+scam (1.5)
+
+  * add concurrency via pexecute function
+
 scam (1.4)
 
   * fixed bug in is? -- now returns true for 'object

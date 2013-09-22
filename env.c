@@ -163,7 +163,13 @@ makeClosure(int context,int name,int parameters,int body,int mode)
     o = makeObject(closureSymbol);
 
     if (mode == ADD_BEGIN)
-       body = ucons(beginSymbol,body);
+       {
+       //debug("adding body to",name);
+       //printf("    from %s,line %d\n",
+           //SymbolTable[file(body)],
+           //line(body));
+       body = uconsfl(beginSymbol,body,file(body),line(body));
+       }
 
     object_variable_hook(o) =
         ucons(contextSymbol,

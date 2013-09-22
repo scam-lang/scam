@@ -961,7 +961,7 @@ randomSeed(int args)
     return throw(exceptionSymbol,
         "file %s,line %d: "
         "randomSeed: argument must be a positive integer",
-        SymbolTable[file(car(args))],line(car(args)));
+        SymbolTable[file(a)],line(a));
     }
 
 /* (sin a) */
@@ -1120,10 +1120,8 @@ display(int args)
 
     //printf("writing to port %p\n",port);
     //debug("    ",car(args));
-    if (car(args) == 0)
-        scamPP(port,nilString);
-    else
-        scamPP(port,car(args));
+
+    scamPP(port,car(args));
 
     return car(args);
     }
@@ -1391,9 +1389,15 @@ inspect(int args)
     result = eval(cadr(args),car(args));
     args = pop();
 
-    scamPP(stdout,cadr(args));
+    if (cadr(args) == 0)
+        fprintf(stdout,"nil");
+    else
+        scamPP(stdout,cadr(args));
     fprintf(stdout," is ");
-    scamPP(stdout,result);
+    if (result == 0)
+        fprintf(stdout,"nil");
+    else
+        scamPP(stdout,result);
     fprintf(stdout,"\n");
     return result;
     }

@@ -29,7 +29,7 @@ extern FILE *Input;
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
 char *PROGRAM_NAME = "scam";
-char *PROGRAM_VERSION = "1.5";
+char *PROGRAM_VERSION = "1.6";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
@@ -106,22 +106,22 @@ ERROR:
     //debug("thrown",result);
     if (TraceBack)
         {
-        int presult;
         int spot = error_trace(result);
-        int prettySetup = ucons(prettyStatementSymbol,ucons(ucons(quoteSymbol,
-               ucons(0,0)),ucons(newString("    "),0)));
+        //int prettySetup = ucons(prettyStatementSymbol,ucons(ucons(quoteSymbol,
+        //       ucons(0,0)),ucons(newString("    "),0)));
         printf("EXCEPTION TRACE --------------------\n");
         while (spot != 0)
             {
-            fprintf(stdout,"from %s,line %d:\n",
+            fprintf(stdout,"from %s,line %d:\n    ",
                 filename(spot),line(spot));
-            car(cdr(car(cdr(prettySetup)))) = car(spot);
-            presult = eval(prettySetup,env);
-            if (isThrow(presult))
-                {
-                ppf("pretty print error: ",error_value(result),"\n");
-                break;
-                }
+            ppf("",car(spot),"\n");
+            //car(cdr(car(cdr(prettySetup)))) = car(spot);
+            //presult = eval(prettySetup,env);
+            //if (isThrow(presult))
+            //    {
+            //    ppf("pretty print error: ",error_value(result),"\n");
+            //    break;
+            //    }
             spot = cdr(spot);
             }
         }

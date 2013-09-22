@@ -131,7 +131,8 @@ evalCall(int call,int env, int mode)
     int closure,eargs;
     int callingLevel = ival(env_level(env));
 
-    //printf("evalCall...\n");
+    //debug("evalCall: ",car(call));
+    //printf("file %s,line %d\n",SymbolTable[file(call)],line(call));
     if (mode == NORMAL)
         {
         push(env);
@@ -159,7 +160,7 @@ evalCall(int call,int env, int mode)
         //debug("unevaluated args",cdr(call));
         eargs = processArguments(closure_name(closure),
             closure_parameters(closure),cdr(call),env,mode,
-            file(car(call)),line(car(call)));
+            file(call),line(call));
         closure = pop();
 
         rethrow(eargs,0);
@@ -446,6 +447,9 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
         else
             first = car(args);
 
+        file(first) = file(car(args));
+        line(first) = line(car(args));
+
         push(first);
         rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
         assureMemory("processArgs:eArg",1,&rest,(int *)0);
@@ -456,6 +460,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
         result = uconsfl(first,rest,fi,li);
         }
     //debug("p-a result",result);
+    //printf("file: %s\n",SymbolTable[fi]);
     return result;
     }
 
@@ -467,10 +472,16 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
 static int
 unevaluatedArgList(int args)
     {
+    int result;
     if (args == 0)
         return 0;
     else
-        return cons(car(args),unevaluatedArgList(cdr(args)));
+        {
+        result = cons(car(args),unevaluatedArgList(cdr(args)));
+        file(result) = file(car(args));
+        line(result) = line(car(args));
+        return result;
+        }
     }
 
 static int
@@ -478,16 +489,24 @@ evaluatedArgList(int args,int env)
     {
     int first;
     int rest;
+    int fi;
+    int li;
+    int result;
     if (args == 0)
         return 0;
     else
         {
         //debug("need to evaluate arg",car(args));
+        fi = file(car(args));
+        li = line(car(args));
         push(env);
         push(args);
         first = eval(car(args),env);
         args = pop();
         env = pop();
+
+        file(first) = fi;
+        line(first) = li;
 
         rethrow(first,0);
 
@@ -502,7 +521,11 @@ evaluatedArgList(int args,int env)
 
         rethrow(rest,0);
 
-        return ucons(first,rest);
+        result = ucons(first,rest);
+        file(result) = fi;
+        line(result) = li;
+
+        return result;
         }
     }
 
