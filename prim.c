@@ -2440,6 +2440,8 @@ llength(int args)
         return newInteger(0);
     else if (type(item) == ARRAY)
         return newInteger(count(item));
+    else if (type(item) == STRING)
+        return newInteger(count(item));
     else if (type(item) == CONS)
         {
         int size = 0;

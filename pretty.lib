@@ -55,6 +55,7 @@
     ;;;;; end of helper functions ;;;;
 
     (cond
+        ((null? expr) (print indent "nil") #t)
         ((not (pair? expr)) (print indent expr) #t)
         ((closure? expr) (ppFunction expr indent) #f)
         ((eq? (car expr) 'begin) (ppBlock expr indent) #f)
