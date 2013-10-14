@@ -30,7 +30,8 @@ and the body of the lambda
 will all be executed in parallel.
 
 The result of a call to {\it pexecute} will be an array of all the values
-in shared memory. The next subsection explains how to set up shared
+that were found in shared memory.
+The next subsection explains how to set up shared
 memory and how individual processes running in parallel can access
 it.
 
@@ -146,7 +147,7 @@ produce an error message similar to:
 One can print the process id of a process
 using the no-argument {\it getpid} function.
 Additionally, if a process terminates with an exception,
-calling {\it *pexecute} rather than {\it pexecute} may reveal the
+calling \verb!*!{\it pexecute} rather than {\it pexecute} may reveal the
 exception that caused the failure.
-The {\it *pexecute} function simulates concurrency, but actually runs the
+The \verb!*!{\it pexecute} function simulates concurrency, but actually runs the
 given expressions sequentially.
