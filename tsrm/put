@@ -13,8 +13,8 @@ cp index.pdf book.pdf
 fix index*.html
 if [ $where".cs.ua.edu" == $SERVER ]  ; then
     echo sending scam book files to $SERVER via direct copy...
-    cp index.html lusth.css *.tex book.pdf /var/www/scam/tsrm/;
+    cp index.html *.html lusth.css *.tex book.pdf /var/www/scam/tsrm/;
 else
     echo sending scam book files to $SERVER via ssh...
-    scp index.html lusth.css *.tex book.pdf $SERVER:/var/www/scam/tsrm/;
+    scp index.html *.html lusth.css *.tex book.pdf $SERVER:/var/www/scam/tsrm/;
 fi
