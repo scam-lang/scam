@@ -47,7 +47,8 @@ As an example, the call:
     (setSharedSize 10)
 \end{verbatim}
 
-increases shared memory to 10 elements.
+increases shared memory to 10 elements. One can retrieve the current size of
+shared memory with a call to \verb!(getSharedSize)!.
 
 Each expressions running in parallel has an associated process. Each process
 can access the shared memory using the {\it setShared} and {\it getShared}
@@ -67,6 +68,14 @@ just before {\it pexecute} terminates.
 
 To control access, Scam provides a binary semaphore, as described
 in the next subsection.
+
+\color{red}
+Warning:
+\color{black}
+only literal values should be stored in shared memory.
+Otherwise, should garbage collection occur during parallel execution,
+addresses in shared memory will point to stale memory. Accessing stale memory
+will most assuredly corrupt the current computation.
 
 \subsection{Controlling access to shared memory}
 
@@ -95,13 +104,40 @@ would follow the following pattern:
 Note that a binary semaphore is {\it not} a mutex. It is possible for
 one process to acquire the semaphore and another process to release it.
 However, it is relatively straightforward to implement a mutex using
-the built-in semaphore and the {\it getpid} function. The no-argument
+the built-in semaphore and control memory.
+Control memory,
+described in the next subsection.
+
+\subsection{Support for higher-level concurrency control mechanisms}
+
+A different type of shared memory, called {\it control memory},
+is available to store
+information (such as {\it pid}s) for the use of higher-level control
+structures. The manipulation of this section of memory is similar to
+that of shared memory, with the following accessors and mutators:
+
+\begin{itemize}
+\item
+        {\it getControlSize}, analogous to {\it getSharedSize}
+\item
+        {\it setControlSize}, analogous to {\it setSharedSize}
+\item
+        {\it setControl}, analogous to {\it setShared}
+\item
+        {\it getControl}, analogous to {\it getShared}
+\end{itemize}
+
+The default size of control memory is a single element.
+To implement a mutex, one could store the {\it pid} of the acquiring
+process in this element.
+The no-argument
 {\it getpid} function returns the process id of the calling process.
-One would store the process id of the process that acquired
-the semaphore somewhere in shared memory and only allow
+One could store the {\it pid} of the acquiring process,
+in the single element of control  memory, and only allow
 a process to release the semaphore if the process ids matched.
 
-The built-in semaphore is stored in shared memory.
+Like regular shared memory, only literal values should be stored
+in control memory.
 
 \subsection{Debugging concurrency problems}
 
@@ -140,7 +176,7 @@ When a process executing in parallel throws an exception, {\it pexecute} will
 produce an error message similar to:
 
 \begin{verbatim}
-    file philosophers,line 356: parallel execution of process 5827 failed
+    file philosophers.scm,line 356: parallel execution of process 5827 failed
     try using *pexecute for more information
 \end{verbatim}
 
