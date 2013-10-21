@@ -29,8 +29,18 @@ In the above example, the functions {\it f} and {\it g}
 and the body of the lambda
 will all be executed in parallel.
 
-The result of a call to {\it pexecute} will be an array of all the values
-that were found in shared memory.
+Prior to calling {\it pexecute}, one must allocate shared memory.
+After {\it pexecute} returns, one can convert the data in shared memory into
+a regular list. After conversion, one should free the shared memory.
+Thus, a typical call to {\it pexecute} would look like:
+
+\begin{verbatim}
+    (allocateSharedMemory)
+    (pexecute ...)
+    (define result (convertSharedMemory))
+    (freeSharedMemory)
+\end{verbatim}
+    
 The next subsection explains how to set up shared
 memory and how individual processes running in parallel can access
 it.
@@ -49,8 +59,16 @@ As an example, the call:
 
 increases shared memory to 10 elements. One can retrieve the current size of
 shared memory with a call to \verb!(getSharedSize)!.
+Once the shared memory size has been set, one allocates and frees
+shared memory with the no-argument {\it allocateSharedMemory}
+and {\it freeSharedMemory}
+functions.
+Shared memory is initialized to zero. If some other initialization is
+required, one can set values in shared memory after allocation but prior
+to calling {\it pexecute}.
 
-Each expressions running in parallel has an associated process. Each process
+Each expression running in parallel executes in its own
+process. Each process
 can access the shared memory using the {\it setShared} and {\it getShared}
 functions.  For example:
 
@@ -62,11 +80,8 @@ increments the value at shared memory location {\it i}. Note that there
 is no implicit control over access to shared memory. Competing processes
 may very well trash each other's updates to a shared memory location.
 
-Shared memory is allocated when {\it pexecute} is called and each element
-is initialized to zero. It is released
-just before {\it pexecute} terminates. 
-
-To control access, Scam provides a binary semaphore, as described
+To control access to shared memory,
+Scam provides a binary semaphore, as described
 in the next subsection.
 
 \color{red}
@@ -74,12 +89,14 @@ Warning:
 \color{black}
 only literal values should be stored in shared memory.
 Otherwise, should garbage collection occur during parallel execution,
-addresses in shared memory will point to stale memory. Accessing stale memory
+addresses stored in shared memory will point to stale memory.
+Accessing stale memory
 will most assuredly corrupt the current computation.
+This restriction will be removed in a subsequent release of Scam.
 
 \subsection{Controlling access to shared memory}
 
-Scam provides a single concurrency control mechanism, a single binary
+Scam provides one concurrency control mechanism, a single binary
 semaphore. For a process to acquire the semaphore, it issues a call to:
 
 \begin{verbatim}
@@ -104,9 +121,8 @@ would follow the following pattern:
 Note that a binary semaphore is {\it not} a mutex. It is possible for
 one process to acquire the semaphore and another process to release it.
 However, it is relatively straightforward to implement a mutex using
-the built-in semaphore and control memory.
-Control memory,
-described in the next subsection.
+the built-in semaphore and {\it control memory}.
+Control memory is described in the next subsection.
 
 \subsection{Support for higher-level concurrency control mechanisms}
 
@@ -137,7 +153,8 @@ in the single element of control  memory, and only allow
 a process to release the semaphore if the process ids matched.
 
 Like regular shared memory, only literal values should be stored
-in control memory.
+in control memory. Also like regular shared memory, elements are initialized
+to zero.
 
 \subsection{Debugging concurrency problems}
 

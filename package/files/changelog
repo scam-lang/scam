@@ -1,3 +1,8 @@
+scam (1.6a)
+
+  * changed concurrency to add some extra shared memory for building
+    higher level concurrency control structures.
+
 scam (1.6)
 
   * fixed error messages bug

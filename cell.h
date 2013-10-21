@@ -160,6 +160,7 @@ extern int fillerSymbol;
 extern int xcallSymbol;
 extern int binaryOpSymbol;
 extern int prettyStatementSymbol;
+extern int dash_i;
 
 extern int readIndex;
 extern int writeIndex;
