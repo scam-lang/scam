@@ -3212,7 +3212,7 @@ convertSharedMemory(int args)
         {
         spot = ucons(0,0);
         /* first slot is reserved for an error code */
-        the_cars[spot] = shared[i+1];
+        the_cars[spot] = shared[i+controlSize+1];
         car(result + i) = spot;
         }
 
@@ -3300,10 +3300,12 @@ pexecute(int args)
 
     if (shared[0].ival >= 0)
         {
+        int pid = shared[0].ival;
+        shared[0].ival = -1;
         return throw(parallelExceptionSymbol,
             "file %s,line %d: parallel execution of process %d failed\n"
             "try using *pexecute instead of pexecute for more information",
-            SymbolTable[file(args)],line(args),shared[0].ival);
+            SymbolTable[file(args)],line(args),pid);
         }
 
     return 0;
@@ -3426,11 +3428,11 @@ int
 acquire(int args)
     {
     if (semaphoreDebugging)
-        fprintf(stdout,"process %d is acquiring...\n",getpid());
+        fprintf(stderr,"process %d is acquiring...\n",getpid());
     sem_wait(semaphore);
     //pthread_mutex_lock(semaphore);
     if (semaphoreDebugging)
-        fprintf(stdout,"process %d has acquired.\n",getpid());
+        fprintf(stderr,"process %d has acquired.\n",getpid());
     return 0;
     }
 
@@ -3440,11 +3442,11 @@ int
 release(int args)
     {
     if (semaphoreDebugging)
-        fprintf(stdout,"process %d is releasing...\n",getpid());
+        fprintf(stderr,"process %d is releasing...\n",getpid());
     sem_post(semaphore);
     //pthread_mutex_unlock(semaphore);
     if (semaphoreDebugging)
-        fprintf(stdout,"process %d has released.\n",getpid());
+        fprintf(stderr,"process %d has released.\n",getpid());
     return 0;
     }
 
@@ -3471,7 +3473,6 @@ getControlSize(int args)
 int
 setControl(int args)
     {
-    int old;
     int slot = ival(car(args));
     int value = cadr(args);
 

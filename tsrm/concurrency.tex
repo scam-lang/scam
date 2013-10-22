@@ -92,7 +92,10 @@ Otherwise, should garbage collection occur during parallel execution,
 addresses stored in shared memory will point to stale memory.
 Accessing stale memory
 will most assuredly corrupt the current computation.
-This restriction will be removed in a subsequent release of Scam.
+Moreover, storing non-primitive objects generated after a process 
+is initiated cannot 
+be seen by other processes, so storing them
+in shared memory is pointless.
 
 \subsection{Controlling access to shared memory}
 

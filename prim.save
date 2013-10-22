@@ -3585,7 +3585,6 @@ getControl(int args)
     return shared[slot + 1];
     }
 
-
 void
 loadBuiltIns(int env)
     {
