@@ -2717,7 +2717,7 @@ string_equal(int args)
     while (a != 0)
         {
         if (b == 0) return falseSymbol;
-        if (ival(car(a)) != ival(car(b))) return falseSymbol;
+        if (ival(a) != ival(b)) return falseSymbol;
         a = cdr(a);
         b = cdr(b);
         }
