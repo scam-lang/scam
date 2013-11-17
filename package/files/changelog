@@ -1,3 +1,7 @@
+scam (1.6b)
+
+  * fixed bug in string-equal? and thus equal?
+
 scam (1.6a)
 
   * changed concurrency to add some extra shared memory for building
