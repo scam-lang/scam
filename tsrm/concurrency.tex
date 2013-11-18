@@ -9,6 +9,9 @@ describes the built-in concurrency and concurrency control
 functions and give details on
 their use.
 
+NOTE: Apple OSX does not properly implement POSIX unamed semaphores. For
+the moment, currency will not work under OSX.
+
 \subsection{Parallel execution of expressions}
 
 Expressions in Scam can be evaluated in parallel with the variadic function

@@ -42,7 +42,6 @@ int sharedMemoryAllocated = 0;
 CELL *shared;
 int sharedID;
 sem_t *semaphore;
-//pthread_mutex_t *semaphore;
 int semaphoreID;
 
 static int semaphoreDebugging = 0;
@@ -3119,7 +3118,6 @@ allocateSharedMemory(int args)
     sharedID = shmget(IPC_PRIVATE,
         (sharedSize + controlSize + 1) * sizeof(CELL),S_IRUSR|S_IWUSR);
     semaphoreID = shmget(IPC_PRIVATE,sizeof(sem_t),S_IRUSR|S_IWUSR);
-    //semaphoreID = shmget(IPC_PRIVATE,sizeof(pthread_mutex_t),S_IRUSR|S_IWUSR);
  
     if (sharedID < 0 || semaphoreID < 0)
         {
@@ -3146,7 +3144,6 @@ allocateSharedMemory(int args)
         }
     shared[0].ival = -1; //set error code to -1 (no child erred)
     sem_init(semaphore,1,1);
-    //pthread_mutex_init(semaphore,(pthread_mutexattr_t *)0);
 
     sharedMemoryAllocated = 1;
 
@@ -3430,7 +3427,6 @@ acquire(int args)
     if (semaphoreDebugging)
         fprintf(stderr,"process %d is acquiring...\n",getpid());
     sem_wait(semaphore);
-    //pthread_mutex_lock(semaphore);
     if (semaphoreDebugging)
         fprintf(stderr,"process %d has acquired.\n",getpid());
     return 0;
@@ -3444,7 +3440,6 @@ release(int args)
     if (semaphoreDebugging)
         fprintf(stderr,"process %d is releasing...\n",getpid());
     sem_post(semaphore);
-    //pthread_mutex_unlock(semaphore);
     if (semaphoreDebugging)
         fprintf(stderr,"process %d has released.\n",getpid());
     return 0;
