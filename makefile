@@ -4,8 +4,7 @@ OUT = scam
 OPTS = 
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
-       sway-lexer.o sway-parser.o\
-	   nsem.o
+       sway-lexer.o sway-parser.o nsem.o
 	   #sem.o
 PROF = 
 PROF = -pg
@@ -47,6 +46,12 @@ util.o		: util.c util.h types.h cell.h
 
 pp.o		: pp.c pp.h
 		$(CC) -c $(PROF) -Wall -g pp.c
+
+nsem.o		: nsem.c cell.h types.h parser.h util.h
+		$(CC) -c $(PROF) $(IREADLINE) -Wall -g nsem.c
+
+sem.o		: sem.c cell.h types.h parser.h util.h
+		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sem.c
 
 scam.o		: scam.c cell.h parser.h prim.h eval.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g scam.c
