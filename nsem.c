@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,6 +11,7 @@
 #include <sys/stat.h>
 
 #include <semaphore.h>
+#include <fcntl.h>
 #include <sched.h>
  
 int sharedSize = 1;
@@ -19,9 +19,9 @@ int controlSize = 1;
 int sharedMemoryAllocated = 0;
 CELL *shared;
 int sharedID;
-int semaphoreID;
-sem_t *semaphore;
 
+sem_t *semaphore;
+char *semaphoreName = "scam";
 static int semaphoreDebugging = 0;
 
 /* (allocateSharedMemory) */
@@ -37,22 +37,20 @@ allocateSharedMemory(int args)
     /* allocate one more for the error code */
     sharedID = shmget(IPC_PRIVATE,
         (sharedSize + controlSize + 1) * sizeof(CELL),S_IRUSR|S_IWUSR);
-    semaphoreID = shmget(IPC_PRIVATE,sizeof(sem_t),S_IRUSR|S_IWUSR);
  
-    if (sharedID < 0 || semaphoreID < 0)
+    if (sharedID < 0)
         {
         return throw(parallelExceptionSymbol,
-            "failed to allocate semaphore and shared memory of size %d",
+            "failed to allocate shared memory of size %d",
             sharedSize + controlSize);
         }
 
     shared = (CELL *) shmat(sharedID,(void *) 0,0);
-    semaphore = (sem_t *) shmat(semaphoreID,(void *) 0,0);
  
-    if (shared == (CELL *) -1 || semaphore == (sem_t *) -1)
+    if (shared == (CELL *) -1)
         {
         return throw(parallelExceptionSymbol,
-            "failed to attach semaphore or shared memory");
+            "failed to attach shared memory");
         }
  
     /* initialize the shared memory */
@@ -62,8 +60,16 @@ allocateSharedMemory(int args)
         shared[i].type = INTEGER;
         shared[i].ival = 0;
         }
+
     shared[0].ival = -1; //set error code to -1 (no child erred)
-    sem_init(semaphore,1,1);
+
+    semaphore = sem_open(semaphoreName,O_CREAT,S_IRUSR|S_IWUSR,1);
+    if (semaphore == SEM_FAILED)
+        {
+        sem_unlink(semaphoreName);
+        return throw(parallelExceptionSymbol,
+            "failed to open semaphore");
+        }
 
     sharedMemoryAllocated = 1;
 
@@ -75,20 +81,16 @@ allocateSharedMemory(int args)
 int
 freeSharedMemory(int args)
     {
-    if (sem_destroy(semaphore) == -1)
+    sem_close(semaphore);
+    sem_unlink(semaphoreName);
+
+    if ((shmdt(shared)) == -1)
         {
         return throw(parallelExceptionSymbol,
-            "failed to destroy semaphore");
+            "failed to detach shared memory");
         }
 
-    if ((shmdt(shared)) == -1 || shmdt(semaphore) == -1)
-        {
-        return throw(parallelExceptionSymbol,
-            "failed to detach shared memory or semaphore");
-        }
-
-    if ((shmctl(sharedID, IPC_RMID, (void *) 0)) == -1
-    ||  (shmctl(semaphoreID, IPC_RMID, (void *) 0)) == -1)
+    if (shmctl(sharedID, IPC_RMID, (void *) 0) == -1)
         {
         return throw(parallelExceptionSymbol,
             "failed to free shared memory"
