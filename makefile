@@ -48,10 +48,10 @@ pp.o		: pp.c pp.h
 		$(CC) -c $(PROF) -Wall -g pp.c
 
 nsem.o		: nsem.c cell.h types.h parser.h util.h
-		$(CC) -c $(PROF) $(IREADLINE) -Wall -g nsem.c
+		$(CC) -c $(PROF) -Wall -g nsem.c
 
 sem.o		: sem.c cell.h types.h parser.h util.h
-		$(CC) -c $(PROF) $(IREADLINE) -Wall -g sem.c
+		$(CC) -c $(PROF) -Wall -g sem.c
 
 scam.o		: scam.c cell.h parser.h prim.h eval.h
 		$(CC) -c $(PROF) $(IREADLINE) -Wall -g scam.c
