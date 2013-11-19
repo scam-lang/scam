@@ -37,16 +37,6 @@ int MaxPorts = sizeof(OpenPorts) / sizeof(FILE *);
 int CurrentInputIndex;
 int CurrentOutputIndex;
 
-int sharedSize = 1;
-int controlSize = 1;
-int sharedMemoryAllocated = 0;
-CELL *shared;
-int sharedID;
-int semaphoreID;
-sem_t *semaphore;
-
-static int semaphoreDebugging = 0;
-
 static int
 scamBoolean(int item)
     {
