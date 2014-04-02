@@ -1428,7 +1428,9 @@ iinclude(int args)
 
     sprintf(buffer2,"__included_%s",buffer);
 
+    push(env);
     s = newSymbol(buffer2);
+    env = pop();
 
     if (isLocal(s,env)) return falseSymbol;
 
@@ -1442,11 +1444,14 @@ iinclude(int args)
 
     p = newParser(buffer);
     if (p == 0)
+        {
+        pop(); /* pop the env */
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "file %s could not be opened for reading",
             SymbolTable[file(args)],line(args),
             buffer);
+        }
 
     if (Syntax == SCAM)
         ptree = scamParse(p);
@@ -2349,7 +2354,8 @@ bindings(int args)
     int vars = object_variables(car(args));
     int vals = object_values(car(args));
 
-    assureMemory("bindings",4 * length(vars),(int *)0);
+    assureMemory("bindings",3 * length(vars),&vars,&vals,
+        (int *)0);
 
     items = 0;
     while (vars != 0)
@@ -2554,7 +2560,7 @@ setElement(int args)
             SymbolTable[file(args)],line(args),
             index);
 
-    if (type(supply) == ARRAY)
+    if (type(supply) == ARRAY || type(supply) == STRING)
         {
         //printf("getting an element of an array\n");
         car(supply + index) = value;
@@ -2623,7 +2629,6 @@ tthrow(int args)
         return makeThrow(item,car(cadr(args)),0);
     else
         {
-        assureMemory("throw:throw",1000+THROW_CELLS,&args,(int *)0);
         return throw(exceptionSymbol,
             "file %s,line %d: "
             "wrong number of arguments to throw",
@@ -2667,7 +2672,7 @@ string_plus(int args)
     sizeB = length(b);
     size = sizeA + sizeB;
 
-    assureMemory("string_plus",size,(int *)0);
+    assureMemory("string_plus",size,&a,&b,(int *)0);
 
     i = 0;
     amount = size;
@@ -2696,7 +2701,7 @@ string_plus(int args)
     return start;
     }
 
-/* (string-equal a b) */
+/* (string-equal? a b) */
 
 static int
 string_equal(int args)
@@ -2912,8 +2917,6 @@ trim(int args)
 
     assureMemory("trim",count(a) + 1,&a,(int *)0);
 
-    start = MemorySpot;
-
     while (isspace(ival(a)))
         a = cdr(a);
 
@@ -2923,15 +2926,18 @@ trim(int args)
     while (isspace(ival(a + length)))
         --length;
 
-    while (length >= 0)
+    start = MemorySpot;
+
+    int c;
+    while (length > 0)
         {
-        ucons(ival(a),MemorySpot+1);
+        c = ucons(ival(a),MemorySpot+1);
+        type(c) = STRING;
+        count(c) = length;
         a = cdr(a);
         --length;
         }
-
-    ucons(0,0);
-    assert(MemorySpot < MemorySize - 1);
+    cdr(c) = 0;
 
     return start;
     }

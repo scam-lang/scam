@@ -20,7 +20,7 @@ including fib.s
 starting fib.s
 including fact.s
 fib: fib(25) is 75025
-2.710663 seconds
+2.724387 seconds
 fib.s included - SHOULD ONLY SEE THIS ONCE
 fact: fib(5) is 5
 fact: fact(5) is 120

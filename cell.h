@@ -12,6 +12,7 @@ typedef struct cellobj
     int ival;
     double rval;
     int (*fval)(int,int);
+    char pad[28];
     } CELL;
 
 extern int MemorySpot;

@@ -275,7 +275,10 @@ findLocation(int index,int env)
         while (vars != 0)
             {
             //printf("looking at %s\n",SymbolTable[ival(car(vars))]);
-            if (ival(car(vars)) == index) return vals;
+            if (ival(car(vars)) == index)
+                {
+                return vals;
+                }
             vars = cdr(vars);
             vals = cdr(vals);
             }

@@ -33,7 +33,7 @@ an object was made!
 
 an object was made!
 
-z is <object anonymous 14025>
+z is <object anonymous 14385>
 ------------------------------------
 EXCEPTION: undefinedVariable
 file object.s,line 19: variable . is undefined

@@ -51,6 +51,7 @@ main(int argc,char **argv,char **envv)
     int env;
     int result;
 
+    //printf("cell size: %d\n",sizeof(CELL));
     argIndex = ProcessOptions(argc, argv);
 
     if (argc-argIndex == 0)

@@ -354,7 +354,7 @@
         ((null? items)
             nil
             )
-        ((eq? x (car items))
+        ((equal? x (car items))
             items
             )
         (else

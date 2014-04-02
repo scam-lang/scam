@@ -44,7 +44,7 @@ types.o		: types.c types.h
 util.o		: util.c util.h types.h cell.h
 		$(CC) -c $(PROF) -Wall -g util.c
 
-pp.o		: pp.c pp.h
+pp.o		: pp.c pp.h cell.h env.h
 		$(CC) -c $(PROF) -Wall -g pp.c
 
 nsem.o		: nsem.c cell.h types.h env.h eval.h sem.h 

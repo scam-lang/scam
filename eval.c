@@ -101,7 +101,9 @@ eval(int expr, int env)
             }
         else if (isThrow(result))
             {
+            push(result);
             addTrace(expr,result);
+            result = pop();
             break;
             }
 
@@ -316,7 +318,9 @@ evalList(int items,int env,int mode)
             {
             if (!isReturn(result))
                 {
+                push(result);
                 addTrace(car(items),result);
+                result = pop();
                 }
             return result;
             }
@@ -336,7 +340,11 @@ evalList(int items,int env,int mode)
         {
         result = eval(car(items),env);
         if (isThrow(result) && !isReturn(result))
+            {
+            push(result);
             addTrace(car(items),result);
+            result = pop();
+            }
         return result;
         }
     }

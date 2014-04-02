@@ -309,20 +309,7 @@ ucons(int a,int b)
 int
 ucons2(int a,int b)
     {
-    CELL *spot;
-
-    spot = the_cars + MemorySpot;
-    spot->type = CONS;
-    spot->ival = a;
-    spot->line = line(b);
-    spot->file = file(b);
-    spot->transferred = 0;
-
-    the_cdrs[MemorySpot] = b;
-
-    ++MemorySpot;
-
-    return MemorySpot - 1;
+    return uconsfl(a,b,file(b),line(b));
     }
 
 int
@@ -789,14 +776,6 @@ gc()
     if (gcDisplay)
         printf("gc:%d, %d cells available in %fs (%fs total)\n",
             gcCount,MemorySize - MemorySpot, gcTime, totalTime);
-
-    /*
-    for (i = 0; i < MemorySize; ++i)
-        new_cars[i].type = PAST;
-
-    for (i = MemorySpot; i < MemorySize; ++i)
-        the_cars[i].type = FUTURE;
-    */
     }
 
 

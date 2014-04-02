@@ -105,7 +105,7 @@ buildheap level is 3
 root is 16
 it's a leaf
 heapify level is 4
-r is <environment 17519>
+r is <environment 17879>
 ------------------------------------
 EXCEPTION: undefinedVariable
 file heapsort.s,line 61: variable r is undefined

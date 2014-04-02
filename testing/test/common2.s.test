@@ -3,5 +3,5 @@
 (println (bindings this))
 (println (bindings common))
 ------------------------------------------
-((__label environment) (__context <environment 4862>) (__level 0) (__constructor ) (this <environment 12591>) (common <environment 12669>) (__included_common2.s #t))
-((__label environment) (__context <environment 12591>) (__level 0) (__constructor ) (this <environment 12669>) (count 0))
+((__label environment) (__context <environment 5222>) (__level 0) (__constructor ) (this <environment 12951>) (common <environment 13029>) (__included_common2.s #t))
+((__label environment) (__context <environment 12951>) (__level 0) (__constructor ) (this <environment 13029>) (count 0))
