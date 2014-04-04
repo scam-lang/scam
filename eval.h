@@ -6,6 +6,7 @@ extern int makeRun(int (*f)(int,int),int);
 
 #define NORMAL 1
 #define NO_EVALUATION 2
+#define STRAIGHT 3
 
 #define ALL 3
 #define ALLBUTLAST 4

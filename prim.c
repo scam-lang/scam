@@ -1486,11 +1486,25 @@ eeval(int args)
 static int
 apply(int args)
     {
-    int call;
+    int expr;
     assureMemory("apply:",1,&args,(int *)0);
-    call = ucons(car(args),cadr(args));
+    expr = ucons(car(args),cadr(args));
 
-    return evalCall(call,0,NO_EVALUATION);
+    return evalCall(expr,0,NO_EVALUATION);
+    }
+
+/* (call f @) */
+
+static int
+call(int args)
+    {
+    int expr;
+    assureMemory("call:",1,&args,(int *)0);
+    //debug("name is ",car(args));
+    //debug("args are  ",cadr(args));
+    expr = ucons(car(args),cadr(args));
+
+    return evalCall(expr,0,STRAIGHT);
     }
 
 
@@ -3739,6 +3753,14 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = call;
+    b = makeBuiltIn(env,
+        newSymbol("call"),
+        ucons(newSymbol("f"),
+            ucons(newSymbol("@"),0)),
+        newInteger(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
 
     BuiltIns[count] = inspect;
     b = makeBuiltIn(env,

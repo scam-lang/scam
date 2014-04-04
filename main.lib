@@ -9,10 +9,67 @@
 (define ^ expt)
 (define ** expt)
 
+(define (copy items)
+    (cond
+        ((null? items) nil)
+        (else (cons (car items) (copy (cdr items))))
+        )
+    )
+
+(define (deep-copy items)
+    (cond
+        ((pair? items) (cons (deep-copy (car items)) (deep-copy (cdr items))))
+        (else items)
+        )
+    )
+
+;;;;;;;;;;;; 
+;
+; This function can be used to non-destructively convert a built-in function
+;
+;     Example: convert a variadic built-in function to non-variadic lambda
+;
+;         (convertFunction f '($ $items) '(@ items))
+;             this would create a lambda with the same semantics as f but
+;             takes a final list of arguments rather than being variadic.
+;
+;     Example: convert a built-in function that implicitly grabs the
+;         calling env to one which an environment is explicitly passed.
+;
+;         (convertFunction f '((# env)))
+;             this would create a lambda with the same semantics as f but
+;             takes an explicit environment.
+;
+; The result is a lambda that must be bound in some way.
+;
+;     if (define a+ (convertBuiltIn + '(@ values))), then
+;     (+ 1 2 3 4) and (a+ '(1 2 3 4)) are equivalent
+;
+
+(define (convertBuiltIn closure @)
+    (define donor (lambda (x) x))
+    (set '__context (get '__context closure) donor)
+    (set '__label (get '__label closure) donor)
+    (set 'code (get 'code closure) donor)
+    (define params (copy (get 'parameters closure)))
+    (define p params)
+    (while (valid? p)
+        (define s @)
+        (while (valid? s)
+            (if (eq? (car p) (car (car s)))
+                (set-car! p (cadr (car s))))
+            (set! s (cdr s))
+            )
+        (set! p (cdr p))
+        )
+    (set 'parameters params donor)
+    donor
+    )
+
 (define (backquote # $items)
     (define (helper items)
-        (inspect items)
-        (inspect (get '__context this))
+        ;(inspect items)
+        ;(inspect (get '__context this))
         (cond
             ((null? items) nil)
             ((eq? (car items) ',)
