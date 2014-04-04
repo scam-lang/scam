@@ -1493,18 +1493,18 @@ apply(int args)
     return evalCall(expr,0,NO_EVALUATION);
     }
 
-/* (call f @) */
+/* (pass f @) */
 
 static int
-call(int args)
+pass(int args)
     {
     int expr;
-    assureMemory("call:",1,&args,(int *)0);
+    assureMemory("pass:",1,&args,(int *)0);
     //debug("name is ",car(args));
     //debug("args are  ",cadr(args));
     expr = ucons(car(args),cadr(args));
 
-    return evalCall(expr,0,STRAIGHT);
+    return evalCall(expr,0,PASS_THROUGH);
     }
 
 
@@ -3753,9 +3753,9 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = call;
+    BuiltIns[count] = pass;
     b = makeBuiltIn(env,
-        newSymbol("call"),
+        newSymbol("pass"),
         ucons(newSymbol("f"),
             ucons(newSymbol("@"),0)),
         newInteger(count));

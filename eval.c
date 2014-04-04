@@ -388,7 +388,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
             SymbolTable[ival(name)]);
         }
 
-    if (mode != STRAIGHT && sameSymbol(car(params),atSymbol))
+    if (mode != PASS_THROUGH && sameSymbol(car(params),atSymbol))
         {
         if (mode == NORMAL)
             {
@@ -401,13 +401,13 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
         assureMemory("processArgs:eArgs",1,&rest,(int *)0);
         result = uconsfl(rest,0,fi,li);
         }
-    else if (mode != STRAIGHT && sameSymbol(car(params),dollarSymbol))
+    else if (mode != PASS_THROUGH && sameSymbol(car(params),dollarSymbol))
         {
         assureMemory("processArgs:amp",1 + length(args),&args,(int *)0);
         rest = unevaluatedArgList(args);
         result = uconsfl(rest,0,fi,li);
         }
-    else if (mode != STRAIGHT && sameSymbol(car(params),sharpSymbol))
+    else if (mode != PASS_THROUGH && sameSymbol(car(params),sharpSymbol))
         {
         push(env);
         rest = processArguments(name,cdr(params),args,env,mode,fi,li);
@@ -426,7 +426,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
             SymbolTable[fi],li,
             SymbolTable[ival(name)]);
         }
-    else if (mode != STRAIGHT && *SymbolTable[ival(car(params))] == '$')
+    else if (mode != PASS_THROUGH && *SymbolTable[ival(car(params))] == '$')
         {
         push(args);
         rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
@@ -453,7 +453,7 @@ processArguments(int name,int params,int args,int env,int mode,int fi,int li)
 
             rethrow(first,0);
             }
-        else // NO_EVALUATION or STRAIGHT
+        else // NO_EVALUATION or PASS_THROUGH
             first = car(args);
 
         file(first) = file(car(args));
