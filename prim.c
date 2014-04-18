@@ -3290,7 +3290,7 @@ loadBuiltIns(int env)
 
     BuiltIns[count] = string_plus;
     b = makeBuiltIn(env,
-        newSymbol("string+"),
+        newSymbol("string-append"),
         ucons(newSymbol("a"),
             ucons(newSymbol("b"),0)),
         newInteger(count));

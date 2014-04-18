@@ -8,6 +8,7 @@
 (define (join x y) (cons x y))
 (define ^ expt)
 (define ** expt)
+(define string+ string-append)
 
 (define (copy items)
     (cond
@@ -29,14 +30,14 @@
 ;
 ;     Example: convert a variadic built-in function to non-variadic lambda
 ;
-;         (convertFunction f '($ $items) '(@ items))
+;         (convertBuiltIn f '($ $items) '(@ items))
 ;             this would create a lambda with the same semantics as f but
 ;             takes a final list of arguments rather than being variadic.
 ;
 ;     Example: convert a built-in function that implicitly grabs the
 ;         calling env to one which an environment is explicitly passed.
 ;
-;         (convertFunction f '((# env)))
+;         (convertBuiltIn f '((# env)))
 ;             this would create a lambda with the same semantics as f but
 ;             takes an explicit environment.
 ;

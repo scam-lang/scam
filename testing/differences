@@ -1,1428 +1,1147 @@
 OLD vs. NEW
-rb.s
+assign1.scm
 ------------------------------------------
-1,365c1,330
-< include("debug");
-< 
-< var root = :null;
-< 
-< function node(value,left,right)
-<     {
-<     var parent;
-<     var color;
-< 
-<     function display()
-<         {
-<         println("value:  ", value);
-<         println("left:   ", left);
-<         println("right:  ", right);
-<         println("parent: ", parent);
-<         println("color:  ", color);
-<         }
-< 
-<     this;
-<     }
-< 
-< function printTree(t)
-<     {
-<     function iter(r, indent)
-<         {
-<         if (r == :null)
-<             {
-<             println("null");
-<             }
-<         else
-<             {
-<             println(r . value, "(", r . color, ")");
-<             print(indent, "left:  ");
-<             iter(r . left,indent + "    ");
-<             print(indent, "right: ");
-<             iter(r . right,indent + "    ");
-<             }
-<         }
-< 
-<     iter(t, "   ");
-<     }
-< 
-< function insert(t, v, op)
-<     {
-<     if (t == :null)
-<         {
-<         root = node(v,:null,:null);
-<         root . parent = root;
-<         insertionFixup(root);
-<         }
-<     else
-<         {
-<         var lessThan = v op t . value;
-< 
-<         if (lessThan && t . left != :null)
-<             {
-<             insert(t . left, v, op);
-<             }
-<         else if (lessThan)
-<             {
-<             t . left = node(v,:null,:null);
-<             t . left . parent = t;
-<             insertionFixup(t . left);
-<             }
-<         else if (t . right != :null)
-<             {
-<             insert(t . right, v, op);
-<             }
-<         else
-<             {
-<             t . right = node(v, :null, :null);
-<             t . right . parent = t;
-<             insertionFixup(t . right);
-<             }
-<         }
-<     }
-< 
-< function prune(x)
-<     {
-<     assert(leaf?(x) == :true);
-<     if (leftChild?(x))
-<         {
-<         parent(x) . left = :null;
-<         }
-<     else if (rightChild?(x))
-<         {
-<         parent(x) . right = :null;
-<         }
-<     else
-<         {
-<         root = :null;
-<         }
-<     }
-< 
-< function swapToLeaf(x)
-<     {
-<     if (leaf?(x) == :false)
-<         {
-<         var y;
-<         var temp;
-< 
-<         if (x . right != :null)
-<             {
-<             y = findMin(x . right);
-<             }
-<         else
-<             {
-<             y = findMax(x . left);
-<             }
-< 
-<         temp = x . value;
-<         x . value = y . value;
-<         y . value = temp;
-< 
-<         swapToLeaf(y);
-<         }
-<     else
-<         {
-<         x;
-<         }
-<     }
-< function findMin(x)
-<     {
-<     while (x . left != :null)
-<         {
-<         x = x . left;
-<         }
-<     return x;
-<     }
-< function findMax(x)
-<     {
-<     while (x . right != :null)
-<         {
-<         x = x . right;
-<         }
-<     return x;
-<     }
-< function delete(x)
-<     {
-<     x = swapToLeaf(x);
-<     deletionFixup(x);
-<     //println("pruning ", x . value);
-<     prune(x);
-<     }
-< 
-< function deletionFixup(x)
-<     {
-<     while (root?(x) == :false && x . color == :black)
-<         {
-<         if (red?(sibling(x)))
-<             {
-<             parent(x) . color = :red;
-<             sibling(x) . color = :black;
-<             rotate(sibling(x),parent(x));
-<             // should have black sibling now
-<             assert(sibling(x) . color == :black);
-<             }
-<         else if (red?(nephew(x)))
-<             {
-<             sibling(x) . color = parent(x) . color;
-<             parent(x) . color = :black;
-<             nephew(x) . color = :black;
-<             rotate(sibling(x),parent(x));
-<             x = root;
-<             // subtree is bh balanced
-<             // with proper bh contribution
-<             }
-<         else if (red?(niece(x)))
-<             {
-<             // nephew must be black
-<             niece(x) = :black;
-<             sibling(x) = :red;
-<             rotate(neice(x),sibling(x));
-<             // should have red nephew now
-<             assert(nephew(x) . color == :red);
-<             }
-<         else
-<             {
-<             // sibling, niece, and nephew must be black
-<             sibling(x) . color = :red;
-<             x = parent(x);
-<             // subtree is bh balanced
-<             // but has deficit in bh contribution
-<             }
-<         }
-< 
-<     x . color = :black;
-<     }
-< 
-< function insertionFixup(x)
-<     {
-<     x . color = :red;
-< 
-<     while (root?(x) == :false && x . parent . color == :red)
-<         {
-<         if (red?(uncle(x)))
-<             {
-<             parent(x) . color = :black;
-<             uncle(x) . color = :black;
-<             grandparent(x) . color = :red;
-<             x = grandparent(x);
-<             }
-<         else
-<             {
-<             // uncle must be black
-< 
-<             if (linear?(x, parent(x), grandparent(x)) == :false)
-<                 {
-<                 var oldParent = parent(x);
-<                 rotate(x,parent(x));
-<                 x = oldParent;
-<                 }
-< 
-<             parent(x) . color = :black;
-<             assert(x . parent . color == :black);
-<             grandparent(x) . color = :red;
-<             rotate(parent(x),grandparent(x));
-<             }
-<         }
-< 
-<     root . color = :black;
-<     }
-< 
-< function root?(x) { x == x . parent; }
-< function leftChild?(x) { return parent(x) . left == x; }
-< function rightChild?(x) { return parent(x) . right == x; }
-< function leaf?(x) { x . left == :null && x . right == :null; }
-< function red?(x) { return x != :null && x . color == :red; }
-< function black?(x) { return x == :null || x . color == :black; }
-< 
-< function sibling(x)
-<     {
-<     if (leftChild?(x))
-<         {
-<         x . parent . right;
-<         }
-<     else if (rightChild?(x))
-<         {
-<         x . parent . left;
-<         }
-<     else
-<         {
-<         :null;
-<         }
-<     }
-< function niece(x)       //precondition: sibling exists
-<     {
-<     if (leftChild?(x))
-<         {
-<         sibling(x) . left;
-<         }
-<     else
-<         {
-<         sibling(x) . right;
-<         }
-<     }
-< function nephew(x)      //precondition: sibling exists
-<     {
-<     if (leftChild?(x))
-<         {
-<         sibling(x) . right;
-<         }
-<     else
-<         {
-<         sibling(x) . left;
-<         }
-<     }
-< function parent(x) { x . parent; }
-< function grandparent(x) { parent(x) . parent; }
-< function uncle(x)
-<     {
-<     if (leftChild?(parent(x)))
-<         {
-<         return grandparent(x) . right;
-<         }
-<     else if (rightChild?(parent(x)))
-<         {
-<         return grandparent(x) . left;
-<         }
-<     else
-<         {
-<         return :null;
-<         }
-<     }
-< function linear?(x,y,z)
-<     {
-<     return
-<         ((leftChild?(x)  && leftChild?(y)) ||
-<          (rightChild?(x) && rightChild?(y)));
-<     }
-< 
-< 
-< function rotate(x,p)
-<     {
-<     if (p . left == x) 
-<         {
-<         //rotate right
-<         rotator(x,p,:right,:left);
-<         }
-<     else if (p . right == x)
-<         {
-<         //rotate left
-<         rotator(x,p,:left,:right);
-<         }
-<     else
-<         {
-<         throw("rotate error");
-<         }
-<     }
-< function rotator(x,p,direction,oppositeDirection)
-<     {
-<     var gp = parent(p);
-<     var beta = x . (direction);
-< 
-<     p . (oppositeDirection) = beta;
-<     if (beta != :null) { beta . parent = p; }
-< 
-<     x . (direction) = p;
-<     p . parent = x;
-< 
-<     if (p == gp)
-<         {
-<         root = x;
-<         x . parent = x;
-<         }
-<     else {
-<         if (gp . (direction) == p) { gp . (direction) = x; }
-<         else { gp . (oppositeDirection) = x; }
-<         x . parent = gp;
-<         }
-<     }
-< 
-< function findNode(t, v, op)
-<     {
-<     if (t == :null || v == t . value)
-<         {
-<         t;
-<         }
-<     else if (v op t . value)
-<         {
-<         findNode(t . left, v, op);
-<         }
-<     else
-<         {
-<         findNode(t . right, v, op);
-<         }
-<     }
-< 
-< function main()
-<     {
-<     var i;
-<     var num = :null;
-<     var x;
-<     var input = array(1, 2, 9, 3, 6, 4, 7, 8, 5);
-< 
-<     i = 0;
-<     while (i < length(input))
-<         {
-<         num = input . i;
-<         println("inserting!");
-<         insert(root, num, <);
-<         print(num," inserted.\n");
-<         printTree(root);
-<         i = i + 1;
-<         }
----
-> (define root nil)
-> (define (assert # $x)
->     (if (not (eval $x #))
->         (throw 'assertionError $x)
+0a1,242
+> (define (run1)
+>     (println "need lazy evaluation!")
+>     )
+> 
+> (define (run2)
+>     (inspect (zeno_cost 20 150 0.25))
+>     )
+> 
+> (define (zeno_cost d c f)
+>     (cond
+>         ((<= (* c f) (/ 1 12.)) c)
+>         ((<= (/ d 2.) (/ 1 9600.)) (+ c 5))
+>         (else (+ c (zeno_cost (/ d 2.) (* c f) f)))
 >         )
 >     )
 > 
-> (define (node value left right)
->     (define parent nil)
->     (define color nil)
+> (define (run3)
+>     (inspect (min8 1 2 3 4 5 6 7 8))
+>     (inspect (min8 2 1 3 4 5 6 7 8))
+>     (inspect (min8 2 3 1 4 5 6 7 8))
+>     )
 > 
->     (define (display)
->         (println "value:  "  value)
->         (println "left:   "  left)
->         (println "right:  "  right)
->         (println "parent: "  parent)
->         (println "color:  "  color)
+> (define (min8 a b c d e f g h)
+> (define (min2 a b) (if (< a b) a b))
+> (define (min3 a b c) (if (< a b) (min2 a c) (min2 b c)))
+> (define (min4 a b c d) (if (< a b) (min3 a c d) (min3 b c d)))
+> (define (min5 a b c d e) (if (< a b) (min4 a c d e) (min4 b c d e)))
+> (define (min6 a b c d e f) (if (< a b) (min5 a c d e f) (min5 b c d e f)))
+> (define (min7 a b c d e f g) (if (< a b) (min6 a c d e f g) (min6 b c d e f g)))
+>     (if (< a b) (min7 a c d e f g h) (min7 b c d e f g h))
+>     )
+>         
+> (define (run4)
+>     (inspect (root3 8.0))
+>     (inspect (root3 27.0))
+>     )
+> 
+> (define (root3 x)
+>     (define (iter lower upper)
+>         (define guess (/ (+ upper lower) 2))
+>         (define try (* guess guess guess))
+>         (cond
+>             ((= try x) guess)
+>             ((> try x) (iter lower guess))
+>             (else (iter guess upper))
+>             )
+>         )
+>     (iter 1 x)
+>     )
+> 
+> (define (run5)
+>     (pt 9)
+>     )
+> 
+> (define (pt n)
+>     (define (indent count)
+>         (cond
+>             ((= count 0) 'done)
+>             (else (print " ") (indent (- count 1)))
+>             )
+>         )
+>     (define (ptLevel r c)
+>         (cond 
+>             ((= r 0) 1)
+>             ((= c 0) 1)
+>             ((= c r) 1)
+>             (else (+ (ptLevel (- r 1) (- c 1)) (ptLevel (- r 1) c)))
+>             )
 >         )
 > 
+>     (define (row-iter row)
+>         (define (col-iter col)
+>             (cond
+>                 ((> col row) (println))
+>                 (else
+>                     (print (ptLevel row col) " ")
+>                     (col-iter (+ col 1))
+>                     )
+>                 )
+>             )
+>         (cond 
+>             ((> row n) (println))
+>             (else
+>                 (indent (- n row))
+>                 (col-iter 0)
+>                 (row-iter (+ row 1))
+>                 )
+>             )
+>         )
+>     (row-iter 0)
+>     )
+> 
+> (define (run6)
+>     (inspect (r-zorp 1 (lambda (x) (* x x))))
+>     (inspect (r-zorp 2 (lambda (x) (* x x))))
+>     (inspect (r-zorp 3 (lambda (x) (* x x))))
+>     (inspect (r-zorp 4 (lambda (x) (* x x))))
+>     (inspect (r-zorp 5 (lambda (x) (* x x))))
+>     (inspect (zorp 1 (lambda (x) (* x x))))
+>     (inspect (zorp 2 (lambda (x) (* x x))))
+>     (inspect (zorp 3 (lambda (x) (* x x))))
+>     (inspect (zorp 4 (lambda (x) (* x x))))
+>     (inspect (zorp 5 (lambda (x) (* x x))))
+>     )
+> 
+> (define (my-square x) (* x x))
+> (define (r-zorp i f)
+>     (cond
+>         ((< i 3) (f i))
+>         (else
+>             (+  (r-zorp (- i 1) f)
+>                 (/  (my-square (- (r-zorp (- i 1) f) (r-zorp (- i 2) f)))
+>                     (+  (r-zorp (- i 3) f)
+>                         (* -2 (r-zorp (- i 2) f))
+>                         (r-zorp (- i 1) f)
+>                         )
+>                     )
+>                 )
+>             )
+>         )
+>     )
+> 
+> (define (zorp i f)
+>     (define (iter a b c store)
+>         (cond
+>             ((= store 0) a)
+>             (else
+>                 (iter
+>                     b c (+ c (/ (my-square (- c b)) (+ a (* -2 b) c)))
+>                     (- store 1)
+>                     )
+>                 )
+>             )
+>         )
+>     (iter (f 0) (f 1) (f 2) i)
+>     )
+> 
+> 
+> (define (run7)
+>     (inspect (square 5))
+>     (inspect (halve 6))
+>     (inspect (halve 5))
+>     (inspect (halve 4))
+>     (inspect (babyl* 7 8))
+>     (inspect (babyl* 9 9))
+>     )
+> 
+> (define (square n)
+>     (define (iter result store)
+>         (cond
+>             ((= store 1) result)
+>             (else (iter (+ result store store -1) (- store 1)))
+>             )
+>         )
+>     (iter 1 n)
+>     )
+> 
+> (define (halve n)
+>     (define (iter result store)
+>         (cond
+>             ((= store 0) result)
+>             ((= (% store 2) 0) (iter (+ result 1) (- store 1)))
+>             (else (iter result (- store 1)))
+>             )
+>         )
+>     (iter 0 n)
+>     )
+> 
+> (define (babyl* a b)
+>     (/ (- (square (+ a b)) (square a) (square b)) 2)
+>     )
+> 
+> (define (run8)
+>     (inspect (ecf 0))
+>     (inspect (ecf 1))
+>     (inspect (ecf 2))
+>     )
+> 
+> (define (ecf terms)
+>     (define (iter count)
+>         (cond
+>             ((= terms count) 0.0)
+>             (else
+>                 (/ 1 (+ 1 (/ 1 (+ 2 (* 2 count) (/ 1 (+ 1 (iter (+ count 1))))))))
+>                 )
+>             )
+>         )
+>     (+ 2  (iter 0))
+>     )
+> 
+> 
+> (define (run9)
+>     (inspect (ramanujan 0))
+>     (inspect (ramanujan 1))
+>     (inspect (ramanujan 2))
+>     (inspect (ramanujan 10))
+>     (inspect (ramanujan 100))
+>     (println "the answer is 3")
+>     )
+> 
+> (define (ramanujan terms)
+>     (define (iter result store)
+>         (cond
+>             ((= store 0) result)
+>             (else (iter (sqrt (+ 1 (* (+ store 1) result))) (- store 1)))
+>             )
+>         )
+>     (iter 1 terms)
+>     )
+> 
+> (define (run10)
+>     (inspect (ramanujan2 0 2))
+>     (inspect (ramanujan2 1 2))
+>     (inspect (ramanujan2 2 2))
+>     (inspect (ramanujan2 10 2))
+>     (inspect (ramanujan2 50 2))
+>     (inspect (ramanujan2 2 3))
+>     (inspect (ramanujan2 50 3))
+>     (inspect (ramanujan2 50 10))
+>     (println "the answer is x + 1")
+>     )
+> 
+> (define (ramanujan2 terms x)
+>     (define (iter count)
+>         (cond
+>             ((= count terms) 0.0)
+>             (else (sqrt (+ 1 (* (+ x count 1) (iter (+ count 1))))))
+>             )
+>         )
+>     (sqrt (+ 1 (* x (iter 0))))
+>     )
+> ;(run1)
+> ;(run2)
+> ;(run3)
+> ;(run4)
+> ;(run5)
+> ;(run6)
+> ;(run7)
+> ;(run8)
+> ;(run9)
+> ;(run10)
+> ------------------------------------------
+------------------------------------------
+assign2.scm
+------------------------------------------
+0a1,412
+> (include "reflection.lib")
+> ;(compile-reflection)
+> (include "../../proglan/table.scm")
+> (include "pretty.lib")
+> 
+> 
+> (define (run1) 
+>     (inspect (+ (polar 1 .707) (polar 1 .707)))
+>     (inspect (+ (polar 3 1.423) (polar 7 2.453)))
+>     (inspect (+ (rectangular 3 1.423) (rectangular 7 2.453)))
+>     (inspect (+ (polar 3 1.423) 0))
+>     (inspect (+ (rectangular 3 1.423) 0))
+>     )
+> 
+> (define (polar mag ang)
+>     (list 'polar mag ang)
+>     )
+> 
+> (define (rectangular x y)
+>     (list 'rectangular x y)
+>     )
+> 
+> (define (polar? p) (and (pair? p) (eq? (car p) 'polar)))
+> (define (rectangular? p) (and (pair? p) (eq? (car p) 'rectangular)))
+> (define (polar->rectangular p)
+>     (rectangular (* (cadr p) (cos (caddr p))) (* (cadr p) (sin (caddr p))))
+>     )
+> (define (rectangular->polar r)
+>     (define x (cadr r))
+>     (define y (caddr r))
+>     (polar (expt (+ (* x x) (* y y)) 0.5) (atan y x))
+>     )
+> (define (polar+polar a b)
+>     (rectangular->polar
+>         (rectangular+rectangular
+>             (polar->rectangular a)
+>             (polar->rectangular b)
+>             )
+>         )
+>     )
+> (define (polar+rectangular a b)
+>     (rectangular->polar
+>         (rectangular+rectangular
+>             (polar->rectangular a)
+>             (rectangular b 0)
+>             )
+>         )
+>     )
+> (define (polar+number a b)
+>     (rectangular->polar
+>         (rectangular+rectangular
+>             (polar->rectangular a)
+>             (rectangular b 0)
+>             )
+>         )
+>     )
+> (define (rectangular+rectangular a b)
+>     (rectangular (+ (cadr a) (cadr b)) (+ (caddr a) (caddr b)))
+>     )
+> (define (rectangular+number a b)
+>     (rectangular+rectangular a (rectangular b 0))
+>     )
+> (redefine (+ a b)
+>     (cond
+>         ((polar? a)
+>             (cond
+>                 ((polar? b) (polar+polar a b))
+>                 ((rectangular? b) (polar+rectangular a b))
+>                 (else (polar+number a b))
+>                 )
+>             )
+>         ((rectangular? a)
+>             (cond
+>                 ((polar? b) (polar+rectangular b a))
+>                 ((rectangular? b) (rectangular+rectangular a b))
+>                 (else (rectangular+number a b))
+>                 )
+>             )
+>         (else
+>             (cond
+>                 ((polar? b) (polar+number b a))
+>                 ((rectangular? b) (rectangular+number b a))
+>                 (else ((prior) a b))
+>                 )
+>             )
+>         )
+>     )
+> 
+> (define (run2)
+>     (println "(add two three) is " (translate (add two three)))
+>     (println "(add zero five) is " (translate (add zero five)))
+>     (println "(add five zero) is " (translate (add five zero)))
+>     (println "(add nine nine) is " (translate (add nine nine)))
+>     )
+> 
+> (define (identity x) x)
+> 
+> (define (increment number)
+>     (define (next-higher-number incrementer)
+>         (define (resolve base)
+>             (incrementer ((number incrementer) base))
+>             )
+>         resolve
+>         )
+>     next-higher-number
+>     )
+> 
+> (define (zero incrementer)
+>     identity
+>     )
+> 
+> (define (one incrementer) 
+>     (define (resolver base)
+>         (incrementer base)
+>         )
+>     resolver
+>     )
+> 
+> (define (two incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer base))
+>         )
+>     )
+> 
+> (define (three incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer (incrementer base)))
+>         )
+>     )
+> 
+> (define (four incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer (incrementer (incrementer base))))
+>         )
+>     )
+> 
+> (define (five incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer (incrementer (incrementer (incrementer base)))))
+>         )
+>     )
+> 
+> (define (six incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer base))))))
+>         )
+>     )
+> 
+> (define (seven incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer base)))))))
+>         )
+>     )
+> 
+> (define (eight incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer base))))))))
+>         )
+>     )
+> 
+> (define (nine incrementer)
+>     (lambda (base)
+>         (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer (incrementer base)))))))))
+>         )
+>     )
+> 
+> (define (inc x) (cons 'x x))
+> (define base ())
+> 
+> (define numbers
+>     (list
+>         (list ((zero inc) base) 'zero)
+>         (list ((one inc) base)  'one)
+>         (list ((two inc) base)  'two)
+>         (list ((three inc) base)  'three)
+>         (list ((four inc) base)  'four)
+>         (list ((five inc) base)  'five)
+>         (list ((six inc) base)  'six)
+>         (list ((seven inc) base)  'seven)
+>         (list ((eight inc) base)  'eight)
+>         (list ((nine inc) base) 'nine)
+>         )
+>     )
+> 
+> (define (translate number)
+>     (define result (assoc ((number inc) base) numbers))
+>     (if (eq? result #f)
+>         ((number inc) base)
+>         (cadr result)
+>         )
+>     )
+> 
+> (define (add a b)
+>     (lambda (incrementer)
+>         (lambda (base) ((a incrementer) ((b incrementer) base)))
+>         )
+>     )
+> 
+> (define (run3)
+>     (inspect (define->lambda '(define (plus a b) (+ a b))))
+>     )
+> 
+> (define (define->lambda code)
+>     (list
+>         'define
+>         (car (cadr code)) ;function name
+>         (cons 'lambda (cons (cdr (cadr code)) (cddr code)))
+>         )
+>     )
+> (define (run4)
+>     (inspect ((extractor 0 1) '((1 2) 3)))
+>     )
+> 
+> (define (extractor @)
+>     (define (iter pointers)
+>         (cond
+>             ((equal? pointers '(0)) car)
+>             ((equal? pointers '(1)) cdr)
+>             ((eq? (car pointers) 0)
+>                 (lambda (x) ((iter (cdr pointers)) (car x))))
+>             (else
+>                 (lambda (x) ((iter (cdr pointers)) (cdr x))))
+>             )
+>         )
+>     (iter @)
+>     )
+> 
+> (define (run7)
+>     (inspect (powerSet '(a b c d)))
+>     )
+> 
+> (define (powerSet items)
+>     (define (interleave a b)
+>         (cond
+>             ((null? a) b)
+>             ((null? b) a)
+>             ((or (null? (car a)) (< (length (car a)) (length (car b))))
+>                 (cons (car a) (interleave (cdr a) b)))
+>             (else
+>                 (cons (car b) (interleave a (cdr b))))
+>             )
+>         )
+>     (cond
+>         ((null? items) (list nil))
+>         (else 
+>             (define rest (powerSet (cdr items)))
+>             (define added (map (lambda (x) (cons (car items) x)) rest))
+>             (interleave rest added)
+>             )
+>         )
+>     )
+> 
+> (define (run8)
+>     (define t (treeNode 2 (treeNode 1 nil (treeNode 4 nil nil)) (treeNode 0 nil nil)))
+>     (inspect t)
+>     (inspect (depthStat t))
+>     )
+> 
+> (define (newTree) ())
+> 
+> (define (treeNode value left right)
+>     (list 'binaryTree value left right)
+>     )
+> 
+> (define (extract-leaves t)
+>     (define (iter root depth)
+>         (cond
+>             ((and (null? (caddr root)) (null? (cadddr root)))
+>                 (list (list (cadr root) depth)))
+>             ((null? (caddr root))
+>                 (iter (cadddr root) (+ depth 1)))
+>             ((null? (cadddr root))
+>                 (iter (caddr root) (+ depth 1)))
+>             (else
+>                 (append
+>                     (iter (cadddr root) (+ depth 1))
+>                     (iter (caddr root) (+ depth 1))
+>                     )
+>                 )
+>             )
+>         )
+>     (iter t 0)
+>     )
+> 
+> (define (accumulate op base items)
+>     (cond
+>         ((null? items) base)
+>         (else (op (car items) (accumulate op base (cdr items))))
+>         )
+>     )
+> (define (depthStat t)
+>     (define depths (map cadr (extract-leaves t)))
+>     (define sum (accumulate + 0 depths))
+>     (define count (accumulate (lambda (x y) (+ 1 y)) 0 depths))
+>     (inspect depths)
+>     (inspect sum)
+>     (inspect count)
+>     (/ sum (real count))
+>     )
+> 
+> (define (run9)
+>     (inspect (((((Polar 3 1.423) 'add) (Polar 7 2.453)) 'toString)))
+>     ;(inspect (+ (rectangular 3 1.423) (rectangular 7 2.453)))
+>     ;(inspect (+ (polar 3 1.423) 0))
+>     ;(inspect (+ (rectangular 3 1.423) 0))
+>     )
+> 
+> 
+> (define (Integer i)
+>     (define (add x)
+>         (cond
+>             ((is? x 'Integer) (Integer (+ i ((x 'value)))))
+>             (else (((promote) 'add) x))
+>             )
+>         )
+>     (define (promote) (Real (real i)))
+>     (define (demote) __context)
+>     (define (value) i)
+>     (define (toString) (string i))
 >     this
 >     )
 > 
-> (define (printTree t)
->     (define (iter r indent)
->         (if (null? r)
->             (println "null")
->             (begin
->                 (println (. r value)  "("  (. r color)  ")")
->                 (print indent "left:  ")
->                 (iter (. r left) (string+ indent "    "))
->                 (print indent  "right: ")
->                 (iter (. r right) (string+ indent "    "))
->                 )
->             )
->         )
-> 
->     (iter t "   ")
->     )
-> 
-> (define (insert t v op)
->     (if (null? t)
->         (begin
->             (assign root (node v nil nil))
->             (assign (. root parent) root)
->             (insertionFixup root)
->             )
->         (begin
->             (define lessThan (op v (. t value)))
-> 
->             (cond
->                 ((and lessThan (valid? (. t left)))
->                     (insert (. t left)  v  op)
->                     )
->                 (lessThan
->                     (assign (. t left) (node v nil nil))
->                     (assign (. (. t left) parent) t)
->                     (insertionFixup (. t left))
->                     )
->                 ((valid? (. t right))
->                     (insert (. t right)  v  op)
->                     )
->                 (else
->                     (assign (. t right) (node v nil nil))
->                     (assign (. (. t right) parent) t)
->                     (insertionFixup (. t right))
->                     )
->                 )
->             )
->         )
->     )
-> (define (prune x)
->     (assert (leaf? x))
->     (cond
->         ((leftChild? x)
->             (assign (. (parent x) left) nil)
->             )
->         ((rightChild? x)
->             (assign (. (parent x) right) nil)
->             )
->         (else
->             (assign root nil)
->             )
->         )
->     )
-> 
-> (define (swapToLeaf x)
->     (if (not (leaf? x))
->         (begin
->             (define y nil)
->             (define temp nil)
-> 
->             (if (valid? (. x right))
->                 (assign y (findMin (. x right)))
->                 (assign y (findMax (. x left)))
->                 )
-> 
->             (assign temp (. x value))
->             (assign (. x value) (. y value))
->             (assign (. y value) temp)
-> 
->             (swapToLeaf y)
->             )
->         x
->         )
->     )
-> 
-> (define (findMin x)
->     (while (valid? (. x left))
->         (assign x (. x left))
->         )
->     x
->     )
-> 
-> (define (findMax x)
->     (while (valid? (. x right))
->         (assign x (. x right))
->         )
->     x
->     )
-> 
-> (define (delete x)
->     (assign x (swapToLeaf x))
->     (deletionFixup x)
->     ; (println "pruning "  (. x value))
->     (prune x)
->     )
-> 
-> (define (deletionFixup x)
->     (while (and (false? (root? x)) (eq? (. x color) 'black))
+> (define (Real r)
+>     (define (add x)
 >         (cond
->             ((red? (sibling x))
->                 (assign (. (parent x) color) 'red)
->                 (assign (. (sibling x) color) 'black)
->                 (rotate (sibling x) (parent x))
->                 ; should have black sibling now
->                 (assert (eq? (. (sibling x) color) 'black))
->                 )
->             ((red? (nephew x))
->                 (assign (. (sibling x) color) (. (parent x) color))
->                 (assign (. (parent x) color) 'black)
->                 (assign (. (nephew x) color) 'black)
->                 (rotate (sibling x) (parent x))
->                 (assign x root)
->                 ; subtree is bh balanced
->                 ; with proper bh contribution
->                 )
->             ((red? (niece x))
->                 ; nephew must be black
->                 (assign (. (niece x) color) 'black)
->                 (assign (. (sibling x) color) 'red)
->                 (rotate (niece x) (sibling x))
->                 ; should have red nephew now
->                 (assert (eq? (. (nephew x) color) 'red))
->                 )
+>             ((is? x 'Integer) (Real (+ r ((x 'value)))))
+>             ((is? x 'Real) (Real (+ r ((x 'value)))))
+>             (else (((promote) 'add) x))
+>             )
+>         )
+>     (define (promote) (Rectangular r 0))
+>     (define (demote) (Integer (integer r)))
+>     (define (value) r)
+>     (define (toString) (string r))
+>     this
+>     )
+> 
+> (define (Rectangular x y) 
+>     (define (add a)
+>         (cond
+>             ((is? a 'Integer) (Rectangular (+ x ((a 'value))) y))
+>             ((is? a 'Real) (Rectangular (+ x ((a 'value))) y))
+>             ((is? a 'Polar) (add ((a 'convert))))
 >             (else
->                 ; sibling  niece  and nephew must be black
->                 (assign (. (sibling x) color) 'red)
->                 (assign x (parent x))
->                 ; subtree is bh balanced
->                 ; but has deficit in bh contribution
+>                 (Rectangular
+>                     (+ x (car ((a 'value))))
+>                     (+ y (cadr ((a 'value))))
+>                     )
 >                 )
 >             )
-> 
->         (assign (. x color) 'black)
+>         )
+>     (define (convert)
+>         (apply Polar (cdr (rectangular->polar (rectangular x y))))
+>         )
+>     (define (promote) __context)
+>     (define (demote) (Real (real x)))
+>     (define (value) (list x y))
+>     (define (toString) (string (list 'rectangular x y)))
+>     this
+>     )
+>          
+> (define (Polar m a) 
+>     (define (add a)
+>         (cond
+>             ((is? a 'Integer) (((((convert) 'add) a) 'convert)))
+>             ((is? a 'Real) (((((convert) 'add) a) 'convert)))
+>             ((is? a 'Rectangular) ((((a 'add) __context) 'convert)))
+>             (else (((((convert) 'add) a) 'convert)))
+>             )
+>         )
+>     (define (convert)
+>         (apply Rectangular (cdr (polar->rectangular (polar m a))))
+>         )
+>     (define (promote) __context)
+>     (define (demote) (Real (car (((convert) 'value)))))
+>     (define (value) (list m a))
+>     (define (toString) (string (list 'polar m a)))
+>     this
+>     )
+> (redefine (+ a b)
+>     (cond
+>         ((object? a) ((a 'add) b))
+>         (else ((prior) a b))
 >         )
 >     )
 > 
-> (define (insertionFixup x)
->     (assign (. x color) 'red)
+> (run1)
+> (run2)
+> (run3)
+> (run4)
+> (run7)
+> (run8)
+> (run9)
+> ------------------------------------------
+> (+ (polar 1 0.707000) (polar 1 0.707000)) is (polar 2.000000 0.707000)
+> (+ (polar 3 1.423000) (polar 7 2.453000)) is (polar 8.923138 2.160624)
+> (+ (rectangular 3 1.423000) (rectangular 7 2.453000)) is (rectangular 10 3.876000)
+> (+ (polar 3 1.423000) 0) is (polar 3.000000 1.423000)
+> (+ (rectangular 3 1.423000) 0) is (rectangular 3 1.423000)
+> (add two three) is five
+> (add zero five) is five
+> (add five zero) is five
+> (add nine nine) is (x x x x x x x x x x x x x x x x x x)
+> (define->lambda (quote (define (plus a b) (+ a b)))) is (define plus (lambda (a b) (+ a b)))
+> ((extractor 0 1) (quote ((1 2) 3))) is (2)
+> (powerSet (quote (a b c d))) is ( (a) (b) (c) (d) (a b) (a c) (a d) (b c) (b d) (c d) (a b c) (a b d) (a c d) (b c d) (a b c d))
+> t is (binaryTree 2 (binaryTree 1  (binaryTree 4  )) (binaryTree 0  ))
+> depths is (1 2)
+> sum is 3
+> count is 2
+> (depthStat t) is 1.500000
+> (((((Polar 3 1.423000) (quote add)) (Polar 7 2.453000)) (quote toString))) is (polar 8.923138 2.160624)
+------------------------------------------
+run.scm
+------------------------------------------
+0a1,93
+> (define port)
+> (define oldPort (getOutputPort))
+> (define remarks #f)
+> (define topEnv this)
 > 
->     (while (and (not (root? x)) (eq? (. (. x parent) color) 'red))
->         (if (red? (uncle x))
->             (begin
->                 (assign (. (parent x) color) 'black)
->                 (assign (. (uncle x) color) 'black)
->                 (assign (. (grandparent x) color) 'red)
->                 (assign x (grandparent x))
->                 )
->             (begin
->                 ; uncle must be black
+> (define (logln port @)
+>     (define oldPort (setPort port))
+>     (apply println @)
+>     (setPort oldPort)
+>     )
+> (define (log port @)
+>     (define oldPort (setPort port))
+>     (apply print @)
+>     (setPort oldPort)
+>     )
 > 
->                 (if (not (linear? x (parent x) (grandparent x)))
->                     (begin
->                         (define oldParent (parent x))
->                         (rotate x (parent x))
->                         (assign x oldParent)
+> (define (run exercises out)
+> 
+>     (define target nil)
+>     (define mytarget nil)
+>     (define exercise nil)
+>     (define (run-items items)
+>         (define result nil)
+>         (if (valid? items)
+>             (begin
+>                 (set! target (car items))
+>                 (set! exercise (string target))
+>                 (set! exercise (cdddr exercise))
+>                 (set! mytarget 
+>                     (symbol (string+ "jcl-run" exercise))
+>                     )
+>                 (log oldPort "initiating exercise ")
+>                 (log oldPort target)
+>                 (logln oldPort "...")
+>                 (println "############ exercise " exercise " ############\n")
+>                 (close (getOutputPort))
+>                 (set! port (open out 'append))
+>                 (setPort port)
+>                 (cond
+>                     ((local? (__id target) topEnv)
+>                     (println "#### your explanations and tests...\n")
+>                     ;(set! result
+>                         ;(ignore-errors (lambda () ((eval target topEnv)))))
+>                     (set! result (catch ((eval target topEnv))))
+>                     (if (error? result)
+>                         (println "\n" target " failed: " (dot result value)))
+>                     (println)
+>                     (if (local? (__id mytarget) topEnv)
+>                         (begin
+>                             (println "#### your code and my tests...\n")
+>                             ((eval mytarget topEnv))
+>                             (println)
+>                             )
+>                         )
+>                     (println)
+>                     (if remarks
+>                         (begin
+>                             (println "#### exercise " exercise " remarks:")
+>                             (println "####")
+>                             (println "####")
+>                             )
 >                         )
 >                     )
-> 
->                 (assign (. (parent x) color) 'black)
->                 ;(inspect (. (parent x) color))
->                 (assert (eq? (. (. x parent) color) 'black))
->                 (assign (. (grandparent x) color) 'red)
->                 (rotate (parent x) (grandparent x))
+>                     (else
+>                         (println "####")
+>                         (println "#### exercise " exercise " not implemented")
+>                         )
+>                     )
+>                 (println "####\n")
+>                 (log oldPort "exercise ")
+>                 (log oldPort (car items))
+>                 (logln oldPort " completed.")
+>                 (run-items (cdr items))
 >                 )
 >             )
 >         )
->     (assign (. root color) 'black)
+> 
+>     (set! port (open out 'write))
+>     (setPort port)
+> 
+>     (logln oldPort "running the exercises...")
+> 
+>     (run-items exercises)
+> 
+>     (logln oldPort "exercises completed...")
+>     (reset)
 >     )
 > 
-> (define (root? x) (eq? x (. x parent)))
-> (define (leftChild? x) (eq? (. (parent x) left) x))
-> (define (rightChild? x) (eq? (. (parent x) right) x))
-> (define (leaf? x) (and (null? (. x left))(null? (. x right))))
-> (define (red? x) (and (valid? x) (eq? (. x color) 'red)))
-> (define (black? x) (or  (null? x) (eq? (. x color) 'black)))
-> 
-> (define (sibling x)
->     (cond
->         ((leftChild? x)
->             (. (. x parent) right)
->             )
->         ((rightChild? x)
->             (. (. x parent) left)
->             )
->         (else
->             nil
->             )
->         )
+> (define (reset)
+>     (setPort oldPort)
+>     (close port)
 >     )
-> 
-> (define (niece x)       ; precondition: sibling exists
->     (if (leftChild? x)
->         (. (sibling x) left)
->         (. (sibling x) right)
->         )
->     )
-> 
-> (define (nephew x)      ; precondition: sibling exists
->     ;(inspect (sibling x))
->     (if (leftChild? x)
->         (. (sibling x) right)
->         (. (sibling x) left)
->         )
->     )
-> 
-> (define (parent x) (. x parent))
-> (define (grandparent x) (parent (parent x)))
-> (define (uncle x)
->     (cond
->         ((leftChild? (parent x))
->             (. (grandparent x) right))
->         ((rightChild? (parent x))
->             (. (grandparent x) left))
->         (else
->             nil)
->         )
->     )
-> 
-> (define (linear? x y z)
->     (or
->         (and (leftChild? x) (leftChild? y))
->         (and (rightChild? x) (rightChild? y))
->         )
->     )
-> 
-> (define (rotate x p)
->     (cond
->         ((eq? (. p left) x) 
->             ; rotate right
->             (println "rotating right")
->             (rotator x p 'right 'left)
->             )
->         ((eq? (. p right) x)
->             ; rotate left
->             (println "rotating left")
->             (rotator x p 'left 'right)
->             )
->         (else
->             (throw 'redBlackException "rotate error")
->             )
->         )
->     )
-> 
-> (define (id x) x)
-> 
-> (define (rotator x p direction oppositeDirection)
->     (define gp (parent p))
->     (define beta (. x (id direction)))
-> 
->     (assign (. p (id oppositeDirection)) beta)
->     (if (valid? beta) (assign (. beta parent) p))
-> 
->     (assign (. x (id direction)) p)
->     (assign (. p parent) x)
-> 
->     (if (eq? p gp)
->         (begin
->             (assign root x)
->             (assign (. x parent) x)
->             )
->         (begin
->             (if (eq? (. gp (id direction)) p)
->                 (assign (. gp (id direction)) x)
->                 (assign (. gp (id oppositeDirection)) x)
->                 )
->             (assign (. x parent) gp)
->             )
->         )
->     )
-> 
-> (define (findNode t v op)
->     (cond
->         ((or (null? t) (eq? v (. t value)))
->             t
->             )
->         ((op v (. t value))
->             (findNode (. t left) v op)
->             )
->         (else
->             (findNode (. t right) v op)
->             )
->         )
->     )
-> 
-> (define (main)
->     (define i nil)
->     (define num nil)
->     (define x nil)
->     (define input (array 1  2  9  3  6  4  7  8  5))
-> 
->     (assign i 0)
->     (while (< i (length input))
->         (assign num (getElement input i))
->         (println "inserting!")
->         (insert root num <)
->         (println num " inserted.")
->         (printTree root)
->         (assign i (+ i 1))
->         )
-367,384c332,348
-<     println("insertion phase complete, tree is...");
-<     printTree(root);
-<     println("deletion phase begins...");
-< 
-<     i = 0;
-<     while (i < length(input))
-<         {
-<         num = input . i;
-<         x = findNode(root,num,<);
-<         delete(x);
-<         print(num," deleted.\n");
-<         printTree(root);
-<         i = i + 1;
-<         }
-< 
-<     println("deletion phase complete, tree is...");
-<     print("good-bye!\n");
-<     }
----
->     (println "insertion phase complete  tree is...")
->     (printTree root)
->     (println "deletion phase begins...")
-> 
->     (assign i 0)
->     (while (< i (length input))
->         (assign num (getElement input i))
->         (assign x (findNode root num <))
->         (delete x)
->         (println num " deleted.")
->         (printTree root)
->         (assign i (+ i 1))
->         )
-> 
->     (println "deletion phase complete  tree is...")
->     (println "good-bye!")
->     )
-386,387c350,351
-< print("hello\n");
-< main();
----
-> (println "hello");
-> (main)
-390,619c354,356
-< inserting!
-< 1 inserted.
-< 1(black)
-<    left:  null
-<    right: null
-< inserting!
-< 2 inserted.
-< 1(black)
-<    left:  null
-<    right: 2(red)
-<        left:  null
-<        right: null
-< inserting!
-< 9 inserted.
-< 2(black)
-<    left:  1(red)
-<        left:  null
-<        right: null
-<    right: 9(red)
-<        left:  null
-<        right: null
-< inserting!
-< 3 inserted.
-< 2(black)
-<    left:  1(black)
-<        left:  null
-<        right: null
-<    right: 9(black)
-<        left:  3(red)
-<            left:  null
-<            right: null
-<        right: null
-< inserting!
-< 6 inserted.
-< 2(black)
-<    left:  1(black)
-<        left:  null
-<        right: null
-<    right: 6(black)
-<        left:  3(red)
-<            left:  null
-<            right: null
-<        right: 9(red)
-<            left:  null
-<            right: null
-< inserting!
-< 4 inserted.
-< 2(black)
-<    left:  1(black)
-<        left:  null
-<        right: null
-<    right: 6(red)
-<        left:  3(black)
-<            left:  null
-<            right: 4(red)
-<                left:  null
-<                right: null
-<        right: 9(black)
-<            left:  null
-<            right: null
-< inserting!
-< 7 inserted.
-< 2(black)
-<    left:  1(black)
-<        left:  null
-<        right: null
-<    right: 6(red)
-<        left:  3(black)
-<            left:  null
-<            right: 4(red)
-<                left:  null
-<                right: null
-<        right: 9(black)
-<            left:  7(red)
-<                left:  null
-<                right: null
-<            right: null
-< inserting!
-< 8 inserted.
-< 2(black)
-<    left:  1(black)
-<        left:  null
-<        right: null
-<    right: 6(red)
-<        left:  3(black)
-<            left:  null
-<            right: 4(red)
-<                left:  null
-<                right: null
-<        right: 8(black)
-<            left:  7(red)
-<                left:  null
-<                right: null
-<            right: 9(red)
-<                left:  null
-<                right: null
-< inserting!
-< 5 inserted.
-< 2(black)
-<    left:  1(black)
-<        left:  null
-<        right: null
-<    right: 6(red)
-<        left:  4(black)
-<            left:  3(red)
-<                left:  null
-<                right: null
-<            right: 5(red)
-<                left:  null
-<                right: null
-<        right: 8(black)
-<            left:  7(red)
-<                left:  null
-<                right: null
-<            right: 9(red)
-<                left:  null
-<                right: null
-< insertion phase complete, tree is...
-< 2(black)
-<    left:  1(black)
-<        left:  null
-<        right: null
-<    right: 6(red)
-<        left:  4(black)
-<            left:  3(red)
-<                left:  null
-<                right: null
-<            right: 5(red)
-<                left:  null
-<                right: null
-<        right: 8(black)
-<            left:  7(red)
-<                left:  null
-<                right: null
-<            right: 9(red)
-<                left:  null
-<                right: null
-< deletion phase begins...
-< 1 deleted.
-< 6(black)
-<    left:  4(red)
-<        left:  2(black)
-<            left:  null
-<            right: 3(red)
-<                left:  null
-<                right: null
-<        right: 5(black)
-<            left:  null
-<            right: null
-<    right: 8(black)
-<        left:  7(red)
-<            left:  null
-<            right: null
-<        right: 9(red)
-<            left:  null
-<            right: null
-< 2 deleted.
-< 6(black)
-<    left:  4(red)
-<        left:  3(black)
-<            left:  null
-<            right: null
-<        right: 5(black)
-<            left:  null
-<            right: null
-<    right: 8(black)
-<        left:  7(red)
-<            left:  null
-<            right: null
-<        right: 9(red)
-<            left:  null
-<            right: null
-< 9 deleted.
-< 6(black)
-<    left:  4(red)
-<        left:  3(black)
-<            left:  null
-<            right: null
-<        right: 5(black)
-<            left:  null
-<            right: null
-<    right: 8(black)
-<        left:  7(red)
-<            left:  null
-<            right: null
-<        right: null
-< 3 deleted.
-< 6(black)
-<    left:  4(black)
-<        left:  null
-<        right: 5(red)
-<            left:  null
-<            right: null
-<    right: 8(black)
-<        left:  7(red)
-<            left:  null
-<            right: null
-<        right: null
-< 6 deleted.
-< 7(black)
-<    left:  4(black)
-<        left:  null
-<        right: 5(red)
-<            left:  null
-<            right: null
-<    right: 8(black)
-<        left:  null
-<        right: null
-< 4 deleted.
-< 7(black)
-<    left:  5(black)
-<        left:  null
-<        right: null
-<    right: 8(black)
-<        left:  null
-<        right: null
-< 7 deleted.
-< 8(black)
-<    left:  5(red)
-<        left:  null
-<        right: null
-<    right: null
-< 8 deleted.
-< 5(black)
-<    left:  null
-<    right: null
-< 5 deleted.
-< null
-< deletion phase complete, tree is...
-< good-bye!
----
-> ------------------------------------
-> EXCEPTION: undefinedVariable
-> file rb.s,line 322: variable assign is undefined
+> ------------------------------------------
 ------------------------------------------
-recur.s
+sin.scm
 ------------------------------------------
-32c32,34
-< 5050
----
-> ------------------------------------
-> EXCEPTION: undefinedVariable
-> file recur.s,line 1: variable function is undefined
+0a1,46
+> (define i 0)
+> (while (< i 4)
+>     (println (int (* (sin i) 1000)))
+>     (+= i .1)
+>     )
+> ------------------------------------------
+> 0
+> 99
+> 198
+> 295
+> 389
+> 479
+> 564
+> 644
+> 717
+> 783
+> 841
+> 891
+> 932
+> 963
+> 985
+> 997
+> 999
+> 991
+> 973
+> 946
+> 909
+> 863
+> 808
+> 745
+> 675
+> 598
+> 515
+> 427
+> 334
+> 239
+> 141
+> 41
+> -58
+> -157
+> -255
+> -350
+> -442
+> -529
+> -611
+> -687
 ------------------------------------------
-recursion.s
+test1.scm
 ------------------------------------------
-23,423c23,25
-< 399
-< 398
-< 397
-< 396
-< 395
-< 394
-< 393
-< 392
-< 391
-< 390
-< 389
-< 388
-< 387
-< 386
-< 385
-< 384
-< 383
-< 382
-< 381
-< 380
-< 379
-< 378
-< 377
-< 376
-< 375
-< 374
-< 373
-< 372
-< 371
-< 370
-< 369
-< 368
-< 367
-< 366
-< 365
-< 364
-< 363
-< 362
-< 361
-< 360
-< 359
-< 358
-< 357
-< 356
-< 355
-< 354
-< 353
-< 352
-< 351
-< 350
-< 349
-< 348
-< 347
-< 346
-< 345
-< 344
-< 343
-< 342
-< 341
-< 340
-< 339
-< 338
-< 337
-< 336
-< 335
-< 334
-< 333
-< 332
-< 331
-< 330
-< 329
-< 328
-< 327
-< 326
-< 325
-< 324
-< 323
-< 322
-< 321
-< 320
-< 319
-< 318
-< 317
-< 316
-< 315
-< 314
-< 313
-< 312
-< 311
-< 310
-< 309
-< 308
-< 307
-< 306
-< 305
-< 304
-< 303
-< 302
-< 301
-< 300
-< 299
-< 298
-< 297
-< 296
-< 295
-< 294
-< 293
-< 292
-< 291
-< 290
-< 289
-< 288
-< 287
-< 286
-< 285
-< 284
-< 283
-< 282
-< 281
-< 280
-< 279
-< 278
-< 277
-< 276
-< 275
-< 274
-< 273
-< 272
-< 271
-< 270
-< 269
-< 268
-< 267
-< 266
-< 265
-< 264
-< 263
-< 262
-< 261
-< 260
-< 259
-< 258
-< 257
-< 256
-< 255
-< 254
-< 253
-< 252
-< 251
-< 250
-< 249
-< 248
-< 247
-< 246
-< 245
-< 244
-< 243
-< 242
-< 241
-< 240
-< 239
-< 238
-< 237
-< 236
-< 235
-< 234
-< 233
-< 232
-< 231
-< 230
-< 229
-< 228
-< 227
-< 226
-< 225
-< 224
-< 223
-< 222
-< 221
-< 220
-< 219
-< 218
-< 217
-< 216
-< 215
-< 214
-< 213
-< 212
-< 211
-< 210
-< 209
-< 208
-< 207
-< 206
-< 205
-< 204
-< 203
-< 202
-< 201
-< 200
-< 199
-< 198
-< 197
-< 196
-< 195
-< 194
-< 193
-< 192
-< 191
-< 190
-< 189
-< 188
-< 187
-< 186
-< 185
-< 184
-< 183
-< 182
-< 181
-< 180
-< 179
-< 178
-< 177
-< 176
-< 175
-< 174
-< 173
-< 172
-< 171
-< 170
-< 169
-< 168
-< 167
-< 166
-< 165
-< 164
-< 163
-< 162
-< 161
-< 160
-< 159
-< 158
-< 157
-< 156
-< 155
-< 154
-< 153
-< 152
-< 151
-< 150
-< 149
-< 148
-< 147
-< 146
-< 145
-< 144
-< 143
-< 142
-< 141
-< 140
-< 139
-< 138
-< 137
-< 136
-< 135
-< 134
-< 133
-< 132
-< 131
-< 130
-< 129
-< 128
-< 127
-< 126
-< 125
-< 124
-< 123
-< 122
-< 121
-< 120
-< 119
-< 118
-< 117
-< 116
-< 115
-< 114
-< 113
-< 112
-< 111
-< 110
-< 109
-< 108
-< 107
-< 106
-< 105
-< 104
-< 103
-< 102
-< 101
-< 100
-< 99
-< 98
-< 97
-< 96
-< 95
-< 94
-< 93
-< 92
-< 91
-< 90
-< 89
-< 88
-< 87
-< 86
-< 85
-< 84
-< 83
-< 82
-< 81
-< 80
-< 79
-< 78
-< 77
-< 76
-< 75
-< 74
-< 73
-< 72
-< 71
-< 70
-< 69
-< 68
-< 67
-< 66
-< 65
-< 64
-< 63
-< 62
-< 61
-< 60
-< 59
-< 58
-< 57
-< 56
-< 55
-< 54
-< 53
-< 52
-< 51
-< 50
-< 49
-< 48
-< 47
-< 46
-< 45
-< 44
-< 43
-< 42
-< 41
-< 40
-< 39
-< 38
-< 37
-< 36
-< 35
-< 34
-< 33
-< 32
-< 31
-< 30
-< 29
-< 28
-< 27
-< 26
-< 25
-< 24
-< 23
-< 22
-< 21
-< 20
-< 19
-< 18
-< 17
-< 16
-< 15
-< 14
-< 13
-< 12
-< 11
-< 10
-< 9
-< 8
-< 7
-< 6
-< 5
-< 4
-< 3
-< 2
-< 1
-< 0
-< bottom
----
-> ------------------------------------
-> EXCEPTION: undefinedVariable
-> file recursion.s,line 1: variable var is undefined
+0a1,141
+> (include "assign1.scm")
+> 
+> (define (inspect # $item)
+>     (print $item " is " (eval $item #) " ")
+>     )
+> 
+> (println "problem 1...\n")
+> (if (defined? 'run1 this)
+>     (println "no testing for problem 1\n")
+>     (println "problem 1 not implemented\n")
+>     )
+> 
+> (println "problem 2...\n")
+> (if (defined? 'run2 this)
+>     (begin
+>         (inspect (zeno_cost 20 150 0.25))
+>         (println "[it should be 199.951172]\n")
+>         )
+>     (println "problem 2 not implemented\n")
+>     )
+> 
+> (println "problem 3...\n")
+> (if (defined? 'run3 this)
+>     (begin
+>         (inspect (min8 0 0 0 0 0 0 0 0))
+>         (println "[it should be 0]\n")
+>         )
+>     (println "problem 3 not implemented\n")
+>     )
+> 
+> (println "problem 4...\n")
+> (if (defined? 'run4 this)
+>     (begin
+>         (inspect (root3 27.0))
+>         (println "[it should be 3.0]\n")
+>         )
+>     (println "problem 4 not implemented\n")
+>     )
+> 
+> (println "problem 5...\n")
+> (if (defined? 'run5 this)
+>     (begin
+>         (pt 0)
+>         (println "[it should print out 1]\n")
+>         )
+>     (println "problem 5 not implemented\n")
+>     )
+> 
+> (println "problem 6...\n")
+> (if (defined? 'run6 this)
+>     (begin
+>         (inspect (zorp 1 (lambda (x) (* x x))))
+>         (println "[it should be 1]\n")
+>         )
+>     (println "problem 6 not implemented\n")
+>     )
+> 
+> (println "problem 7...\n")
+> (if (defined? 'run7 this)
+>     (begin
+>         (inspect (square 1))
+>         (println "[it should be 1]")
+>         (inspect (halve 2))
+>         (println "[it should be 1]")
+>         (inspect (babyl* 1 1))
+>         (println "[it should be 1]\n")
+>         )
+>     (println "problem 7 not implemented\n")
+>     )
+> 
+> (println "problem 8...\n")
+> (if (defined? 'run8 this)
+>     (begin
+>         (inspect (ecf 0))
+>         (println "[it should be 2.0]\n")
+>         )
+>     (println "problem 8 not implemented\n")
+>     )
+> 
+> (println "problem 9...\n")
+> (if (defined? 'run9 this)
+>     (begin
+>         (inspect (ramanujan 0))
+>         (println "[it should be 1.0]\n")
+>         )
+>     (println "problem 9 not implemented\n")
+>     )
+> 
+> (println "problem 10...\n")
+> (if (defined? 'run10 this)
+>     (begin
+>         (inspect (ramanujan2 1 2))
+>         (println "[it should be 1.732051]\n")
+>         )
+>     (println "problem 10 not implemented]\n")
+>     )
+> ------------------------------------------
+> problem 1...
+> 
+> no testing for problem 1
+> 
+> problem 2...
+> 
+> (zeno_cost 20 150 0.250000) is 199.951172 [it should be 199.951172]
+> 
+> problem 3...
+> 
+> (min8 0 0 0 0 0 0 0 0) is 0 [it should be 0]
+> 
+> problem 4...
+> 
+> (root3 27.000000) is 3.000000 [it should be 3.0]
+> 
+> problem 5...
+> 
+> 1 
+> 
+> [it should print out 1]
+> 
+> problem 6...
+> 
+> (zorp 1 (lambda (x) (* x x))) is 1 [it should be 1]
+> 
+> problem 7...
+> 
+> (square 1) is 1 [it should be 1]
+> (halve 2) is 1 [it should be 1]
+> (babyl* 1 1) is 1 [it should be 1]
+> 
+> problem 8...
+> 
+> (ecf 0) is 2.000000 [it should be 2.0]
+> 
+> problem 9...
+> 
+> (ramanujan 0) is 1 [it should be 1.0]
+> 
+> problem 10...
+> 
+> (ramanujan2 1 2) is 1.732051 [it should be 1.732051]
+> 
 ------------------------------------------
-reflect.s
+test2.scm
 ------------------------------------------
-38,49c38,40
-< x: a is 2, b is 3, c is 5
-< n is constructed via m's constructor
-< x: a is 2, b is 3, c is 8
-< 
-< m . constructor . name is x
-< n . constructor . name is x
-< 
-< changing m . a to 10
-< changing n . b to 10
-< 
-< x: a is 10, b is 3, c is 5
-< x: a is 2, b is 10, c is 8
----
-> ------------------------------------
-> EXCEPTION: nonFunction
-> file reflect.s,line 1: attempted to call STRING as a function
-------------------------------------------
-reify.s
-------------------------------------------
-29,31c29,31
-< calling superclass:a
-< superclass:a: calling virtual function b
-< subclass:b
----
-> ------------------------------------
-> EXCEPTION: undefinedVariable
-> file reify.s,line 1: variable function is undefined
+0a1,188
+> (include "reflection.lib")
+> (include "assign2.scm")
+> 
+> (println "problem 1...\n")
+> (if (defined? 'run1 this)
+>     (begin
+>         (inspect (+ 2 3))
+>         (println "    [it should be 5]")
+>         (inspect (+ (polar 1 .707) (polar 1 .707)))
+>         (println "    [it should be magnitude 2 and angle .707]")
+>         )
+>     (println "problem 1 not implemented\n")
+>     )
+> 
+> (println "problem 2...\n")
+> (if (defined? 'run2 this)
+>     (begin
+>         (inspect add)
+>         (println)
+>         (inspect numbers)
+>         (println)
+>         (inspect (translate (add two three)))
+>         (println "    [it should be five]\n")
+>         )
+>     (println "problem 2 not implemented\n")
+>     )
+>     
+> 
+> (println "problem 3...\n")
+> (if (defined? 'run3 this)
+>     (begin
+>         (inspect (define->lambda '(define (plus a b) (+ a b))))
+>         (println "    [it should be (define plus (lambda (a b) (+ a b)))]\n")
+>         )
+>     (println "problem 3 not implemented\n")
+>     )
+> 
+> (println "problem 4...\n")
+> (if (defined? 'run4 this)
+>     (begin
+>         (inspect ((extractor 1 1 0) '(1 2 3 4 5)))
+>         (println "    [it should be 3]")
+>         )
+>     (println "problem 4 not implemented\n")
+>     )
+> 
+> (println "problem 5...\n")
+> (if (defined? 'run5 this)
+>     (begin
+>         (inspect (matrix-*-matrix '((1 2) (3 4))'((1 0) (0 1))))
+>         (println "    [it should be ((1 2) (3 4))]\n")
+>         )
+>     (println "problem 5 not implemented\n")
+>     )
+> 
+> (println "problem 6...\n")
+> (if (defined? 'run6 this)
+>     (begin
+>         (inspect (infix->postfix '(2 + 3 * x ^ 5 + a)))
+>         (println "    [it should be (2 3 x 5 ^ * a + +) or equivalent]\n")
+>         )
+>     (println "problem 6 not implemented\n")
+>     )
+> 
+> (println "problem 7...\n")
+> (if (defined? 'run7 this)
+>     (begin
+>         (inspect (powerSet '(a b)))
+>         (println "    [it should be (() (a) (b) (a b))]")
+>         )
+>     (println "problem 7 not implemented\n")
+>     )
+> 
+> (println "problem 8...\n")
+> (if (defined? 'run8 this)
+>     (begin
+>         (inspect
+>             (depthStat (treeNode 1 (treeNode 1 nil nil) (treeNode 1 nil nil)))
+>             )
+>         (println "    [it should be 1.0]\n")
+>         )
+>     (println "problem 8 not implemented\n")
+>     )
+> 
+> (println "problem 9...\n")
+> (if (defined? 'run9 this)
+>     (begin
+>         (inspect (+ 2 3))
+>         (println "    [it should be 5]\n")
+>         (inspect ((dot (+ (Polar 1 .707) (Polar 1 .707)) toString)))
+>         (println "    [it should be magnitude 2 and angle .707]\n")
+>         (inspect ((dot (+ (Rectangular 1 1) (Integer 1)) toString)))
+>         (println "    [it should be real 2 and imaginary 1]\n")
+>         (inspect ((dot (+ (Real 2.3) (Integer 1)) value)))
+>         (println "    [it should be real 3.3]\n")
+>         )
+>     (println "problem 9 not implemented\n")
+>     )
+> 
+> (println "problem 10...\n")
+> (if (defined? 'run10 this)
+>     (begin
+>         (inspect ((dot (coerce (Integer 5) 'Real) value)))
+>         (println "[it should be real 5.0]\n")
+>         )
+>     (println "problem 10 not implemented]\n")
+>     )
+> ------------------------------------------
+> (+ (polar 1 0.707000) (polar 1 0.707000)) is (polar 2.000000 0.707000)
+> (+ (polar 3 1.423000) (polar 7 2.453000)) is (polar 8.923138 2.160624)
+> (+ (rectangular 3 1.423000) (rectangular 7 2.453000)) is (rectangular 10 3.876000)
+> (+ (polar 3 1.423000) 0) is (polar 3.000000 1.423000)
+> (+ (rectangular 3 1.423000) 0) is (rectangular 3 1.423000)
+> (add two three) is five
+> (add zero five) is five
+> (add five zero) is five
+> (add nine nine) is (x x x x x x x x x x x x x x x x x x)
+> (define->lambda (quote (define (plus a b) (+ a b)))) is (define plus (lambda (a b) (+ a b)))
+> ((extractor 0 1) (quote ((1 2) 3))) is (2)
+> (powerSet (quote (a b c d))) is ( (a) (b) (c) (d) (a b) (a c) (a d) (b c) (b d) (c d) (a b c) (a b d) (a c d) (b c d) (a b c d))
+> t is (binaryTree 2 (binaryTree 1  (binaryTree 4  )) (binaryTree 0  ))
+> depths is (1 2)
+> sum is 3
+> count is 2
+> (depthStat t) is 1.500000
+> (((((Polar 3 1.423000) (quote add)) (Polar 7 2.453000)) (quote toString))) is (polar 8.923138 2.160624)
+> problem 1...
+> 
+> (+ 2 3) is 5
+>     [it should be 5]
+> (+ (polar 1 0.707000) (polar 1 0.707000)) is (polar 2.000000 0.707000)
+>     [it should be magnitude 2 and angle .707]
+> problem 2...
+> 
+> add is <function add(a b)>
+> 
+> numbers is (( zero) ((x) one) ((x x) two) ((x x x) three) ((x x x x) four) ((x x x x x) five) ((x x x x x x) six) ((x x x x x x x) seven) ((x x x x x x x x) eight) ((x x x x x x x x x) nine))
+> 
+> (translate (add two three)) is five
+>     [it should be five]
+> 
+> problem 3...
+> 
+> (define->lambda (quote (define (plus a b) (+ a b)))) is (define plus (lambda (a b) (+ a b)))
+>     [it should be (define plus (lambda (a b) (+ a b)))]
+> 
+> problem 4...
+> 
+> ((extractor 1 1 0) (quote (1 2 3 4 5))) is 3
+>     [it should be 3]
+> problem 5...
+> 
+> problem 5 not implemented
+> 
+> problem 6...
+> 
+> problem 6 not implemented
+> 
+> problem 7...
+> 
+> (powerSet (quote (a b))) is ( (a) (b) (a b))
+>     [it should be (() (a) (b) (a b))]
+> problem 8...
+> 
+> depths is (1 1)
+> sum is 2
+> count is 2
+> (depthStat (treeNode 1 (treeNode 1  ) (treeNode 1  ))) is 1.000000
+>     [it should be 1.0]
+> 
+> problem 9...
+> 
+> (+ 2 3) is 5
+>     [it should be 5]
+> 
+> ((dot (+ (Polar 1 0.707000) (Polar 1 0.707000)) toString)) is (polar 2.000000 0.707000)
+>     [it should be magnitude 2 and angle .707]
+> 
+> ((dot (+ (Rectangular 1 1) (Integer 1)) toString)) is (rectangular 2 1)
+>     [it should be real 2 and imaginary 1]
+> 
+> ((dot (+ (Real 2.300000) (Integer 1)) value)) is 3.300000
+>     [it should be real 3.3]
+> 
+> problem 10...
+> 
+> problem 10 not implemented]
+> 
 ------------------------------------------

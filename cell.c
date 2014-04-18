@@ -575,7 +575,7 @@ push(int i)
     }
 
 static int
-transferBackbone(int old,int limit)
+transferBackbone(int old,int freeSpot)
     {
     int size;
     //int start;
@@ -587,12 +587,12 @@ transferBackbone(int old,int limit)
     if (t != STRING && t != ARRAY)
         {
         assert(transferred(old) == 0);
-        new_cars[limit] = the_cars[old];
-        new_cdrs[limit] = the_cdrs[old];
+        new_cars[freeSpot] = the_cars[old];
+        new_cdrs[freeSpot] = the_cdrs[old];
         transferred(old) = 1;
-        new_cars[limit].transferred = 0;
-        cdr(old) = limit;
-        return limit + 1;
+        new_cars[freeSpot].transferred = 0;
+        cdr(old) = freeSpot;
+        return freeSpot + 1;
         }
 
     /* must be array or string */
@@ -609,27 +609,27 @@ transferBackbone(int old,int limit)
     while (size != 0)
         {
         assert(transferred(old) == 0);
-        new_cars[limit] = the_cars[old];
+        new_cars[freeSpot] = the_cars[old];
         if (size == 1)
-            new_cdrs[limit] = 0;
+            new_cdrs[freeSpot] = 0;
         else
-            new_cdrs[limit] = limit + 1;
-        new_cars[limit].transferred = 0;
+            new_cdrs[freeSpot] = freeSpot + 1;
+        new_cars[freeSpot].transferred = 0;
         transferred(old) = 1;
-        cdr(old) = limit;
-        ++limit;
+        cdr(old) = freeSpot;
+        ++freeSpot;
         ++old;
         --size;
         }
 
-    return limit;
+    return freeSpot;
     }
 
 static int
-transfer(int limit)
+transfer(int freeSpot)
     {
-    int spot = 1;
-    while (spot < limit)
+    int spot = 1; // should start at root bottom?
+    while (spot < freeSpot)
         {
         int old;
         //printf("transfer %d:%s...",spot,type(spot));
@@ -637,13 +637,13 @@ transfer(int limit)
         /* only cons cells and arrays point to other items */
         /* these pointed-to items need to be transferred */
 
-        if (new_cars[spot].type == CONS || new_cars[spot].type == RUNNER)
+        if (new_cars[spot].type == CONS)
             {
             /* transfer over the cdr, if necessary */
 
             old = new_cdrs[spot];
             if (!transferred(old))
-                limit = transferBackbone(old,limit);
+                freeSpot = transferBackbone(old,freeSpot);
 
             /* update the cdr to the transferred locaiion */
 
@@ -653,7 +653,7 @@ transfer(int limit)
 
             old = new_cars[spot].ival;
             if (!transferred(old))
-                limit = transferBackbone(old,limit);
+                freeSpot = transferBackbone(old,freeSpot);
 
             /* update the car to the transferred locaiion */
 
@@ -665,7 +665,7 @@ transfer(int limit)
 
             old = new_cars[spot].ival;
             if (!transferred(old))
-                limit = transferBackbone(old,limit);
+                freeSpot = transferBackbone(old,freeSpot);
 
             /* update the car to the transferred locaiion */
 
