@@ -1,0 +1,99 @@
+; user defined thread pool object
+;   cnt -- number of threads to place in the pool
+(define (tpool cnt)
+   (define ending #f)     ; shutdown flag for threads
+   (define queue nil)     ; queue of expressions and environments
+   (define waitQueue nil) ; queue waiting jobs
+   (define threads nil)   ; list of threads
+   (define wait #f)
+
+   (define (empty?) (and (nil? queue) (nil? waitQueue)))
+
+   ; push a job to the queue
+   (define (push # $ex @)
+      (lock)
+      (if (== wait #t)
+        (set! waitQueue (append waitQueue (list (list $ex # @))))
+        (set! queue (append queue (list (list $ex # @))))
+      )
+      (unlock)
+   )
+   
+   ; special push, change calling environment
+   (define (push* env $ex @)
+      (lock)
+      (if (== wait #t)
+        (set! waitQueue (append waitQueue (list (list $ex env @))))
+        (set! queue (append queue (list (list $ex env @))))
+      )
+      (unlock)
+   )
+
+   ; pop a job off of the queue
+   (define (pop)
+      (if (nil? queue) 
+         nil
+         (let ((pop (car queue)))
+           (set! queue (cdr queue))
+           pop)
+      )
+   )
+
+   ; create n worker threads
+   (define (init num)
+      (while (> num 0)
+         (set! threads (cons (thread (worker)) threads))
+         (set! num (- num 1))
+      )
+   )
+
+   ; wait for the current queue of jobs completes before moving on
+   (define (join)
+      (set! wait #t)
+   )
+
+   ; waits for jobs to be available and then executes them
+   (define (worker)
+      (while (not ending)
+         (lock)
+         (if (not (nil? queue))
+            (begin
+               (define item (pop))
+               (define job (car item))
+               (define env (cadr item))
+               (define callbacks (caddr item))
+               (unlock)
+               (define res (eval job env))
+
+               ; if any callbacks were pushed, call them!
+               (while (not (nil? callbacks))
+                  ((car callbacks) res)
+                  (set! callbacks (cdr callbacks))
+               )
+
+               ; after evaluating, ensure that the waiting queue is activated
+               (if (and (== wait #t) (nil? queue)) 
+                  (begin
+                     (set! queue waitQueue)
+                     (set! waitQueue nil)
+                     (set! wait #f)
+                  )
+               )
+            )
+            (unlock)
+         )
+         (sleep 500000000) ; sleep 0.5 seconds
+      )
+   )
+
+   ; wait for all jobs to finish and then shutdown
+   (define (shutdown)
+      (while (not (empty?))
+         (sleep 500000000)
+      )
+      (set! ending #t)
+   )
+
+   (init cnt)
+   this
+)
