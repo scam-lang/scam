@@ -1,3 +1,13 @@
+
+/*
+ *  Main Author : John C. Lusth
+ *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,32 +17,21 @@
 #include <time.h>
 #include <sys/time.h>
 #include <math.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include "scam.h"
 #include "types.h"
 #include "env.h"
 #include "cell.h"
 #include "parser.h"
 #include "prim.h"
 #include "eval.h"
-#include "pp.h"
-#include "util.h"
-#include "sem.h"
-#include <sys/wait.h>
-#include <sys/shm.h>
-#include <sys/stat.h>
-
-#include <semaphore.h>
-#include <sched.h>
- 
-extern char *LibraryName;
-extern char *LibraryPointer;
-extern char *ArgumentsName;
-extern char *EnvironmentName;
-extern int Syntax;
-
-extern void gc(void);
+#include "thread.h"
 
 PRIM BuiltIns[1000];
 FILE *OpenPorts[20];
+char *OpenPortNames[20];
 int MaxPorts = sizeof(OpenPorts) / sizeof(FILE *);
 int CurrentInputIndex;
 int CurrentOutputIndex;
@@ -41,18 +40,9 @@ static int
 scamBoolean(int item)
     {
     if (item == 0)
-        return falseSymbol;
+        return FalseSymbol;
     else
-        return trueSymbol;
-    }
-
-/* (gc) */
-
-static int
-ggc()
-    {
-    gc();
-    return 0;
+        return TrueSymbol;
     }
 
 /* (quote $item) */
@@ -63,52 +53,73 @@ quote(int args)
     return car(args);
     }
 
+/*
+ *  defineIdentifier    -   Creates a new variable in the enviroment
+ *
+ *  Not heap safe
+ */
+
 static int
 defineIdentifier(int name,int init,int env)
     {
-    //debug("init",init);
     if (init == 0)
-        init = uninitializedSymbol;
+        init = UninitializedSymbol;
     else
         {
-        push(name);
-        push(env);
+        PUSH(name);
+        PUSH(env);
         init = eval(car(init),env);
-        env = pop();
-        name = pop();
+        env = POP();
+        name = POP();
 
-        rethrow(init,0);
+        rethrow(init);
         }
 
-     return defineVariable(env,name,init);
-     }
-        
+    P();
+    ENSURE_MEMORY(DEFINE_VARIABLE_SIZE,&env,&name,&init,(int *) 0);
+    int o = defineVariable(env,name,init);
+    V();
+    return o;
+    }
+    
+/*
+ *  defineFunction  -   Define a new function in the environment
+ *
+ *  Not heap safe
+ */
+
 static int
 defineFunction(int name,int parameters,int body,int env)
     {
     int spot;
     int closure;
     
-    assureMemory("defineFunction",CLOSURE_CELLS + DEFINE_CELLS,&name,&parameters,&body,&env,(int *) 0);
-
+    /* Safe */
     spot = parameters;
     while (spot != 0)
         {
         int sym = car(spot);
         if (type(sym) != SYMBOL)
             {
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "only SYMBOLS can be parameters, found type %s",
-                SymbolTable[file(name)],line(name),
+                SymbolTable[file(name)],
+                line(name),
                 type(sym));
             }
         spot = cdr(spot);
         }
+   
+    P();
+    ENSURE_MEMORY(DEFINE_VARIABLE_SIZE + MAKE_CLOSURE_SIZE,
+        &env,&name,&parameters,&body,(int *) 0);
 
     closure = makeClosure(env,name,parameters,body,ADD_BEGIN);
+    int o = defineVariable(env,name,closure); 
+    V();
 
-    return defineVariable(env,name,closure);
+    return o; 
     }
 
 /* (define # $) */
@@ -119,27 +130,46 @@ define(int args)
     int actualArgs = cadr(args);
     int first,rest;
     
-    //debug("def args: ",args);
     if (actualArgs == 0)
-        return throw(exceptionSymbol,
+        {
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "not enough arguments for definition",
-            SymbolTable[file(args)],line(args)
+            SymbolTable[file(args)],
+            line(args)
             );
+        }
 
     first = car(actualArgs);
     rest = cdr(actualArgs);
 
-    if (type(first) == CONS)
-        return defineFunction(car(first),cdr(first),rest,car(args));
-    else if (type(first) == SYMBOL)
-        return defineIdentifier(first,rest,car(args));
+    char* TYPE = type(first);
+    if (TYPE == CONS)
+        {
+        return defineFunction(
+                car(first),
+                cdr(first),
+                rest,
+                car(args)
+            );
+        }
+    else if (TYPE == SYMBOL)
+        {
+        return defineIdentifier(
+                first,
+                rest,
+                car(args)
+            );
+        }
     else
-        return throw(exceptionSymbol,
+        {
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "can only define SYMBOLS, not type %s",
-            SymbolTable[file(args)],line(args),
-            type(first));
+            SymbolTable[file(args)],
+            line(args),
+            TYPE);
+        }
     }
 
 /* (addSymbol name init env) */
@@ -147,10 +177,15 @@ define(int args)
 static int
 addSymbol(int args)
     {
-    //debug("var: ",car(args));
-    //debug("val: ",cadr(args));
-    //debug("env: ",caddr(args));
-    return defineVariable(caddr(args),car(args),cadr(args));
+    P();
+    ENSURE_MEMORY(DEFINE_VARIABLE_SIZE,&args,(int *) 0);
+
+    int o = defineVariable(
+            caddr(args),
+            car(args),
+            cadr(args));
+    V();
+    return o;
     }
 
 /* (lambda # $params $) */
@@ -158,11 +193,21 @@ addSymbol(int args)
 static int
 lambda(int args)
     {
-    int name = anonymousSymbol;
+    P();
+    ENSURE_MEMORY(MAKE_CLOSURE_SIZE,&args,(int *) 0);
+
+    int name = AnonymousSymbol;
     int params = cadr(args);
     int body = caddr(args);
-
-    return  makeClosure(car(args),name,params,body,ADD_BEGIN);
+    int o = makeClosure(
+            car(args),
+            name,
+            params,
+            body,
+            ADD_BEGIN
+            );
+    V();
+    return o;
     }
 
 /* (closure name params body env) */
@@ -170,25 +215,45 @@ lambda(int args)
 static int
 closure(int args)
     {
+    P();
+    ENSURE_MEMORY(MAKE_CLOSURE_SIZE,&args,(int *) 0);
+
     int name = cadr(args);
     int params = caddr(args);
     int body = cadddr(args);
     int env = caddddr(args);
-
-    return  makeClosure(env,name,params,body,ADD_BEGIN);
+    int o = makeClosure(
+            env,
+            name,
+            params,
+            body,
+            ADD_BEGIN
+            );
+    V();
+    return o;
     }
 
 
 static int
 not(int args)
     {
-    if (sameSymbol(car(args),trueSymbol)) return falseSymbol;
-    if (sameSymbol(car(args),falseSymbol)) return trueSymbol;
-    return throw(exceptionSymbol,
-        "file %s,line %d: "
-        "cannot logically negate type %s",
-        SymbolTable[file(args)],line(args),
-        type(car(args))
+    int SYM = car(args);
+    if (SameSymbol(SYM,TrueSymbol))
+        {
+        return FalseSymbol;
+        }
+
+    if (SameSymbol(SYM,FalseSymbol))
+        {
+        return TrueSymbol;
+        }
+
+    return throw(ExceptionSymbol,
+            "file %s,line %d: "
+            "cannot logically negate type %s",
+            SymbolTable[file(args)],
+            line(args),
+            type(car(args))
         );
     }
 
@@ -202,9 +267,15 @@ isLessThan(int args)
 
     args = car(args);
 
-    if (args == 0) return scamBoolean(1);
+    if (args == 0)
+        {
+        return scamBoolean(1);
+        }
 
-    if (cdr(args) == 0) return scamBoolean(1);
+    if (cdr(args) == 0)
+        {
+        return scamBoolean(1);
+        }
 
     a = car(args);
     args = cdr(args);
@@ -218,29 +289,46 @@ isLessThan(int args)
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
+            {
             result = ival(a) < ival(b);
+            }
         else if (aType == INTEGER && bType == REAL)
+            {
             result = ival(a) < rval(b);
+            }
         else if (aType == REAL && bType == INTEGER)
+            {
             result = rval(a) < ival(b);
+            }
         else if (aType == REAL && bType == REAL)
+            {
             result = rval(a) < rval(b);
+            }
         else
-            return throw(exceptionSymbol,
-                "file %s,line %d: "
-                "wrong types for '<': %s and %s",
-                SymbolTable[file(args)],line(args),
-                aType,bType);
+            {
+            return throw(
+                    ExceptionSymbol,
+                    "file %s,line %d: "
+                    "wrong types for '<': %s and %s",
+                    SymbolTable[file(args)],
+                    line(args),
+                    aType,bType
+                );
+            }
 
-        if (!result) break;
+        if (!result) 
+            {
+            break;
+            }
 
         args = cdr(args);
         a = b;
         }
 
     result = scamBoolean(result);
-    file(result) = file(args);
-    line(result) = line(args);
+
+    setfile(result,file(args));
+    setline(result,line(args));
 
     return result;
     }
@@ -255,9 +343,15 @@ isLessThanOrEqualTo(int args)
 
     args = car(args);
 
-    if (args == 0) return scamBoolean(1);
+    if (args == 0)
+        {
+        return scamBoolean(1);
+        }
 
-    if (cdr(args) == 0) return scamBoolean(1);
+    if (cdr(args) == 0)
+        {
+        return scamBoolean(1);
+        }
 
     a = car(args);
     args = cdr(args);
@@ -271,29 +365,43 @@ isLessThanOrEqualTo(int args)
         bType = type(b);
 
         if (aType == INTEGER && bType == INTEGER)
+            {
             result = ival(a) <= ival(b);
+            }
         else if (aType == INTEGER && bType == REAL)
+            {
             result = ival(a) <= rval(b);
+            }
         else if (aType == REAL && bType == INTEGER)
+            {
             result = rval(a) <= ival(b);
+            }
         else if (aType == REAL && bType == REAL)
+            {
             result = rval(a) <= rval(b);
+            }
         else
-            return throw(exceptionSymbol,
+            {
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '<=': %s and %s",
                 SymbolTable[file(args)],line(args),
                 aType,bType);
+            }
 
-        if (!result) break;
+        if (!result)
+            {
+            break;
+            }
 
         args = cdr(args);
         a = b;
         }
 
     result = scamBoolean(result);
-    file(result) = file(args);
-    line(result) = line(args);
+
+    setfile(result,file(args));
+    setline(result,line(args));
 
     return result;
     }
@@ -332,7 +440,7 @@ isNumericEqualTo(int args)
         else if (aType == REAL && bType == REAL)
             result = rval(a) == rval(b);
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '=': %s and %s",
                 SymbolTable[file(args)],line(args),
@@ -345,8 +453,9 @@ isNumericEqualTo(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = file(args);
-    line(result) = line(args);
+ 
+    setfile(result,file(args));
+    setline(result,line(args));
 
     return result;
     }
@@ -385,7 +494,7 @@ isGreaterThan(int args)
         else if (aType == REAL && bType == REAL)
             result = rval(a) > rval(b);
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '>': %s and %s",
                 SymbolTable[file(args)],line(args),
@@ -398,8 +507,9 @@ isGreaterThan(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = file(args);
-    line(result) = line(args);
+
+    setfile(result,file(args));
+    setline(result,line(args));
 
     return result;
     }
@@ -439,7 +549,7 @@ isGreaterThanOrEqualTo(int args)
         else if (aType == REAL && bType == REAL)
             result = rval(a) >= rval(b);
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '>=': %s and %s",
                 SymbolTable[file(args)],line(args),
@@ -451,9 +561,10 @@ isGreaterThanOrEqualTo(int args)
         a = b;
         }
 
+    
     result = scamBoolean(result);
-    file(result) = file(args);
-    line(result) = line(args);
+    setfile(result,file(args));
+    setline(result,line(args));
 
     return result;
     }
@@ -500,8 +611,9 @@ isEq(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = file(args);
-    line(result) = line(args);
+
+    setfile(result,file(args));
+    setline(result,line(args));
 
     return result;
     }
@@ -548,8 +660,9 @@ isNotEq(int args)
         }
 
     result = scamBoolean(result);
-    file(result) = file(args);
-    line(result) = line(args);
+
+    setfile(result,file(args));
+    setline(result,line(args));
 
     return result;
     }
@@ -575,6 +688,7 @@ plus(int args)
     itotal = ival(a);
     rtotal = rval(a);
 
+
     while (args != 0)
         {
         b = car(args);
@@ -592,28 +706,34 @@ plus(int args)
         else if (oldType == REAL && newType == REAL)
             rtotal += rval(b);
         else
-            return throw(exceptionSymbol,
+            {
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '+': %s and %s",
                 SymbolTable[file(args)],line(args),
-                oldType,newType);
-
+                oldType,newType == SYMBOL? SymbolTable[ival(b)] : newType);
+            }
         args = cdr(args);
         }
+
+    int f = file(args);
+    int l = line(args);
 
     if (oldType == INTEGER)
         result = newInteger(itotal);
     else if (oldType == REAL)
         result = newReal(rtotal);
     else
-        return throw(exceptionSymbol,
+        {
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong types for '+': %s",
             SymbolTable[file(args)],line(args),
             oldType);
+        }
 
-    file(result) = file(args);
-    line(result) = line(args);
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -663,7 +783,7 @@ minus(int args)
         else if (oldType == REAL && newType == REAL)
             rtotal -= rval(b);
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '-': %s and %s",
                 SymbolTable[file(args)],line(args),
@@ -672,19 +792,22 @@ minus(int args)
         args = cdr(args);
         }
 
+    int f = file(args);
+    int l = line(args);
+
     if (oldType == INTEGER)
         result = newInteger(itotal);
     else if (oldType == REAL)
         result = newReal(rtotal);
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong types for '-': %s",
             SymbolTable[file(args)],line(args),
             oldType);
 
-    file(result) = file(args);
-    line(result) = line(args);
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -727,7 +850,7 @@ times(int args)
         else if (oldType == REAL && newType == REAL)
             rtotal *= rval(b);
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '*': %s and %s",
                 SymbolTable[file(args)],line(args),
@@ -736,19 +859,22 @@ times(int args)
         args = cdr(args);
         }
 
+    int f = file(args);
+    int l = line(args);
+
     if (oldType == INTEGER)
         result = newInteger(itotal);
     else if (oldType == REAL)
         result = newReal(rtotal);
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong types for '*': %s",
             SymbolTable[file(args)],line(args),
             oldType);
 
-    file(result) = file(args);
-    line(result) = line(args);
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -781,7 +907,7 @@ divides(int args)
 
         if ((newType == INTEGER && ival(b) == 0)
         ||  (newType == REAL && rval(b) == 0.0))
-            return throw(mathExceptionSymbol,
+            return throw(MathExceptionSymbol,
                 "file %s,line %d: "
                 "divide by zero",
                 SymbolTable[file(args)],line(args)
@@ -799,7 +925,7 @@ divides(int args)
         else if (oldType == REAL && newType == REAL)
             rtotal /= rval(b);
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '/': %s and %s",
                 SymbolTable[file(args)],line(args),
@@ -808,19 +934,22 @@ divides(int args)
         args = cdr(args);
         }
 
+    int f = file(args);
+    int l = line(args);
+
     if (oldType == INTEGER)
         result = newInteger(itotal);
     else if (oldType == REAL)
         result = newReal(rtotal);
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong types for '/': %s",
             SymbolTable[file(args)],line(args),
             oldType);
 
-    file(result) = file(args);
-    line(result) = line(args);
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -852,7 +981,7 @@ mod(int args)
         if (oldType == INTEGER && newType == INTEGER)
             itotal %= ival(b);
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "wrong types for '/': %s and %s",
                 SymbolTable[file(args)],line(args),
@@ -861,10 +990,12 @@ mod(int args)
         args = cdr(args);
         }
 
+    int f = file(args);
+    int l = line(args);
     result = newInteger(itotal);
 
-    file(result) = file(args);
-    line(result) = line(args);
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -880,19 +1011,22 @@ eexp(int args)
     a = car(args);
     aType = type(a);
 
+    int f = file(a);
+    int l = line(a);
+
     if (aType == INTEGER)
         result = newReal(exp(ival(a)));
     else if (aType == REAL)
         result = newReal(exp(rval(a)));
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong type for 'exp': %s",
             SymbolTable[file(car(args))],line(car(args)),
             aType);
 
-    file(result) = file(car(args));
-    line(result) = line(car(args));
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -908,19 +1042,22 @@ llog(int args)
     a = car(args);
     aType = type(a);
 
+    int f = file(a);
+    int l = line(a);
+
     if (aType == INTEGER)
         result = newReal(log(ival(a)));
     else if (aType == REAL)
         result = newReal(log(rval(a)));
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong type for 'exp': %s",
             SymbolTable[file(car(args))],line(car(args)),
             aType);
 
-    file(result) = file(car(args));
-    line(result) = line(car(args));
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -950,7 +1087,7 @@ randomSeed(int args)
         return 0;
         }
     
-    return throw(exceptionSymbol,
+    return throw(ExceptionSymbol,
         "file %s,line %d: "
         "randomSeed: argument must be a positive integer",
         SymbolTable[file(a)],line(a));
@@ -967,19 +1104,22 @@ ssin(int args)
     a = car(args);
     aType = type(a);
 
+    int f = file(a);
+    int l = line(a);
+
     if (aType == INTEGER)
         result = newReal(sin(ival(a)));
     else if (aType == REAL)
         result = newReal(sin(rval(a)));
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong type for 'exp': %s",
             SymbolTable[file(car(args))],line(car(args)),
             aType);
 
-    file(result) = file(car(args));
-    line(result) = line(car(args));
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -995,19 +1135,22 @@ coss(int args)
     a = car(args);
     aType = type(a);
 
+    int f = file(a);
+    int l = line(a);
+
     if (aType == INTEGER)
         result = newReal(cos(ival(a)));
     else if (aType == REAL)
         result = newReal(cos(rval(a)));
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong type for 'exp': %s",
             SymbolTable[file(car(args))],line(car(args)),
             aType);
 
-    file(result) = file(car(args));
-    line(result) = line(car(args));
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -1023,6 +1166,9 @@ aatan(int args)
     char *atype = type(a);
     char *btype = type(b);
 
+    int f = file(a);
+    int l = line(a);
+
     if (atype == INTEGER && btype == INTEGER)
         result = newReal(atan2(ival(a),ival(b)));
     else if (atype == INTEGER)
@@ -1032,8 +1178,8 @@ aatan(int args)
     else
         result = newReal(atan2(rval(a),rval(b)));
 
-    file(result) = file(car(args));
-    line(result) = line(car(args));
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -1049,6 +1195,9 @@ expt(int args)
     char *atype = type(a);
     char *btype = type(b);
 
+    int f = file(a);
+    int l = line(a);
+
     if (atype == INTEGER && btype == INTEGER)
         result = newInteger((int) pow(ival(a),ival(b)));
     else if (atype == INTEGER)
@@ -1058,8 +1207,8 @@ expt(int args)
     else
         result = newReal(pow(rval(a),rval(b)));
 
-    file(result) = file(car(args));
-    line(result) = line(car(args));
+    setfile(result,f);
+    setline(result,l);
 
     return result;
     }
@@ -1077,8 +1226,7 @@ ttype(int args)
 static int
 begin(int args)
     {
-    //printf("in begin...\n");
-    return evalList(cadr(args),car(args),ALLBUTLAST);
+    return evalBlock(cadr(args),car(args),ALLBUTLAST);
     }
 
 /* (return # $item) */
@@ -1086,9 +1234,11 @@ begin(int args)
 static int
 rreturn(int args)
     {
-    //printf("in return...\n");
-    assureMemory("return",THUNK_CELLS + THROW_CELLS,&args,(int *)0);
-    return makeThrow(returnSymbol,makeThunk(cadr(args),car(args)),0);
+    P();
+    ENSURE_MEMORY(MAKE_THROW_SIZE+MAKE_THUNK_SIZE,&args,(int *) 0);
+    int o = makeThrow(ReturnSymbol,makeThunk(cadr(args),car(args)),0);
+    V();
+    return o; 
     }
 
 /* (scope # $) */
@@ -1097,10 +1247,11 @@ static int
 scope(int args)
     {
     int env;
-    //printf("in scope...\n");
-    assureMemory("scope",ENV_CELLS,&args,(int *)0);
+    P();
+    ENSURE_MEMORY(MAKE_ENVIRONMENT_SIZE,&args,(int *) 0);
     env = makeEnvironment(car(args),0,0,0);
-    return evalList(cadr(args),env,ALLBUTLAST);
+    V();
+    return evalBlock(cadr(args),env,ALLBUTLAST);
     }
 
 /* (display item) */
@@ -1109,14 +1260,27 @@ static int
 display(int args)
     {
     FILE *port = OpenPorts[CurrentOutputIndex];
-
-    //printf("writing to port %p\n",port);
-    //debug("    ",car(args));
-
     scamPP(port,car(args));
-
     return car(args);
     }
+
+/* (displayAtomic @) */
+
+static int
+displayAtomic(int args)
+    {
+    P_P();
+    FILE *port = OpenPorts[CurrentOutputIndex];
+    int spot = car(args);
+    while (spot != 0)
+        {
+        scamPP(port,car(spot));
+        spot = cdr(spot);
+        }
+    P_V();
+    return 0;
+    }
+
 
 static int
 fmt(int args)
@@ -1128,7 +1292,7 @@ fmt(int args)
 
     if (type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "fmt given a non-string as format specifier: %s",
             SymbolTable[file(car(args))],line(car(args)),
@@ -1142,7 +1306,7 @@ fmt(int args)
         snprintf(buffer,sizeof(buffer),cellString(spec,sizeof(spec),a),rval(b));
     else
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "fmt given a non-number to be formatted: %s",
             SymbolTable[file(car(args))],line(car(args)),
@@ -1174,6 +1338,7 @@ pppTable(int args)
     FILE *port = OpenPorts[CurrentOutputIndex];
 
     ppTable(port,a,0);
+
     return 0;
     }
 
@@ -1182,26 +1347,30 @@ pppTable(int args)
 static int
 iif(int args)
     {
-    //debug("if test",cadr(args));
+    int ret;
+    P();
+    ENSURE_MEMORY(MAKE_THUNK_SIZE,&args,(int *) 0);
 
-    if (sameSymbol(cadr(args),falseSymbol))
+    /* the test expression has already been evaluated */
+
+    if (SameSymbol(cadr(args),FalseSymbol))
         {
-        //printf("if test is false\n");
-        //debug("then",cadr(args));
         int otherwise = cadddr(args);
         if (otherwise != 0)
             {
-            //debug("else",cadr(args));
-            return makeThunk(car(otherwise),car(args));
+            ret = makeThunk(car(otherwise),car(args));
             }
         else
-            return falseSymbol;
+            {
+            ret = FalseSymbol;
+            }
         }
     else
         {
-        //printf("if test is true\n");
-        return makeThunk(caddr(args),car(args));
+        ret = makeThunk(caddr(args),car(args));
         }
+    V();
+    return ret;
     }
 
 /* (cond # $) */
@@ -1212,6 +1381,8 @@ cond(int args)
     int cases = cadr(args);
     int env = car(args);
 
+    PUSH(env); /* peek location will be zero */
+
     while (cases != 0)
         {
         int result;
@@ -1220,7 +1391,8 @@ cond(int args)
 
         if (type(rule) != CONS)
             {
-            return throw(exceptionSymbol,
+            (void) POP(); /* pop the env */
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "malformed case in cond",
                 SymbolTable[file(car(cases))],line(car(cases))
@@ -1229,23 +1401,26 @@ cond(int args)
 
         condition = car(rule);
 
-        //debug("cases: ",cases);
-        //debug("condition: ",condition);
-        push(env);
-        push(cases);
+        PUSH(cases);
         result = eval(condition,env);
-        cases = pop();
-        env = pop();
+        cases = POP();
+        
+        env = PEEK(0);
 
-        rethrow(result,0);
+        rethrowPop(result,1);
 
-        if (sameSymbol(result,trueSymbol))
-            return  evalList(cdar(cases),env,ALLBUTLAST);
+        if (SameSymbol(result,TrueSymbol)) 
+            {
+            env = POP();
+            return evalBlock(cdar(cases),env,ALLBUTLAST);
+            }
 
         cases = cdr(cases);
         }
 
-    return falseSymbol;
+    (void) POP(); /* pop the env off */
+
+    return FalseSymbol;
     }
 
 /* (while # $test $) */
@@ -1254,31 +1429,25 @@ static int
 wwhile(int args)
     {
     int testResult,last;
-    
-    //printf("in while...\n");
-
-    push(args);
+    PUSH(args); /* peek location will be zero */
     testResult = eval(cadr(args),car(args));
-    args = pop();
+    args = PEEK(0);
 
-    rethrow(testResult,0);
+    rethrowPop(testResult,1);
 
-    while (sameSymbol(testResult,trueSymbol))
+    while (SameSymbol(testResult,TrueSymbol))
         {
-        push(args);
-        last = evalList(caddr(args),car(args),ALL);
-        args = pop();
+        last = evalBlock(caddr(args),car(args),ALL);
+        args = PEEK(0);
+        
+        rethrowPop(last,1);
 
-        rethrow(last,0);
-
-        push(args);
         testResult = eval(cadr(args),car(args));
-        args = pop();
+        args = PEEK(0);
 
-        rethrow(testResult,0);
-
-        //debug("test result",testResult);
+        rethrowPop(testResult,1); /* pop the args */
         }
+    (void) POP(); /* pop the args */
 
     return 0;
     }
@@ -1293,16 +1462,20 @@ setCar(int args)
 
     char *t = type(a);
     if (t != CONS && t != STRING && t != ARRAY)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to set the car of type %s",
             SymbolTable[file(car(args))],line(car(args)),
             t);
 
     if (t == STRING)
-        car(a) = ival(b);
+        {
+        setcar(a,ival(b));
+        }
     else
-        car(a) = b;
+        {
+        setcar(a,b);
+        }
 
     return b;
     }
@@ -1313,13 +1486,13 @@ static int
 setCdr(int args)
     {
     if (type(car(args)) != CONS)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to set the cdr of type %s",
             SymbolTable[file(car(args))],line(car(args)),
             type(car(args)));
 
-    cdar(args) = cadr(args);
+    setcdar(args,cadr(args));
     return cadr(args);
     }
 
@@ -1331,9 +1504,8 @@ set(int args)
     int id = car(args);
     int result;
     
-    //printf("in set...");
     if (type(id) != SYMBOL)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "set identifier resolved to type %s, not SYMBOL",
             SymbolTable[file(id)],line(id),
@@ -1343,8 +1515,6 @@ set(int args)
         result = setVariableValue(id,cadr(args),caddr(args));
     else
         result = setVariableValue(id,cadr(args),car(cadddr(args)));
-
-    //debug("set returning",result);
     return result;
     }
 
@@ -1355,14 +1525,14 @@ get(int args)
     {
     int id = car(args);
 
-    //printf("in get...");
-
     if (type(id) != SYMBOL)
-        return throw(exceptionSymbol,
+        {
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "get variable argument resolved to type %s, not SYMBOL",
             SymbolTable[file(args)],line(args),
             type(id));
+        }
 
     if (caddr(args) == 0)
         return getVariableValue(id,cadr(args));
@@ -1377,19 +1547,22 @@ inspect(int args)
     {
     int result;
 
-    push(args);
+    PUSH(args);
     result = eval(cadr(args),car(args));
-    args = pop();
+    args = POP();
 
     if (cadr(args) == 0)
         fprintf(stdout,"nil");
     else
         scamPP(stdout,cadr(args));
+
     fprintf(stdout," is ");
+
     if (result == 0)
         fprintf(stdout,"nil");
     else
         scamPP(stdout,result);
+
     fprintf(stdout,"\n");
     return result;
     }
@@ -1407,19 +1580,23 @@ iinclude(int args)
     char buffer2[1024];
     PARSER *p;
 
+    PUSH(env); /* peek location will be zilch */
+
     if (type(fileName) != STRING)
         {
-        push(env);
         fileName = eval(fileName,env);
-        env = pop();
+        env = PEEK(0);
         }
 
     if (type(fileName) != STRING)
-        return throw(exceptionSymbol,
+        {
+        (void) POP(); /* pop the env */
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "include argument was type %s, not STRING",
             SymbolTable[file(args)],line(args),
             type(fileName));
+        }
 
     cellString(buffer,sizeof(buffer),fileName);
 
@@ -1428,25 +1605,27 @@ iinclude(int args)
 
     sprintf(buffer2,"__included_%s",buffer);
 
-    push(env);
-    s = newSymbol(buffer2);
-    env = pop();
+    s = newSymbol(buffer2); /* can cause a gc */
+    env = PEEK(0);
 
-    if (isLocal(s,env)) return falseSymbol;
+    if (findLocal(s,env)) 
+        {
+        (void) POP(); /* pop the env */
+        return FalseSymbol;
+        }
 
-    //printf("file %s not already included\n",buffer);
+    P();
+    ENSURE_MEMORY(DEFINE_VARIABLE_SIZE,&s,(int *) 0);
 
-    assureMemory("include",DEFINE_CELLS,&env,&s,(int *)0);
-    defineVariable(env,s,trueSymbol);
-    //printf("%s defined in env %d\n",buffer2,env);
-
-    push(env);
+    env = PEEK(0);
+    defineVariable(env,s,TrueSymbol);
+    V();
 
     p = newParser(buffer);
-    if (p == 0)
+    if (p == 0) 
         {
-        pop(); /* pop the env */
-        return throw(exceptionSymbol,
+        (void) POP(); // Pop env 
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "file %s could not be opened for reading",
             SymbolTable[file(args)],line(args),
@@ -1454,19 +1633,28 @@ iinclude(int args)
         }
 
     if (Syntax == SCAM)
+        {
         ptree = scamParse(p);
+        }
     else
+        {
         ptree = swayParse(p);
+        }
     fclose(p->input);
     free(p);
 
-    env = pop();
+    P();
+    ENSURE_MEMORY(MAKE_THUNK_SIZE,&ptree,(int *) 0);
 
-    rethrow(ptree,0);
+    env = POP();
 
-    //debug("include",ptree);
+    int o = makeThunk(ptree,env);
+    V();
 
-    return makeThunk(ptree,env);
+    // Should have env on the stack
+    rethrow(ptree);
+    
+    return o; 
     }
 
 /* (eval expr context) */
@@ -1474,23 +1662,46 @@ iinclude(int args)
 static int
 eeval(int args)
     {
-    //assureMemory("prim:eval",THUNK_CELLS,&args,(int *)0);
-    return makeThunk(car(args),cadr(args));
-    //return eval(car(args),cadr(args));
+    P();
+    ENSURE_MEMORY(MAKE_THUNK_SIZE,&args,(int *) 0);
+    int o = makeThunk(car(args),cadr(args));
+    V();
+    return o;
     }
-
-/* (evalList items context) */
 
 /* (apply f args) */
 
 static int
 apply(int args)
     {
-    int expr;
-    assureMemory("apply:",1,&args,(int *)0);
-    expr = ucons(car(args),cadr(args));
-
+    P();
+    ENSURE_MEMORY(1,&args,(int *) 0);
+    int expr = cons(car(args),cadr(args));
+    V();
     return evalCall(expr,0,NO_EVALUATION);
+    }
+
+static int
+ggc(int args)
+    {
+    if (WorkingThreads == 1)
+        {
+        P();
+        if (GCMode == STOP_AND_COPY)
+            {
+            stopAndCopy();
+            }
+        else if (GCMode == MARK_SWEEP)
+            {
+            reclaim();
+            }
+        V();
+        }
+    else
+        {
+        printf("Implicit calls to GC with multithreading are not supported.");
+        }
+    return 0;
     }
 
 /* (pass f @) */
@@ -1498,12 +1709,10 @@ apply(int args)
 static int
 pass(int args)
     {
-    int expr;
-    assureMemory("pass:",1,&args,(int *)0);
-    //debug("name is ",car(args));
-    //debug("args are  ",cadr(args));
-    expr = ucons(car(args),cadr(args));
-
+    P();
+    ENSURE_MEMORY(1,&args,(int *) 0);
+    int expr = cons(car(args),cadr(args));
+    V();
     return evalCall(expr,0,PASS_THROUGH);
     }
 
@@ -1555,19 +1764,19 @@ ccar(int args)
     if (t != CONS && t != ARRAY && t != STRING)
         {
         if (supply == 0)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to take car of an empty list",
                 SymbolTable[file(args)],line(args));
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to take car of type %s",
                 SymbolTable[file(args)],line(args),
                 t);
         }
 
-    if (type(supply) == STRING)
+    if (type(supply) == STRING) /* no character type in scam */
         {
         char buffer[2];
         buffer[0] = ival(supply);
@@ -1589,12 +1798,12 @@ ccdr(int args)
     if (t != CONS && t != ARRAY && t != STRING)
         {
         if (supply == 0)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to take cdr of an empty collection",
                 SymbolTable[file(args)],line(args));
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to take cdr of type %s",
                 SymbolTable[file(args)],line(args),
@@ -1609,7 +1818,11 @@ ccdr(int args)
 static int
 ccons(int args)
     {
-    return cons(car(args),cadr(args));
+    P();
+    ENSURE_MEMORY(1,&args,(int *) 0);
+    int o = cons(car(args),cadr(args));
+    V();
+    return o; 
     }
 
 /* (gensym id) */
@@ -1617,19 +1830,18 @@ ccons(int args)
 static int
 gensym(int args)
     {
-    int result;
     char buffer[512];
     static int count = 0;
 
+    P();
     if (car(args) == 0)
         snprintf(buffer,sizeof(buffer),"%dsym",count++);
     else
         snprintf(buffer,sizeof(buffer),
-            "%d%s",count++,SymbolTable[ival(caar(args))]);
+            "%d%s",count++,SymbolTable[ival(car(car(args)))]);
 
-    result = newSymbol(buffer);
-    //debug("gensym",result);
-    return result;
+    V();
+    return newSymbol(buffer);
     }
 
 /* (gensym? id) */
@@ -1639,7 +1851,7 @@ isGensym(int args)
     {
     int id = car(args);
 
-    if (type(id) != SYMBOL) return falseSymbol;
+    if (type(id) != SYMBOL) return FalseSymbol;
 
     return scamBoolean(isdigit(*SymbolTable[ival(id)]));
     }
@@ -1659,23 +1871,19 @@ skipWhiteSpace(FILE *fp)
 
 
 static int
-addOpenPort(FILE *fp,int portType,int fi,int li)
+addOpenPort(FILE *fp,int portType,int fi,int li,char *fileName)
     {
     int i;
     int maxPorts = sizeof(OpenPorts) / sizeof(FILE *);
 
     for (i = 3; i < maxPorts; ++i)
         {
-        //printf("port[%d] is %p\n",i,OpenPorts[i]);
         if (OpenPorts[i] == 0)
             break;
         }
-
-    //printf("first available port is %d\n",i);
-
     if (i == maxPorts)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "too many ports open at once",
             SymbolTable[fi],li
@@ -1683,10 +1891,15 @@ addOpenPort(FILE *fp,int portType,int fi,int li)
         }
 
     OpenPorts[i] = fp;
-
-    assureMemory("addOpenPort",3,(int *)0);
-
-    return ucons(portType,ucons(newInteger(i),0));
+    OpenPortNames[i] = strdup(fileName);
+    if (OpenPortNames[i] == 0)
+        Fatal("out of memory\n");
+    
+    P();
+    ENSURE_MEMORY(3,(int *) 0); /* two cons cells plus a new integer */
+    int o = cons(portType,cons(newIntegerUnsafe(i),0));
+    V();
+    return o; 
     }
 
 static int
@@ -1694,8 +1907,10 @@ setPort(int args)
     {
     int old;
     int target;
+    int result;
 
-    assureMemory("setPort",3,&args,(int *)0);
+    P();
+    ENSURE_MEMORY(3,&args,(int *) 0); /* two cons cells plus a new integer */
 
     target = car(args);
 
@@ -1705,43 +1920,57 @@ setPort(int args)
             {
             old = CurrentInputIndex;
             CurrentInputIndex = 0;
-            return ucons(inputPortSymbol,ucons(newInteger(old),0));
+            result = cons(InputPortSymbol,cons(newIntegerUnsafe(old),0));
+            V();
+            return result;
             }
         else if (ival(target) == stdoutIndex)
             {
             old = CurrentOutputIndex;
             CurrentOutputIndex = 1;
-            return ucons(outputPortSymbol,ucons(newInteger(old),0));
+            result = cons(OutputPortSymbol,cons(newIntegerUnsafe(old),0));
+            V();
+            return result;
             }
         else if (ival(target) == stderrIndex)
             {
             old = CurrentOutputIndex;
             CurrentOutputIndex = 2;
-            return ucons(outputPortSymbol,ucons(newInteger(old),0));
+            result = cons(OutputPortSymbol,cons(newIntegerUnsafe(old),0));
+            V();
+            return result;
             }
         else 
-            return throw(exceptionSymbol,
+            {
+            V();
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "%s is not a valid argument to setPort",
                 SymbolTable[file(args)],line(args),
                 SymbolTable[ival(target)]);
+            }
         }
-    else if (type(target) == CONS && sameSymbol(car(target),inputPortSymbol))
+    else if (type(target) == CONS && SameSymbol(car(target),InputPortSymbol))
         {
         old = CurrentInputIndex;
         CurrentInputIndex = ival(cadr(target));
-        return uconsfl(inputPortSymbol,ucons(newInteger(old),0),
+        int o = consfl(InputPortSymbol,cons(newIntegerUnsafe(old),0),
             file(args),line(args));
+        V(); 
+        return o;
         }
-    else if (type(target) == CONS && sameSymbol(car(target),outputPortSymbol))
+    else if (type(target) == CONS && SameSymbol(car(target),OutputPortSymbol))
         {
         old = CurrentOutputIndex;
         CurrentOutputIndex = ival(cadr(target));
-        return uconsfl(outputPortSymbol,ucons(newInteger(old),0),
+        int o = consfl(OutputPortSymbol,cons(newIntegerUnsafe(old),0),
             file(args),line(args));
+        V();
+        return o;
         }
 
-    return throw(exceptionSymbol,
+    V();
+    return throw(ExceptionSymbol,
         "file %s,line %d: "
         "setPort given a non-port as argument: %s",
         SymbolTable[file(args)],line(args),
@@ -1751,15 +1980,21 @@ setPort(int args)
 static int
 getInputPort(int args)
     {
-    assureMemory("getInputPort",3,(int *)0);
-    return ucons(inputPortSymbol,ucons(newInteger(CurrentInputIndex),0));
+    P();
+    ENSURE_MEMORY(3,&args,(int *) 0); /* two cons cells plus a new integer */
+    int o = cons(InputPortSymbol,cons(newIntegerUnsafe(CurrentInputIndex),0));
+    V();
+    return o; 
     }
 
 static int
 getOutputPort(int args)
     {
-    assureMemory("getOutputPort",3,(int *)0);
-    return ucons(outputPortSymbol,ucons(newInteger(CurrentOutputIndex),0));
+    P();
+    ENSURE_MEMORY(3,&args,(int *) 0); /* two cons cells plus a new integer */
+    int o = cons(OutputPortSymbol,cons(newIntegerUnsafe(CurrentOutputIndex),0));
+    V();
+    return o; 
     }
 
 static int
@@ -1767,7 +2002,7 @@ checkValidPort(int index,int fi,int li)
     {
     if (index == 0)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to close stdin",
             SymbolTable[fi],li
@@ -1775,7 +2010,7 @@ checkValidPort(int index,int fi,int li)
         }
     if (index == 1)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to close stdout",
             SymbolTable[fi],li
@@ -1783,7 +2018,7 @@ checkValidPort(int index,int fi,int li)
         }
     if (index >= MaxPorts || index < 0)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to close a non-existent port: %d",
             SymbolTable[fi],li,
@@ -1791,7 +2026,7 @@ checkValidPort(int index,int fi,int li)
         }
     if (OpenPorts[index] == 0)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to close an unopened port: %d",
             SymbolTable[fi],li,
@@ -1810,59 +2045,53 @@ cclose(int args)
 
     if (type(target) == CONS)
         {
-        if (sameSymbol(car(target),inputPortSymbol))
+        if (SameSymbol(car(target),InputPortSymbol))
             newPort = 0;
-        else if (sameSymbol(car(target),outputPortSymbol))
+        else if (SameSymbol(car(target),OutputPortSymbol))
             newPort = 1;
         else
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "close passed a malformed port",
                 SymbolTable[file(args)],line(args)
                 );
 
         if (cdr(target) == 0 || type(cadr(target)) != INTEGER)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "close passed a malformed port",
                 SymbolTable[file(args)],line(args)
                 );
 
         index = ival(cadr(target));
-        rethrow(checkValidPort(index,file(args),line(args)),0);
-        //printf("closing port %p\n",OpenPorts[index]);
+
+        rethrow(checkValidPort(index,file(args),line(args)));
         fclose(OpenPorts[index]);
         OpenPorts[index] = 0;
+        free(OpenPortNames[index]);
+        OpenPortNames[index] = 0;
         if (CurrentInputIndex == index) CurrentInputIndex = newPort;
         }
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "close passed a malformed port",
             SymbolTable[file(args)],line(args)
             );
 
-    return trueSymbol;
+    return TrueSymbol;
     }
 
 static int
 checkPortForReading(FILE *fp,char *item,int args)
     {
     if (fp == 0)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to read %s from a closed port",
             SymbolTable[file(args)],line(args),
             item
             );
-
-    //if (feof(fp))
-    //    return throw(exceptionSymbol,
-    //        "file %s,line %d: "
-    //        "attempt to read %s at end of input",
-    //        SymbolTable[file(args)],line(args),
-    //        item
-    //        );
 
     return 0;
     }
@@ -1876,11 +2105,11 @@ readRawChar(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"a raw character",args),0);
+    rethrow(checkPortForReading(fp,"a raw character",args));
 
     ch = fgetc(fp);
 
-    if (feof(fp)) return eofSymbol;
+    if (feof(fp)) return EofSymbol;
 
     if (ch == '\\')
         {
@@ -1913,10 +2142,10 @@ readChar(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"a character",args),0);
+    rethrow(checkPortForReading(fp,"a character",args));
 
     i = 0;
-    if (fscanf(fp," %c",&i) == EOF) return eofSymbol;
+    if (fscanf(fp," %c",&i) == EOF) return EofSymbol;
     buffer[0] = i;
     buffer[1] = '\0';
     return newString(buffer);
@@ -1930,10 +2159,10 @@ readInt(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"an integer",args),0);
+    rethrow(checkPortForReading(fp,"an integer",args));
 
     i = 0;
-    if (fscanf(fp," %d",&i) == EOF) return eofSymbol;
+    if (fscanf(fp,"%d",&i) == EOF) return EofSymbol;
     return newInteger(i);
     }
 
@@ -1945,10 +2174,10 @@ readReal(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"a real",args),0);
+    rethrow(checkPortForReading(fp,"a real",args));
 
     r = 0;
-    if (fscanf(fp," %lf",&r) == EOF) return eofSymbol;
+    if (fscanf(fp,"%lf",&r) == EOF) return EofSymbol;
     return newReal(r);
     }
 
@@ -1958,23 +2187,21 @@ readString(int args)
     int ch;
     int index;
     char buffer[4096];
-    int result;
     FILE *fp;
 
     fp = OpenPorts[CurrentInputIndex];
-
-    rethrow(checkPortForReading(fp,"a string",args),0);
+    rethrow(checkPortForReading(fp,"a string",args));
 
     skipWhiteSpace(fp);
 
     ch = fgetc(fp);
 
-    if (feof(fp)) return eofSymbol;
+    if (feof(fp)) return EofSymbol;
 
     if (ch != '\"')
         {
         ungetc(ch,fp);
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "found <%c> instead of double quote at the start of a string",
             SymbolTable[file(args)],line(args),
@@ -1991,7 +2218,7 @@ readString(int args)
             {
             ch = fgetc(fp);
             if (ch == EOF)
-                return throw(exceptionSymbol,
+                return throw(ExceptionSymbol,
                     "file %s,line %d: "
                     "attempt to read a string at end of input",
                     SymbolTable[file(args)],line(args)
@@ -2011,7 +2238,7 @@ readString(int args)
             }
 
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to read a very long string failed",
                 SymbolTable[file(args)],line(args)
@@ -2021,17 +2248,45 @@ readString(int args)
     buffer[index] = '\0';
 
     if (ch != '\"')
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "attempt to read an unterminated string",
             SymbolTable[file(args)],line(args)
             );
 
-    //printf("string is <%s>\n", buffer);
+    return newString(buffer);
+    }
 
-    result = newString(buffer);
+static int
+readExpr(int args)
+    {
+    int e;
+    PARSER *p;
+    FILE *fp;
 
-    return result;
+    extern int expr(PARSER *);
+
+    fp = OpenPorts[CurrentInputIndex];
+
+    rethrow(checkPortForReading(fp,"an expression",args));
+
+    p = newParserFP(fp,OpenPortNames[CurrentInputIndex]);
+
+    e = expr(p);
+
+    rethrow(e);
+
+    freeParser(p);
+
+    if (fp == stdin)
+        {
+        char buffer[8096];
+        int index = 0;
+        ppToString(e,buffer,sizeof(buffer),&index);
+        add_history(buffer);
+        }
+
+    return e;
     }
 
 static int
@@ -2040,25 +2295,24 @@ readToken(int args)
     int ch;
     int index;
     char buffer[4096];
-    int result;
     FILE *fp;
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"a token",args),0);
+    rethrow(checkPortForReading(fp,"a token",args));
 
     skipWhiteSpace(fp);
 
     ch = fgetc(fp);
 
-    if (feof(fp)) return eofSymbol;
+    if (feof(fp)) return EofSymbol;
 
     index = 0;
     while (ch != EOF && !isspace(ch))
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to read a very long token failed",
                 SymbolTable[file(args)],line(args)
@@ -2070,11 +2324,7 @@ readToken(int args)
 
     ungetc(ch,fp);
 
-    //printf("token is <%s>\n", buffer);
-
-    result = newString(buffer);
-
-    return result;
+    return newString(buffer);
     }
 
 static int
@@ -2085,12 +2335,11 @@ readWhile(int args)
     int index;
     char target[256];
     char buffer[4096];
-    int result;
     FILE *fp;
 
     if (type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "readWhile argument should be STRING, not type %s",
             SymbolTable[file(args)],line(args),
@@ -2099,20 +2348,20 @@ readWhile(int args)
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"characters",args),0);
+    rethrow(checkPortForReading(fp,"characters",args));
 
     cellStringTr(target,sizeof(target),a);
 
     ch = fgetc(fp);
 
-    if (feof(fp)) return eofSymbol;
+    if (feof(fp)) return EofSymbol;
 
     index = 0;
     while (ch != EOF && strchr(target,ch) != 0)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to read a very long token failed",
                 SymbolTable[file(args)],line(args)
@@ -2124,11 +2373,7 @@ readWhile(int args)
 
     ungetc(ch,fp);
 
-    //printf("token is <%s>\n", buffer);
-
-    result = newString(buffer);
-
-    return result;
+    return newString(buffer);
     }
 
 static int
@@ -2139,12 +2384,11 @@ readUntil(int args)
     int index;
     char target[256];
     char buffer[4096];
-    int result;
     FILE *fp;
 
     if (type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "readWhile argument should be STRING, not type %s",
             SymbolTable[file(args)],line(args),
@@ -2152,21 +2396,20 @@ readUntil(int args)
         }
 
     fp = OpenPorts[CurrentInputIndex];
-
-    rethrow(checkPortForReading(fp,"characters",args),0);
+    rethrow(checkPortForReading(fp,"characters",args));
 
     cellStringTr(target,sizeof(target),a);
 
     ch = fgetc(fp);
 
-    if (feof(fp)) return eofSymbol;
+    if (feof(fp)) return EofSymbol;
 
     index = 0;
     while (ch != EOF && strchr(target,ch) == 0)
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to read a very long token failed",
                 SymbolTable[file(args)],line(args)
@@ -2178,11 +2421,7 @@ readUntil(int args)
 
     ungetc(ch,fp);
 
-    //printf("token is <%s>\n", buffer);
-
-    result = newString(buffer);
-
-    return result;
+    return newString(buffer);
     }
 
 static int
@@ -2196,7 +2435,7 @@ pushBack(int args)
         return a;
         }
 
-    return throw(exceptionSymbol,
+    return throw(ExceptionSymbol,
         "file %s,line %d: "
         "can only push back a one-character string",
         SymbolTable[file(args)],line(args)
@@ -2209,23 +2448,22 @@ readLine(int args)
     int ch;
     int index;
     char buffer[4096];
-    int result;
     FILE *fp;
 
     fp = OpenPorts[CurrentInputIndex];
 
-    rethrow(checkPortForReading(fp,"a line",args),0);
+    rethrow(checkPortForReading(fp,"a line",args));
  
     ch = fgetc(fp);
 
-    if (feof(fp)) return eofSymbol;
+    if (feof(fp)) return EofSymbol;
 
     index = 0;
     while (ch != EOF && ch != '\n')
         {
         buffer[index++] = ch;
         if (index == sizeof(buffer) - 1)
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "attempt to read a very long line failed",
                 SymbolTable[file(args)],line(args)
@@ -2235,11 +2473,8 @@ readLine(int args)
 
     buffer[index] = '\0';
 
-    //printf("token is <%s>\n", buffer);
+    return newString(buffer);
 
-    result = newString(buffer);
-
-    return result;
     }
 
 static int
@@ -2256,59 +2491,57 @@ oopen(int args)
     int result;
 
     target = car(args);
-    //debug("open file",target);
     mode = cadr(args);
-    //debug("mode",mode);
 
     if (type(mode) == SYMBOL)
         {
         if (ival(mode) == readIndex)
             {
+
             char buffer[512];
             cellString(buffer,sizeof(buffer),target);
-            //printf("buffer is %s\n",buffer);
             FILE *fp = fopen(buffer,"r");
+            
             if (fp == 0)
-                return throw(exceptionSymbol,
+                return throw(ExceptionSymbol,
                     "file %s,line %d: "
                     "file %s cannot be opened for reading",
                     SymbolTable[file(args)],line(args),
                     buffer);
-            //printf("opening reading port %p\n",fp);
-            result = addOpenPort(fp,inputPortSymbol,file(args),line(args));
+            
+            result = addOpenPort(fp,InputPortSymbol,file(args),line(args),buffer);
             }
         else if (ival(mode) == writeIndex)
             {
+            
             char buffer[256];
             cellString(buffer,sizeof(buffer),target);
-            //printf("buffer is %s\n",buffer);
             FILE *fp = fopen(buffer,"w");
-            //printf("buffer is %s\n",buffer);
+            
             if (fp == 0)
-                return throw(exceptionSymbol,
+                return throw(ExceptionSymbol,
                     "file %s,line %d: "
                     "file %s cannot be opened for writing",
                     SymbolTable[file(args)],line(args),
                     buffer);
-            //printf("opening writing port %p\n",fp);
-            result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
+            
+            result = addOpenPort(fp,OutputPortSymbol,file(args),line(args),buffer);
             }
         else if (ival(mode) == appendIndex)
             {
             char buffer[256];
             FILE *fp = fopen(cellString(buffer,sizeof(buffer),target),"a");
             if (fp == 0)
-                return throw(exceptionSymbol,
+                return throw(ExceptionSymbol,
                     "file %s,line %d: "
                     "file %s cannot be opened for appending",
                     SymbolTable[file(args)],line(args),
                     buffer);
-            //printf("opening appending port %p\n",fp);
-            result = addOpenPort(fp,outputPortSymbol,file(args),line(args));
+            result = addOpenPort(fp,OutputPortSymbol,file(args),line(args),buffer);
             }
         else 
             {
-            return throw(exceptionSymbol,
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
                 "%s is an unknown mode "
                 "(should be 'read, 'write, or 'append)",
@@ -2318,7 +2551,7 @@ oopen(int args)
         }
     else
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "%s is an unknown mode "
             "(should be 'read, 'write, or 'append)",
@@ -2326,7 +2559,6 @@ oopen(int args)
             type(mode));
         }
 
-    //debug("new port",result);
     return result;
     }
 
@@ -2367,14 +2599,17 @@ bindings(int args)
     int items,spot;
     int vars = object_variables(car(args));
     int vals = object_values(car(args));
+    int size = length(vars) * 3; /* three conses per variable */
 
-    assureMemory("bindings",3 * length(vars),&vars,&vals,
-        (int *)0);
+    P();
+    ENSURE_MEMORY(size,&vars,&vals,(int *) 0);
 
     items = 0;
-    while (vars != 0)
+    /* ignore mismatches between vars and vals */
+    while (vars != 0 && vals != 0)
         {
-        int pack = ucons(ucons(car(vars),ucons(car(vals),0)),0);
+        int pack = cons(cons(car(vars),cons(car(vals),0)),0);
+
         if (items == 0)
             {
             items = pack;
@@ -2382,13 +2617,13 @@ bindings(int args)
             }
         else
             {
-            cdr(spot) = pack;
+            setcdr(spot,pack);
             spot = cdr(spot);
             }
         vars = cdr(vars);
         vals = cdr(vals);
         }
-
+    V();
     return items;
     }
 
@@ -2397,24 +2632,22 @@ bindings(int args)
 static int
 array(int args)
     {
-    int i,size,amount,spot,start = 0,attach = 0;
+    int size,start,spot;
+
     args = car(args);
     size = length(args);
-    amount = size;
-    assureMemory("array",size,&args,(int *)0);
-    for (i = 0; i < size; ++i)
+
+    P();
+    ENSURE_CONTIGUOUS_MEMORY(size,&args,(int *) 0);
+
+    start = allocateContiguous(ARRAY,size);
+
+    for (spot = start; spot < start + size; ++spot)
         {
-        spot = ucons(car(args),0);
-        type(spot) = ARRAY;
-        count(spot) = amount--;
-        if (i == 0)
-            start = spot;
-        else
-            cdr(attach) = spot;
-        attach = spot;
+        setcar(spot,car(args));
         args = cdr(args);
         }
-    //printf("size of array is %d\n",count(start));
+    V();
     return start;
     }
 
@@ -2423,22 +2656,14 @@ array(int args)
 static int
 allocate(int args)
     {
-    int i,spot,start = 0,attach = 0;
     int size = ival(car(args));
-    int amount = size;
-    assureMemory("allocate",size,(int *)0);
-    for (i = 0; i < size; ++i)
-        {
-        spot = ucons(0,0);
-        type(spot) = ARRAY;
-        count(spot) = amount--;
-        if (i == 0)
-            start = spot;
-        else
-            cdr(attach) = spot;
-        attach = spot;
-        }
-    return start;
+
+    P();
+    ENSURE_CONTIGUOUS_MEMORY(size,(int *) 0);
+
+    int result = allocateContiguous(ARRAY,size); /* sets cars to zero */
+    V();
+    return result;
     }
 
 /* (length item) */
@@ -2467,7 +2692,7 @@ llength(int args)
     else if (type(item) == SYMBOL)
         return newInteger(strlen(SymbolTable[ival(car(args))]));
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "cannot take the length of type %s",
             SymbolTable[file(args)],line(args),
@@ -2484,9 +2709,8 @@ getElement(int args)
     int index = ival(cadr(args));
     char *kind = type(supply);
 
-    //printf("in getElement...");
     if (index < 0)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "negative indices (%d) are not allowed",
             SymbolTable[file(args)],line(args),
@@ -2497,14 +2721,14 @@ getElement(int args)
     else if (kind == STRING || kind == CONS)
         limit = length(supply);
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "cannot index into type %s",
             SymbolTable[file(args)],line(args),
             kind);
 
     if (index >= limit)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "index (%d) is too large",
             SymbolTable[file(args)],line(args),
@@ -2513,14 +2737,11 @@ getElement(int args)
     if (type(supply) == ARRAY)
         {
         int result;
-        //printf("getting an element of an array\n");
         result = car(supply + index);
-        //printf("returning %d\n",result);
         return result;
         }
     else
         {
-        //printf("getting an element of a list or string\n");
         while (index > 0)
             {
             supply = cdr(supply);
@@ -2550,7 +2771,7 @@ setElement(int args)
     char *kind = type(supply);
 
     if (index < 0)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "negative indices (%d) are not allowed",
             SymbolTable[file(args)],line(args),
@@ -2561,14 +2782,14 @@ setElement(int args)
     else if (kind == STRING || kind == CONS)
         limit = length(supply);
     else
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "cannot index into type %s",
             SymbolTable[file(args)],line(args),
             kind);
 
     if (index >= limit)
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "index (%d) is too large",
             SymbolTable[file(args)],line(args),
@@ -2576,13 +2797,11 @@ setElement(int args)
 
     if (type(supply) == ARRAY || type(supply) == STRING)
         {
-        //printf("getting an element of an array\n");
-        car(supply + index) = value;
+        setcar(supply + index,value);
         return car(supply + index);
         }
     else
         {
-        //printf("getting an element of a list or string\n");
         while (index > 0)
             {
             supply = cdr(supply);
@@ -2590,14 +2809,16 @@ setElement(int args)
             }
 
         if (type(supply) == CONS)
-            car(supply) = value;
+            {
+            setcar(supply,value);
+            }
         else
-            ival(supply) = ival(value);
-
+            {
+            setcar(supply,ival(value));
+            }
         return value;
         }
     }
-
 
 static int
 symbol(int args)
@@ -2614,13 +2835,11 @@ catch(int args)
     {
     int result;
 
-    //printf("in catch...\n");
     result = eval(cadr(args),car(args));
-    //debug("caught",result);
 
     if (isThrow(result))
         {
-        object_label(result) = errorSymbol;
+        set_object_label(result,ErrorSymbol);
         }
 
     return result;
@@ -2632,18 +2851,29 @@ static int
 tthrow(int args)
     {
     int item;
+    int o;
 
-    assureMemory("throw",THROW_CELLS,&args,(int *)0);
+    P();
+    ENSURE_MEMORY(MAKE_THROW_SIZE,&args,(int *) 0);
 
     item = car(args);
 
     if (cadr(args) == 0 && isError(item))
-        return makeThrow(error_code(item),error_value(item),error_trace(item));
+        {
+        o = makeThrow(error_code(item),error_value(item),error_trace(item));
+        V();
+        return o; 
+        }
     else if (cadr(args) != 0)
-        return makeThrow(item,car(cadr(args)),0);
+        {
+        o = makeThrow(item,car(cadr(args)),0);
+        V();
+        return o; 
+        }
     else
         {
-        return throw(exceptionSymbol,
+        V();
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "wrong number of arguments to throw",
             SymbolTable[file(args)],line(args)
@@ -2653,18 +2883,18 @@ tthrow(int args)
 
 /* string manipulations */
 
-/* (string+ a b) */
+/* (string-append a b) */
 
 static int
-string_plus(int args)
+string_append(int args)
     {
     int a = car(args);
     int b = cadr(args);
-    int i,amount,sizeA,sizeB,size,attach,spot,start;
+    int spot,sizeA,sizeB,size,start;
 
     if (a != 0 && type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "prefix: first argument should be STRING, not %s",
             SymbolTable[file(args)],line(args),
@@ -2673,7 +2903,7 @@ string_plus(int args)
 
     if (b != 0 && type(b) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "prefix: first argument should be STRING, not %s",
             SymbolTable[file(args)],line(args),
@@ -2686,36 +2916,30 @@ string_plus(int args)
     sizeB = length(b);
     size = sizeA + sizeB;
 
-    assureMemory("string_plus",size,&a,&b,(int *)0);
+    P();
+    ENSURE_CONTIGUOUS_MEMORY(size,&a,&b,(int *) 0);
+    start = allocateContiguous(STRING,size);
+    V();
 
-    i = 0;
-    amount = size;
-    for (i = 0; i < size; ++i)
+    for (spot = start; spot < start + size; ++spot)
         {
-        spot = ucons(0,0);
-        type(spot) = STRING;
-        if (i < sizeA)
+        /* if there are characters left in a, append from a first */
+        if (spot - start < sizeA)
             {
-            ival(spot) = ival(a);
+            setcar(spot,car(a));
             a = cdr(a);
             }
         else
             {
-            ival(spot) = ival(b);
+            setcar(spot,car(b));
             b = cdr(b);
             }
-        count(spot) = amount--;
-        if (i == 0)
-            start = spot;
-        else
-            cdr(attach) = spot;
-        attach = spot;
         }
-
+    
     return start;
     }
 
-/* (string-equal? a b) */
+/* (string-equal a b) */
 
 static int
 string_equal(int args)
@@ -2725,8 +2949,8 @@ string_equal(int args)
 
     while (a != 0)
         {
-        if (b == 0) return falseSymbol;
-        if (ival(a) != ival(b)) return falseSymbol;
+        if (b == 0) return FalseSymbol;
+        if (ival(a) != ival(b)) return FalseSymbol;
         a = cdr(a);
         b = cdr(b);
         }
@@ -2747,7 +2971,7 @@ prefix(int args)
 
     if (type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "prefix: first argument should be STRING, not %s",
             SymbolTable[file(args)],line(args),
@@ -2756,15 +2980,22 @@ prefix(int args)
 
     if (type(b) != INTEGER)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "prefix: second argument should be INTEGER, not %s",
             SymbolTable[file(args)],line(args),
             type(b));
         }
 
-
-    buffer = (char *) New(ival(b) + 1);
+    buffer = (char *) malloc(ival(b) + 1);
+    if(buffer == NULL)
+    {
+        return throw(ExceptionSymbol,
+                "file %s, line %d: "
+                "prefix: Out of memory for",
+                SymbolTable[file(args)],line(args)
+                );
+    }
 
     count = 0;
     for (i = 0; ival(a) != '\0' && i < ival(b); ++i)
@@ -2790,7 +3021,7 @@ suffix(int args)
 
     if (type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "suffix: first argument should be STRING, not %s",
             SymbolTable[file(args)],line(args),
@@ -2799,7 +3030,7 @@ suffix(int args)
 
     if (type(b) != INTEGER)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "suffix: second argument should be INTEGER, not %s",
             SymbolTable[file(args)],line(args),
@@ -2823,7 +3054,7 @@ stringWhile(int args)
 
     if (type(a) != STRING || type(b) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "stringWhile: both arguments should be STRING, not %s and %s",
             SymbolTable[file(args)],line(args),
@@ -2853,7 +3084,7 @@ stringUntil(int args)
 
     if (type(a) != STRING || type(b) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "stringUntil: both arguments should be STRING, not %s and %s",
             SymbolTable[file(args)],line(args),
@@ -2880,7 +3111,7 @@ substring(int args)
 
     if (type(needle) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "substring: first argument is type %s (should be %s)",
             SymbolTable[file(args)],line(args),
@@ -2889,7 +3120,7 @@ substring(int args)
 
     if (type(haystack) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "substring: second argument is %s (should be %s)",
             SymbolTable[file(args)],line(args),
@@ -2922,36 +3153,34 @@ trim(int args)
 
     if (type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "trim: argument is type %s (should be %s)",
             SymbolTable[file(args)],line(args),
             type(a),STRING);
         }
 
-    assureMemory("trim",count(a) + 1,&a,(int *)0);
-
     while (isspace(ival(a)))
         a = cdr(a);
 
-    assert(ival(a + count(a)) == 0);
-
     length = count(a) - 1;
+
     while (isspace(ival(a + length)))
         --length;
 
-    start = MemorySpot;
+   
+    P();
+    ENSURE_CONTIGUOUS_MEMORY(length,&a,(int *) 0);
+    start = allocateContiguous(STRING,length); /* allocate 'length' cells */
+    V();
 
-    int c;
-    while (length > 0)
+    int spot = start;
+    while (spot != 0)
         {
-        c = ucons(ival(a),MemorySpot+1);
-        type(c) = STRING;
-        count(c) = length;
+        setival(spot,ival(a));
+        spot = cdr(spot);
         a = cdr(a);
-        --length;
         }
-    cdr(c) = 0;
 
     return start;
     }
@@ -2963,7 +3192,7 @@ ascii(int args)
 
     if (type(a) != STRING)
         {
-        return throw(exceptionSymbol,
+        return throw(ExceptionSymbol,
             "file %s,line %d: "
             "ascii: argument is type %s (should be %s)",
             SymbolTable[file(args)],line(args),
@@ -3008,7 +3237,7 @@ iint(int args)
         return newInteger(atoi(buffer));
         }
 
-    return throw(exceptionSymbol,
+    return throw(ExceptionSymbol,
         "file %s,line %d: "
         "int: argument is type %s (should be %s or %s)",
         SymbolTable[file(args)],line(args),
@@ -3031,7 +3260,7 @@ rreal(int args)
         return newReal(atof(buffer));
         }
 
-    return throw(exceptionSymbol,
+    return throw(ExceptionSymbol,
         "file %s,line %d: "
         "int: argument is type %s (should be %s or %s)",
         SymbolTable[file(args)],line(args),
@@ -3064,7 +3293,7 @@ sstring(int args)
         return newString(buffer);
         }
 
-    return throw(exceptionSymbol,
+    return throw(ExceptionSymbol,
         "file %s,line %d: "
         "int: argument is type %s (should be %s or %s)",
         SymbolTable[file(args)],line(args),
@@ -3080,12 +3309,35 @@ address(int args)
     return newInteger(car(args));
     }
 
-/* (stack-depth) */
+/* (setCaching mode) */
 
 static int
-stackDepth(int args)
+setCaching(int args)
     {
-    return newInteger(StackPtr);
+    int old = Caching;
+
+    if (SameSymbol(car(args),TrueSymbol))
+        Caching = 1;
+    else
+        Caching = 0;
+
+    return old == 0? FalseSymbol : TrueSymbol;
+    }
+
+/* (getCaching) */
+
+static int
+getCaching(int args)
+    {
+    return Caching == 0? FalseSymbol : TrueSymbol;
+    }
+
+/* (gcCount) */
+
+static int
+ggcCount(int args)
+    {
+    return newInteger(GCCount);
     }
 
 /* (line item) */
@@ -3106,12 +3358,19 @@ ffile(int args)
     return newString(buffer);
     }
 
-/* (sleep seconds) */
 
+/* (sleep seconds)
+ * Note: this is a high precision sleep using nanosleep.  
+ * 1 second is 1000000000 nanoseconds
+ */
 int
 ssleep(int args)
     {
-    sleep(ival(car(args)));
+    struct timespec tim;
+    int val = ival(car(args));
+    tim.tv_nsec = val % 1000000000;
+    tim.tv_sec = (val / 1000000000);
+    nanosleep(&tim,NULL);
     return 0;
     }
 
@@ -3121,1076 +3380,1010 @@ loadBuiltIns(int env)
     int b;
     int count = 0;
 
-    BuiltIns[count] = getPID;
+    BuiltIns[count] = getTID;
     b = makeBuiltIn(env,
-        newSymbol("getpid"),
+        newSymbolUnsafe("gettid"),
         0,
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = debugSemaphore;
-    b = makeBuiltIn(env,
-        newSymbol("debugSemaphore"),
-        ucons(newSymbol("mode"),0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = acquire;
-    b = makeBuiltIn(env,
-        newSymbol("acquire"),
-        0,
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = release;
-    b = makeBuiltIn(env,
-        newSymbol("release"),
-        0,
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = yield;
-    b = makeBuiltIn(env,
-        newSymbol("yield"),
-        0,
-        newInteger(count));
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ssleep;
     b = makeBuiltIn(env,
-        newSymbol("sleep"),
-        ucons(newSymbol("seconds"),0),
-        newInteger(count));
+        newSymbolUnsafe("sleep"),
+        cons(newSymbolUnsafe("seconds"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = spexecute;
+    BuiltIns[count] = string_append;
     b = makeBuiltIn(env,
-        newSymbol("*pexecute"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = pexecute;
-    b = makeBuiltIn(env,
-        newSymbol("pexecute"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = allocateSharedMemory;
-    b = makeBuiltIn(env,
-        newSymbol("allocateSharedMemory"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = freeSharedMemory;
-    b = makeBuiltIn(env,
-        newSymbol("freeSharedMemory"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = convertSharedMemory;
-    b = makeBuiltIn(env,
-        newSymbol("convertSharedMemory"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = getControl;
-    b = makeBuiltIn(env,
-        newSymbol("getControl"),
-        ucons(newSymbol("index"),0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = setControl;
-    b = makeBuiltIn(env,
-        newSymbol("setControl"),
-        ucons(newSymbol("index"),
-            ucons(newSymbol("value"),0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = getControlSize;
-    b = makeBuiltIn(env,
-        newSymbol("getControlSize"),
-        0,
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = setControlSize;
-    b = makeBuiltIn(env,
-        newSymbol("setControlSize"),
-        ucons(newSymbol("size"),0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = getShared;
-    b = makeBuiltIn(env,
-        newSymbol("getShared"),
-        ucons(newSymbol("index"),0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = setShared;
-    b = makeBuiltIn(env,
-        newSymbol("setShared"),
-        ucons(newSymbol("index"),
-            ucons(newSymbol("value"),0)),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = getSharedSize;
-    b = makeBuiltIn(env,
-        newSymbol("getSharedSize"),
-        0,
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = setSharedSize;
-    b = makeBuiltIn(env,
-        newSymbol("setSharedSize"),
-        ucons(newSymbol("size"),0),
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = ggc;
-    b = makeBuiltIn(env,
-        newSymbol("gc"),
-        0,
-        newInteger(count));
-    defineVariable(env,closure_name(b),b);
-    ++count;
-
-    BuiltIns[count] = string_plus;
-    b = makeBuiltIn(env,
-        newSymbol("string-append"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
-        newInteger(count));
+        newSymbolUnsafe("string-append"),
+        cons(newSymbolUnsafe("a"),
+            cons(newSymbolUnsafe("b"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = string_equal;
     b = makeBuiltIn(env,
-        newSymbol("string-equal?"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
-        newInteger(count));
+        newSymbolUnsafe("string-equal?"),
+        cons(newSymbolUnsafe("a"),
+            cons(newSymbolUnsafe("b"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = prefix;
     b = makeBuiltIn(env,
-        newSymbol("prefix"),
-        ucons(newSymbol("str"),
-            ucons(newSymbol("size"),0)),
-        newInteger(count));
+        newSymbolUnsafe("prefix"),
+        cons(newSymbolUnsafe("str"),
+            cons(newSymbolUnsafe("size"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = suffix;
     b = makeBuiltIn(env,
-        newSymbol("suffix"),
-        ucons(newSymbol("str"),
-            ucons(newSymbol("size"),0)),
-        newInteger(count));
+        newSymbolUnsafe("suffix"),
+        cons(newSymbolUnsafe("str"),
+            cons(newSymbolUnsafe("size"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = stringUntil;
     b = makeBuiltIn(env,
-        newSymbol("stringUntil"),
-        ucons(newSymbol("expr"),
-            ucons(newSymbol("chars"),0)),
-        newInteger(count));
+        newSymbolUnsafe("stringUntil"),
+        cons(newSymbolUnsafe("expr"),
+            cons(newSymbolUnsafe("chars"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = stringWhile;
     b = makeBuiltIn(env,
-        newSymbol("stringWhile"),
-        ucons(newSymbol("str"),
-            ucons(newSymbol("chars"),0)),
-        newInteger(count));
+        newSymbolUnsafe("stringWhile"),
+        cons(newSymbolUnsafe("str"),
+            cons(newSymbolUnsafe("chars"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = substring;
     b = makeBuiltIn(env,
-        newSymbol("substring"),
-        ucons(newSymbol("needle"),
-            ucons(newSymbol("haystack"),0)),
-        newInteger(count));
+        newSymbolUnsafe("substring"),
+        cons(newSymbolUnsafe("needle"),
+            cons(newSymbolUnsafe("haystack"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = trim;
     b = makeBuiltIn(env,
-        newSymbol("trim"),
-        ucons(newSymbol("str"),0),
-        newInteger(count));
+        newSymbolUnsafe("trim"),
+        cons(newSymbolUnsafe("str"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ascii;
     b = makeBuiltIn(env,
-        newSymbol("ascii"),
-        ucons(newSymbol("str"),0),
-        newInteger(count));
+        newSymbolUnsafe("ascii"),
+        cons(newSymbolUnsafe("str"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ord;
     b = makeBuiltIn(env,
-        newSymbol("ord"),
-        ucons(newSymbol("char"),0),
-        newInteger(count));
+        newSymbolUnsafe("ord"),
+        cons(newSymbolUnsafe("char"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = cchar;
     b = makeBuiltIn(env,
-        newSymbol("char"),
-        ucons(newSymbol("int"),0),
-        newInteger(count));
+        newSymbolUnsafe("char"),
+        cons(newSymbolUnsafe("int"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = iint;
     b = makeBuiltIn(env,
-        newSymbol("int"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("int"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = rreal;
     b = makeBuiltIn(env,
-        newSymbol("real"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("real"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = sstring;
     b = makeBuiltIn(env,
-        newSymbol("string"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("string"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = catch;
     b = makeBuiltIn(env,
-        newSymbol("catch"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("$expr"),0)),
-        newInteger(count));
+        newSymbolUnsafe("catch"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("$expr"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = tthrow;
     b = makeBuiltIn(env,
-        newSymbol("throw"),
-        ucons(newSymbol("code"),
-            ucons(atSymbol,0)),
-        newInteger(count));
+        newSymbolUnsafe("throw"),
+        cons(newSymbolUnsafe("code"),
+            cons(AtSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = symbol;
     b = makeBuiltIn(env,
-        newSymbol("symbol"),
-        ucons(newSymbol("str"),0),
-        newInteger(count));
+        newSymbolUnsafe("symbol"),
+        cons(newSymbolUnsafe("str"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = getElement;
     b = makeBuiltIn(env,
-        newSymbol("getElement"),
-        ucons(newSymbol("item"),
-            ucons(newSymbol("index"),0)),
-        newInteger(count));
+        newSymbolUnsafe("getElement"),
+        cons(newSymbolUnsafe("item"),
+            cons(newSymbolUnsafe("index"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = setElement;
     b = makeBuiltIn(env,
-        newSymbol("setElement"),
-        ucons(newSymbol("item"),
-            ucons(newSymbol("index"),
-                ucons(newSymbol("value"),0))),
-        newInteger(count));
+        newSymbolUnsafe("setElement"),
+        cons(newSymbolUnsafe("item"),
+            cons(newSymbolUnsafe("index"),
+                cons(newSymbolUnsafe("value"),0))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = llength;
     b = makeBuiltIn(env,
-        newSymbol("length"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("length"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = allocate;
     b = makeBuiltIn(env,
-        newSymbol("allocate"),
-        ucons(newSymbol("size"),0),
-        newInteger(count));
+        newSymbolUnsafe("allocate"),
+        cons(newSymbolUnsafe("size"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = array;
     b = makeBuiltIn(env,
-        newSymbol("array"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("array"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = bindings;
     b = makeBuiltIn(env,
-        newSymbol("bindings"),
-        ucons(newSymbol("object"),0),
-        newInteger(count));
+        newSymbolUnsafe("bindings"),
+        cons(newSymbolUnsafe("object"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = eexit;
     b = makeBuiltIn(env,
-        newSymbol("exit"),
-        ucons(newSymbol("errorNumber"),0),
-        newInteger(count));
+        newSymbolUnsafe("exit"),
+        cons(newSymbolUnsafe("errorNumber"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ssystem;
     b = makeBuiltIn(env,
-        newSymbol("system"),
-        ucons(newSymbol("str"),0),
-        newInteger(count));
+        newSymbolUnsafe("system"),
+        cons(newSymbolUnsafe("str"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = eexec;
     b = makeBuiltIn(env,
-        newSymbol("exec"),
-        ucons(newSymbol("str"),0),
-        newInteger(count));
+        newSymbolUnsafe("exec"),
+        cons(newSymbolUnsafe("str"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ttime;
     b = makeBuiltIn(env,
-        newSymbol("time"),
+        newSymbolUnsafe("time"),
         0,
-        newInteger(count));
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readChar;
     b = makeBuiltIn(env,
-        newSymbol("readChar"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("readChar"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readRawChar;
     b = makeBuiltIn(env,
-        newSymbol("readRawChar"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("readRawChar"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readInt;
     b = makeBuiltIn(env,
-        newSymbol("readInt"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("readInt"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readReal;
     b = makeBuiltIn(env,
-        newSymbol("readReal"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("readReal"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readString;
     b = makeBuiltIn(env,
-        newSymbol("readString"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("readString"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readToken;
     b = makeBuiltIn(env,
-        newSymbol("readToken"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("readToken"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = readExpr;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("readExpr"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readLine;
     b = makeBuiltIn(env,
-        newSymbol("readLine"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("readLine"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readWhile;
     b = makeBuiltIn(env,
-        newSymbol("readWhile"),
-        ucons(newSymbol("string"),0),
-        newInteger(count));
+        newSymbolUnsafe("readWhile"),
+        cons(newSymbolUnsafe("string"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = readUntil;
     b = makeBuiltIn(env,
-        newSymbol("readUntil"),
-        ucons(newSymbol("string"),0),
-        newInteger(count));
+        newSymbolUnsafe("readUntil"),
+        cons(newSymbolUnsafe("string"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = pushBack;
     b = makeBuiltIn(env,
-        newSymbol("pushBack"),
-        ucons(newSymbol("string"),0),
-        newInteger(count));
+        newSymbolUnsafe("pushBack"),
+        cons(newSymbolUnsafe("string"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = oopen;
     b = makeBuiltIn(env,
-        newSymbol("open"),
-        ucons(newSymbol("name"),
-            ucons(newSymbol("mode"),0)),
-        newInteger(count));
+        newSymbolUnsafe("open"),
+        cons(newSymbolUnsafe("name"),
+            cons(newSymbolUnsafe("mode"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = setPort;
     b = makeBuiltIn(env,
-        newSymbol("setPort"),
-        ucons(newSymbol("port"),0),
-        newInteger(count));
+        newSymbolUnsafe("setPort"),
+        cons(newSymbolUnsafe("port"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = getOutputPort;
     b = makeBuiltIn(env,
-        newSymbol("getOutputPort"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("getOutputPort"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = getInputPort;
     b = makeBuiltIn(env,
-        newSymbol("getInputPort"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("getInputPort"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = cclose;
     b = makeBuiltIn(env,
-        newSymbol("close"),
-        ucons(newSymbol("port"),0),
-        newInteger(count));
+        newSymbolUnsafe("close"),
+        cons(newSymbolUnsafe("port"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isEof;
     b = makeBuiltIn(env,
-        newSymbol("eof?"),
-        ucons(sharpSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("eof?"),
+        cons(SharpSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = gensym;
     b = makeBuiltIn(env,
-        newSymbol("gensym"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("gensym"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isGensym;
     b = makeBuiltIn(env,
-        newSymbol("gensym?"),
-        ucons(newSymbol("id"),0),
-        newInteger(count));
+        newSymbolUnsafe("gensym?"),
+        cons(newSymbolUnsafe("id"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ccons;
     b = makeBuiltIn(env,
-        newSymbol("cons"),
-        ucons(newSymbol("a"),
-            ucons(newSymbol("b"),0)),
-        newInteger(count));
+        newSymbolUnsafe("cons"),
+        cons(newSymbolUnsafe("a"),
+            cons(newSymbolUnsafe("b"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ccdr;
     b = makeBuiltIn(env,
-        newSymbol("cdr"),
-        ucons(newSymbol("items"),0),
-        newInteger(count));
+        newSymbolUnsafe("cdr"),
+        cons(newSymbolUnsafe("items"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ccar;
     b = makeBuiltIn(env,
-        newSymbol("car"),
-        ucons(newSymbol("items"),0),
-        newInteger(count));
+        newSymbolUnsafe("car"),
+        cons(newSymbolUnsafe("items"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ttype;
     b = makeBuiltIn(env,
-        newSymbol("type"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("type"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isNull;
     b = makeBuiltIn(env,
-        newSymbol("null?"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("null?"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isPair;
     b = makeBuiltIn(env,
-        newSymbol("pair?"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("pair?"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isList;
     b = makeBuiltIn(env,
-        newSymbol("list?"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("list?"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = list;
     b = makeBuiltIn(env,
-        newSymbol("list"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("list"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = iinclude;
     b = makeBuiltIn(env,
-        newSymbol("include"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("$fileName"),0)),
-        newInteger(count));
+        newSymbolUnsafe("include"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("$fileName"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = eeval;
     b = makeBuiltIn(env,
-        newSymbol("eval"),
-        ucons(newSymbol("expr"),
-            ucons(newSymbol("context"),0)),
-        newInteger(count));
+        newSymbolUnsafe("eval"),
+        cons(newSymbolUnsafe("expr"),
+            cons(newSymbolUnsafe("context"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = apply;
     b = makeBuiltIn(env,
-        newSymbol("apply"),
-        ucons(newSymbol("f"),
-            ucons(newSymbol("args"),0)),
-        newInteger(count));
+        newSymbolUnsafe("apply"),
+        cons(newSymbolUnsafe("f"),
+            cons(newSymbolUnsafe("args"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = pass;
     b = makeBuiltIn(env,
-        newSymbol("pass"),
-        ucons(newSymbol("f"),
-            ucons(newSymbol("@"),0)),
-        newInteger(count));
+        newSymbolUnsafe("pass"),
+        cons(newSymbolUnsafe("f"),
+            cons(newSymbolUnsafe("@"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = inspect;
     b = makeBuiltIn(env,
-        newSymbol("inspect"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("$expr"),0)),
-        newInteger(count));
+        newSymbolUnsafe("inspect"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("$expr"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = scope;
     b = makeBuiltIn(env,
-        newSymbol("scope"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
+        newSymbolUnsafe("scope"),
+        cons(SharpSymbol,
+            cons(DollarSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = begin;
     b = makeBuiltIn(env,
-        beginSymbol,
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
+        BeginSymbol,
+        cons(SharpSymbol,
+            cons(DollarSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = rreturn;
     b = makeBuiltIn(env,
-        returnSymbol,
-        ucons(sharpSymbol,
-            ucons(newSymbol("$item"),0)),
-        newInteger(count));
+        ReturnSymbol,
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("$item"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = define;
     b = makeBuiltIn(env,
-        newSymbol("define"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
+        newSymbolUnsafe("define"),
+        cons(SharpSymbol,
+            cons(DollarSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = define;
     b = makeBuiltIn(env,
-        newSymbol("__define"),
-        ucons(newSymbol("env"),
-            ucons(newSymbol("rest"),0)),
-        newInteger(count));
+        newSymbolUnsafe("__define"),
+        cons(newSymbolUnsafe("env"),
+            cons(newSymbolUnsafe("rest"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = addSymbol;
     b = makeBuiltIn(env,
-        newSymbol("addSymbol"),
-        ucons(newSymbol("name"),
-            ucons(newSymbol("init"),
-                ucons(newSymbol("env"),0))),
-        newInteger(count));
+        newSymbolUnsafe("addSymbol"),
+        cons(newSymbolUnsafe("name"),
+            cons(newSymbolUnsafe("init"),
+                cons(newSymbolUnsafe("env"),0))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = display;
     b = makeBuiltIn(env,
-        newSymbol("display"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("display"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = displayAtomic;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("displayAtomic"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = fmt;
     b = makeBuiltIn(env,
-        newSymbol("fmt"),
-        ucons(newSymbol("format"),
-            ucons(valueSymbol,0)),
-        newInteger(count));
+        newSymbolUnsafe("fmt"),
+        cons(newSymbolUnsafe("format"),
+            cons(ValueSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ppp;
     b = makeBuiltIn(env,
-        newSymbol("pp"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("a"),0)),
-        newInteger(count));
+        newSymbolUnsafe("pp"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("a"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = pppTable;
     b = makeBuiltIn(env,
-        newSymbol("ppTable"),
-        ucons(newSymbol("a"),0),
-        newInteger(count));
+        newSymbolUnsafe("ppTable"),
+        cons(newSymbolUnsafe("a"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = plus;
     b = makeBuiltIn(env,
-        newSymbol("+"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("+"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = minus;
     b = makeBuiltIn(env,
-        newSymbol("-"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("-"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = times;
     b = makeBuiltIn(env,
-        newSymbol("*"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("*"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = divides;
     b = makeBuiltIn(env,
-        newSymbol("/"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("/"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = mod;
     b = makeBuiltIn(env,
-        newSymbol("%"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("%"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = eexp;
     b = makeBuiltIn(env,
-        newSymbol("exp"),
-        ucons(newSymbol("n"),0),
-        newInteger(count));
+        newSymbolUnsafe("exp"),
+        cons(newSymbolUnsafe("n"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = llog;
     b = makeBuiltIn(env,
-        newSymbol("log"),
-        ucons(newSymbol("n"),0),
-        newInteger(count));
+        newSymbolUnsafe("log"),
+        cons(newSymbolUnsafe("n"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ssin;
     b = makeBuiltIn(env,
-        newSymbol("sin"),
-        ucons(newSymbol("n"),0),
-        newInteger(count));
+        newSymbolUnsafe("sin"),
+        cons(newSymbolUnsafe("n"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = coss;
     b = makeBuiltIn(env,
-        newSymbol("cos"),
-        ucons(newSymbol("n"),0),
-        newInteger(count));
+        newSymbolUnsafe("cos"),
+        cons(newSymbolUnsafe("n"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = aatan;
     b = makeBuiltIn(env,
-        newSymbol("atan"),
-        ucons(newSymbol("y"),
-            ucons(newSymbol("x"),0)),
-        newInteger(count));
+        newSymbolUnsafe("atan"),
+        cons(newSymbolUnsafe("y"),
+            cons(newSymbolUnsafe("x"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = expt;
     b = makeBuiltIn(env,
-        newSymbol("expt"),
-        ucons(newSymbol("base"),
-            ucons(newSymbol("exponent"),0)),
-        newInteger(count));
+        newSymbolUnsafe("expt"),
+        cons(newSymbolUnsafe("base"),
+            cons(newSymbolUnsafe("exponent"),0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = randomInt;
     b = makeBuiltIn(env,
-        newSymbol("randomInt"),
+        newSymbolUnsafe("randomInt"),
         0,
-        newInteger(count));
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = randomMax;
     b = makeBuiltIn(env,
-        newSymbol("randomMax"),
+        newSymbolUnsafe("randomMax"),
         0,
-        newInteger(count));
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = randomSeed;
     b = makeBuiltIn(env,
-        newSymbol("randomSeed"),
-        ucons(newSymbol("seed"),0),
-        newInteger(count));
+        newSymbolUnsafe("randomSeed"),
+        cons(newSymbolUnsafe("seed"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = quote;
     b = makeBuiltIn(env,
-        newSymbol("quote"),
-        ucons(newSymbol("$item"),0),
-        newInteger(count));
+        newSymbolUnsafe("quote"),
+        cons(newSymbolUnsafe("$item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = lambda;
     b = makeBuiltIn(env,
-        newSymbol("lambda"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("$params"),
-                ucons(dollarSymbol,0))),
-        newInteger(count));
+        newSymbolUnsafe("lambda"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("$params"),
+                cons(DollarSymbol,0))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = closure;
     b = makeBuiltIn(env,
-        newSymbol("closure"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("name"),
-                ucons(newSymbol("params"),
-                    ucons(newSymbol("body"),
-                        ucons(newSymbol("env"),0))))),
-        newInteger(count));
+        newSymbolUnsafe("closure"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("name"),
+                cons(newSymbolUnsafe("params"),
+                    cons(newSymbolUnsafe("body"),
+                        cons(newSymbolUnsafe("env"),0))))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = cond;
     b = makeBuiltIn(env,
-        newSymbol("cond"),
-        ucons(sharpSymbol,
-            ucons(dollarSymbol,0)),
-        newInteger(count));
+        newSymbolUnsafe("cond"),
+        cons(SharpSymbol,
+            cons(DollarSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = iif;
     b = makeBuiltIn(env,
-        newSymbol("if"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("test"),
-                ucons(newSymbol("$then"),
-                    ucons(dollarSymbol,0)))),
-        newInteger(count));
+        newSymbolUnsafe("if"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("test"),
+                cons(newSymbolUnsafe("$then"),
+                    cons(DollarSymbol,0)))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = wwhile;
     b = makeBuiltIn(env,
-        newSymbol("while"),
-        ucons(sharpSymbol,
-            ucons(newSymbol("$test"),
-                ucons(dollarSymbol,0))),
-        newInteger(count));
+        newSymbolUnsafe("while"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("$test"),
+                cons(DollarSymbol,0))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = address;
     b = makeBuiltIn(env,
-        newSymbol("address"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("address"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = setCaching;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("setCaching"),
+        cons(newSymbolUnsafe("mode"),0),
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = getCaching;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("getCaching"),
+        0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = ggc;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("gc"),
+        0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = thread;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("thread"),
+        cons(SharpSymbol,
+            cons(newSymbolUnsafe("$expr"),0)),
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = lock;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("lock"),
+        0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = unlock;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("unlock"),
+        0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+
+    BuiltIns[count] = tjoin;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("tjoin"),
+        cons(newSymbolUnsafe("tid"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = not;
     b = makeBuiltIn(env,
-        newSymbol("not"),
-        ucons(valueSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("not"),
+        cons(ValueSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isLessThan;
     b = makeBuiltIn(env,
-        newSymbol("<"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("<"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isLessThanOrEqualTo;
     b = makeBuiltIn(env,
-        newSymbol("<="),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("<="),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isGreaterThan;
     b = makeBuiltIn(env,
-        newSymbol(">"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe(">"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isGreaterThanOrEqualTo;
     b = makeBuiltIn(env,
-        newSymbol(">="),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe(">="),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isEq;
     b = makeBuiltIn(env,
-        newSymbol("eq?"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("eq?"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isEq;
     b = makeBuiltIn(env,
-        newSymbol("=="),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("=="),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isNotEq;
     b = makeBuiltIn(env,
-        newSymbol("neq?"),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("neq?"),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isNumericEqualTo;
     b = makeBuiltIn(env,
-        newSymbol("="),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("="),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = isNotEq;
     b = makeBuiltIn(env,
-        newSymbol("!="),
-        ucons(atSymbol,0),
-        newInteger(count));
+        newSymbolUnsafe("!="),
+        cons(AtSymbol,0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = get;
     b = makeBuiltIn(env,
-        newSymbol("get"),
-        ucons(newSymbol("id"),
-            ucons(sharpSymbol,
-                ucons(atSymbol,0))),
-        newInteger(count));
+        newSymbolUnsafe("get"),
+        cons(newSymbolUnsafe("id"),
+            cons(SharpSymbol,
+                cons(AtSymbol,0))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = set;
     b = makeBuiltIn(env,
-        newSymbol("set"),
-        ucons(newSymbol("id"),
-            ucons(valueSymbol,
-                ucons(sharpSymbol,
-                    ucons(atSymbol,0)))),
-        newInteger(count));
+        newSymbolUnsafe("set"),
+        cons(newSymbolUnsafe("id"),
+            cons(ValueSymbol,
+                cons(SharpSymbol,
+                    cons(AtSymbol,0)))),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = setCar;
     b = makeBuiltIn(env,
-        newSymbol("set-car!"),
-        ucons(newSymbol("spot"),
-            ucons(valueSymbol,0)),
-        newInteger(count));
+        newSymbolUnsafe("set-car!"),
+        cons(newSymbolUnsafe("spot"),
+            cons(ValueSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = setCdr;
     b = makeBuiltIn(env,
-        newSymbol("set-cdr!"),
-        ucons(newSymbol("spot"),
-            ucons(valueSymbol,0)),
-        newInteger(count));
+        newSymbolUnsafe("set-cdr!"),
+        cons(newSymbolUnsafe("spot"),
+            cons(ValueSymbol,0)),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
-    BuiltIns[count] = stackDepth;
+    BuiltIns[count] = ggcCount;
     b = makeBuiltIn(env,
-        newSymbol("stack-depth"),
+        newSymbolUnsafe("gcCount"),
         0,
-        newInteger(count));
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = lline;
     b = makeBuiltIn(env,
-        newSymbol("lineNumber"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("lineNumber"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
     BuiltIns[count] = ffile;
     b = makeBuiltIn(env,
-        newSymbol("fileName"),
-        ucons(newSymbol("item"),0),
-        newInteger(count));
+        newSymbolUnsafe("fileName"),
+        cons(newSymbolUnsafe("item"),0),
+        newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    int allocated = HeapBottom +
+        count * (3 + MAKE_BUILTIN_SIZE + DEFINE_VARIABLE_SIZE);
+
+    if (allocated >= MemorySize)
+        {
+        Fatal("Memory Size is WAAAAAY too small!\n");
+        }
 
     assert(count <= sizeof(BuiltIns) / sizeof(PRIM));
 
     OpenPorts[0] = stdin;
     OpenPorts[1] = stdout;
     OpenPorts[2] = stderr;
+
+    OpenPortNames[0] = strdup("stdin");
+    OpenPortNames[1] = strdup("stdout");
+    OpenPortNames[2] = strdup("stderr");
 
     CurrentInputIndex = 0;
     CurrentOutputIndex = 1;
@@ -4201,33 +4394,27 @@ installArgsEnv(int argIndex,int argc, char **argv, char **envv, int env)
     {
     int index;
     int start;
-
-    //printf("installing command line arguments and execution environment\n");
+    int spot;
 
     index = 0;
     if (argc - argIndex > 0)
         {
-        start = MemorySpot;
-        MemorySpot += argc - argIndex;
+        start = allocateContiguous(ARRAY,argc-argIndex);
+        spot = start;
 
-        while (argc - argIndex > 0)
+        while (spot != 0)
             {
-            type(start+index) = ARRAY;
-            count(start+index) = argc - argIndex;
-            car(start+index) = newString(argv[argIndex]);
-            if (argc - argIndex == 1)
-                cdr(start+index) = 0;
-            else
-                cdr(start+index) = start+index + 1;
-            ++index;
+            int o = newStringUnsafe(argv[argIndex]);
+            setcar(spot,o);
             ++argIndex;
+            spot = cdr(spot);
             }
 
-        defineVariable(env,newSymbol(ArgumentsName),start);
+        defineVariable(env,newSymbolUnsafe(ArgumentsName),start);
         }
     else
         {
-        defineVariable(env,newSymbol(ArgumentsName),0);
+        defineVariable(env,newSymbolUnsafe(ArgumentsName),0);
         }
 
     argc = 0;
@@ -4242,24 +4429,20 @@ installArgsEnv(int argIndex,int argc, char **argv, char **envv, int env)
 
     if (argc > 0)
         {
-        start = MemorySpot;
-        MemorySpot += argc;
-        index = 0;
+        start = allocateContiguous(ARRAY,argc);
+        spot = start;
 
-        while (index < argc)
+        index = 0;
+        while (spot != 0)
             {
-            type(start+index) = ARRAY;
-            count(start+index) = argc - index;
-            car(start+index) = newString(envv[index]);
-            if (index == argc - 1)
-                cdr(start+index) = 0;
-            else
-                cdr(start+index) = start+index + 1;
+            int o = newStringUnsafe(envv[index]);
+            setcar(spot,o); 
+            spot = cdr(spot);
             ++index;
             }
 
-        defineVariable(env,newSymbol(EnvironmentName),start);
+        defineVariable(env,newSymbolUnsafe(EnvironmentName),start);
         }
     else
-        defineVariable(env,newSymbol(EnvironmentName),0);
+        defineVariable(env,newSymbolUnsafe(EnvironmentName),0);
     }

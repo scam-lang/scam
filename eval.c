@@ -1,620 +1,885 @@
-#include <stdio.h>
+
+/*
+ *  Main Author : John C. Lusth
+ *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
+#include  <stdio.h>
 #include <assert.h>
-#include <stdarg.h>
+
+#include "scam.h"
 #include "cell.h"
 #include "types.h"
-#include "parser.h"
 #include "env.h"
 #include "eval.h"
 #include "prim.h"
-#include "pp.h"
-#include "util.h"
 
-static int evalBuiltIn(int,int);
-static int processArguments(int,int,int,int,int,int,int);
-static int evaluatedArgList(int,int);
-static int unevaluatedArgList(int);
-static void addTrace(int,int);
+static int processPassThroughArguments(int,int,int,int,int);
+static int processNoEvaluationArguments(int,int,int,int,int,int);
+static int processArguments(int,int,int,int,int,int);
+static int unevaluatedList(int);
+static void makeTraceEntry(int,int);
+static int evaluatedList(int,int);
+
+#ifdef DEBUG
+    int depth[MAX_THREADS] = {0};
+
+    #define INC(STR,EXPR) \
+    do { \
+        P_P();                              \
+        int S_I = THREAD_ID;                \
+        depth[S_I]++;                       \
+        int i = depth[S_I];                 \
+        printf("%d",S_I);                   \
+        while(i) {                          \
+            printf( " " );                  \
+            --i;                            \
+        }                                   \
+        printf("%d\t",depth[S_I]);          \
+        debug(STR,EXPR);                    \
+        P_V();                              \
+    }while(0)
+
+    #define DEC(STR)                        \
+        do{                                 \
+        P_P();                              \
+        int S_I = THREAD_ID;                \
+        int i = depth[S_I];                 \
+        printf("%d",S_I);                   \
+        while( i ) {                        \
+            printf( " " );                  \
+            --i;                            \
+        }                                   \
+        printf( "%d\t" ,depth[S_I] );       \
+        printf("Leaving %s\n",STR);         \
+        depth[S_I]--;                       \
+        P_V();                              \
+        }while(0)
+#else
+    #define INC(A,B)
+    #define DEC(A)
+#endif
+
+
+/*
+ * eval - the main evaluator function
+ *      - it is implemented as a loop so tail recursion can be optimized
+ *      - if an evaluation returns a thunk, it is unpacked and the loop continues
+ */
 
 int
 eval(int expr, int env)
     {
     int result;
+    if (ShuttingDown)
+        {
+        P_P();
+        printf("EVAL : ShuttingDown\n");
+        P_V();
+        return SHUTDOWN_THROW;
+        }
+    INC("eval",expr);
+    /* level is used to decide when returns should stop */
     int level = ival(env_level(env));
-    //int orig = expr; //orig is not gc safe!
 
-    //debug("initial eval",expr);
-    //printf("env level is %d\n",level);
+    int returns = 0; /* tracks how many levels have been broken through */
 
-    int returns = 0;
-
-    while (1)
+    while(1)
         {
         int tag;
         char *etype;
 
-        //if (level > 0)
-            //{
-            //debug("eval",expr);
-            //printf("env level is %d\n",ival(env_level(env)));
-            //debug(" env",env);
-            //}
-
-        if (expr == 0) { result = 0; break; }
+        if (expr == 0)
+            {
+            result = 0;
+            break;
+            }
 
         etype = type(expr);
-
-        if (etype == INTEGER) { result = expr; break; }
-        if (etype == REAL)    { result = expr; break; }
-        if (etype == STRING)  { result = expr; break; }
+        /* check for expressions that evaluate to themselves */
+        /* a symbol can be nil, #t, #f, or a variable */
         if (etype == SYMBOL)
             {
             int index = ival(expr);
             if (index == trueIndex)
-                result = trueSymbol;
+                {
+                result = TrueSymbol;
+                }
             else if (index == falseIndex)
-                result = falseSymbol;
+                {
+                result = FalseSymbol;
+                }
             else if (index == nilIndex)
+                {
                 result = 0;
+                }
             else
+                {
                 result = getVariableValue(expr,env);
-            break;
+                rethrow(result);
+                }
+            break; /* out of the eval loop */
             }
 
-        //printf("eval type is %s\n",type(expr));
-        //assert(type(expr) == CONS);
-
-        tag  = car(expr);
-
-        if (sameSymbol(tag,objectSymbol))
+        /* String, Integer, Real */
+        if (etype != CONS)
             {
             result = expr;
             break;
             }
 
-        /* no need to assure memory here */
+       /* must be a list at this point */
 
-        push(expr);
+        tag = car(expr); /* the tag tells us what kind of list/object */
+
+        /* objects evaluate to themselves */
+
+        if (SameSymbol(tag,ObjectSymbol))
+            {
+            result = expr;
+            break; /* out of the eval loop */
+            }
+
+        /* must be a function call at this point */
+        PUSH(expr);
         result = evalCall(expr,env,NORMAL);
-        expr = pop();
+        expr = POP();
+        /* returns are handled as exceptions */
 
+        /* Explicit return called */
         if (isReturn(result))
             {
+            /* Get arguments to return */
             int s = error_value(result);
-            //debug("it's a return from",expr);
-            //printf("    return level: %d\n",ival(env_level(thunk_context(s))));
-            //printf("    current level: %d\n",ival(env_level(env)));
-            //printf("    original level: %d\n",level);
+
+            /* Two cases for return.  Either from tail recursion or */
+            /* returned from middle of function */
+
             if (level < (ival(env_level(thunk_context(s))) - returns))
                 {
-                result = s;
-				returns++;// recurReturn
-                //debug("    ****result is now",result);
+                /* Unwrapping nested returns*/
+                result = s; // result is now a thunk
+                returns++; // Used to keep track of how far we need to unwrap
                 }
-			else
-				{
-				ival(env_level(thunk_context(s))) = ival(env_level(thunk_context(s))) - returns; 
-				// allowing recurReturns when switching to new evaluation context
-				}
-            //else
-                //debug("returning from",expr);
+            else
+                {
+                /* Handle return for this environment level */
+                ival(env_level(thunk_context(s)))
+                    = ival(env_level(thunk_context(s))) - returns; 
+                }
             }
         else if (isThrow(result))
             {
-            push(result);
-            addTrace(expr,result);
-            result = pop();
-            break;
+            PUSH(result);
+            makeTraceEntry(expr,result); /* add current expr to the backtrace */
+            result = POP();
+            break; /* out of the eval loop */
             }
+
+        /* if the result is not a thunk, there is no tail recursion to unpack */
+        /* so we are done at this eval level */
 
         if (!isThunk(result))
             {
-            break;
+            break; /* out of the eval loop */
             }
+
+        /* result is a thunk, so unpack and re-evaluate */
 
         expr = thunk_code(result);
         env = thunk_context(result);
-		
-		// Keep the level at lowest setting to properly handle returns
-		level = ival(env_level(env))<level?ival(env_level(env)):level;
+                
+        /* keep the level at lowest setting to properly handle returns */
 
-        //release the recursive mutex here since we did not break out
+        /* Jumping into a new environment, the level might change when we  */
+        /* call builtin function eval. */
+
+        if (level > ival(env_level(env)))
+            {
+            level = ival(env_level(env));
+            }
         }
 
-    //debug("final result",result);
-    //debug("original expression was",orig);
-
+    DEC("eval");
     return result;
     }
         
+/* evalCall - evaluate a built-in or user defined function
+ *          - the call will not actually be made if user defined
+ */
+
 int
 evalCall(int call,int env, int mode)
     {
+    INC( "evalCall" , call );
     int closure,eargs;
     int callingLevel = ival(env_level(env));
 
-    //debug("evalCall: ",car(call));
-    //printf("file %s,line %d\n",SymbolTable[file(call)],line(call));
-    if (mode == NORMAL)
-        {
-        push(env);
-        push(call);
-        closure = eval(car(call),env);
-        call = pop();
-        env = pop();
+    /* NORMAL mode unless apply is being called */
 
-        rethrow(closure,0);
+    if (Caching && isClosure(car(call)))
+        {
+        closure = car(call);
+        }
+    else if (mode == NORMAL)
+        {
+        PUSH(call);
+        PUSH(env);
+        closure = eval(car(call),env);
+        env = POP();
+        call = POP();
+        rethrow(closure); // All returns are thrown
         }
     else
+        {
+        /* everything has already been evaluated (apply) */
         closure = car(call);
-    //printf("done getting closure\n");
-
-    //debug("evalCall",call);
-    //debug("calling",closure);
+        }
 
     /* args are the cdr of call */
 
-    if (isClosure(closure))
+    /* check if user-defined or built-in */
+
+    if (isClosure(closure)) /* true if user-defined or built-in */
         {
         int result;
-        //printf("it's a closure!\n");
-        push(closure);
-        //debug("unevaluated args",cdr(call));
-        eargs = processArguments(closure_name(closure),
-            closure_parameters(closure),cdr(call),env,mode,
-            file(call),line(call));
-        closure = pop();
 
-        rethrow(eargs,0);
+        /* evaluate the arguments */
+        char *b_t = type(closure);
+        int   b_i = ival(closure);
+        int   b_c = cdr(closure);
 
-        //debug("evaluated args",eargs);
-
-        if (sameSymbol(object_label(closure),builtInSymbol))
-            {
-            result = evalBuiltIn(eargs,closure);
-            //debug("builtin call result",result);
+        PUSH(closure);
+        PUSH(call);
+        switch(mode)
+             {
+             case PASS_THROUGH:
+                eargs = processPassThroughArguments(
+                    closure_name(closure),
+                    closure_parameters(closure),
+                    cdr(call),
+                    file(call),
+                    line(call)
+                    );
+                break;
+            case NO_EVALUATION:
+                eargs = processNoEvaluationArguments(
+                    closure_name(closure),
+                    closure_parameters(closure),
+                    cdr(call),
+                    env,
+                    file(call),
+                    line(call)
+                    );
+                break;
+            default:
+                eargs = processArguments(
+                    closure_name(closure),
+                    closure_parameters(closure),
+                    cdr(call),
+                    env,
+                    file(call),
+                    line(call)
+                    );
+                break;
             }
-        else
+        /* Everyone does this */
+        call = POP();
+        closure = POP();
+
+        char *a_t = type(closure);
+        int   a_i = ival(closure);
+        int   a_c = cdr(closure);
+
+        if ( (a_t != b_t) || (b_i != a_i))
+            {
+            P_P();
+            printf("closure changed after processing arguments!\n");
+            printf("Type: %s changed to %s\n",b_t,a_t);
+            printf("ival: %d changed to %d\n",b_i,a_i);
+            printf("cdr : %d changed to %d\n",b_c,a_c);
+            P_V();
+            Fatal("");
+            }
+        rethrow(eargs);
+
+        if (SameSymbol(object_label(closure),BuiltInSymbol))
+            {
+            /* it's a builtin, so extract the function pointer from the
+             * closure body and call it
+             */
+            if (Caching && !isClosure(car(call)))
+                {
+                setcar(call,closure);
+                }
+            PRIM prim = BuiltIns[ival(closure_body(closure))];
+            result = prim(eargs);
+            }
+        else /* it's a user-defined closure */
             {
             int params,body,xenv;
-            
-            assureMemory("evalCall",OBJECT_CELLS+THUNK_CELLS + 1,&closure,&eargs,(int *)0);
-
+            //TODO: speed up this test somehow?
+            if (Caching && !isClosure(car(call)))
+                {
+                setcar(call,closure);
+                }
+            P();
+            ENSURE_MEMORY(MAKE_ENVIRONMENT_SIZE + INTEGER_SIZE \
+                + MAKE_THUNK_SIZE + 5,&closure,&eargs,(int*) 0);
             params = closure_parameters(closure);
             body = closure_body(closure);
             xenv = closure_context(closure);
+
             xenv = makeEnvironment(xenv,closure,params,eargs);
+            set_env_level(xenv,newIntegerUnsafe(callingLevel + 1));
 
-            env_level(xenv) = newInteger(callingLevel + 1);
+            /* the extended level is one plus the calling level (for returns) */
 
-            //debug("calling",car(call));
             result = makeThunk(body,xenv);
+            V();
             }
+        DEC("evalCall");
         return result;
         }
-    else if (isObject(closure))
+    else if (isObject(closure)) /* to handle things like x.y.z (x'y'z) */
         {
-        //printf("it's an object!\n");
-        //debug("unevaluated args",cdr(call));
-        push(closure);
-        eargs = evalExprList(cdr(call),env);
-        closure = pop();
+        PUSH(closure);
+        eargs = evaluatedList(cdr(call),env);
+        closure = POP();
 
-        rethrow(eargs,0);
+        rethrow(eargs); //need DEC after all rethrows (move into rethrow)
 
-        //debug("evaluated args",eargs);
-        //printf("starting to walk the object\n");
-        while (eargs != 0)
+        while(eargs != 0)
             {
             if (!isObject(closure))
                 {
-                return throw(nonObjectSymbol,
-                    "file %s,line %d: "
-                    "attempted to access %s as an object",
-                    SymbolTable[file(closure)],line(closure),
-                    type(closure));
+                DEC("evalCall");
+                return throw(NonObjectSymbol,
+                        "file %s,line %d: "
+                        "attempted to access %s as an object",
+                        SymbolTable[file(closure)],
+                        line(closure),
+                        type(closure)
+                    );
                 }
             closure = getVariableValue(car(eargs),closure);
-            //debug("object now is",closure);
-            rethrow(closure,0);
+            rethrow(closure);
             eargs = cdr(eargs);
             }
-
+        DEC("evalCall");
         return closure;
         }
     else
         {
-        return throw(nonFunctionSymbol,
+        DEC("evalCall");
+        return throw(NonFunctionSymbol,
             "file %s,line %d: "
             "attempted to call %s as a function",
             SymbolTable[file(closure)],line(closure),
             type(closure));
         }
-
     }
 
-static int
-evalBuiltIn(int args,int builtIn)
-    {
-    PRIM prim;
-
-    //printf("builtIn arguments are: ");
-    //pp(stdout,args);
-    //printf("\n");
-
-    //printf("closure body is: ");
-    //pp(stdout,closure_body(builtIn));
-    //printf("\n");
-
-    prim = BuiltIns[ival(closure_body(builtIn))];
-    return prim(args);
-    }
-
-/* evalExprList expects a regular list of expressions */
+/* evalBlock - evaluate the list of expressions as a block of statements
+ *
+ */
 
 int
-evalExprList(int items,int env)
+evalBlock(int items,int env,int mode)
     {
+    INC( "evalBlock" , items );
     int result = 0;
-    int spot = 0;
 
-    if (items == 0) return 0;
+    PUSH(items);
+    #define EB_ITEMS 1
+    PUSH(env);
+    #define EB_ENV 0
 
-    push(env);
-    push(items);
-    result = eval(car(items),env);
-    result = cons(result, 0);
-    items = pop();
-    env = pop();
-
-    push(result);
-
-    spot = result;
-    items = cdr(items);
-
-    while (items != 0)
+    /* evaluate all but the last one */
+    while(cdr(PEEK(EB_ITEMS)) != 0)
         {
-        int value;
-        //debug("items before",items);
-        push(env);
-        push(items);
-        push(spot);
-        value = eval(car(items),env);
-        spot = pop();
-        items = pop();
-        env = pop();
-        //debug("items after",items);
-
-        rethrow(value,0);
-
-        assureMemory("evalExprList",1,
-            &spot,&env,&items,&value,(int *) 0);
-
-        cdr(spot) = ucons(value,0);
-        spot = cdr(spot);
-
-        items = cdr(items);
-        }
-
-    result = pop();
-    return result;
-    }
-
-int
-evalList(int items,int env,int mode)
-    {
-    int result = 0;
-    while (cdr(items) != 0)
-        {
-        //debug("items before",items);
-        push(env);
-        push(items);
-        result = eval(car(items),env);
-        items = pop();
-        env = pop();
-        //debug("items after",items);
-
+        result = eval(car(PEEK(EB_ITEMS)),PEEK(EB_ENV));
         if (isThrow(result))
             {
             if (!isReturn(result))
                 {
-                push(result);
-                addTrace(car(items),result);
-                result = pop();
+                PUSH(result);
+                makeTraceEntry(car(PEEK(EB_ITEMS)),result);
+                result = POP();
                 }
+            DEC("evalBlock");
+            POPN(2); /* pop of env and items */
             return result;
             }
-        //if (isThrow(result))
-        //if (isThrow(result))
-        //    return throwAgain(car(items),result);
-
-        items = cdr(items);
+        /* go to the next item */
+        REPLACE(EB_ITEMS,cdr(PEEK(EB_ITEMS)));
         }
 
+    /* evaluate the last one? */
     if (mode == ALLBUTLAST)
         {
-        assureMemory("evalListExceptLast",THUNK_CELLS,&env,&items,(int *)0);
-        return makeThunk(car(items),env);
+        P();
+        ENSURE_MEMORY(MAKE_THUNK_SIZE,(int *) 0);
+        result = makeThunk(car(PEEK(EB_ITEMS)),PEEK(EB_ENV));
+        V();
         }
-    else
+    else /* go ahead an evaluate the last expression */
         {
-        result = eval(car(items),env);
+        result = eval(car(PEEK(EB_ITEMS)),PEEK(EB_ENV));
         if (isThrow(result) && !isReturn(result))
             {
-            push(result);
-            addTrace(car(items),result);
-            result = pop();
+            PUSH(result);
+            makeTraceEntry(car(PEEK(EB_ITEMS)),result); /* peek items */
+            result = POP();
             }
-        return result;
         }
+
+    POPN(2); /* env and items */
+    DEC("evalBlock");
+    return result;
     }
 
+
+/*************** PRIVATE FUNCTIONS **************************************/
+
+/*
+ * makeTraceEntry - add an expression to the backtrace of an exception
+ *
+ */
+
 static void
-addTrace(int item,int error)
+makeTraceEntry(int item,int error)
     {
+    INC("makeTraceEntry",item);
+
     int et;
 
-    if (type(item) == CONS && sameSymbol(car(item),beginSymbol)) return;
+    
 
-    assureMemory("addTrace",1,&error,(int *) 0);
+    /* caller is responsible for ensuring enough memory */
 
+    if (type(item) == CONS && SameSymbol(car(item),BeginSymbol)) {
+        DEC("makeTraceEntry");
+        return;
+    }
+
+    P();
+    ENSURE_MEMORY(ADDTRACE_SIZE,&item,&error,(int *) 0);
     et = error_trace(error);
 
     if (error_trace(error) == 0)
         {
-        error_trace(error) = cons(item,0);
+        set_error_trace(error,cons(item,0));
         }
     else if (file(item) != file(car(et)) || line(item) != line(car(et)))
         {
-        error_trace(error) = cons(item,et);
+        set_error_trace(error,cons(item,et));
         }
+    V();
+    DEC("makeTraceEntry");
     }
 
 static int
-processArguments(int name,int params,int args,int env,int mode,int fi,int li)
+processPassThroughArguments(int name,int params,int args,int fi,int li)
     {
-    int first,rest,result;
+    INC("processPassThroughArguments",params);
 
-    //debug("p-a",params);
-    if (params == 0 && args == 0)
-        return 0;
+    int acount = length(args);
+    int pcount = length(params);
 
-    if (params == 0)
+    if (acount < pcount)
         {
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "too many arguments to function %s",
-            SymbolTable[fi],li,
-            SymbolTable[ival(name)]);
-        }
-
-    if (mode != PASS_THROUGH && sameSymbol(car(params),atSymbol))
-        {
-        if (mode == NORMAL)
-            {
-            rest = evaluatedArgList(args,env);
-            rethrow(rest,0);
-            }
-        else // NO_EVALUATION
-            rest = unevaluatedArgList(args);
-            
-        assureMemory("processArgs:eArgs",1,&rest,(int *)0);
-        result = uconsfl(rest,0,fi,li);
-        }
-    else if (mode != PASS_THROUGH && sameSymbol(car(params),dollarSymbol))
-        {
-        assureMemory("processArgs:amp",1 + length(args),&args,(int *)0);
-        rest = unevaluatedArgList(args);
-        result = uconsfl(rest,0,fi,li);
-        }
-    else if (mode != PASS_THROUGH && sameSymbol(car(params),sharpSymbol))
-        {
-        push(env);
-        rest = processArguments(name,cdr(params),args,env,mode,fi,li);
-        env = pop();
-
-        rethrow(rest,0);
-
-        assureMemory("processArgs:sharp",1,&env,&rest,(int *)0);
-        result = uconsfl(env,rest,fi,li);
-        }
-    else if (args == 0)
-        {
-        return throw(exceptionSymbol,
+        args = throw(ExceptionSymbol,
             "file %s,line %d: "
             "too few arguments to function %s",
             SymbolTable[fi],li,
             SymbolTable[ival(name)]);
         }
-    else if (mode != PASS_THROUGH && *SymbolTable[ival(car(params))] == '$')
+    else if (pcount < acount)
         {
-        push(args);
-        rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
-        assureMemory("processArgs:tArg",1,&rest,(int *)0);
-        args = pop();
-
-        rethrow(rest,0);
-
-        result = uconsfl(car(args),rest,fi,li);
-        }
-    else
-        {
-        if (mode == NORMAL)
-            {
-            push(env);
-            push(args);
-            push(name);
-            push(params);
-            first = eval(car(args),env);
-            params = pop();
-            name = pop();
-            args = pop();
-            env = pop();
-
-            rethrow(first,0);
+        args = throw(ExceptionSymbol,
+            "file %s,line %d: "
+            "too many arguments to function %s",
+            SymbolTable[fi],li,
+            SymbolTable[ival(name)]);
             }
-        else // NO_EVALUATION or PASS_THROUGH
-            first = car(args);
-
-        file(first) = file(car(args));
-        line(first) = line(car(args));
-
-        push(first);
-        rest = processArguments(name,cdr(params),cdr(args),env,mode,fi,li);
-        assureMemory("processArgs:eArg",1,&rest,(int *)0);
-        first = pop();
-
-        rethrow(rest,0);
-
-        result = uconsfl(first,rest,fi,li);
-        }
-    //debug("p-a result",result);
-    //printf("file: %s\n",SymbolTable[fi]);
-    return result;
+    DEC("processPassThroughArguments");
+    return args;
     }
 
-/* 
- * the caller of unevaluatedList is responsible for ensuring that
- * there are length(args) cells available
- */
-
 static int
-unevaluatedArgList(int args)
+processNoEvaluationArguments(int name,int params,int args,int env,int fi,int li)
     {
+    INC("processNoEvaluationArguments",params);
     int result;
-    if (args == 0)
-        return 0;
-    else
+    int pos;
+    int callingEnvBound = 0;
+
+    P();
+    ENSURE_MEMORY(1,&name,&params,&args,&env,(int *) 0);
+    result = cons(0,0); /* dummy head pointer, result is actually in cdr(result) */
+    V();
+    pos = result;
+
+    while(args || params)
         {
-        result = cons(car(args),unevaluatedArgList(cdr(args)));
-        file(result) = file(car(args));
-        line(result) = line(car(args));
-        return result;
-        }
-    }
-
-static int
-evaluatedArgList(int args,int env)
-    {
-    int first;
-    int rest;
-    int fi;
-    int li;
-    int result;
-    if (args == 0)
-        return 0;
-    else
-        {
-        //debug("need to evaluate arg",car(args));
-        fi = file(car(args));
-        li = line(car(args));
-        push(env);
-        push(args);
-        first = eval(car(args),env);
-        args = pop();
-        env = pop();
-
-        file(first) = fi;
-        line(first) = li;
-
-        rethrow(first,0);
-
-        //debug("evaluatedArgList: args",args);
-        //debug("evaluatedArgList: env",env);
-
-        push(first);
-        rest = evaluatedArgList(cdr(args),env);
-        assureMemory("evaluatedArgList",1,&rest,(int *)0);
-        //printf("back from eval\n");
-        first = pop();
-
-        rethrow(rest,0);
-
-        result = ucons(first,rest);
-        file(result) = fi;
-        line(result) = li;
-
-        return result;
-        }
-    }
-
-/*
-static int
-processArguments2(int name,int params,int args,int env,int mode,int fi,int li)
-    {
-    int first,rest,result;
-
-    //debug("p-a",params);
-    if (params == 0 && args == 0)
-        return 0;
-
-    while (params != 0)
-        {
-        if (args == 0)
+        if (params == 0)
             {
-            return throw(exceptionSymbol,
+            DEC("processNoEvaluationArguments");
+            return throw(ExceptionSymbol,
                 "file %s,line %d: "
-                "too few arguments to function %s",
+                "too many arguments to function %s",
                 SymbolTable[fi],li,
                 SymbolTable[ival(name)]);
             }
-
-        if (sameSymbol(car(params),atSymbol))
+        if (SameSymbol(car(params),AtSymbol)) /* evaluated variadic */
             {
-            if (mode == NORMAL)
-                {
-                arg = eval(car(arg),env);
-                throw(arg,0);
-                }
-            else
-                arg = car(arg);
-            args = cdr(args);
-            if (args == 0) params = 0;
+            int rest = unevaluatedList(args);
+            P();
+            ENSURE_MEMORY(1,&rest,&name,&params,&args,&env,(int *) 0);
+            int o = consfl(rest,0,fi,li);
+            V();
+            setcdr(pos,o);
+            break; //out of the while loop
             }
-        else if (sameSymbol(car(params),dollarSymbol))
+        else if (SameSymbol(car(params),DollarSymbol)) /* delayed variadic */
             {
-            arg = unevaluatedArgList(args);
-            args = cdr(args);
-            if (args == 0) params = 0;
+            int rest = unevaluatedList(args);
+            P();
+            ENSURE_MEMORY(1,&rest,&name,&params,&args,&env,(int *) 0);
+            int o = consfl(rest,0,fi,li);
+            V();
+            setcdr(pos,o);
+            break; //out of the while loop
             }
-        else if (sameSymbol(car(params),sharpSymbol))
+        else if (SameSymbol(car(params),SharpSymbol)) /* capture calling env */
             {
-            arg = env;
             params = cdr(params);
-            }
-        else if (*SymbolTable[ival(car(params))] == '$')
-            {
-            arg = car(arg);
-            args = cdr(args);
-            params = cdr(params);
-            }
-        else
-            {
-            if (mode == NORMAL)
+            if (callingEnvBound == 0)
                 {
-                arg = eval(car(args),env);
-                rethrow(arg,0);
+                P();
+                ENSURE_MEMORY(1,&name,&params,&args,&env,(int *) 0);
+                int o = consfl(env,0,fi,li);
+                V();
+                callingEnvBound = 1;
+                setcdr(pos,o);
+                pos = cdr(pos);
                 }
-            else
-                arg = car(args);
+            }
+        else if (args == 0) /* mismatch between args and params */
+            {
+            DEC("processNoEvaluationArguments");
+            return throw(ExceptionSymbol,
+                    "file %s,line %d: "
+                    "too few arguments to function %s",
+                    SymbolTable[fi],li,
+                    SymbolTable[ival(name)]);
+            }
+        else /* a normal arg and delayed arg are treated the same */
+            {
+            P();
+            ENSURE_MEMORY(1,&name,&params,&args,&env,(int *) 0);
+            int o = consfl(car(args),0,fi,li);
+            V();
+            setcdr(pos,o); 
+            params = cdr(params);
+            args = cdr(args);
+            pos = cdr(pos);
+            }
+        }
+    DEC("processNoEvaluationArguments");
+    return cdr(result); /* skip over dummy head node */
+    }
+
+/* processArguments - delay, variadic, capture the calling env,
+ *                    processArguments does it all!
+ *
+ *  Not heap safe
+ */
+
+static int
+processArguments(int name,int params,int args,int env,int fi,int li)
+    {
+    INC("processArguments",name);
+
+    /* Plan : Build up from the beginning adding to some position pointer
+     *        then return a saved pointer to the head.
+     */
+    int first,rest,result;
+    int callingEnvBound = 0;
+    if (params == 0 && args == 0)
+        {
+        DEC("processArguments");
+        return 0;
+        }
+
+    PUSH(name);     /* peek location 5 */
+    #define PA_NAME 5
+    PUSH(params);   /* peek location 4 */
+    #define PA_PARAMS 4
+    PUSH(args);     /* peek location 3 */
+    #define PA_ARGS 3
+    PUSH(env);      /* peek location 2 */
+    #define PA_ENV 2
+
+    P();
+    ENSURE_MEMORY(1,(int *) 0);
+    result = cons(0,0); /* dummy head pointer, actual result is cdr(result) */
+    V();
+
+    int hook = result; /* where to hook on the next argument */
+
+    PUSH(result);   /* peek location 1 */
+    #define PA_RESULT 1
+    PUSH(hook);     /* peek location 0 */
+    #define PA_HOOK 0
+
+    while(PEEK(PA_PARAMS) || PEEK(PA_ARGS))
+        {
+        if (PEEK(PA_PARAMS) == 0)
+            {
+            name = PEEK(PA_NAME);
+            POPN(6);
+            DEC("processArguments");
+            return throw(ExceptionSymbol,
+                    "file %s,line %d: "
+                    "too many arguments to function %s",
+                    SymbolTable[fi],li,
+                    SymbolTable[ival(name)]);
             }
 
-        result = ucons(arg,0);
-        if (spot == 0)
+        if (SameSymbol(car(PEEK(PA_PARAMS)),AtSymbol))
             {
-            spot = result;
+            /* evaluated variadic */
+            rest = evaluatedList(PEEK(PA_ARGS),PEEK(PA_ENV));
+            rethrowPop(rest,6); /* everything */
+            P();
+            ENSURE_MEMORY(1,&rest,(int *) 0);
+            int o = consfl(rest,0,fi,li);
+            V();
+            setcdr(PEEK(PA_HOOK),o);
+            REPLACE(PA_HOOK,cdr(PEEK(PA_HOOK)));
+            /* STACKCHECK */
+            /* UPDATE(PA_RESULT); */
+            break;
             }
-        else
+        else if (SameSymbol(car(PEEK(PA_PARAMS)),DollarSymbol))
             {
+            /* delayed variadic */
+            /* length(PEEK(PA_ARGS)) is the memory unevaluatedList needs */
+            rest = unevaluatedList(PEEK(PA_ARGS));
+            P();
+            ENSURE_MEMORY(1,&rest,(int *) 0);
+            int o = consfl(rest,0,fi,li);
+            V();
+            setcdr(PEEK(PA_HOOK),o);
+            REPLACE(PA_HOOK,cdr(PEEK(PA_HOOK)));
+            /* STACKCHECK */
+            /* UPDATE(PA_RESULT); */
+            break;
             }
-    return throw(exceptionSymbol,
-        "file %s,line %d: "
-        "too many arguments to function %s",
-        SymbolTable[fi],li,
-        SymbolTable[ival(name)]);
+        else if (SameSymbol(car(PEEK(PA_PARAMS)),SharpSymbol))
+            {
+            /* capture calling env */
+            if (callingEnvBound == 0)
+                {
+                P();
+                ENSURE_MEMORY(1,(int *) 0);
+                int o = consfl(PEEK(PA_ENV),0,fi,li);
+                V();
+                setcdr(PEEK(PA_HOOK),o);
+                REPLACE(PA_HOOK,cdr(PEEK(PA_HOOK)));
+                /* STACKCHECK */
+                /* UPDATE(PA_RESULT); */
+                callingEnvBound = 1;
+                }
+            REPLACE(PA_PARAMS,cdr(PEEK(PA_PARAMS)));
+            }
+        else if (PEEK(PA_ARGS) == 0)
+            {
+            /* mismatch between args and params */
+            name = PEEK(PA_NAME);
+            POPN(6);  /* everything */
+            DEC("ProcessArguments");
+            return throw(ExceptionSymbol,
+                    "file %s,line %d: "
+                    "too few arguments to function %s",
+                    SymbolTable[fi],li,
+                    SymbolTable[ival(name)]);
+            }
+        else if (*SymbolTable[ival(car(PEEK(PA_PARAMS)))] == '$')
+            {
+            P();
+            /* delay one arg */
+            ENSURE_MEMORY(1,(int *) 0);
+            int o = consfl(car(PEEK(PA_ARGS)),0,fi,li);
+            V();
+            setcdr(PEEK(PA_HOOK),o);
+            REPLACE(PA_HOOK,cdr(PEEK(PA_HOOK)));
+            REPLACE(PA_PARAMS,cdr(PEEK(PA_PARAMS)));
+            REPLACE(PA_ARGS,cdr(PEEK(PA_ARGS)));
+            /* STACKCHECK */
+            /* UPDATE(PA_RESULT); */
+            }
+        else /* else normal arg/param match - evaluate (except if apply) */
+            {
+            first = eval(car(PEEK(PA_ARGS)),PEEK(PA_ENV));
+            rethrowPop(first,6);    /* everything */
 
-    //debug("p-a result",result);
+            /* transfer trace info */
+            setfile(first,file(car(PEEK(PA_ARGS))));
+            setline(first,line(car(PEEK(PA_ARGS))));
+            
+            P();
+            ENSURE_MEMORY(1,&first,(int *) 0);
+            int o = consfl(first,0,fi,li);
+            V();
+
+            setcdr(PEEK(PA_HOOK),o);
+            REPLACE(PA_HOOK,cdr(PEEK(PA_HOOK)));
+            REPLACE(PA_PARAMS,cdr(PEEK(PA_PARAMS)));
+            REPLACE(PA_ARGS,cdr(PEEK(PA_ARGS)));
+            /* STACKCHECK */
+            /* UPDATE(PA_RESULT); */
+            }
+        }
+
+    result = cdr(PEEK(PA_RESULT));
+    POPN(6); /* everything */
+    DEC("processArguments");
     return result;
     }
-*/
 
+/* evaluatedList - maps eval over a list of expressions
+ */
+
+static int
+evaluatedList(int items,int env)
+    {
+    INC( "evaluatedList" , items );
+    int fi;
+    int li;
+    int result = 0;
+    int hook = 0;
+
+
+    if (items == 0) 
+        {
+        DEC("evaluatedList");
+        return 0;
+        }
+
+    /* evaluate the car separately so we have a place to add subsequent
+     * expressions - this allows us to use a loop rather than recursion
+     */
+
+    fi = file(car(items));
+    li = line(car(items));
+
+    PUSH(items); /* peek location 1 */
+    #define EL_ITEMS 1
+    PUSH(env); /* peek location 0 */
+    #define EL_ENV 0
+
+    result = eval(car(items),env); /* no need to peek here */
+    rethrowPop(result,2);
+    
+    P();
+    ENSURE_MEMORY(1,&result,(int *) 0);
+    result = consfl(result, 0, fi,li );
+    V();
+    
+    /* spot is our hook - it's the last cell in the chain */
+    
+    hook = result;
+    REPLACE(EL_ITEMS,cdr(PEEK(EL_ITEMS)));
+
+    /* undefine these because of subsequent pushes */
+    #undef EL_ITEMS
+    #undef EL_ENV 
+
+    #define EL_ITEMS 3
+    #define EL_ENV 2
+    PUSH(result); /* save the start of the list for the final return */
+    #define EL_RESULT 1
+    PUSH(hook);  /* peek location 0 */
+    #define EL_HOOK 0
+
+    while(PEEK(EL_ITEMS) != 0)
+        {
+        /*
+         *  Heap items that can be modified : 
+         *      env
+         *      items
+         *      result
+         *      hook
+         */
+
+        int value;
+
+        value = eval(car(PEEK(EL_ITEMS)),PEEK(EL_ENV));
+
+        /* Debug macros DEC/INC are broken here */
+        rethrowPop(value,4);
+       
+        P();
+        ENSURE_MEMORY(1,&value,(int *) 0);
+        value = cons(value,0);
+        V();
+
+        setcdr(PEEK(EL_HOOK),value);
+        REPLACE(EL_HOOK,value);
+        REPLACE(EL_ITEMS,cdr(PEEK(EL_ITEMS)));
+        /* STACKCHECK */
+        /* UPDATE(EL_RESULT); */
+        }
+    result = PEEK(EL_RESULT);
+    POPN(4); /* everything */
+
+    DEC("evaluatedList");
+    return result;
+    }
+
+/* unevaluatedList - make a copy of a list of expressions
+ *                 - it is up to the caller to ensure (length args) memory
+ *                   is available
+ */
+
+static int
+unevaluatedList(int args)
+    {
+    INC("unevaluatedList",args);
+    int result,pos;
+
+    /* it is up to the caller to ensure (length args) memory is available */
+
+    if (args == 0)
+        {
+        DEC("unevaluatedList");
+        return 0;
+        }
+
+    P();
+    ENSURE_MEMORY(length(args),&args,(int *)0);
+
+    result = consfl(car(args), 0, file(car(args)), line(car(args)));
+
+    pos = result;
+
+    args = cdr(args);    
+    while(args != 0)
+        {
+        int TMP = car(args);
+        TMP = consfl( TMP , 0 , file(TMP), line(TMP) );
+        setcdr(pos,TMP);
+        pos = TMP;
+        args = cdr(args);
+        }
+    V();
+    DEC("unevaluatedList");
+    return result;
+    }

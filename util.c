@@ -1,31 +1,32 @@
+
 /*
- * useful functions
+ *  Main Author : John C. Lusth
+ *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
+ *  Last Edit : May 4, 2014
  *
- * written by John C. Lusth
+ *  Helper functions.  
  *
  */
 
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
 #include "parser.h"
-#include "util.h"
 
-extern char *PROGRAM_NAME;
-extern char *PROGRAM_VERSION;
+#include "scam.h"
+#include "util.h"
 
 int
 Fatal(char *fmt, ...)
     {
     va_list ap;
 
-    //printf("encountered a fatal error...\n");
-
     va_start(ap, fmt);
     vfprintf(stderr, fmt, ap);
     va_end(ap);
 
+    QueueCount = 0;
     exit(-1);
 
     return -1;
@@ -61,16 +62,6 @@ OpenFile(char *fileName,char *mode)
         }
 
     return fp;
-    }
-
-char *
-StringDup(char *src)
-    {
-    char *tar = (char *) New(sizeof(char) * (strlen(src) + 1));
-
-    strcpy(tar,src);
-
-    return tar;
     }
 
 /* only -oXXX  or -o XXX options */
@@ -121,53 +112,84 @@ ProcessOptions(int argc, char **argv)
              */
             case 'g':
                 {
-                extern int gcDisplay;
-                gcDisplay = !gcDisplay;
+                GCDisplay = !GCDisplay;
+                }
+                break;
+            case 'G':
+                {
+                if (!strcmp(arg, "sc"))
+                    {
+                    GCMode = STOP_AND_COPY;
+                    argUsed = 1;
+                    }
+                else if (!strcmp(arg, "ms"))
+                    {
+                    GCMode = MARK_SWEEP;
+                    argUsed = 1;
+                    }
+                else
+                    {
+                    GCMode = DEFAULT_GC;
+                    }
                 }
                 break;
             case 'i':
                 {
-                extern int Syntax;
                 Syntax = SWAY;
                 }
                 break;
             case 'M':
                 {
-                extern int MemorySize;
                 printf("MemorySize = %d\n",MemorySize);
                 exit(0);
                 }
                 break;
             case 'm':
                 {
-                extern int MemorySize;
                 MemorySize = atoi(arg);
-                argUsed = 1;
-                }
-                break;
-            case 'S':
-                {
-                extern int StackSize;
-                printf("StackSize = %d\n",StackSize);
-                exit(0);
-                }
-                break;
-            case 's':
-                {
-                extern int StackSize;
-                StackSize = atoi(arg);
                 argUsed = 1;
                 }
                 break;
             case 't':
                 {
-                extern int TraceBack;
                 TraceBack = 1;
                 }
                 break;
             case 'v':
                 printf("%s version %s\n", PROGRAM_NAME, PROGRAM_VERSION);
                 exit(0);
+                break;
+            /* disable printing out addresses, for debugging */
+            case 'd':
+                {
+                Debugging = 1;
+                }
+                break;
+            case 'D':
+                {
+                StackDebugging = 1;
+                }
+                break;
+            case 'h':
+                {
+                    printf("scam2 <options> <FILE>\n");
+                    printf("-------------------------------------------------\n");
+                    printf("\td - Output debugging statements if error\n\n");
+                    printf("\tD - Print stack modifications\n\n");
+                    printf("\tg - Print GC statistics\n\n");
+                    printf("\tG - Select the garbage collector, -G<NAME>\n");
+                    printf("\t    Current options are\n");
+                    printf("\t    sc - Stop and Copy (default)\n");
+                    printf("\t    ms - Mark-sweep-compact\n\n");
+                    printf("\th - print this menu\n\n");
+                    printf("\ti - Use Sway interpreter\n\n");
+                    printf("\tM - Print out the default memory size.\n\n");
+                    printf("\tm - Set memory size in bytes, -m<SIZE>\n\n");
+                    printf("\tt - Enable traceback\n\n");
+                    printf("\tT - Enable multi-threading\n\n");
+                    printf("\tv - Print out the version\n\n");
+                    exit(0);
+                }
                 break;
             default:
                 Fatal("option %s not understood\n",argv[argIndex]);
@@ -181,23 +203,3 @@ ProcessOptions(int argc, char **argv)
 
     return argIndex;
 }
-
-void *
-New(int size)
-    {
-    void *p = malloc(size);
-    if (p == 0)
-        Fatal("out of memory\n");
-
-    return p;
-    }
-
-void *
-ReNew(void *q, int size)
-    {
-    void *p = realloc(q,size);
-    if (p == 0)
-        Fatal("out of memory\n");
-
-    return p;
-    }

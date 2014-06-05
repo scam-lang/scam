@@ -1,3 +1,4 @@
+
 /*
  *  Main Author : John C. Lusth
  *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
@@ -27,8 +28,6 @@
 #define MOVED 1
 #define UNMOVED 0
 
-#define MAX_THREAD_TIMEOUT 1.0
-
 /* number of garbage collections */
 int GCCount = 0;
 
@@ -38,6 +37,7 @@ void saveStack(char*,int);
 void diff(char*,char*,int);
 
 /* GC */
+void stopAndCopy(void);
 void markObject(int,int);
 void markRoots(int);
 void compact(void);
@@ -46,6 +46,7 @@ int computeLocations(int,int,int);
 void updateReferences(int,int);
 void relocate(int,int);
 int moveStackItem(int);
+void reclaim(void);
 
 /* Multi-threading GC */
 int memAvailable(int);
@@ -67,6 +68,7 @@ int GCQueueCount;       /* How many people are currently waiting on a GC*/
 static int SymbolSize = 100;
 static int SymbolIncrement = 100;
 
+
 /* semispace for stop and copy */
 CELL theCars[MAX_THREADS];
 static CELL newCars[MAX_THREADS];
@@ -74,7 +76,7 @@ static CELL newCars[MAX_THREADS];
 int MemorySpot[MAX_THREADS];
 static int newMemorySpot[MAX_THREADS];
 
-#define  MEMORY_SIZE (2000000)
+#define  MEMORY_SIZE (2097152)
 int MemorySize = MEMORY_SIZE;
 
 /* Free cell list */
@@ -147,7 +149,6 @@ int ScopeSymbol;
 int SetBangSymbol;
 int SharpSymbol;
 int SyntaxExceptionSymbol;
-int EmptyExpressionSymbol;
 int TailAssignSymbol;
 int ThisSymbol;
 int ThrowSymbol;
@@ -178,18 +179,16 @@ int nilIndex;
 int trueIndex;
 int falseIndex;
 
-static double getTime(void);
-
 /* scamInit - Initialize memory and setup the scam running environment */
 
 void
 scamInit(int memSize)
-    {
+{
     /* Take in argument if someone passed it in */
     if(memSize > 0 )
-        {
+    {
         MemorySize = memSize;
-        }
+    }
 
     /* Split memory in two if using STOP_AND_COPY */
     if (GCMode != STOP_AND_COPY)
@@ -204,7 +203,7 @@ scamInit(int memSize)
         {
         Fatal("could not allocate Symbol table\n");
         }
-    memset(SymbolTable, -1, sizeof(char*)*SymbolSize);
+    memset(SymbolTable , -1 , sizeof(char*)*SymbolSize);
     
     threadingInit();
 
@@ -263,7 +262,6 @@ scamInit(int memSize)
     ScopeSymbol          = newSymbol("scope");
     SharpSymbol          = newSymbol("#");
     SyntaxExceptionSymbol = newSymbol("syntaxException");
-    EmptyExpressionSymbol = newSymbol("emptyExpression");
     ThisSymbol           = newSymbol("this");
     ThrowSymbol          = newSymbol("throw");
     ThunkSymbol          = newSymbol("thunk");
@@ -354,8 +352,9 @@ memoryInit()
         own stack.  
      */
 
-    if (THREAD_ID == 0)
+    if(THREAD_ID==0)
         {
+
         /* Allocate heap space */
         THE_CARS.type        = malloc(sizeof(char*) * MemorySize);
 
@@ -419,6 +418,14 @@ memoryInit()
 
         memset(THE_CARS.cdr , -1 , sizeof(int) * MemorySize);
 
+
+
+
+
+
+
+
+
         /* Allocate memory for semispace */
         if (GCMode == STOP_AND_COPY)
             {
@@ -463,12 +470,12 @@ memoryInit()
             memset(NEW_CARS.status , UNMOVED , sizeof(char) * MemorySize);
             memset(NEW_CARS.fwd , -1 , sizeof(int) * MemorySize);
             if(StackDebugging || 1)
-                {
+            {
                 memset(NEW_CARS.creator , -1 , sizeof(int) * MemorySize);
                 memset(NEW_CARS.lastEditor , -1 , sizeof(int) * MemorySize);
                 memset(NEW_CARS.lastFile , -1 , sizeof(char) * MemorySize);
                 memset(NEW_CARS.lastLine , -1 , sizeof(int) * MemorySize);
-                }
+            }
 
             memset(NEW_CARS.cdr , -1 , sizeof(int) * MemorySize);
             }
@@ -490,6 +497,7 @@ memoryInit()
 
     if (StackDebugging)
         {
+
         /* The shadow stack is used to make sure no one is playing with the stack */
         SHADOW = malloc(sizeof(S_CELL)*StackSize);
         if(SHADOW==NULL)
@@ -499,6 +507,7 @@ memoryInit()
         memset(SHADOW , 0 ,sizeof(S_CELL) * StackSize);
 
         SHADOW_SPOT = 0;
+
         }
     }
 
@@ -564,6 +573,7 @@ memoryShutdown()
                 }
 
             free(NEW_CARS.fwd);
+
             free(NEW_CARS.cdr);
             }
         }
@@ -695,9 +705,7 @@ append(int list1,int list2)
     {
     int start = list1;
     while (cdr(list1) != 0)
-        {
         list1 = cdr(list1);
-        }
 
     setcdr(list1,list2);
 
@@ -951,9 +959,7 @@ cellStringTr(char *buffer,int size, int s)
         size = sizeof(store);
         }
     else
-        {
         target = buffer;
-        }
 
     i = 0;
     length = count(s);
@@ -1090,6 +1096,7 @@ allocateContiguous(char *typ,int size)
             setLastFile(i,__FILE__);
             setLastLine(i,__LINE__);
             }
+
         settype(i,typ);
         setcar(i,init);
         setcdr(i,i + 1);
@@ -1155,6 +1162,11 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 void
 threadSafeEnsure(char *fileName,int lineNumber,int needed)
     {
+    /* TODO : REMOVE THIS */
+    P_P();
+    printf("thread %d needs %d cells, wants to garbage collect (from %s,%d)\n",
+        THREAD_ID,needed,fileName,lineNumber);
+    P_V();
 TOP:
     if (memAvailable(needed))
         {
@@ -1186,6 +1198,9 @@ TOP:
         else if (GCMode == STOP_AND_COPY)
             {
             stopAndCopy();
+            P_P();
+            printf("%d: queue count %d, reset to zero\n",__LINE__,GCQueueCount);
+            P_V();
             GCQueueCount = 0;
             if (MEMORY_SPOT + needed >= MemorySize)
                 {
@@ -1196,20 +1211,21 @@ TOP:
                 exit(-1);
                 }
             }
+        P_P();
+        printf("%d: queue count %d, reset to zero\n",__LINE__,GCQueueCount);
+        P_V();
         GCQueueCount = 0;
         return;
         }
     else
         {
         ++GCQueueCount;
+
         int StartingWorking = WorkingThreads;
-        double startTime = getTime();
         V();
         while (GCQueueCount != 0 && WorkingThreads == StartingWorking)
             {
             usleep(10000);
-            if (getTime() - startTime > MAX_THREAD_TIMEOUT)
-                Fatal("deadlock detected while garbage collecting\n");
             }
         P();
 
@@ -1220,6 +1236,12 @@ TOP:
 void
 threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
     {
+    if (GCMode == STOP_AND_COPY)
+        {
+        threadSafeEnsure(fileName, lineNumber, needed);
+        return;
+        }
+
 TOP:
     if (MEMORY_SPOT + needed < MemorySize)
         {
@@ -1328,6 +1350,7 @@ compact()
     {
     double startTime;
     double endRoots;
+    struct timeval tv;
     double delta;
     static double total;
     static int num;
@@ -1341,7 +1364,8 @@ compact()
     if (GCDisplay)
         {
         int start = MEMORY_SPOT;
-        startTime = getTime();
+        gettimeofday(&tv,(struct timezone *)0);
+        startTime = tv.tv_sec + tv.tv_usec / 1000000.0;
         if(Debugging)
             {
             saveStack("before", num);
@@ -1349,7 +1373,8 @@ compact()
 
         /* Mark all of the reachable objects */
         markRoots(MARKED);
-        endRoots = getTime();
+        gettimeofday(&tv,(struct timezone *)0);
+        endRoots = tv.tv_sec + tv.tv_usec / 1000000.0;
     
         spot = computeLocations(HeapBottom,MemorySize,HeapBottom);
         updateReferences(HeapBottom,MemorySize);
@@ -1361,7 +1386,8 @@ compact()
             diff("before", "after", num);
             }
 
-        delta = getTime() - startTime;
+        gettimeofday(&tv,(struct timezone *)0);
+        delta = tv.tv_sec + tv.tv_usec / 1000000.0 - startTime;
         total+=delta;
         printf("compact:%d, took %fs (%fs marking), "
             "leaving %d contiguous cells free (total: %fs)\n",
@@ -1577,6 +1603,7 @@ reclaim()
     {
     double startTime;
     double endRoots;
+    struct timeval tv;
     double delta;
     static double total;
     static int num;
@@ -1588,17 +1615,20 @@ reclaim()
 
     if (GCDisplay)
         {
-        startTime = getTime();
+        gettimeofday(&tv,(struct timezone *)0);
+        startTime = tv.tv_sec + tv.tv_usec / 1000000.0;
 
         markRoots(MARKED);
 
-        endRoots = getTime();
+        gettimeofday(&tv,(struct timezone *)0);
+        endRoots = tv.tv_sec + tv.tv_usec / 1000000.0;
 
         int start = MEMORY_SPOT;
         scanFree();
         start = start - MEMORY_SPOT;
 
-        delta = getTime() - startTime;
+        gettimeofday(&tv,(struct timezone *)0);
+        delta = tv.tv_sec + tv.tv_usec / 1000000.0 - startTime;
         total+=delta;
         printf( "gc:%d, took %fs (%fs marking) and "
                 "reclaimed %d contiguous cells, "
@@ -1812,12 +1842,14 @@ void
 stopAndCopy(void)
     {
     double startTime = 0,delta;
+    struct timeval tv;
     static double total;
     int i,j;
 
     if (GCDisplay)
         {
-        startTime = getTime();
+        gettimeofday(&tv,(struct timezone *)0);
+        startTime = tv.tv_sec + tv.tv_usec / 1000000.0;
         if(Debugging)
             {
             saveStack("before", GCCount);
@@ -1826,8 +1858,8 @@ stopAndCopy(void)
 
     /* Move Qeueue Items  */
     NEW_MEM_SPOT = HeapBottom;
-    //printf("new MemSpot set to %d\n",NEW_MEM_SPOT);
-    //printf("MemSize is %d\n",MemorySize);
+    printf("new MemSpot set to %d\n",NEW_MEM_SPOT);
+    printf("MemSize is %d\n",MemorySize);
 
     for(i=HeapBottom;StackDebugging && i<MEMORY_SPOT;++i)
         {
@@ -1839,37 +1871,25 @@ stopAndCopy(void)
             }
         }
 
-    for (i = 0; i < MAX_THREADS; ++i)
+    for (i = 0; i < MAX_QUEUE; ++i)
         {
         /* If not used then env and expr are 0 */
         //debug("env is",ThreadQueue[i].env);
         //debug("expr is",ThreadQueue[i].expr);
         ThreadQueue[i].env = moveStackItem(ThreadQueue[i].env);
         ThreadQueue[i].expr = moveStackItem(ThreadQueue[i].expr);
+        printf("after thread queue item %d, MemSpot is %d\n",i,NEW_MEM_SPOT);
         }
-
-    /* STACKCHECK */
-    /*
-    for (i = 0; i < CreatedThreads; ++i)
-        {
-        printf("before: free list of thread %d (%d items)...\n",i,StackSpot[i]);
-        for (j = 0; j < StackSpot[i]; ++j)
-            {
-            printf("%d",j);
-            debug("",Stack[i][j]);
-            }
-        }
-    */
-
 
     /* Move Stack Items */
     for (i = 0; i < CreatedThreads; ++i)
         {
-        //printf("moving free list of thread %d (%d items)...\n",
-        //    i,StackSpot[i]);
+        printf("moving free list of thread %d (%d items)...\n",i,StackSpot[i]);
         for (j = 0; j < StackSpot[i]; ++j)
             {
             Stack[i][j] = moveStackItem(Stack[i][j]);
+            //debug("moved stack item is",Stack[i][j]);
+            printf("after item %d, MemSpot is %d\n",j,NEW_MEM_SPOT);
             if(StackDebugging)
                 {
                 int tmp = Stack[i][j];
@@ -1893,39 +1913,21 @@ stopAndCopy(void)
                 ShadowStack[i][j] = C;
                 }
             }
-        //printf("free list of thread %d moved.\n",i);
+        printf("free list of thread %d moved.\n",i);
         }   
-    //printf("new MemSpot now is %d\n",NEW_MEM_SPOT);
+    printf("new MemSpot now is %d\n",NEW_MEM_SPOT);
 
     /* flip the semispace with the working heap */
     CELL tempCars = THE_CARS;
     THE_CARS = NEW_CARS;
     NEW_CARS = tempCars;
 
+    if (StackDebugging)
+
     MEMORY_SPOT = NEW_MEM_SPOT;
-    //printf("MemSpot now is %d\n",MEMORY_SPOT);
-    //printf("MemSize is %d\n",MemorySize);
-    //printf("Free now is %d\n",MemorySize-MEMORY_SPOT);
-
-    /* STACKCHECK  */
-    /*
-    for (i = 0; i < CreatedThreads; ++i)
-        {
-        printf("after: free list of thread %d (%d items)...\n",i,StackSpot[i]);
-        for (j = 0; j < StackSpot[i]; ++j)
-            {
-            printf("%s,%d: updating: %d ",
-                __FILE__,__LINE__,StackSpot[i] - j -1);
-            ppLevel(stdout,Stack[i][j],0);
-            printf("\n");
-            }
-        }
-    */
-
-    for (i = HeapBottom; i < MEMORY_SPOT; ++i)
-       assert(THE_CARS.creator[i] >= 0);
-    for (i = MEMORY_SPOT; i < MEMORY_SIZE; ++i)
-       THE_CARS.creator[i] = -1;
+    printf("MemSpot now is %d\n",MEMORY_SPOT);
+    printf("MemSize is %d\n",MemorySize);
+    printf("Free now is %d\n",MemorySize-MEMORY_SPOT);
 
     if (StackDebugging)
         {
@@ -1942,16 +1944,12 @@ stopAndCopy(void)
             saveStack("after", GCCount);
             diff("before", "after", GCCount);
             }
-        delta = getTime() - startTime;
+        gettimeofday(&tv,(struct timezone *)0);
+        delta = tv.tv_sec + tv.tv_usec / 1000000.0 - startTime;
         total += delta;
-        //printf("gc %d (from %s,%d): %fs (total %fs), "
-        //       "%d cells free\n",
-        //       GCCount+1,fileName,lineNumber,delta,total,
-        //       MemorySize-MEMORY_SPOT);
-        printf("gc %d: %fs (total %fs), "
-               "%d cells free\n",
-               GCCount+1,delta,total,
-               MemorySize-MEMORY_SPOT);
+        printf("gc %d: took %fs, "
+               "leaving %d cells free (total: %fs)\n",
+               GCCount+1,delta,MemorySize-MEMORY_SPOT,total);
         }
 
     ++GCCount;
@@ -2093,11 +2091,3 @@ printStack()
             }
     }
 }
-
-static double
-getTime()
-    {
-    struct timeval tv;
-    gettimeofday(&tv,(struct timezone *)0);
-    return tv.tv_sec + tv.tv_usec / 1000000.0;
-    }

@@ -1,12 +1,20 @@
+
+/*
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "cell.h"
 #include "parser.h"
-
-extern int getNextCharacter(PARSER * p);
-extern int Fatal(char* ,...);
-extern void unread(int, PARSER *);
+#include "util.h"
 
 int
 skipWhiteSpace(PARSER *p)

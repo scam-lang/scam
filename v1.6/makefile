@@ -1,13 +1,13 @@
 # these, if linux
 CC = gcc
 OUT = scam
-OPTS = -O1
+OPTS = 
 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
        sway-lexer.o sway-parser.o nsem.o
        #sway-lexer.o sway-parser.o sem.o
-PROF = -pg
 PROF = 
+PROF = -pg
 
 ALL		: scam
 

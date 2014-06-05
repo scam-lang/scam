@@ -1,14 +1,21 @@
+
+/*
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Edit : May 4, 2014
+ *
+ * An interface common to the implementation of Semaphores across
+ *   all supported platforms.
+ *
+ */
+
+
 #ifndef __SEMAPHORE_H__
 #define __SEMAPHORE_H__
 
 #include <cstdlib>
 #include <cstdio>
 
-/**
- * An interface common to the implementation of Semaphores across
- *   all supported platforms.
- *
-**/
 class Semaphore
 {
 public:

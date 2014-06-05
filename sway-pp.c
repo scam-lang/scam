@@ -1,3 +1,13 @@
+
+/*
+ *  Main Author : John C. Lusth
+ *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -701,38 +711,5 @@ putRealInFile(double d)
     char s[64];
     putRealInBuffer(d,s);
     putStringInFile(s);
-    }
-
-void
-ppStack(char *filename)
-    {
-    int i;
-    int spot;
-    FILE *fp;
-
-    printf("saveCount is %d\n",saveCount);
-    fp = fopen(filename,"w");
-    ppFlags |= ppQUOTES;
-    ppFlags |= ppEXPAND;
-    fprintf(fp,"Stack:\n[\n");
-    for (i = 0; i < saveCount; ++i)
-        {
-        spot = savedRegisters[i];
-#if CHECK_SAVES
-        fprintf(fp,"[%d %s] ",saveCount-i-1,savedRegisterNames[i]);
-#else
-        fprintf(fp,"[%d] ",saveCount-i-1);
-#endif
-        if (spot == 0)
-            fprintf(fp,":null");
-        else
-            ppToFile(spot,fp);
-        if (i < saveCount - 1)
-            fprintf(fp,",\n");
-        }
-    fprintf(fp,"]\n");
-    ppFlags &= ~ppQUOTES;
-    ppFlags &= ~ppEXPAND;
-    fclose(fp);
     }
 */

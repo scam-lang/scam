@@ -1,239 +1,325 @@
+
+/*
+ *  Main Author : John C. Lusth
+ *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <sys/time.h>
+
+#include "scam.h"
 #include "cell.h"
 #include "types.h"
 #include "env.h"
 #include "pp.h"
 #include "util.h"
 
+/*
+ * getVariableValue - look up a variable in an environment
+ *
+ *  Not heap safe
+ */
+
 int
 getVariableValue(int var,int env)
     {
+    /* findLocation returns the variable's spot */
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        //extern void displayStack(void);
-        //ppObject(stdout,env,0);
-        //printf("mem: %s: %d\n",type(var),var);
-        //displayStack();
-        //debug("var: ",var);
-        //debug("env: ",env);
-        //debug("env: ",env_context(env));
-        //debug("env: ",env_context(env_context(env)));
-        //debug("env: ",env_context(env_context(env_context(env))));
-        //assert(0);
-        return throw(undefinedVariableSymbol,
+        validate("getVariable");
+        //printf("current envronment chain:\n");
+        //while (env != 0)
+        //    {
+        //    ppTable(stdout,env,0);
+        //    printf("------\n");
+        //    env = env_context(env);
+        //    }
+        return throw(UndefinedVariableSymbol,
             "file %s,line %d: "
             "variable %s is undefined",
             SymbolTable[file(var)],line(var),
             SymbolTable[ival(var)]);
         }
-    if (sameSymbol(car(spot),uninitializedSymbol))
+    int o;
+    o = car(spot);
+    spot = o;
+    if (SameSymbol(spot,UninitializedSymbol))
         {
-        return throw(uninitializedVariableSymbol,
-            "file %s,line %d: "
-            "variable %s is uninitialized",
-            SymbolTable[file(var)],line(var),
-            SymbolTable[ival(var)]);
+        return throw(
+                UninitializedVariableSymbol,
+                "file %s,line %d: "
+                "variable %s is uninitialized",
+                SymbolTable[file(var)],
+                line(var),
+                SymbolTable[ival(var)]
+            );
         }
-    return car(spot);
+    return spot;
     }
         
+/*
+ * setVariableValue - update a variable in an environment
+ *
+ *  Not heap safe
+ */
+
 int
 setVariableValue(int var,int val,int env)
     {
+    /* findLocation returns the variable's spot */
     int spot = findLocation(ival(var),env);
     if (spot == 0)
         {
-        return throw(exceptionSymbol,
-            "file %s,line %d: "
-            "Variable %s is undefined",
-            SymbolTable[file(var)],line(var),
-            SymbolTable[ival(var)]);
+        return throw(
+                ExceptionSymbol,
+                "file %s,line %d: "
+                "Variable %s is undefined",
+                SymbolTable[file(var)],
+                line(var),
+                SymbolTable[ival(var)]
+            );
         }
-    car(spot) = val;
+    setcar(spot,val);
     return val;
     }
+
+/*
+ * defineVariable - add a variable to an environment
+ *
+ */
 
 int 
 defineVariable(int env,int var,int val)
     {
-    int i;
     int vars,vals;
 
-    //printf("defining variable %s\n",SymbolTable[ival(var)]);
-    //debug("env",env);
+    /* need two cons cells */
 
-    assert(DEFINE_CELLS == 2);
+    assert(DEFINE_VARIABLE_SIZE == 2);
 
-    assureMemory("defineVariable",DEFINE_CELLS,&env,&var,&val,(int *)0);
+    vars = env_variable_hook(env);
+    vals = env_value_hook(env);
+    
+    /* caller is responsible for ensuring adequate memory */
 
-    /* there are predefined variables, skip over those */
+    int a = cons(var,cdr(vars));
+    int b = cons(val,cdr(vals));
 
-    vars = cadr(env);
-    vals = caddr(env);
-    for (i = 0; i < ENV_PREDEFINED - 1; ++i)
-        {
-        vars = cdr(vars);
-        vals = cdr(vals);
-        }
-    cdr(vars) = ucons(var,cdr(vars));
-    cdr(vals) = ucons(val,cdr(vals));
- 
-    //debug("defined value",val);
+    setcdr(vars,a);
+    setcdr(vals,b);
+
     return val;
     }
 
+/*
+ * makeObject - generic object making routine
+ *            - scam objects have the structure (object (label ...) (type ...))
+ *
+ */
+
 int
-makeObject(int type) /* not gc-safe, caller needs to ensure OBJECT_CELLS */
+makeObject(int type)
     {
-    int o;
     int vars,vals;
 
-    assert(OBJECT_CELLS == 5);
+    assert(MAKE_OBJECT_SIZE == 5);
 
-    vars = ucons(labelSymbol,0);
-    vals = ucons(type,0);
+    /* caller is responsible for ensuring adequate memory */
 
-    o = ucons(objectSymbol,ucons(vars,ucons(vals,0)));
-
-    return o;
+    vals = cons(type,0);
+    vars = cons(LabelSymbol,0);
+    
+    return cons(ObjectSymbol,cons(vars,cons(vals,0)));
     }
+
+/*
+ * makeEnvironment - generic environment making routine
+ *                 - scam environments are rendered as objects and have
+ *                   the structure:
+ *   (object (label context level constructor this)
+ *           (environment context level constructor object))
+ *
+ *  There are five predefined variables - if this changes, change the
+ *  macros env_variable_hook and env_value_hook
+ */
 
 int
 makeEnvironment(int context,int constructor,int vars,int vals)
     {
     int o;
 
-    assert(ENV_CELLS == OBJECT_CELLS + 8 + 1);
+    assert(MAKE_ENVIRONMENT_SIZE == 9 + MAKE_OBJECT_SIZE);
 
-    assureMemory("makeEnvironment",ENV_CELLS,
-        &context,&constructor,&vars,&vals,(int *)0);
+    /* caller is responsible for ensuring adequate memory */
 
-    o = makeObject(envSymbol);
+    o = makeObject(EnvSymbol);
 
-    object_variable_hook(o) =
-        ucons(contextSymbol,
-            ucons(levelSymbol,
-                ucons(constructorSymbol,
-                    ucons(thisSymbol,vars))));
+    /* Four cons */
+    set_object_variable_hook(o,
+        cons(ContextSymbol,
+            cons(LevelSymbol,
+                cons(ConstructorSymbol,
+                    cons(ThisSymbol,vars)))));
 
-    object_value_hook(o) =
-        ucons(context,
-            ucons(context == 0? newInteger(0) : env_level(context),
-                ucons(constructor,
-                    ucons(o,vals))));
+    /* 4 cons and a possible integer */
+    set_object_value_hook(o,
+        cons(context,
+            cons(context == 0? newIntegerUnsafe(0) : env_level(context),
+                cons(constructor,
+                    cons(o,vals)))));
 
     return o;
     }
+
+/*
+ * makeThunk - generic thunk making routine
+ *           - scam thunks are rendered as objects and have
+ *             the structure:
+ *   (object (label context code)
+ *           (thunk context expr))
+ *
+ * Thunks are used to implement tail-recursion optimization.
+ */
 
 int
 makeThunk(int expr,int env)
     {
     int o;
 
-    assert(THUNK_CELLS == OBJECT_CELLS + 4);
+    /* caller is responsible for ensuring adequate memory */
 
-    assureMemory("makeThunk",THUNK_CELLS,&expr,&env,(int *)0);
+    o = makeObject(ThunkSymbol);
 
-    o = makeObject(thunkSymbol);
+    assert(MAKE_THUNK_SIZE == 4 + MAKE_OBJECT_SIZE);
 
-    object_variable_hook(o) =
-        ucons(contextSymbol,
-            ucons(codeSymbol,0));
+    set_object_variable_hook(o,
+        cons(ContextSymbol,
+            cons(CodeSymbol,0)));
 
-    object_value_hook(o) =
-        ucons(env,
-            ucons(expr,0));
+    set_object_value_hook(o,
+        cons(env,
+            cons(expr,0)));
 
+    setfile(o,file(expr));
+    setline(o,line(expr));
     return o;
     }
+
+/*
+ * makeClosure - generic closure making routine
+ *             - scam closures are rendered as objects and have
+ *               the structure:
+ *   (object (label context name parameters code)
+ *           (closure context name parameters body))
+ *
+ * Closures are used to implement function objects.
+ */
 
 int
 makeClosure(int context,int name,int parameters,int body,int mode)
     {
     int o;
 
-    assert(CLOSURE_CELLS == OBJECT_CELLS + 8 + 1);
+    assert(MAKE_CLOSURE_SIZE == 9 + MAKE_OBJECT_SIZE);
 
-    assureMemory("makeClosure",CLOSURE_CELLS,
-        &context,&name,&parameters,&body,(int *)0);
+    /* caller is responsible for ensuring adequate memory */
 
-    o = makeObject(closureSymbol);
+    o = makeObject(ClosureSymbol);
+
+    /* add BEGIN for user-defined only (not built-ins) */
 
     if (mode == ADD_BEGIN)
        {
-       //debug("adding body to",name);
-       //printf("    from %s,line %d\n",
-           //SymbolTable[file(body)],
-           //line(body));
-       body = uconsfl(beginSymbol,body,file(body),line(body));
+       body = cons2(BeginSymbol,body);
        }
 
-    object_variable_hook(o) =
-        ucons(contextSymbol,
-            ucons(nameSymbol,
-                ucons(parametersSymbol,
-                    ucons(codeSymbol,0))));
+    set_object_variable_hook(o,
+        cons(ContextSymbol,
+            cons(NameSymbol,
+                cons(ParametersSymbol,
+                    cons(CodeSymbol,0)))));
 
-    object_value_hook(o) =
-        ucons(context,
-            ucons(name,
-                ucons(parameters,
-                    ucons(body,0))));
+    set_object_value_hook(o,
+        cons(context,
+            cons(name,
+                cons(parameters,
+                    cons(body,0)))));
 
+    setfile(o,file(body));
+    setline(o,line(body));
     return o;
     }
+
+/*
+ * makeBuiltIn - generic built-in function making routine
+ *             - scam built-in functions are rendered as closures, but the
+ *               the object label is changed to builtIn.
+ */
 
 int
 makeBuiltIn(int env,int name,int parameters,int body)
     {
-    int b = makeClosure(env,name,parameters,body,NO_BEGIN);
+    int b;
 
-    object_label(b) = builtInSymbol;
+    assert(MAKE_BUILTIN_SIZE == MAKE_CLOSURE_SIZE);
+
+    /* caller is responsible for ensuring adequate memory */
+
+    b = makeClosure(env,name,parameters,body,NO_BEGIN);
+
+    set_object_label(b,BuiltInSymbol);
 
     return b;
     }
 
-int
-makeError(int tag,int code,int value,int trace)
-    {
-    int o;
-
-    assert(ERROR_CELLS == OBJECT_CELLS + 6);
-
-    assureMemory("makeError",ERROR_CELLS,
-        &tag,&code,&value,&trace,(int *)0);
-
-    o = makeObject(tag);
-
-    object_variable_hook(o) =
-        ucons(codeSymbol,
-            ucons(valueSymbol,
-                ucons(traceSymbol,0)));
-
-    object_value_hook(o) =
-        ucons(code,
-            ucons(value,
-                ucons(trace,0)));
-
-    return o;
-    }
-
-int
-convertThrow(int tag,int e)
-    {
-    object_label(e) = tag;
-
-    return e;
-    }
+/*
+ * makeThrow - make an exception object
+ *           - scam exceptions are rendered as objects and have
+ *               the structure:
+ *   (object (label code value trace)
+ *           (throw code value trace))
+ *
+ * Error objects arise when exceptions are caught.
+ */
 
 int
 makeThrow(int code,int value,int trace)
     {
-    return makeError(throwSymbol,code,value,trace);
+    int o;
+    assert(MAKE_THROW_SIZE == 6 + MAKE_OBJECT_SIZE);
+
+    /* caller is responsible for ensuring adequate memory */
+
+    o = makeObject(ThrowSymbol);
+
+    set_object_variable_hook(o,
+        cons(CodeSymbol,
+            cons(ValueSymbol,
+                cons(TraceSymbol,0))));
+
+    set_object_value_hook(o,
+        cons(code,
+            cons(value,
+                cons(trace,0))));
+
+    setfile(o,file(code));
+    setline(o,line(code));
+    return o;
     }
+
+/*
+ * throw - generate an exception from a format string
+ *       - this is the routine that is called when an error is detected
+ *         and you wish to throw an exception in Scam
+ */
 
 int
 throw(int symbol,char *fmt, ...)
@@ -242,39 +328,51 @@ throw(int symbol,char *fmt, ...)
     int s,result;
     char buffer[512];
 
-    //printf("encountered a fatal error...\n");
-
     va_start(ap, fmt);
     vsnprintf(buffer,sizeof(buffer), fmt, ap);
     va_end(ap);
 
+    PUSH(symbol);
     s = newString(buffer);
 
+    P();
+    ENSURE_MEMORY(MAKE_THROW_SIZE,&s,(int *) 0);
+    symbol = POP(); /* OK to pop after ensureMemory */
+
     result = makeThrow(symbol,s,0);
-    //debug("throwing",result);
+    V();
+
     return result;
     }
 
-int
-throwAgain(int expr,int exception)
-    {
-    //debug("adding trace expression",expr);
-    //printf("adding trace file %s, line %d\n",
-        //SymbolTable[file(expr)],line(expr));
-
-    return makeThrow(expr,0,exception);
-    }
+/*
+ * findLocation - helper function for get- and setVariableValue
+ *              - returns the spot in the environment that holds the variable's
+ *                value
+ */
 
 int
 findLocation(int index,int env)
     {
+    int outer = 0;
     while (env != 0)
         {
-        int vars = object_variables(env);
-        int vals = object_values(env);
+        ++outer;
+        if(outer==1000)
+            {
+            printf("outer : %d\n" , outer);
+            }
+        int vars;
+        vars = object_variables(env);
+
+        int vals;
+        vals = object_values(env);
+
+        int inner=0;
         while (vars != 0)
             {
-            //printf("looking at %s\n",SymbolTable[ival(car(vars))]);
+            ++inner;
+            if (inner % 1000 == 0) printf("inner is %d\n",inner);
             if (ival(car(vars)) == index)
                 {
                 return vals;
@@ -282,23 +380,26 @@ findLocation(int index,int env)
             vars = cdr(vars);
             vals = cdr(vals);
             }
+
         env = env_context(env);
-        //printf("not in this environment, how about...");
-        //pp(stdout,env);
         }
 
     return 0;
     }
 
+/*
+ * isLocal - returns true if the variable is defined in the local scope
+ *
+ */
+
 int
-isLocal(int var,int env)
+findLocal(int var,int env)
     {
     int vars = object_variables(env);
     int vals = object_values(env);
     while (vars != 0)
         {
-        //printf("looking at %s\n",SymbolTable[ival(car(vars))]);
-        if (ival(car(vars)) == ival(var)) return 1;
+        if (ival(car(vars)) == ival(var)) return vals;
         vars = cdr(vars);
         vals = cdr(vals);
         }

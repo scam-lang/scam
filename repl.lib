@@ -12,3 +12,4 @@
         )
     (set! e (catch (readExpr)))
     )
+(if (error? e) (println))

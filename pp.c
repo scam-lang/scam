@@ -1,18 +1,66 @@
-#include <stdio.h>
-#include "types.h"
-#include "cell.h"
-#include "pp.h"
-#include "env.h"
-#include "util.h"
 
+/*
+ *  Main Author : John C. Lusth
+ *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
+#include <string.h>
+
+#include "scam.h"
+#include "types.h"
+#include "cell.h"   /* include util.h, thread.h */
+#include "env.h"    /* includes pp.h */
+
+int ppActual = 1;
 int ppQuoting = 0;
 
-static void ppLevel(FILE *,int,int);
+#ifdef HI
+
+#define cfprintf(fp,str,value,spot) \
+    do \
+        { \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_START); \
+        fprintf(fp,str,value); \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_END); \
+        } \
+    while (0)
+
+#define Cfprintf(fp,str,spot) \
+    do \
+        { \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_START); \
+        fprintf(fp,str); \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_END); \
+        } \
+    while (0)
+#else
+
+
+
+#define cfprintf(fp,str,value,spot) \
+    do \
+        { \
+        fprintf(fp,str,value); \
+        } \
+    while (0)
+
+#define Cfprintf(fp,str,spot) \
+    do \
+        { \
+        fprintf(fp,str); \
+        } \
+    while (0)
+
+#endif
 
 void
 ppList(FILE *fp,char *open,int items,char *close,int mode)
     {
-    fprintf(fp,"%s",open);
+    cfprintf(fp,"%s",open,items);
     while (items != 0)
         {
         ppLevel(fp,car(items),mode + 1);
@@ -25,20 +73,20 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
                 }
             else
                 {
-                fprintf(fp," . ");
+                Cfprintf(fp," . ",items);
                 ppLevel(fp,items,mode + 1);
                 break;
                 }
             }
         }
-    fprintf(fp,"%s",close);
+    cfprintf(fp,"%s",close,items);
     }
 
 void
 ppArray(FILE *fp,char *open,int items,char *close,int mode)
     {
     int size = count(items);
-    fprintf(fp,"%s",open);
+    cfprintf(fp,"%s",open,items);
     while (size != 0)
         {
         ppLevel(fp,car(items),mode + 1);
@@ -49,66 +97,92 @@ ppArray(FILE *fp,char *open,int items,char *close,int mode)
         ++items;
         --size;
         }
-    fprintf(fp,"%s",close);
+    cfprintf(fp,"%s",close,items);
     }
 
 void
 ppObject(FILE *fp,int expr,int mode)
     {
-    if (sameSymbol(object_label(expr),thunkSymbol))
-        fprintf(fp,"<thunk %d>",expr);
-    else if (sameSymbol(object_label(expr),errorSymbol))
+    int address;
+    if (Debugging)
+        address = 0;
+    else
+        address = expr;
+
+    if (SameSymbol(object_label(expr),ThunkSymbol))
         {
-        fprintf(fp,"<error ");
+        cfprintf(fp,"<thunk %d>",address,expr);
+        }
+    else if (SameSymbol(object_label(expr),ErrorSymbol))
+        {
+        Cfprintf(fp,"<error ",expr);
         ppLevel(fp,error_code(expr),mode+1);
-        fprintf(fp," %d>",expr);
+        cfprintf(fp," %d>",address,expr);
         }
-    else if (sameSymbol(object_label(expr),builtInSymbol))
+    else if (SameSymbol(object_label(expr),BuiltInSymbol))
         {
-        fprintf(fp,"<builtIn ");
-        ppLevel(fp,closure_name(expr),mode+1);
-        ppList(fp,"(",closure_parameters(expr),")",mode);
-        fprintf(fp,">");
+        if (ppActual)
+            {
+            Cfprintf(fp,"<builtIn ",expr);
+            ppLevel(fp,closure_name(expr),mode+1);
+            ppList(fp,"(",closure_parameters(expr),")",mode);
+            Cfprintf(fp,">",expr);
+            }
+        else
+            ppLevel(fp,closure_name(expr),mode+1);
         }
-    else if (sameSymbol(object_label(expr),closureSymbol))
+    else if (SameSymbol(object_label(expr),ClosureSymbol))
         {
-        fprintf(fp,"<function ");
-        ppLevel(fp,closure_name(expr),mode+1);
-        ppList(fp,"(",closure_parameters(expr),")",mode);
-        fprintf(fp,">");
+        if (ppActual)
+            {
+            Cfprintf(fp,"<function ",expr);
+            ppLevel(fp,closure_name(expr),mode+1);
+            ppList(fp,"(",closure_parameters(expr),")",mode);
+            Cfprintf(fp,">",expr);
+            }
+        else
+            ppLevel(fp,closure_name(expr),mode+1);
         }
     else if (env_constructor(expr) == 0)
         {
-        fprintf(fp,"<environment %d>",expr);
+        cfprintf(fp,"<environment %d>",address,expr);
         }
     else
         {
-        fprintf(fp,"<object ");
+        Cfprintf(fp,"<object ",expr);
         ppLevel(fp,closure_name(env_constructor(expr)),mode+1);
-        fprintf(fp," %d>",expr);
+        cfprintf(fp," %d>",address,expr);
         }
     }
 
 void
 ppTable(FILE *fp,int expr,int mode)
     {
+    if (!isObject(expr))
+        {
+        ppLevel(fp,expr,0);
+        fprintf(fp,"\n");
+        return;
+        }
+
     int vars = object_variables(expr);
     int vals = object_values(expr);
 
-    fprintf(fp,"<object");
-    fprintf(fp," %d>",expr);
+    Cfprintf(fp,"<object",expr);
+    if (Debugging)
+        cfprintf(fp," %d>",expr,expr);
+        //cfprintf(fp," %d>",0,expr);
+    else
+        cfprintf(fp," %d>",expr,expr);
     if (mode < 1)
         {
         fprintf(fp,"\n");
         while (vars != 0)
             {
-            fprintf(fp,"%20s",SymbolTable[ival(car(vars))]);
-            if (transferred(car(vars)))
-                fprintf(fp,"* : ");
-            else
-                fprintf(fp,"  : ");
+            cfprintf(fp,"%30s",SymbolTable[ival(car(vars))],car(vars));
+            Cfprintf(fp,"  : ",car(vars));
             if (car(vals) == 0)
-                fprintf(fp,"nil");
+                Cfprintf(fp,"nil",car(vals));
             else
                 {
                 int old = ppQuoting;
@@ -117,11 +191,6 @@ ppTable(FILE *fp,int expr,int mode)
                 ppQuoting = old;
                 }
             fprintf(fp,"\n");
-            if (transferred(vars) || transferred(vals))
-                {
-                fprintf(fp,"xxxxxxxxxxxxxxxxxxxxx\n");
-                return;
-                }
             vars = cdr(vars);
             vals = cdr(vals);
             }
@@ -133,7 +202,7 @@ void ppCons(FILE *fp,int expr,int mode)
     int old = ppQuoting;
 
     ppQuoting = 1;
-    if (sameSymbol(car(expr),objectSymbol))
+    if (SameSymbol(car(expr),ObjectSymbol))
         ppObject(fp,expr,mode);
     else
         ppList(fp,"(",expr,")",mode);
@@ -145,18 +214,14 @@ void
 ppString(FILE *fp,int expr,int mode)
     {
     int size = count(expr);
-    if (ppQuoting) fprintf(fp,"\"");
+    if (ppQuoting) Cfprintf(fp,"\"",expr);
     while (size != 0)
         {
-        fprintf(fp,"%c",ival(expr));
-        if (transferred(expr))
-            {
-            fprintf(fp,"[NEW(%d)]",cdr(expr));
-            }
+        cfprintf(fp,"%c",ival(expr),expr);
         ++expr;
         --size;
         }
-    if (ppQuoting) fprintf(fp,"\"");
+    if (ppQuoting) Cfprintf(fp,"\"",expr);
     }
 
 void
@@ -165,19 +230,19 @@ scamPP(FILE *fp,int expr)
     ppLevel(fp,expr,0);
     }
 
-static void
+void
 ppLevel(FILE *fp,int expr,int mode)
     {
     if (expr == 0)
         ;//fprintf(fp,"nil");
     else if (type(expr) == INTEGER)
-        fprintf(fp,"%d",ival(expr));
+        cfprintf(fp,"%d",ival(expr),expr);
     else if (type(expr) == REAL)
-        fprintf(fp,"%f",rval(expr));
+        cfprintf(fp,"%f",rval(expr),expr);
     else if (type(expr) == STRING)
         ppString(fp,expr,mode);
     else if (type(expr) == SYMBOL)
-        fprintf(fp,"%s",SymbolTable[ival(expr)]);
+        cfprintf(fp,"%s",SymbolTable[ival(expr)],expr);
     else if (type(expr) == CONS)
         ppCons(fp,expr,mode);
     else if (type(expr) == ARRAY)
@@ -188,8 +253,63 @@ ppLevel(FILE *fp,int expr,int mode)
         fprintf(fp,"!FUTURE!");
     else
         printf("%s",type(expr));
+    }
 
-    if (transferred(expr)) fprintf(fp,"*");
+void
+ppToString(int expr,char *buffer,int size,int *index)
+    {
+    char local[1024];
+    if (type(expr) == CONS)
+        {
+        buffer[*index] = '(';
+        *index += 1;
+        while (expr != 0)
+           {
+           ppToString(car(expr),buffer,size,index);
+           expr = cdr(expr);
+           if (expr != 0)
+                {
+                buffer[*index] = ' ';
+                *index += 1;
+                }
+           }
+        buffer[*index] = ')';
+        *index += 1;
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == SYMBOL)
+        {
+        strcpy(buffer+*index,SymbolTable[ival(expr)]);
+        *index += strlen(SymbolTable[ival(expr)]);
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == INTEGER)
+        {
+        sprintf(local,"%d",ival(expr));
+        strcpy(buffer+*index,local);
+        *index += strlen(local);
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == REAL)
+        {
+        sprintf(local,"%.17f",rval(expr));
+        strcpy(buffer+*index,local);
+        *index += strlen(local);
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == STRING)
+        {
+        buffer[*index] = '"';
+        *index += 1;
+        cellString(local,sizeof(local),expr);
+        strcpy(buffer+*index,local);
+        *index += strlen(local);
+        buffer[*index] = '"';
+        *index += 1;
+        buffer[*index] = '\0';
+        }
+    else
+        Fatal("INTERNAL ERROR: unknown ppToString type: %s\n",type(expr));
     }
 
 void
@@ -199,4 +319,13 @@ debug(char *s,int i)
         printf("%s: ",s);
     ppLevel(stdout,i,0);
     printf("\n");
+    }
+
+void 
+debugOut(FILE *f, char *s, int i)
+    {
+    if (s != 0)
+        fprintf(f, "%s: ",s);
+    ppLevel(f,i,0);
+    fprintf(f,"\n");
     }

@@ -1,52 +1,49 @@
+
 /*
- *  the scam lexical analyzer
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Edit : May 4, 2014
  *
- *  written by John C. Lusth
+ *  the scam lexical analyzer
  *
  *  Fine, old-world hand craftsmanship!
  *  (we don't need no stinking lex!)
  *
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <assert.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
+#include "lexer.h"
 #include "cell.h"
 #include "types.h"
-#include "parser.h"
 #include "env.h"
-#include "util.h"
-
-#define LINUX 0
-
-#define FILENAMESIZE 256
-
-void unread(int,PARSER *);
-int getNextCharacter(PARSER *);
 
 static int skipWhiteSpace(PARSER *);
-int lexNumber(PARSER *,int);
-int lexSymbol(PARSER *,int);
-int lexString(PARSER *);
 
 char *symbolStop;
+
+/*
+ * lex, the interface to the lexer, called (repeatedly) by the parser
+ *
+ */
 
 int
 lex(PARSER *p)
     {
     int ch;
 
-    symbolStop = "();,`'";
+    symbolStop = "();,`'"; /* list of the single character tokens */
     ch = skipWhiteSpace(p);
-    //printf("whitespace returns %c", ch);
-    //getchar();
 
-    if (ch == EOF || strchr(symbolStop,ch) != 0) /* single character tokens */
+    if (ch == EOF || strchr(symbolStop,ch) != 0)
         {
-        int result;
+        int result = 0;
+
+        /* must be EOF or a single character token */
 
         switch(ch)
             {
@@ -85,8 +82,8 @@ lex(PARSER *p)
                 break;
             default:
                 Fatal("%s,line %d: "
-                    "INTERNAL ERROR: bad single character token\n",
-                    SymbolTable[p->file],p->line);
+                    "INTERNAL ERROR: bad single character token <%c,%d>\n",
+                    SymbolTable[p->file],p->line,ch,ch);
             }
         file(result) = p->file;
         line(result) = p->line;
@@ -96,17 +93,20 @@ lex(PARSER *p)
         return lexNumber(p,ch); 
     else if (ch == '\"') 
         return lexString(p); 
-    else if (isprint(ch))
-        return lexSymbol(p,ch);
+    else if (isprint(ch))       /* check if a printable character */
+        return LexSymbol(p,ch);
     else 
         {
-        assureMemory("lex:unknown",1000,(int *)0);
-        return throw(lexicalExceptionSymbol,
+        return throw(LexicalExceptionSymbol,
             "file %s,line %d: unexpected character (%d)\n",
             SymbolTable[p->file],p->line,ch);
         }
     } 
 
+/*
+ * lexNumber: reads in an int or a double
+ *
+ */
 
 int
 lexNumber(PARSER *p,int ch)
@@ -145,8 +145,7 @@ lexNumber(PARSER *p,int ch)
         s[count++] = ch;
         if (count >= sizeof(s) - 1)
             {
-            assureMemory("lexNumber:size",1000,(int *)0);
-            return throw(lexicalExceptionSymbol,
+            return throw(LexicalExceptionSymbol,
                 "file %s,line %d: number has too many digits",
                 SymbolTable[p->file],p->line);
             }
@@ -157,28 +156,21 @@ lexNumber(PARSER *p,int ch)
 
     if (digits && strchr(" \t\n)];,",ch) == 0)
         {
-        assureMemory("lexNumber:illegal",1000,(int *)0);
-        return throw(lexicalExceptionSymbol,
+        return throw(LexicalExceptionSymbol,
             "file %s,line %d: misformed number (%s%c)",
             SymbolTable[p->file],p->line,s,ch);
         }
 
     unread(ch,p);
 
-    //printf("number is %s\n", s);
-
     if (strcmp(s,"-") == 0)
-        result = lexSymbol(p,s[0]);
+        result = LexSymbol(p,s[0]);
     else if (strcmp(s,".") == 0)
-        result = lexSymbol(p,s[0]);
+        result = LexSymbol(p,s[0]);
     else if (floater)
-        {
         result = newReal(atof(s));
-        }
     else
-        {
         result = newInteger(atoi(s));
-        }
 
     file(result) = p->file;
     line(result) = p->line;
@@ -187,7 +179,7 @@ lexNumber(PARSER *p,int ch)
     }
 
 int
-lexSymbol(PARSER *p,int ch)
+LexSymbol(PARSER *p,int ch)
     {
     int index;
     char buffer[512];
@@ -203,8 +195,7 @@ lexSymbol(PARSER *p,int ch)
             buffer[index++] = ch;
         if (index == sizeof(buffer))
             {
-            assureMemory("lexSymbol:size",1000,(int *)0);
-            return throw(lexicalExceptionSymbol,
+            return throw(LexicalExceptionSymbol,
                 "file %s,line %d: token has too many characters",
                 SymbolTable[p->file],p->line);
             }
@@ -213,7 +204,7 @@ lexSymbol(PARSER *p,int ch)
     unread(ch,p);
 
     buffer[index] = '\0';
-    //printf("lexSymbol: buffer is %s\n", buffer);
+    //printf("LexSymbol: buffer is %s\n", buffer);
 
     result = newSymbol(buffer);
 
@@ -245,8 +236,7 @@ lexString(PARSER *p)
             ch = getNextCharacter(p);
             if (ch == EOF)
                 {
-                assureMemory("lexString:eof",1000,(int *) 0);
-                return throw(lexicalExceptionSymbol,
+                return throw(LexicalExceptionSymbol,
                     "file %s,line %d: "
                     "unexpected end of file (last char was a backslash)\n",
                     SymbolTable[p->file],p->line);
@@ -267,8 +257,7 @@ lexString(PARSER *p)
 
         if (index == sizeof(buffer) - 1)
             {
-            assureMemory("lexString:size",1000,(int *) 0);
-            return throw(lexicalExceptionSymbol,
+            return throw(LexicalExceptionSymbol,
                 "file %s,line %d: string has too many characters",
                 SymbolTable[p->file],lineNumber);
             }
@@ -278,8 +267,7 @@ lexString(PARSER *p)
 
     if (ch != '\"')
         {
-        assureMemory("lexString:unterminated",1000,(int *) 0);
-        return throw(lexicalExceptionSymbol,
+        return throw(LexicalExceptionSymbol,
             "file %s,line %d: unterminated string",
             SymbolTable[p->file],lineNumber);
         }
@@ -309,6 +297,34 @@ getNextCharacter(PARSER *p)
         //printf("getNextCharacter: returning pushed back <%c>\n",p->pushBack);
         if (p->pushBack == '\n') ++(p->line);
         return p->pushBack;
+        }
+    else if (p->input == stdin)
+        {
+        if (p->bufferIndex == 0)
+            {
+            if (p->line == 1)
+                p->buffer = readline("scam> ");
+            else
+                p->buffer = readline("more> ");
+            if (p->buffer == 0) return EOF;
+            if (p->buffer[0] == '\0') return ' ';
+            ch = p->buffer[0];
+            p->bufferIndex = 1;
+            return ch;
+            }
+        else if (p->buffer[p->bufferIndex] == '\0')
+            {
+            free(p->buffer);
+            p->bufferIndex = 0;
+            ++(p->line);
+            return '\n';
+            }
+        else
+            {
+            ch = p->buffer[p->bufferIndex];
+            p->bufferIndex += 1;
+            return ch;
+            }
         }
     else
         {

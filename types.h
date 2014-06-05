@@ -1,3 +1,16 @@
+
+/*
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Edit : May 4, 2014
+ *
+ *  The layout of this document is such:
+ *      punctuation, keywords, types, lexer stuff.
+ */
+
+#ifndef __TYPES_H__
+#define __TYPES_H__
+
 /* scam punctuation */
 
 extern char *CLOSE_PARENTHESIS;// = "CLOSE_PARENTHESIS";
@@ -33,18 +46,4 @@ extern char *OPEN_BRACKET;//= "OPEN_BRACKET";
 extern char *CLOSE_BRACKET;//= "CLOSE_BRACKET";
 extern char *SEMI;//= "SEMICOLON";
 
-/* error codes */
-
-#define BAD_CHARACTER_CODE      1
-#define UNDEFINED_VARIABLE      2
-#define UNTERMINATED_STRING     3
-#define UNTERMINATED_COMMENT    4
-#define STRING_TOO_LARGE        5
-#define SYMBOL_TOO_LARGE        6
-#define NUMBER_TOO_LARGE        7
-#define OUT_OF_MEMORY           8
-#define STACK_OVERFLOW          9
-#define TOO_FEW_ARGUMENTS      10
-#define TOO_MANY_ARGUMENTS     11
-#define INTERNAL_ERROR         12
-#define USAGE_ERROR            13
+#endif

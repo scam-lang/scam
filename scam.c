@@ -1,15 +1,19 @@
+
 /*
- * SCAM Interpreter
+ *  Main Author : John C. Lusth
+ *  Barely Authors : Jeffrey Robinson, Gabriel Loewen
+ *  Last Modified : May 4, 2014
  *
- * written by John C. Lusth
+ * SCAM Interpreteri
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
-#include <assert.h>
+#include <unistd.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
+#include "scam.h"
 #include "cell.h"
 #include "types.h"
 #include "parser.h"
@@ -19,27 +23,33 @@
 #include "pp.h"
 #include "util.h"
 
-extern void ppf(char *,int,char *);
-
 #define ENV_HOME "HOME="
+#define MIN_MEMORY_SIZE 30000
 
-extern int nextStackPtr;
-extern FILE *Input;
 
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
 char *PROGRAM_NAME = "scam";
-char *PROGRAM_VERSION = "1.6b";
+char *PROGRAM_VERSION = "2.0a";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;
 int Syntax = SCAM;
+int GCDisplay = 1;
+int GCMode = DEFAULT_GC;
+int Caching = 0;
+int ShuttingDown = 0;
+int Debugging = 0;
+int StackDebugging = 0;
 
 char *LibraryName = "SCAM_LIB";
 char *LibraryPointer = "/usr/local/lib/scam/";
 char *ArgumentsName = "ScamArgs";
 char *EnvironmentName = "ScamEnv";
 char *Home = "~";
+
+FILE* DebugFile;
+
 
 static int addToEnvironment(int,char *,int );
 
@@ -50,18 +60,20 @@ main(int argc,char **argv,char **envv)
     int i;
     int env;
     int result;
+    int exitValue = 0;
 
-    //printf("cell size: %d\n",sizeof(CELL));
     argIndex = ProcessOptions(argc, argv);
 
-    if (argc-argIndex == 0)
+    if (MemorySize < MIN_MEMORY_SIZE)
         {
-        Fatal("usage: %s INPUT_FILE [ARGUMENTS]\n", PROGRAM_NAME);
+        Fatal("Desired memory size of $d cells is too small, need at least %d cells.\n",
+            MemorySize,MIN_MEMORY_SIZE);
         }
 
     /* initialize memory */
 
-    memoryInit(0);
+    read_history(".scam_history");
+    scamInit(0);
 
     /* find the home directory for finding files */
 
@@ -71,18 +83,36 @@ main(int argc,char **argv,char **envv)
 
     /* global level of environment */
 
+    P();
     env = makeEnvironment(0,0,0,0);
+    V();
 
+    //printf("empty global enviroment allocated.\n");
+
+    P();
     loadBuiltIns(env);
+    V();
 
+    //printf("built-ins loaded.\n");
+
+    P();
     installArgsEnv(argIndex,argc,argv,envv,env);
+    V();
 
-    //debug("global env: ",env);
+    //printf("environment bindings loaded.\n");
 
     /* main.lib level of environment */
 
+    P();
     env = makeEnvironment(env,0,0,0);
+    V();
+
+    //printf("empty library enviroment allocated.\n");
+    
     result = addToEnvironment(env,"main.lib",SCAM);
+
+    //printf("main library loaded.\n");
+
     if (isThrow(result)) goto ERROR;
 
     /* add in Sway compatibility layer, if necessary */
@@ -91,38 +121,38 @@ main(int argc,char **argv,char **envv)
         {
         env = makeEnvironment(env,0,0,0);
         result = addToEnvironment(env,"sway.lib",SWAY);
+
         if (isThrow(result)) goto ERROR;
         }
 
     /* user level of environment */
 
+    P();
     env = makeEnvironment(env,0,0,0);
-    result = addToEnvironment(env,argv[argIndex],Syntax);
-    if (isThrow(result)) goto ERROR;
+    V();
 
-    return 0;
+    if (argc-argIndex == 0)
+        result = addToEnvironment(env,"repl.lib",Syntax);
+    else
+        result = addToEnvironment(env,argv[argIndex],Syntax);
+
+    write_history(".scam_history");
+
+    if (isThrow(result) && result != SHUTDOWN_THROW) goto ERROR;
+
+    goto SHUTDOWN;
 
 ERROR:
-    //int last;
-    //debug("thrown",result);
+    ShuttingDown = 1;
     if (TraceBack)
         {
         int spot = error_trace(result);
-        //int prettySetup = ucons(prettyStatementSymbol,ucons(ucons(quoteSymbol,
-        //       ucons(0,0)),ucons(newString("    "),0)));
         printf("EXCEPTION TRACE --------------------\n");
         while (spot != 0)
             {
             fprintf(stdout,"from %s,line %d:\n    ",
                 filename(spot),line(spot));
             ppf("",car(spot),"\n");
-            //car(cdr(car(cdr(prettySetup)))) = car(spot);
-            //presult = eval(prettySetup,env);
-            //if (isThrow(presult))
-            //    {
-            //    ppf("pretty print error: ",error_value(result),"\n");
-            //    break;
-            //    }
             spot = cdr(spot);
             }
         }
@@ -131,7 +161,28 @@ ERROR:
     scamPP(stdout,error_value(result));
     printf("\n");
 
-    return -1;
+    exitValue = -1;
+
+SHUTDOWN:
+    P_P();
+    --WorkingThreads; /* Main thread is shuttig down, therefor not working */
+    P_V();
+
+    /* While there is work to be done or someone is working */
+
+    while(!ShuttingDown && (QueueCount > 0 || WorkingThreads > 0))  /* Someone is working somewhere */
+        {
+        usleep(100000);
+        }
+
+    ShuttingDown = 1;
+    for (i=1; i<CreatedThreads; ++i)
+        {
+        pthread_join(Thread[i], NULL);
+        }
+
+    scamShutdown();
+    return exitValue;
     }
 
 static int
@@ -147,29 +198,32 @@ addToEnvironment(int env,char *fileName,int mode)
 
     // indicate that file has already been processed
 
-    assureMemory("addToEnvironment",DEFINE_CELLS + 1,&env,(int *)0);
     snprintf(buffer,sizeof(buffer),"__included_%s",fileName);
-    s = newSymbol(buffer);
-    defineVariable(env,s,trueSymbol);
+    P();
+    s = newSymbolUnsafe(buffer);
+    defineVariable(env,s,TrueSymbol);
+    V();
+
+    //printf("main library include tag loaded.\n");
 
     // now parse the file
 
-    push(env);
     if (mode == SCAM)
         ptree = scamParse(p);
     else
         ptree = swayParse(p);
-    env = pop();
+
+    //printf("main library parsed.\n");
 
     freeParser(p);
 
-    rethrow(ptree,0);
+    rethrow(ptree);
 
     /* now evaluate the file */
 
-    push(env);
     result = eval(ptree,env);
-    env = pop();
+
+    //printf("after %s loaded, %d memory cells in use\n",fileName,MEMORY_SPOT);
 
     return result;
     }

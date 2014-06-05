@@ -1,4 +1,15 @@
 
+/*
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
+#include "types.h"
+
 char *OPEN_PARENTHESIS = "OPEN_PARENTHESIS";
 char *CLOSE_PARENTHESIS = "CLOSE_PARENTHESIS";
 char *QUOTE = "QUOTE";

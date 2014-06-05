@@ -1,18 +1,27 @@
-# include <stdio.h>
+
+/*
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <assert.h>
+
+#include "scam.h"
+#include "lexer.h"
 #include "cell.h"
 #include "types.h"
-#include "parser.h"
 #include "env.h"
 #include "util.h"
-
-extern void swayPP(FILE *,int);
-extern int swayLex(PARSER *);
 
 #define TRACE 0
 
@@ -25,8 +34,6 @@ extern int swayLex(PARSER *);
 #define SELECT               4       /* . and [          */
 #define NOTanOP              5
 
-extern void debug(char *,int);
-
 /* recursive descent parsing function */
 
 static int functionDef(PARSER *);
@@ -38,7 +45,7 @@ static int paramList(PARSER *);
 static int nakedBlock(PARSER *);
 static int statement(PARSER *);
 static int block(PARSER *);
-static int expr(PARSER *);
+static int sexpr(PARSER *);
 static int exprAssign(PARSER *);
 static int exprConnect(PARSER *);
 static int exprCompare(PARSER *);
@@ -201,17 +208,18 @@ swayParse(PARSER *p)
 
     //printf("parsing now, %s pending\n",type(p->pending));
     result = nakedBlock(p);
-    rethrow(result,0);
-    push(result);
-    end = match(p,END_OF_INPUT);
-    result = pop();
-    rethrow(end,0);
+    rethrow(result);
+    PUSH(result); /* peek location is zero */
 
-    assureMemory("swayParse",1,&result,(int *)0);
-    result = ucons2(beginSymbol,result);
-    //printf("done parsing.\n");
-    //ppf("sway parser returns\n",result,"\n");
-    //getchar();
+    end = match(p,END_OF_INPUT);
+    rethrowPop(end,1);
+
+    result = PEEK(0);
+
+    result = cons2(BeginSymbol,result);
+
+    (void) POP(); /* result */
+
     return result;
     }
 
@@ -228,19 +236,19 @@ definition(PARSER *p)
 
     if (TRACE) printf("in definition...\n");
 
-    if (check(p,SYMBOL) && sameSymbol(p->pending,varSymbol))
+    if (check(p,SYMBOL) && SameSymbol(p->pending,VarSymbol))
         {
         d = varDef(p);
-        rethrow(d,0);
-        push(d);
+        rethrow(d);
+        PUSH(d);
         m = match(p,SEMI);
-        d = pop();
-        rethrow(m,0);
+        d = POP();
+        rethrow(m);
         }
     else // function definition
         {
         d = functionDef(p);
-        rethrow(d,0);
+        rethrow(d);
         }
 
     if (TRACE) ppf("leaving definition: ",d,"\n");
@@ -249,7 +257,7 @@ definition(PARSER *p)
     }
 
 /*
- *  functionDef : FUNCTION optSymbol OPAREN optParamList block
+ *  functionDef : FUNCTION OptSymbol OPAREN optParamList block
  *              ;
  */
 
@@ -263,9 +271,8 @@ functionDef(PARSER *p)
     if (TRACE) printf("in functionDef...\n");
 
     f = match(p,SYMBOL);
-    rethrow(f,0);
-
-    assert(sameSymbol(f,functionSymbol));
+    rethrow(f);
+    assert(SameSymbol(f,FunctionSymbol));
 
     if (check(p,SYMBOL))
         v = match(p,SYMBOL);
@@ -275,66 +282,61 @@ functionDef(PARSER *p)
         anonymous = 1;
         }
 
-    push(v);
+    PUSH(v);
 
     m = match(p,OPEN_PARENTHESIS);
-    rethrow(m,1);
+
+    rethrowPop(m,1); /* v */
 
     params = optParamList(p);
-    rethrow(params,1);
+    rethrowPop(params,1); /* v */
 
-    push(params);
+    PUSH(params);
 
     m = match(p,CLOSE_PARENTHESIS);
-    rethrow(m,2);
+    rethrowPop(m,2); /* v and params */
 
     m = match(p,OPEN_BRACE);
-    rethrow(m,2);
+    rethrowPop(m,2); /* v and params */
 
     //printf("about to parse function body\n");
 
     body = nakedBlock(p);
 
-    rethrow(body,2);
+    rethrowPop(body,2); /* v and params */
 
-    push(body);
+    PUSH(body);
 
     m = match(p,CLOSE_BRACE);
-    rethrow(m,3);
+    rethrowPop(m,3); /* v and params and body */
 
     if (anonymous)
         {
         m = match(p,SEMI);
-        rethrow(m,3);
+        rethrowPop(m,3); /* v and params and body */
         }
-
-    //ensureMemory(6);
-    assureMemory2(6);
-
-    body = pop();
-    params = pop();
-    v = pop();
 
     if (car(body) == 0)
         {
-        return throw(syntaxExceptionSymbol,
+        POPN(3); /* v and params and body */
+        return throw(SyntaxExceptionSymbol,
             "file %s, line %d: blocks must contain at least one statement",
             SymbolTable[p->file], p->line, type(p->pending));
         }
 
-    /*
-    result = ucons(JOIN,v,0);
-    result = ucons(JOIN,body,result);
-    result = ucons(FUNCTION,params,result);
-    result = ucons(FUNCTION_DEFINITION,v,result);
-    */
-
     //indent the name so that we can find the indent after the call
 
-    assureMemory("func name",4,&body,&params,&v,(int *)0);
-    result = ucons(v,params);
-    result = ucons(result,body);
-    result = ucons2(defineSymbol,result);
+    P();
+    ENSURE_MEMORY(3,(int *) 0);
+
+    body = POP();
+    params = POP();
+    v = POP();
+
+    result = cons(v,params);
+    result = cons(result,body);
+    result = cons2(DefineSymbol,result);
+    V();
 
     if (TRACE) ppf("leaving functionDef: ",result,"\n");
 
@@ -354,20 +356,22 @@ varDef(PARSER *p)
     if (TRACE) printf("in varDef...\n");
 
     m = match(p,SYMBOL);
-    rethrow(m,0);
-    //assert(isIdentifier(m,"var"));
-    assert(sameSymbol(m,varSymbol));
+    rethrow(m);
+    assert(SameSymbol(m,VarSymbol));
     v = varDefList(p);
-    rethrow(v,0);
+    rethrow(v);
     //type(v) = VARIABLE_DEFINITION_LIST;
 
-
     if (cdr(v) == 0)
+        {
         v = car(v);
+        }
     else
         {
-        assureMemory("var def",1,&v,(int *) 0);
-        v = ucons2(beginSymbol,v);
+        P();
+        ENSURE_MEMORY(1,&v,(int *) 0);
+        v = cons2(BeginSymbol,v);
+        V();
         }
     if (TRACE) ppf("leaving varDef: ",v,"\n");
     return v;
@@ -387,26 +391,27 @@ varDefList(PARSER *p)
     if (TRACE) printf("in varDefList...\n");
 
     item = varDefItem(p);
-    rethrow(item,0);
-    //save(item,"parser:varDefList:item");
-    push(item);
+    rethrow(item);
+    PUSH(item);
 
     if (check(p,COMMA)) /* check is not gc-safe */
         {
         match(p,COMMA);
         result = varDefList(p);
         //item = restore("parser:varDefList:item");
-        item = pop();
-        rethrow(result,0);
+        rethrow(result);
         }
     else
         {
-        item = pop();
         result = 0;
         }
 
-    //result = cons(JOIN,item,result);
-    result = ucons(item, result);
+    P();
+    ENSURE_MEMORY(1,&result,(int *) 0);
+    item = POP();
+
+    result = cons(item, result);
+    V();
 
     if (TRACE) ppf("leaving varDefList: ",result,"\n");
 
@@ -427,31 +432,34 @@ varDefItem(PARSER *p)
     if (TRACE) printf("in varDefItem...\n");
 
     v = match(p,SYMBOL);
-    rethrow(v,0);
-    push(v);
+    rethrow(v);
+
+    PUSH(v);
 
     check(p,SYMBOL); // force a lex, if necessary (check is not gc-safe)
 
-    if (sameSymbol(p->pending,eqSymbol))
+    if (SameSymbol(p->pending,EqSymbol))
         {
         match(p,SYMBOL); // ASSIGN
-        init = expr(p);
-        rethrow(init,1); //for saved v
-        push(init);
-        assureMemory2(3);
-        init = pop();
-        v = pop();
-        result = ucons(init,0);
-        result = ucons(v,result);
-        result = ucons2(defineSymbol,result);
+        init = sexpr(p);
+        rethrow(init);
+        P();
+        ENSURE_MEMORY(3,&init,(int *) 0);
+        v = POP();
+        result = cons(init,0);
+        result = cons(v,result);
+        result = cons2(DefineSymbol,result);
+        V();
         }
     else
         {
         if (TRACE > 1) printf("no initializer\n");
-        assureMemory2(2);
-        v = pop();
-        result = ucons(v,0);
-        result = ucons2(defineSymbol,result);
+        P();
+        ENSURE_MEMORY(2,(int *) 0);
+        v = POP();
+        result = cons(v,0);
+        result = cons2(DefineSymbol,result);
+        V();
         }
 
 
@@ -490,27 +498,29 @@ paramList(PARSER *p)
     if (TRACE) printf("in paramList...\n");
 
     a = match(p,SYMBOL);
-    rethrow(a,0);
+    rethrow(a);
+    PUSH(a);
 
-    push(a);
-
-    if (check(p,COMMA)) /* check is not gc-safe */
+    if (check(p,COMMA))
         {
-        match(p,COMMA);
+        int m = match(p,COMMA);
+        rethrowPop(m,1); /* a */
         if (check(p,SYMBOL))
             b = paramList(p);
         else
             b = 0;
-        a = pop();
-        rethrow(b,0);
+        rethrowPop(b,1); /* a */
         }
     else
         {
-        a = pop();
         b = 0;
         }
 
-    result = ucons(a,b);
+    P();
+    ENSURE_MEMORY(1,&b,(int *) 0);
+    a = POP();
+    result = cons(a,b);
+    V();
 
     if (TRACE) ppf("leaving paramList: ",result,"`\n");
 
@@ -533,8 +543,7 @@ nakedBlock(PARSER *p)
 
     if (check(p,SYMBOL) && check(p,OPEN_BRACKET))
         {
-        assureMemory2(1000);
-        return throw(syntaxExceptionSymbol,
+        return throw(SyntaxExceptionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
         }
@@ -542,32 +551,35 @@ nakedBlock(PARSER *p)
     //ppf("pending: ",p->pending,"\n");
     if (check(p,OPEN_BRACE))
         {
-        assureMemory2(1000);
-        return throw(syntaxExceptionSymbol,
+        return throw(SyntaxExceptionSymbol,
             "file %s,line %d: expected an expression, got a block instead",
             SymbolTable[p->file],p->line);
         }
     else if (isDefinitionPending(p))
         {
         item = definition(p);
-        rethrow(item,0);
-        push(item);
+        rethrow(item);
+        PUSH(item);
         others = nakedBlock(p);
-        item = pop();
-        rethrow(others,0);
-        assureMemory("definition",1,&item,&others,(int *)0);
-        result = ucons(item,others);
+        rethrowPop(others,1); /* item */
+        P();
+        ENSURE_MEMORY(1,&others,(int *) 0);
+        item = POP();
+        result = cons(item,others);
+        V();
         }
     else if (isStatementPending(p))
         {
         item = statement(p);
-        rethrow(item,0);
-        push(item);
+        rethrow(item);
+        PUSH(item);
         others = nakedBlock(p);
-        item = pop();
-        rethrow(others,0);
-        assureMemory("statement",1,&item,&others,(int *)0);
-        result = ucons(item,others);
+        rethrowPop(others,1); /* item */
+        P();
+        ENSURE_MEMORY(1,&others,(int *) 0);
+        item = POP();
+        result = cons(item,others);
+        V();
         }
     else
         {
@@ -592,20 +604,16 @@ statement(PARSER *p)
 
     if (TRACE) printf("in statement...\n");
 
-    r = expr(p);
-    //printf("statement got expression \n");
-    rethrow(r,0);
-    //printf("statement no error\n");
-
+    r = sexpr(p);
+    rethrow(r);
     if (TRACE > 1) printf("statement subtype is %s\n", type(r));
 
     if (!isXCall(r))
         {
-        //ppf("statement is: ",r,"\n");
-        //ppf("pending is: ", p->pending, "\n");
+        PUSH(r);
         m = match(p, SEMI);
-        //printf("statement match semi\n");
-        rethrow(m,0);
+        r = POP();
+        rethrow(m);
         }
     else
         {
@@ -626,23 +634,26 @@ block(PARSER *p)
 
     match(p,OPEN_BRACE);
     b = nakedBlock(p);
-    rethrow(b,0);
-    push(b);
+    rethrow(b);
+    PUSH(b);
     m = match(p,CLOSE_BRACE);
-    rethrow(m,1); //for saved b
-    assureMemory2(1);
-    b = pop();
+    rethrowPop(m,1); //for saved b
+    P();
+    ENSURE_MEMORY(1,(int *) 0);
+    b = POP();
+
     if (hasDefinitions(b))
-        b = ucons2(scopeSymbol,b);
+        b = cons2(ScopeSymbol,b);
     else
-        b = ucons2(beginSymbol,b);
+        b = cons2(BeginSymbol,b);
+    V();
     return b;
     }
 
 /* expr : exprAssign */
 
 static int
-expr(PARSER *p)
+sexpr(PARSER *p)
     {
     return exprAssign(p);
     }
@@ -656,12 +667,12 @@ static int
 exprAssign(PARSER *p)
     {
     int a,b,c;
-    int result;
+    int result = 0;
 
     if (TRACE) printf("in exprAssign...\n");
 
     a = exprConnect(p);
-    rethrow(a,0);
+    rethrow(a);
 
     if (isXCall(a))
         {
@@ -669,26 +680,24 @@ exprAssign(PARSER *p)
         return a;
         }
 
-    push(a);
-
     if (opType(p) == UPDATER)
         {
+        PUSH(a);
         b = match(p,SYMBOL);
-        rethrow(b,1);
-        push(b);
+        rethrowPop(b,1); /* a */
+        PUSH(b);
         c = exprAssign(p);
-        rethrow(c,2);
-        push(c);
-        assureMemory2(5);
-        c = pop();
-        b = pop();
-        a = pop();
-        result = ucons(b,ucons(a,ucons(c,0)));
-        // add tags for pretty printing
-        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
+        rethrowPop(c,2);
+        P();
+        ENSURE_MEMORY(3,&c,(int *) 0);
+        b = POP();
+        a = POP();
+
+        result = cons(b,cons(a,cons(c,0)));
+        V();
         }
     else
-        result = pop();
+        result = a;
 
     if (TRACE) ppf("leaving exprAssign: ",result,"\n");
 
@@ -704,12 +713,11 @@ static int
 exprConnect(PARSER *p)
     {
     int a,b,c;
-    int result;
 
     if (TRACE) printf("in exprConnect...\n");
 
     a = exprCompare(p);
-    rethrow(a,0);
+    rethrow(a);
 
     if (isXCall(a))
         {
@@ -717,32 +725,29 @@ exprConnect(PARSER *p)
         return a;
         }
 
-    result = a;
-
-    push(result);
-
+    PUSH(a); /* peek location 0 */
     while (opType(p) == LOGICAL_CONNECTIVE)
         {
+        int result;
         b = match(p,SYMBOL);
-        rethrow(b,1);
-        push(b);
+        rethrowPop(b,1); /* a */
+        PUSH(b);
         c = exprCompare(p);
-        rethrow(c,2);
-        push(c);
-        assureMemory2(5);
-        c = pop();
-        b = pop();
-        a = pop();
-        result = ucons(b,ucons(a,ucons(c,0)));
-        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
-        push(result);
+        rethrowPop(c,2);
+        P();
+        ENSURE_MEMORY(3,&c,(int *) 0);
+        b = POP();
+        a = PEEK(0);
+        result = cons(b,cons(a,cons(c,0)));
+        V();
+        REPLACE(0,result);
         }
 
-    result = pop();
+    a = POP();
 
-    if (TRACE) ppf("leaving exprConnect: ",result,"\n");
+    if (TRACE) ppf("leaving exprConnect: ",a,"\n");
 
-    return result;
+    return a;
     }
 
 /* exprCompare : exprMath (SYMBOL[<,<=,==,!=,>=,>] exprMath)*
@@ -754,12 +759,11 @@ static int
 exprCompare(PARSER *p)
     {
     int a,b,c;
-    int result;
 
     if (TRACE) printf("in exprCompare...\n");
 
     a = exprMath(p);
-    rethrow(a,0);
+    rethrow(a);
 
     if (isXCall(a))
         {
@@ -767,32 +771,28 @@ exprCompare(PARSER *p)
         return a;
         }
 
-    result = a;
-    push(result);
-
+    PUSH(a);
     while (opType(p) == LOGICAL_COMPARISON)
         {
+        int result;
         b = match(p,SYMBOL);
-        rethrow(b,1);
-        push(b);
-        //printf("about to call math\n");
+        rethrowPop(b,1); /* a */
+        PUSH(b);
         c = exprMath(p);
-        rethrow(c,2);
-        push(c);
-        assureMemory2(5);
-        c = pop();
-        b = pop();
-        a = pop();
-        result = ucons(b,ucons(a,ucons(c,0)));
-        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
-        push(result);
+        rethrowPop(c,2);
+        P();
+        ENSURE_MEMORY(3,&c,(int *) 0);
+        b = POP();
+        a = PEEK(0);
+        result = cons(b,cons(a,cons(c,0)));
+        V();
+        REPLACE(0,result);
         }
+    a = POP();
 
-    result = pop();
+    if (TRACE) ppf("leaving exprCompare: ",a,"\n");
 
-    if (TRACE) ppf("leaving exprCompare: ",result,"\n");
-
-    return result;
+    return a;
     }
 
 /* exprMath : exprCall (SYMBOL[+,-,*,/,%,^] exprCall)* */
@@ -806,7 +806,7 @@ exprMath(PARSER *p)
     if (TRACE) printf("in exprMath...\n");
 
     a = exprCall(p,0);
-    rethrow(a,0);
+    rethrow(a);
 
     if (isXCall(a))
         {
@@ -814,39 +814,28 @@ exprMath(PARSER *p)
         return a;
         }
 
-    result = a;
-    //ppf("exprMath: a was: ",a,"\n");
-
-    push(result);
-
+    PUSH(a);
     while (opType(p) == ARITHMETIC)
         {
+        int result;
         b = match(p,SYMBOL);
-        //ppf("exprMath: b was: ",b,"\n");
-        rethrow(b,1);
-        push(b);
+        rethrowPop(b,1); /* a */
+        PUSH(b);
         c = exprCall(p,0);
-        //ppf("exprMath: c was: ",c,"\n");
-        rethrow(c,2);
-        push(c);
-        assureMemory2(5);
-        c = pop();
-        b = pop();
-        a = pop();
-        //ppf("exprMath: a is: ",a,"\n");
-        //ppf("exprMath: b is: ",b,"\n");
-        //ppf("exprMath: c is: ",c,"\n");
-        result = ucons(b,ucons(a,ucons(c,0)));
-        //result = ucons2(fillerSymbol,ucons2(binaryOpSymbol,result));
-        //ppf("exprMath: a was: ",result,"\n");
-        push(result);
+        rethrowPop(c,2);
+        P();
+        ENSURE_MEMORY(3,&c,(int *) 0);
+        b = POP();
+        a = PEEK(0);
+        result = cons(b,cons(a,cons(c,0)));
+        V();
+        REPLACE(0,result);
         }
-
-    result = pop();
+    a = POP();
 
     if (TRACE) ppf("leaving exprMath: ",result,"\n");
 
-    return result;
+    return a;
     }
 
 /* exprCall : exprSelect
@@ -864,55 +853,48 @@ exprCall(PARSER *p,int item)
     if (TRACE) printf("in exprCall...\n");
 
     if (item == 0)
+        {
         op = exprSelect(p,0);
+        }
     else
+        {
         op = item;
+        }
 
-    //ppf("exprCall: op was: ",op,"\n");
-    //getchar();
-    rethrow(op,0);
+    rethrow(op);
 
-    push(op);
+    PUSH(op);
 
     if (check(p,OPEN_PARENTHESIS)) /* check is not gc-safe */
         {
-        //this is a function call
-        match(p,OPEN_PARENTHESIS);
-        //printf("about to get args\n");
+        /* this is a function call */
+        (void) match(p,OPEN_PARENTHESIS);
         args = optArgList(p);
-        rethrow(args,1); //for saved op
-        //printf("done getting args\n");
-        //ppf("args is ",args,"\n");
-        push(args);
+        rethrowPop(args,1); /* for op */
+        PUSH(args);
         m = match(p,CLOSE_PARENTHESIS);
-        rethrow(m,2); //for saved op,args
+        rethrowPop(m,2); /* for args and op */
         extra = optExtraArgs(p);
-        rethrow(extra,2); //for saved op,args
-        //ppf("extra: ",extra,"\n");
-        push(extra);
-        //ppf("exprCall: extra was :",extra,"\n");
-        assureMemory2(3);
-        extra = pop();
-        args = pop();
-        op = pop();
-        //ppf("exprCall: extra is :",extra,"\n");
-        //ppf("exprCall: args is :",args,"\n");
-        //ppf("exprCall: op is :",op,"\n");
+        rethrowPop(extra,2); /* for args and op */
+        P();
+        ENSURE_MEMORY(3,&extra,(int *) 0);
+        args = POP();
+        op = POP();
         /* append is destructive, does not use cons */
-        result = ucons(op,append(args,extra));
-        //ppf("result is ",result,"\n");
+        result = cons(op,append(args,extra));
         if (extra != 0)
             {
-            result = ucons2(fillerSymbol,ucons2(xcallSymbol,result));
+            result = cons2(FillerSymbol,cons2(XcallSymbol,result));
             }
         if (opType(p) == SELECT)
             {
             result = exprCall(p,exprSelect(p,result));
             }
+        V();
         }
     else
         {
-        result = pop();
+        result = POP();  /* was op */
         }
 
     if (TRACE) ppf("leaving exprCall: ",result,"\n");
@@ -944,53 +926,60 @@ extraArgs(PARSER *p)
     int b,c,result;
 
     b = block(p);
-    rethrow(b,0);
-    push(b);
-    check(p,0);
-    if (sameSymbol(elseSymbol,p->pending))
+    rethrow(b);
+    PUSH(b);
+
+    check(p,0); /* force a lex (not gc-safe) */
+
+    if (SameSymbol(ElseSymbol,p->pending))
         {
-        match(p,SYMBOL);
+        (void) match(p,SYMBOL);
         if (isBlockPending(p))
             {
             c = block(p);
-            rethrow(c,1); //for saved b
-            push(c);
-            assureMemory2(2);
-            c = pop();
-            b = pop();
-            result = ucons(b,ucons(c,0));
+            rethrowPop(c,1); /* for b */
+            P();
+            ENSURE_MEMORY(2,&c,(int *) 0);
+            b = POP();
+            result = cons(b,cons(c,0));
+            V();
             }
         else  /* parse an extended call */
             {
             int op,args,extra,m;
             op = exprSelect(p,0);
-            rethrow(op,1); //for saved b
-            push(op);
+            rethrowPop(op,1); /* for b */
+            PUSH(op);
             m = match(p,OPEN_PARENTHESIS);
-            rethrow(m,2); //for saved b,op
+            rethrowPop(m,2); /* for b and op */
             args = optArgList(p);
-            rethrow(args,2); //for saved b,op
-            push(args);
+            rethrowPop(args,2); /* for b and op */
+            PUSH(args);
             m = match(p,CLOSE_PARENTHESIS);
-            rethrow(m,3);
+            rethrowPop(m,3); /* for b and op and args */
             extra = extraArgs(p);
-            rethrow(extra,3); //for saved b,op,args
-            push(extra);
-            assureMemory2(3);
-            extra = pop();
-            args = pop();
-            op = pop();
-            b = pop();
-            result = ucons(op,append(args,extra));
-            result = ucons(result,0);
-            result = ucons(b,result);
+            rethrowPop(extra,3); /* for b and op and args */
+
+            P();
+            ENSURE_MEMORY(3,&extra,(int *) 0);
+            args = POP();
+            op = POP();
+            b = POP();
+
+            /* append is destructive, does not use cons */
+            result = cons(op,append(args,extra));
+            result = cons(result,0);
+            result = cons(b,result);
+            V();
             }
         }
     else
         {
-        assureMemory2(1);
-        b = pop();
-        result = ucons(b,0);
+        P();
+        ENSURE_MEMORY(1,(int *) 0);
+        b = POP();
+        result = cons(b,0);
+        V();
         }
 
     return result;
@@ -1005,7 +994,6 @@ static int
 exprSelect(PARSER *p,int item)
     {
     int a,b,c;
-    int result;
 
     if (TRACE) printf("in exprSelect...\n");
 
@@ -1014,54 +1002,53 @@ exprSelect(PARSER *p,int item)
     else
         a = item;
 
-    rethrow(a,0);
+    rethrow(a);
 
-    result = a;
-    push(result);
+    PUSH(a); /* peek position 0 */
 
-    check(p,0);
-    //ppf("select op is ",p->pending,"\n");
+    check(p,0); /* force a lex (not gc-safe) */
+
     while (opType(p) == SELECT)
         {
+        int result;
         //printf("it's a select!\n");
         /* opType forces a lex */
-        if (sameSymbol(p->pending,openBracketSymbol))
+        if (SameSymbol(p->pending,OpenBracketSymbol))
             {
             //printf("it's a bracket!\n");
             b = match(p,SYMBOL);
-            rethrow(b,1);
-            push(b);
-            c = expr(p);
-            rethrow(c,2);
-            //ppf("bracketed expression is ",c,"\n");
-            push(c);
-            match(p,CLOSE_BRACKET);
+            PUSH(b);
+            c = sexpr(p);
+            rethrowPop(c,2); /* for a and b */
+            PUSH(c);
+            int m = match(p,CLOSE_BRACKET);
+            rethrowPop(m,3); /* for a and b and c */
             }
-        else /* must be dot */
+        else /* must be dot (this needs to be modified if more SELECT ops) */
             {
             b = match(p,SYMBOL);
-            rethrow(b,1);
-            push(b);
+            PUSH(b);
             if (check(p,SYMBOL))
-                c = match(p,SYMBOL); //do not check for undefined here
+                c = match(p,SYMBOL); /* do not check for undefined here */
             else
                 c = primary(p);
-            rethrow(c,2);
-            push(c);
+            rethrowPop(c,2); /* for a and b */
+            PUSH(c); /* to match the true block of this if */
             }
-        assureMemory2(3);
-        c = pop();
-        b = pop();
-        a = pop();
-        result = ucons(b,ucons(a,ucons(c,0)));
-        push(result);
+        P();
+        ENSURE_MEMORY(3,(int *) 0);
+        c = POP();
+        b = POP();
+        a = PEEK(0);
+        result = cons(b,cons(a,cons(c,0)));
+        V();
+        REPLACE(0,result); /* a gets a new value */
         }
-
-    result = pop();
+    a = POP();
 
     if (TRACE) printf("leaving exprSelect.\n");
 
-    return result;
+    return a;
     }
 
 /* primary : INTEGER | REAL | STRING
@@ -1080,8 +1067,6 @@ primary(PARSER *p)
     int result;
 
     if (TRACE) printf("in primary...\n");
-    //printf("primary: %s pending\n",type(p->pending));
-    //getchar();
 
     if (check(p,INTEGER))
         result = match(p,INTEGER);
@@ -1091,19 +1076,21 @@ primary(PARSER *p)
         result = match(p,STRING);
     else if (check(p,SYMBOL))
         {
-        if (sameSymbol(p->pending,returnSymbol))
+        if (SameSymbol(p->pending,ReturnSymbol))
             {
-            //printf("it's a return\n");
+            /* it's a return */
             match(p,SYMBOL);
-            r = expr(p);
-            rethrow(r,0);
-            assureMemory("primary:return",2,&r,(int *)0);
-            result = ucons2(returnSymbol,ucons(r,0));
+            r = sexpr(p);
+            rethrow(r);
+            P();
+            ENSURE_MEMORY(2,&r,(int *) 0);
+            result = cons2(ReturnSymbol,cons(r,0));
+            V();
             }
-        else if (sameSymbol(p->pending,functionSymbol))
+        else if (SameSymbol(p->pending,FunctionSymbol))
             {
             r = functionDef(p);
-            rethrow(r,0);
+            rethrow(r);
             result = r;
             }
         else
@@ -1115,33 +1102,38 @@ primary(PARSER *p)
         {
         match(p,QUOTE);
         r = match(p,SYMBOL);
-        rethrow(r,0);
-        assureMemory("primary:quote",2,&r,(int *)0);
-        result = ucons2(quoteSymbol,ucons(r,0));
+        rethrow(r);
+        P();
+        ENSURE_MEMORY(2,&r,(int *) 0);
+        result = cons2(QuoteSymbol,cons(r,0));
+        V();
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
         int m;
         match(p,OPEN_PARENTHESIS);
-        r = expr(p);
-        rethrow(r,0);
+        r = sexpr(p);
+        rethrow(r);
+        PUSH(r);
         m = match(p,CLOSE_PARENTHESIS);
-        rethrow(m,0);
-        assureMemory("expr:openParen",2,&r,(int *)0);
-        result = ucons2(parenSymbol,ucons(r,0));
+        rethrowPop(m,1); /* for r */
+        P();
+        ENSURE_MEMORY(2,(int *) 0);
+        r = POP();
+        result = cons2(ParenSymbol,cons(r,0));
+        V();
         }
     else if (check(p,OPEN_BRACE))
         {
         r = block(p);
-        rethrow(r,0);
+        rethrow(r);
         result = r;
         }
     else if (isThrow(p->pending))
         return p->pending;
     else
         {
-        assureMemory2(1000);
-        return throw(syntaxExceptionSymbol,
+        return throw(SyntaxExceptionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
         }
@@ -1185,31 +1177,28 @@ argList(PARSER *p)
     int result;
 
     if (TRACE) printf("in argList...\n");
-    a = expr(p);
-    rethrow(a,0);
-    push(a);
-    //ppf("leading arg is ",a,"\n");
+    a = sexpr(p);
+    rethrow(a);
 
-    //force check
-    check(p,0);
-    //ppf("pending is ",p->pending,"\n");
+    PUSH(a);
+    check(p,0); /* force a lex (not gc-safe) */
+
     if (check(p,COMMA))
         {
         match(p,COMMA);
         b = argList(p);
-        rethrow(b,1);
+        rethrowPop(b,1); /* for a */
         }
     else
         {
         b = 0;
         }
 
-    assureMemory("argList",1,&b,(int *)0);
-
-    a = pop();
-    //ppf("arg is ",a,"\n");
-
-    result = ucons(a,b);
+    P();
+    ENSURE_MEMORY(1,&b,(int *) 0);
+    a = POP();
+    result = cons(a,b);
+    V();
 
     if (TRACE) printf("leaving argList.\n");
     return result;
@@ -1221,8 +1210,8 @@ static int
 isDefinitionPending(PARSER *p)
     {
     check(p,SYMBOL);
-    return sameSymbol(p->pending,varSymbol)
-        || sameSymbol(p->pending,functionSymbol);
+    return SameSymbol(p->pending,VarSymbol)
+        || SameSymbol(p->pending,FunctionSymbol);
     }
 
 static int
@@ -1266,18 +1255,18 @@ opType(PARSER *p)
         }
     else
         {
-        if (sameSymbol(Pending,eqSymbol)
-        ||  sameSymbol(Pending,headAssignSymbol)
-        ||  sameSymbol(Pending,tailAssignSymbol))
+        if (SameSymbol(Pending,EqSymbol)
+        ||  SameSymbol(Pending,HeadAssignSymbol)
+        ||  SameSymbol(Pending,TailAssignSymbol))
             result = UPDATER;
-        else if (sameSymbol(Pending,andAndSymbol) || sameSymbol(Pending,orOrSymbol))
+        else if (SameSymbol(Pending,AndAndSymbol) || SameSymbol(Pending,OrOrSymbol))
             result = LOGICAL_CONNECTIVE;
-        else if (sameSymbol(Pending,ltSymbol) || sameSymbol(Pending,gtSymbol)
-        || sameSymbol(Pending,eqEqSymbol) ||  sameSymbol(Pending,neqSymbol)
-        || sameSymbol(Pending,gteSymbol) || sameSymbol(Pending,lteSymbol))
+        else if (SameSymbol(Pending,LtSymbol) || SameSymbol(Pending,GtSymbol)
+        || SameSymbol(Pending,EqEqSymbol) ||  SameSymbol(Pending,NeqSymbol)
+        || SameSymbol(Pending,GteSymbol) || SameSymbol(Pending,LteSymbol))
             result = LOGICAL_COMPARISON;
-        else if (sameSymbol(Pending,dotSymbol)
-        || sameSymbol(Pending,openBracketSymbol))
+        else if (SameSymbol(Pending,DotSymbol)
+        || SameSymbol(Pending,OpenBracketSymbol))
             result = SELECT;
         else
             result = ARITHMETIC;
@@ -1301,8 +1290,7 @@ match(PARSER *p,char *t)
             return p->pending;
         else
             {
-            assureMemory2(1000);
-            return throw(syntaxExceptionSymbol,
+            return throw(SyntaxExceptionSymbol,
                 "file %s,line %d: expecting %s, found %s instead",
                 SymbolTable[p->file],p->line,t,type(p->pending));
             }
@@ -1335,8 +1323,8 @@ check(PARSER *p,char *t)
 static int
 isXCall(int expr)
     {
-    return type(expr) == CONS && sameSymbol(car(expr),fillerSymbol)
-        && sameSymbol(cadr(expr),xcallSymbol);
+    return type(expr) == CONS && SameSymbol(car(expr),FillerSymbol)
+        && SameSymbol(cadr(expr),XcallSymbol);
     }
 
 static int
@@ -1347,8 +1335,8 @@ hasDefinitions(int expr)
         int item = car(expr);
         if (type(item) == CONS)
             {
-            if (sameSymbol(car(item),defineSymbol)) return 1;
-            if (sameSymbol(car(item),beginSymbol)) return 1;
+            if (SameSymbol(car(item),DefineSymbol)) return 1;
+            if (SameSymbol(car(item),BeginSymbol)) return 1;
             }
         expr = cdr(expr);
         }
@@ -1360,7 +1348,7 @@ hasDefinitions(int expr)
 void
 ppf(char *s1,int expr,char *s2)
     {
-    extern void scamPP(FILE *,int);
+    //extern void scamPP(FILE *,int);
     fprintf(stdout,"%s",s1);
     scamPP(stdout,expr);
     fprintf(stdout,"%s",s2);

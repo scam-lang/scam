@@ -1,23 +1,20 @@
-#include <stdio.h>
+
+/*
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Modified : May 4, 2014
+ *
+ *  TODO : Description
+ *
+ */
+
 #include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <assert.h>
+
+#include "scam.h"
+#include "lexer.h"
 #include "cell.h"
 #include "types.h"
-#include "parser.h"
 #include "env.h"
-#include "util.h"
-
-extern void debug(char *,int);
-extern int lex(PARSER *);
-
-/* recursive descent parsing function */
-
-static int exprSeq(PARSER *);
-static int expr(PARSER *);
 
 /* pending functions */
 
@@ -67,12 +64,32 @@ newParser(char *fileName)
     p->pushedBack = 0;
     p->input = openScamFile(fileName);
     p->output = stdout;
+    p->buffer = 0;
+    p->bufferIndex = 0;
 
     if (p->input == 0)
         {
         freeParser(p);
         return 0;
         }
+
+    return p;
+    }
+
+/* this is the function that intefaces the parser with other modules */
+
+PARSER *
+newParserFP(FILE *fp,char *fileName)
+    {
+    PARSER *p = (PARSER *) malloc(sizeof(PARSER));
+    p->pending = -1;
+    p->line = 1;
+    p->file = findSymbol(fileName);
+    p->pushedBack = 0;
+    p->input = fp;
+    p->output = stdout;
+    p->buffer = 0;
+    p->bufferIndex = 0;
 
     return p;
     }
@@ -94,89 +111,65 @@ scamParse(PARSER *p)
     {
     int result,end;
 
-    //printf("starting to scamParse...\n");
-    if (check(p,END_OF_INPUT)) return 0;
+    if (check(p,END_OF_INPUT)) 
+        {
+        return 0;
+        }
 
     result = exprSeq(p);
-    rethrow(result,0);
-    push(result);
+    rethrow(result);
+    PUSH(result);
     end = match(p,END_OF_INPUT);
-    result = pop();
-    rethrow(end,0);
-
-    assureMemory("scamParse",1,&result,(int *)0);
-    result = uconsfl(beginSymbol,result,file(result),line(result));
-    //printf("done parsing.\n");
+    result = POP();
+    rethrow(end);
+    //printf("back from parsing\n");
+    P();
+    ENSURE_MEMORY(2,&result,(int *) 0);
+    result = cons2(BeginSymbol,result);
+    V();
     return result;
     }
 
 /* iterative version */
 
-static int
+int
 exprSeq(PARSER *p)
     {
     int e,b;
     int head,hook;
 
     e = expr(p);
-    rethrow(e,0);
-    head = ucons(e,0);
+    rethrow(e);
+    
+    P();
+    ENSURE_MEMORY(1,&e,(int *) 0);
+    head = cons(e,0);
+    V();
     hook = head;
     //debug("head",head);
 
-    push(head);
-    push(hook);
+    PUSH(head);
+    PUSH(hook); /* peek index 0 */
     while (isExprPending(p))
         {
         b = expr(p);
-        rethrow(b,2);
-        assureMemory("exprSeq",1,&b,(int *)0);
-        hook = pop();
-        cdr(hook) = ucons(b,0);
-        hook = cdr(hook);
-        push(hook);
+        rethrowPop(b,2);
+        P();
+        int _tmp = cons(b , 0 );
+        V();
+        hook = PEEK(0);
+        cdr(hook) = _tmp;
+        REPLACE(0,cdr(hook));
+        /* STACKCHECK */
+        /* UPDATE(1); */
         }
-
-    hook = pop();
-    head = pop();
+    (void) POP(); /* hook */
+    head = POP();
 
     return head;
     }
 
-/* recursive version
-
-static int
-exprSeq(PARSER *p)
-    {
-    int e,b,result;
-
-    printf("in exprSeq...\n");
-    e = expr(p);
-    rethrow(e,0);
-    debug("exprSeq, e",e);
-
-    push(e);
-    if (isExprSeqPending(p))
-        b = exprSeq(p);
-    else
-        b = 0;
-    e = pop();
-    rethrow(b,0);
-    debug("exprSeq, b",b);
-
-    result = ucons(e,b);
-    debug("exprSeq, result",result);
-    printf("leaving exprSeq.\n");
-    if (gccount >= 1)
-        {
-        printf("cells left: %d\n", MemorySize - MemorySpot);
-        //getchar();
-        }
-    return result;
-    }
-*/
-
-static int
+int
 expr(PARSER *p)
     {
     int r,q;
@@ -197,9 +190,11 @@ expr(PARSER *p)
         fi = file(q);
         li = line(q);
         r = expr(p);
-        rethrow(r,0);
-        assureMemory("expr:quote",2,&r,(int *)0);
-        result = uconsfl(quoteSymbol,ucons(r,0),fi,li);
+        rethrow(r);
+        P();
+        ENSURE_MEMORY(2,&r,(int *) 0);
+        result = consfl(QuoteSymbol,cons(r,0),fi,li);
+        V();
         }
     else if (check(p,BACKQUOTE))
         {
@@ -207,9 +202,11 @@ expr(PARSER *p)
         fi = file(q);
         li = line(q);
         r = expr(p);
-        rethrow(r,0);
-        assureMemory("expr:backquote",2,&r,(int *)0);
-        result = uconsfl(backquoteSymbol,ucons(r,0),fi,li);
+        rethrow(r);
+        P();
+        ENSURE_MEMORY(2,&r,(int *) 0);
+        result = consfl(BackquoteSymbol,cons(r,0),fi,li);
+        V();
         }
     else if (check(p,COMMA))
         {
@@ -217,9 +214,11 @@ expr(PARSER *p)
         fi = file(q);
         li = line(q);
         r = expr(p);
-        rethrow(r,0);
-        assureMemory("expr:comma",2,&r,(int *)0);
-        result = uconsfl(commaSymbol,ucons(r,0),fi,li);
+        rethrow(r);
+        P();
+        ENSURE_MEMORY(2,&r,(int *) 0);
+        result = consfl(CommaSymbol,cons(r,0),fi,li);
+        V();
         }
     else if (check(p,OPEN_PARENTHESIS))
         {
@@ -227,23 +226,26 @@ expr(PARSER *p)
         fi = file(q);
         li = line(q);
         if (isExprSeqPending(p))
-            result = exprSeq(p);
-        else
-            result = 0;
-        rethrow(result,0);
-        rethrow(match(p,CLOSE_PARENTHESIS),0);
-        if (result != 0)
             {
+            result = exprSeq(p);
+            rethrow(result);
             file(result) = fi;
             line(result) = li;
             }
+        else
+            result = 0;
+
+
+        PUSH(result);
+        q = match(p,CLOSE_PARENTHESIS);
+        rethrowPop(q,1);
+        result = POP();
         }
     else if (isThrow(p->pending))
         return p->pending;
     else
         {
-        assureMemory("expr:throw",1000,(int *)0);
-        return throw(syntaxExceptionSymbol,
+        return throw(EmptyExpressionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
         }
@@ -282,8 +284,7 @@ match(PARSER *p,char *t)
             return p->pending;
         else
             {
-            assureMemory("match:throw",1000,(int *)0);
-            return throw(syntaxExceptionSymbol,
+            return throw(SyntaxExceptionSymbol,
                 "file %s,line %d: expecting %s, found %s instead",
                 SymbolTable[p->file],p->line,t,type(p->pending));
             }
@@ -312,13 +313,16 @@ check(PARSER *p,char *t)
         return type(p->pending) == t;
     }
 
-extern char *Home;
-
 static FILE *
 openScamFile(char *fileName)
     {
     char buffer[512];
     FILE *fp;
+
+    // null fileName means stdin
+
+    if (fileName == 0)
+        return stdin;
 
     //printf("looking for file in current directory\n");
 

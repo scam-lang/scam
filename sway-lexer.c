@@ -1,7 +1,10 @@
-/*  
- *  the Sway lexical analyzer 
+
+/*
+ *  Main Author : John C. Lusth
+ *  Added Header : Jeffrey Robinson
+ *  Last Edit : May 4, 2014
  *
- *  written by John C. Lusth
+ *  the Sway lexical analyzer 
  *
  *  Fine, old-world hand craftsmanship!
  *  (we don't need no stinking lex!)
@@ -14,21 +17,15 @@
 #include <ctype.h>
 #include <assert.h>
 
+#include "lexer.h"
 #include "cell.h"
 #include "types.h"
-#include "parser.h"
 #include "env.h"
 #include "util.h"
 
-extern char *symbolStop;
-extern void unread(int,PARSER *);
-extern int getNextCharacter(PARSER *);
-
 static int swaySkipWhiteSpace(PARSER *);
 
-extern int lexNumber(PARSER *,char);
-extern int lexSymbol(PARSER *,char);
-extern int lexString(PARSER *);
+char *symbolStop;
 
 int
 swayLex(PARSER *p) 
@@ -41,7 +38,7 @@ swayLex(PARSER *p)
 
     if (ch == EOF || strchr(symbolStop,ch) != 0) /* single character tokens */ 
         {
-        int result;
+        int result = 0;
 
         switch(ch) 
             { 
@@ -55,7 +52,7 @@ swayLex(PARSER *p)
                 result = newPunctuation(CLOSE_PARENTHESIS);
                 break;
             case '[': 
-                result = openBracketSymbol;
+                result = OpenBracketSymbol;
                 break;
             case ']': 
                 result = newPunctuation(CLOSE_BRACKET);
@@ -88,12 +85,11 @@ swayLex(PARSER *p)
         return lexString(p); 
     else if (isprint(ch))
         {
-        return lexSymbol(p,ch);
+        return LexSymbol(p,ch);
         }
     else 
         {
-        assureMemory("lex:unknown",1000,(int *)0);
-        return throw(lexicalExceptionSymbol,
+        return throw(LexicalExceptionSymbol,
             "file %s,line %d: unexpected character (%d)\n",
             SymbolTable[p->file],p->line,ch);
         }
