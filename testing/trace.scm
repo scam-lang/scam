@@ -1,0 +1,37 @@
+(define (trace f)
+    (define (traceBlock # $b)
+        (define actions (cdr $b))
+        (inspect actions)
+        (define last nil)
+        (define act)
+        (while (valid? actions)
+            (set! act (car actions))
+            (println (fileName act) ", line " (lineNumber act) ": " act)
+            (set! last (eval act #))
+            (set! actions (cdr actions))
+            )
+        last
+        )
+    (set* f 'code (list traceBlock (get* f 'code)))
+    (pp f)
+    )
+
+(define (f x)
+    (define result x)
+    (define y 0)
+    (+= result x)
+    (if (> x 0)
+        (begin
+            (define i 42)
+            (g)
+            )
+        )
+    result
+    )
+
+(define (g)
+    (println "in g...")
+    )
+
+(trace f)
+(println "f(5) is " (f 5))

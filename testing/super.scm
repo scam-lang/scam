@@ -1,0 +1,30 @@
+function grandparent(phrase)
+    {
+    function a() { phrase + b(); }
+    function b() { "world"; }
+    this;
+    }
+function parent(phrase)
+    {
+    function b() { "goodbye"; }
+    proxy(grandparent(phrase));
+    }
+function child(phrase)
+    {
+    function b() { "there"; }
+    function c()
+        {
+	phrase + b . prior();
+	}
+    function d()
+        {
+	phrase + b . prior . prior();
+	}
+    proxy(parent(phrase));
+    }
+
+var obj = child("hello, ");
+
+println(obj . a());
+println(obj . c());
+println(obj . d());

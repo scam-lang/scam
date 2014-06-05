@@ -1,0 +1,18 @@
+(define (f)
+    (+ (g) 0)
+    )
+
+(define (g)
+    (define error)
+    (set! error (catch (h)))
+    (println "rethrowing error")
+    (throw error)
+    )
+
+(define (h)
+    (throw 'ouch "hey!")
+    2
+    )
+
+(+ (f) 0)
+'ok

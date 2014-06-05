@@ -1,0 +1,19 @@
+for s in $*
+    do
+    if [ -a $1 ]
+        then
+        sed -i -e "/$1/d" goldlist
+        echo $1  >> goldlist
+    	echo $1
+    	cat $1 | expand > gold/$1.gold
+    	echo "------------------------------------------" >> gold/$1.gold
+    	if test -e $1.run; then
+    	    scam2 `cat $1.run` $1 2>&1 | cat >> gold/$1.gold;
+    	else
+    	    scam2 $1 2>&1 | cat >> gold/$1.gold
+
+        fi
+        svn add gold/$1.gold
+    fi
+	shift
+    done

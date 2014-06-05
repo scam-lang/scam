@@ -1,0 +1,97 @@
+(define key 0)
+(define left 1)
+(define right 2)
+
+(define (node key left right) this)
+
+(define (printTree t)
+    (if (null? t)
+        (print "()")
+        (begin
+            (print "(" (t 'key) " ")
+            (printTree (t 'left))
+            (print " ")
+            (printTree (t 'right))
+            (print ")")
+            )
+        )
+    )
+
+(define insert
+    (lambda (t v)
+        (cond
+            ((null? t)
+                (set!  t  (node nil nil nil))
+                (set* t 'key v)
+                )
+            ((< v (t 'key))
+                (set* t 'left (insert (t 'left) v))
+                )
+            (else
+                (set* t 'right (insert (t 'right) v))
+                )
+            )
+        t
+        )
+    )
+
+(define find 
+    (lambda (t v)
+        (cond
+            ((or (null? t) (eq? v (t 'key)))
+                t
+                )
+            ((< v (t 'key))
+                (find (t 'left) v)
+                )
+            (else
+                (find (t 'right) v)
+                )
+            )
+        )
+    )
+
+(define (lookup t i)
+    (define result (find t i))
+    (cond
+        ((null? result)
+            "not found!"
+            )
+        ((and (null? (result 'left)) (null? (result 'right)))
+            "it's a leaf!"
+            )
+        (else
+            "it's an interior node!"
+            )
+        )
+    )
+
+(define (main)
+    (define i)
+    (define num nil)
+    (define input (array 2  3 1))
+    (define search (array 4  2  1))
+    (define t nil)
+
+    (set! i 0)
+    (while (< i (length input))
+        (set! num (getElement input i))
+        (print "inserting " num "\n")
+        (set! t (insert t num))
+        (++ i)
+        )
+    
+    (print "insertion phase complete, tree is ")
+    (printTree t)
+    (print ".\n")
+
+    (set! i 0)
+    (while (< i (length search))
+        (set! num (getElement search i))
+        (print "looking for "  num  ": "  (lookup t num) "\n")
+        (++ i)
+        )
+    (print "good-bye!\n")
+    )
+
+(main)

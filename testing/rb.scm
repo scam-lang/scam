@@ -1,0 +1,351 @@
+(define root nil)
+(define (assert # $x)
+    (if (not (eval $x #))
+        (throw 'assertionError $x)
+        )
+    )
+
+(define (node value left right)
+    (define parent nil)
+    (define color nil)
+
+    (define (display)
+        (println "value:  "  value)
+        (println "left:   "  left)
+        (println "right:  "  right)
+        (println "parent: "  parent)
+        (println "color:  "  color)
+        )
+
+    this
+    )
+
+(define (printTree t)
+    (define (iter r indent)
+        (if (null? r)
+            (println "null")
+            (begin
+                (println (. r value)  "("  (. r color)  ")")
+                (print indent "left:  ")
+                (iter (. r left) (string+ indent "    "))
+                (print indent  "right: ")
+                (iter (. r right) (string+ indent "    "))
+                )
+            )
+        )
+
+    (iter t "   ")
+    )
+
+(define (insert t v op)
+    (if (null? t)
+        (begin
+            (assign root (node v nil nil))
+            (assign (. root parent) root)
+            (insertionFixup root)
+            )
+        (begin
+            (define lessThan (op v (. t value)))
+
+            (cond
+                ((and lessThan (valid? (. t left)))
+                    (insert (. t left)  v  op)
+                    )
+                (lessThan
+                    (assign (. t left) (node v nil nil))
+                    (assign (. (. t left) parent) t)
+                    (insertionFixup (. t left))
+                    )
+                ((valid? (. t right))
+                    (insert (. t right)  v  op)
+                    )
+                (else
+                    (assign (. t right) (node v nil nil))
+                    (assign (. (. t right) parent) t)
+                    (insertionFixup (. t right))
+                    )
+                )
+            )
+        )
+    )
+(define (prune x)
+    (assert (leaf? x))
+    (cond
+        ((leftChild? x)
+            (assign (. (parent x) left) nil)
+            )
+        ((rightChild? x)
+            (assign (. (parent x) right) nil)
+            )
+        (else
+            (assign root nil)
+            )
+        )
+    )
+
+(define (swapToLeaf x)
+    (if (not (leaf? x))
+        (begin
+            (define y nil)
+            (define temp nil)
+
+            (if (valid? (. x right))
+                (assign y (findMin (. x right)))
+                (assign y (findMax (. x left)))
+                )
+
+            (assign temp (. x value))
+            (assign (. x value) (. y value))
+            (assign (. y value) temp)
+
+            (swapToLeaf y)
+            )
+        x
+        )
+    )
+
+(define (findMin x)
+    (while (valid? (. x left))
+        (assign x (. x left))
+        )
+    x
+    )
+
+(define (findMax x)
+    (while (valid? (. x right))
+        (assign x (. x right))
+        )
+    x
+    )
+
+(define (delete x)
+    (assign x (swapToLeaf x))
+    (deletionFixup x)
+    ; (println "pruning "  (. x value))
+    (prune x)
+    )
+
+(define (deletionFixup x)
+    (while (and (false? (root? x)) (eq? (. x color) 'black))
+        (cond
+            ((red? (sibling x))
+                (assign (. (parent x) color) 'red)
+                (assign (. (sibling x) color) 'black)
+                (rotate (sibling x) (parent x))
+                ; should have black sibling now
+                (assert (eq? (. (sibling x) color) 'black))
+                )
+            ((red? (nephew x))
+                (assign (. (sibling x) color) (. (parent x) color))
+                (assign (. (parent x) color) 'black)
+                (assign (. (nephew x) color) 'black)
+                (rotate (sibling x) (parent x))
+                (assign x root)
+                ; subtree is bh balanced
+                ; with proper bh contribution
+                )
+            ((red? (niece x))
+                ; nephew must be black
+                (assign (. (niece x) color) 'black)
+                (assign (. (sibling x) color) 'red)
+                (rotate (niece x) (sibling x))
+                ; should have red nephew now
+                (assert (eq? (. (nephew x) color) 'red))
+                )
+            (else
+                ; sibling  niece  and nephew must be black
+                (assign (. (sibling x) color) 'red)
+                (assign x (parent x))
+                ; subtree is bh balanced
+                ; but has deficit in bh contribution
+                )
+            )
+
+        (assign (. x color) 'black)
+        )
+    )
+
+(define (insertionFixup x)
+    (assign (. x color) 'red)
+
+    (while (and (not (root? x)) (eq? (. (. x parent) color) 'red))
+        (if (red? (uncle x))
+            (begin
+                (assign (. (parent x) color) 'black)
+                (assign (. (uncle x) color) 'black)
+                (assign (. (grandparent x) color) 'red)
+                (assign x (grandparent x))
+                )
+            (begin
+                ; uncle must be black
+
+                (if (not (linear? x (parent x) (grandparent x)))
+                    (begin
+                        (define oldParent (parent x))
+                        (rotate x (parent x))
+                        (assign x oldParent)
+                        )
+                    )
+
+                (assign (. (parent x) color) 'black)
+                ;(inspect (. (parent x) color))
+                (assert (eq? (. (. x parent) color) 'black))
+                (assign (. (grandparent x) color) 'red)
+                (rotate (parent x) (grandparent x))
+                )
+            )
+        )
+    (assign (. root color) 'black)
+    )
+
+(define (root? x) (eq? x (. x parent)))
+(define (leftChild? x) (eq? (. (parent x) left) x))
+(define (rightChild? x) (eq? (. (parent x) right) x))
+(define (leaf? x) (and (null? (. x left))(null? (. x right))))
+(define (red? x) (and (valid? x) (eq? (. x color) 'red)))
+(define (black? x) (or  (null? x) (eq? (. x color) 'black)))
+
+(define (sibling x)
+    (cond
+        ((leftChild? x)
+            (. (. x parent) right)
+            )
+        ((rightChild? x)
+            (. (. x parent) left)
+            )
+        (else
+            nil
+            )
+        )
+    )
+
+(define (niece x)       ; precondition: sibling exists
+    (if (leftChild? x)
+        (. (sibling x) left)
+        (. (sibling x) right)
+        )
+    )
+
+(define (nephew x)      ; precondition: sibling exists
+    ;(inspect (sibling x))
+    (if (leftChild? x)
+        (. (sibling x) right)
+        (. (sibling x) left)
+        )
+    )
+
+(define (parent x) (. x parent))
+(define (grandparent x) (parent (parent x)))
+(define (uncle x)
+    (cond
+        ((leftChild? (parent x))
+            (. (grandparent x) right))
+        ((rightChild? (parent x))
+            (. (grandparent x) left))
+        (else
+            nil)
+        )
+    )
+
+(define (linear? x y z)
+    (or
+        (and (leftChild? x) (leftChild? y))
+        (and (rightChild? x) (rightChild? y))
+        )
+    )
+
+(define (rotate x p)
+    (cond
+        ((eq? (. p left) x) 
+            ; rotate right
+            (println "rotating right")
+            (rotator x p 'right 'left)
+            )
+        ((eq? (. p right) x)
+            ; rotate left
+            (println "rotating left")
+            (rotator x p 'left 'right)
+            )
+        (else
+            (throw 'redBlackException "rotate error")
+            )
+        )
+    )
+
+(define (id x) x)
+
+(define (rotator x p direction oppositeDirection)
+    (define gp (parent p))
+    (define beta (. x (id direction)))
+
+    (assign (. p (id oppositeDirection)) beta)
+    (if (valid? beta) (assign (. beta parent) p))
+
+    (assign (. x (id direction)) p)
+    (assign (. p parent) x)
+
+    (if (eq? p gp)
+        (begin
+            (assign root x)
+            (assign (. x parent) x)
+            )
+        (begin
+            (if (eq? (. gp (id direction)) p)
+                (assign (. gp (id direction)) x)
+                (assign (. gp (id oppositeDirection)) x)
+                )
+            (assign (. x parent) gp)
+            )
+        )
+    )
+
+(define (findNode t v op)
+    (cond
+        ((or (null? t) (eq? v (. t value)))
+            t
+            )
+        ((op v (. t value))
+            (findNode (. t left) v op)
+            )
+        (else
+            (findNode (. t right) v op)
+            )
+        )
+    )
+
+(define (main)
+    (define i nil)
+    (define num nil)
+    (define x nil)
+    (define input (array 1  2  9  3  6  4  7  8  5))
+
+    (assign i 0)
+    (while (< i (length input))
+        (assign num (getElement input i))
+        (println "inserting!")
+        (insert root num <)
+        (println num " inserted.")
+        (printTree root)
+        (assign i (+ i 1))
+        )
+    
+    (println "insertion phase complete  tree is...")
+    (printTree root)
+    (println "deletion phase begins...")
+
+    (assign i 0)
+    (while (< i (length input))
+        (assign num (getElement input i))
+        (assign x (findNode root num <))
+        (delete x)
+        (println num " deleted.")
+        (printTree root)
+        (assign i (+ i 1))
+        )
+
+    (println "deletion phase complete  tree is...")
+    (println "good-bye!")
+    )
+
+(println "hello");
+(main)

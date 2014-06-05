@@ -1,0 +1,35 @@
+(define x 0)
+(define built-in (get '__context (get '__context this)))
+
+(define (if # test $tBranch $)
+    (define old-if (get 'if built-in))
+    (old-if (> (length $) 1)
+        (throw 'argumentCountError "too many arguments to new if")
+        )
+
+    (println "the test is " test)
+    (pass old-if # test $tBranch $)
+    )
+
+(println "call a chain of ifs...")
+(while (< x 4)
+    (inspect x)
+    (if (= x 0)
+        (println "naughts!")
+        (if (= x 1)
+            (println "onesies!")
+            (if (= x 2)
+                (println "binary!")
+                (if (= x 3)
+                    (println "trinary!")
+                    (println "huh?")
+                    )
+                )
+            )
+        )
+    (set! x (+ x 1))
+    )
+
+(println "call if with too many arguments...");
+
+(if #t 1 1 1)

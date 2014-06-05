@@ -1,0 +1,6 @@
+(println "catching a call to 1 as if it were a function...")
+(define e (catch (1 3)))
+(inspect (car e))
+(inspect (e'__label))
+(inspect (e'code))
+(println (e'value))

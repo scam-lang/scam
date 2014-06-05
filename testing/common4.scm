@@ -1,0 +1,32 @@
+(include "inherit.lib")
+
+(define (helper) (println "oops!"))
+(define common 3)
+
+(define z
+    (scope
+        (define common 0)
+        (define (helper) (println "oopsy!"))
+
+        (define (z)
+            (define parent nil)
+            (define uncommon 0)
+            (define (getCommon) (helper) common)
+            (assign common (+ common 1))
+            (assign uncommon (+ uncommon 1))
+            this
+            )
+        )
+    )
+
+(define (x)
+    (define parent (z))
+    ;(define parent nil)
+    (define common 4)
+    (define (helper) (println "help!"))
+    this
+    )
+
+(inspect ((. (new (x)) getCommon)))
+(inspect (. (new (x)) uncommon))
+(inspect ((. (new (x)) getCommon)))

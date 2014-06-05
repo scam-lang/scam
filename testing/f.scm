@@ -1,0 +1,18 @@
+(include "g.scm")
+
+(define (f n)
+    (define result)
+    (if (< n 2)
+        (set 'result 1)
+        (begin
+            (define rest (f (- n 1)))
+            (set! result (* n rest))
+            )
+        )
+    result
+    )
+
+(define x 10)
+
+(print "f(" x ") is " (f x) "\n")
+(print "g(" x ") is " (g x) "\n")

@@ -1,0 +1,94 @@
+(define (tree)
+    (define key nil)
+    (define left nil)
+    (define right nil)
+    (define (insert v)
+	    (cond 
+            ((null? key)
+                (set! key v)
+                )
+            ((and (< v key) (valid? left))
+                ((left 'insert) v)
+                )
+            ((< v key)
+                (set! left (tree))
+                ((left 'insert) v)
+                )
+            ((valid? right)
+                ((right 'insert) v)
+                )
+            (else
+                (set! right (tree))
+                ((right 'insert) v)
+                )
+            )
+        )
+
+    (define (find v)
+        (cond
+            ((null? key)
+                this
+                )
+            ((eq? v key)
+                this
+                )
+            ((and (< v key) (valid? left))
+                ((left 'find) v)
+                )
+            ((< v key)
+                nil
+                )
+            ((valid? right)
+                ((right 'find) v)
+                )
+            (else
+                nil
+                )
+            )
+        )
+    this
+    )
+
+(define (lookup t i)
+    (define result ((t 'find) i))
+    (cond
+        ((null? result)
+            "not found!"
+            )
+        ((null? (t 'key))
+            "empty tree";
+            )
+        ((and (null? (result 'left)) (null? (result 'right)))
+            "it's a leaf!";
+            )
+        (else
+            "it's an interior node!";
+            )
+        )
+    )
+
+(define (main)
+    (define i)
+    (define num nil)
+    (define input (array 2  3 1))
+    (define search (array 4  2  1))
+    (define t (tree))
+
+    (set! i 0)
+    (while (< i (length input))
+        (set! num (getElement input i))
+        (print "inserting " num "\n")
+        ((t 'insert) num)
+        (++ i)
+        )
+    
+    (set! i 0)
+    (while (< i (length search))
+        (set! num (getElement search i))
+        (print "looking for "  num  ": "  (lookup t num) "\n")
+        (++ i)
+        )
+    (print "good-bye!\n")
+    )
+
+(main)

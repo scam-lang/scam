@@ -1,0 +1,20 @@
+echo OLD vs. NEW > differences
+echo "CREATING TEST CASES"
+for s in $*
+    do
+	echo $s
+	cat $s | expand > test/$s.test
+	echo "------------------------------------------" >> test/$s.test
+	if test -e $s.run; then
+	    scam2 `cat $s.run` $s 2>&1 | expand >> test/$s.test;
+	else
+	    scam2 $s 2>&1 | expand >> test/$s.test
+	echo $s >> differences
+	echo "------------------------------------------" >> differences
+	expand gold/$s.gold > junk
+	diff junk test/$s.test >> differences
+	echo "------------------------------------------" >> differences
+	diff junk test/$s.test 
+	fi
+    done
+return 0

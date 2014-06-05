@@ -1,0 +1,28 @@
+; overload readInt to get rid of interactivity
+(define count 0)
+(define (readInt)
+    (define temp count)
+    (set! count (+ 1 count))
+    temp
+    )
+
+(define (run)
+    (println "enter 0, 1, or 2: ")
+    (define x (readInt))
+    (println "you entered " x)
+    (if (= x 0)
+        (print "that's a zero\n")
+        (if (= x 1)
+            (print "that's a one\n")
+            (if (= x 2)
+                (print "that's a two\n")
+                (print "can't follow directions, can you?\n")
+                )
+            )
+        )
+    )
+
+(run)
+(run)
+(run)
+(run)

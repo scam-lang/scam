@@ -1,0 +1,22 @@
+(define i 10)
+
+(define (for2 # init $test  $increment  $)
+    (while (eval $test #)
+        (evalList $ #)
+        (eval $increment #)
+        )
+    )
+
+(println "counting up to 10 by 2...")
+(for (set! i 0) (< i 10) (set! i (+ i 2))
+        (print "the value of i is ")
+        (print i)
+        (print "\n")
+    )
+
+(println "counting down to 0...")
+(for2 (set! i 9) (>= i 0) (set! i (- i 1)) 
+        (print "the value of i is ")
+        (print i)
+        (print "\n")
+    )

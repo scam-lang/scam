@@ -1,0 +1,14 @@
+var + = function(a,b)
+    {
+    var t = context . context . +;
+    print("in overridden +\n");
+    return a t b;
+    };
+
+var main = function ()
+   {
+   print(1 + 2, "\n");
+   print("hello, world\n");
+   };
+
+main();
