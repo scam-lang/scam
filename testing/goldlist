@@ -19,7 +19,6 @@ for.scm
 f.scm
 g.scm
 function.scm
-gc.scm
 heapsort.scm
 hook2.scm
 if.scm
@@ -27,3 +26,4 @@ if2.scm
 if3.scm
 if4.scm
 jeff1.scm
+gc.scm

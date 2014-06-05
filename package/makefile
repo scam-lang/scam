@@ -1,8 +1,8 @@
 ver = `grep "VERSION =" ../scam.c | sed "s/.* \"//" | sed "s/\";//"`
 SERVER = beastie.cs.ua.edu
-#arch = i386
-#arch = OSX
+arch = OSX
 arch = amd64
+arch = i386
 base = scam-$(ver)-$(arch)
 
 deb	: 

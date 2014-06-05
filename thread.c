@@ -98,7 +98,7 @@ threadingInit()
         ThreadQueue[i].tid = -1;
 
         /* Default each thread */
-        Thread[i] = -1;
+        Thread[i] = 0; //was Thread[i] = -1;
         i++;
         }
 

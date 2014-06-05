@@ -16,8 +16,8 @@ clean:
 
 jeff:
 	@touch main.lib
-	@scam2 jeff1.scm > output/out1
-	@scam2 jeff2.scm > output/out2
-	@scam2 jeff3.scm > output/out3
-	@scam2 jeff4.scm > output/out4
+	@scam jeff1.scm > output/out1
+	@scam jeff2.scm > output/out2
+	@scam jeff3.scm > output/out3
+	@scam jeff4.scm > output/out4
 	@rm main.lib
