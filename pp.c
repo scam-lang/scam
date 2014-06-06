@@ -18,6 +18,8 @@
 int ppActual = 1;
 int ppQuoting = 0;
 
+static void ppLevel(FILE *,int,int);
+
 #ifdef HI
 
 #define cfprintf(fp,str,value,spot) \
@@ -57,7 +59,7 @@ int ppQuoting = 0;
 
 #endif
 
-void
+static void
 ppList(FILE *fp,char *open,int items,char *close,int mode)
     {
     cfprintf(fp,"%s",open,items);
@@ -82,7 +84,7 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
     cfprintf(fp,"%s",close,items);
     }
 
-void
+static void
 ppArray(FILE *fp,char *open,int items,char *close,int mode)
     {
     int size = count(items);
@@ -100,7 +102,7 @@ ppArray(FILE *fp,char *open,int items,char *close,int mode)
     cfprintf(fp,"%s",close,items);
     }
 
-void
+static void
 ppObject(FILE *fp,int expr,int mode)
     {
     int address;
@@ -197,7 +199,8 @@ ppTable(FILE *fp,int expr,int mode)
         }
     }
         
-void ppCons(FILE *fp,int expr,int mode)
+static void
+ppCons(FILE *fp,int expr,int mode)
     {
     int old = ppQuoting;
 
@@ -210,7 +213,7 @@ void ppCons(FILE *fp,int expr,int mode)
     ppQuoting = old;
     }
 
-void
+static void
 ppString(FILE *fp,int expr,int mode)
     {
     int size = count(expr);
@@ -230,7 +233,7 @@ scamPP(FILE *fp,int expr)
     ppLevel(fp,expr,0);
     }
 
-void
+static void
 ppLevel(FILE *fp,int expr,int mode)
     {
     if (expr == 0)

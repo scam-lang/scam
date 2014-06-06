@@ -1915,7 +1915,10 @@ stopAndCopy(void)
             {
             printf("%s,%d: updating: %d ",
                 __FILE__,__LINE__,StackSpot[i] - j -1);
-            ppLevel(stdout,Stack[i][j],0);
+            if (Syntax == SWAY)
+                scamPP(stdout,Stack[i][j],0);
+            else
+                scamPP(stdout,Stack[i][j],0);
             printf("\n");
             }
         }

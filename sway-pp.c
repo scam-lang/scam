@@ -8,708 +8,324 @@
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <assert.h>
-#include "cell.h"
+
+#include "scam.h"
 #include "types.h"
-#include "parser.h"
-#include "eval.h"
-#include "env.h"
-#include "pp.h"
-#include "prim.h"
+#include "cell.h"   /* include util.h, thread.h */
+#include "env.h"    /* includes pp.h */
+
+int ppActual = 1;
+int ppQuoting = 0;
+
+#ifdef HI
+
+#define cfprintf(fp,str,value,spot) \
+    do \
+        { \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_START); \
+        fprintf(fp,str,value); \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_END); \
+        } \
+    while (0)
+
+#define Cfprintf(fp,str,spot) \
+    do \
+        { \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_START); \
+        fprintf(fp,str); \
+        if (status(spot) == MARKED) fprintf(fp,COLOR_END); \
+        } \
+    while (0)
+#else
+
+
+
+#define cfprintf(fp,str,value,spot) \
+    do \
+        { \
+        fprintf(fp,str,value); \
+        } \
+    while (0)
+
+#define Cfprintf(fp,str,spot) \
+    do \
+        { \
+        fprintf(fp,str); \
+        } \
+    while (0)
+
+#endif
 
 void
-swayPP(FILE *fp,int expr)
+ppList(FILE *fp,char *open,int items,char *close,int mode)
     {
-    swayPPLevel(fp,expr,0);
-    }
-
-void
-swayPPLevel(FILE *fp,int expr,int mode)
-    {
-    printf("in swayPPLevel...\n");
-    if (expr == 0)
-        ; //fprintf(fp,"nil");
-    else if (type(expr) == INTEGER)
-        fprintf(fp,"%d",ival(expr));
-    else if (type(expr) == REAL)
-        fprintf(fp,"%f",rval(expr));
-    else if (type(expr) == STRING)
-        ppString(fp,expr,mode);
-    else if (type(expr) == SYMBOL)
-        fprintf(fp,"%s",SymbolTable[ival(expr)]);
-    /*
-    else if (type(expr) == ARRAY)
-        ppArray(fp,"[",expr,"]",mode);
-    else if (type(expr) != CONS)
-        fprintf(fp,"%s",type(expr));
-    else if (sameSymbol(expr,beginSymbol))
-        ppBlock(fp,expr,mode);
-    else if (sameSymbol(expr,defineSymbol))
-        ppDefine(fp,expr,mode);
-    else if (sameSymbol(expr,fillerSymbol)) // xcall
-        ppXCall(fp,expr,mode);
-    else
-    */
-        printf("%s",type(expr));
-    }
-/*
-        ppBlock(t);
-    else if (type(t) == VARIABLE_DEFINITION_LIST)
-        ppVarDefList(t);
-    else if (type(t) == VARIABLE_DEFINITION)
-        ppVarDef(t);
-    else if (type(t) == STATEMENT)
-        ppStatement(t);
-    else if (type(t) == CALL || type(t) == XCALL)
-        ppCall(t);
-    else if (type(t) == BINARY)
-        ppBinary(t);
-    else if (type(t) == PARENTHESIZED_EXPR)
-        ppParenthesizedExpr(t);
-    else if (type(t) == PRIMITIVE)
+    cfprintf(fp,"%s",open,items);
+    while (items != 0)
         {
-        ppPutString("<function ");
-        ppPutString(primitives[ival(car(t))].name);
-        if (cdr(t))
-            pp(cdr(t));
-        else
-            ppPutString("()");
-        ppPutString(">");
-        }
-    else if (type(t) == UNINITIALIZED) 
-        ppPutString(UNINITIALIZED);
-    else if (type(t) == ARRAY)
-        ppArray(t);
-    else if (type(t) == JOIN)
-        ppJoin(t);
-    else if (type(t) == CLOSURE && (ppFlags & ppOBJECT))
-        ppEnv(t);
-    else if (type(t) == CLOSURE)
-        ppClosure(t);
-    else if (type(t) == THUNK)
-        ppEnv(t);
-    else if (type(t) == ERROR)
-        ppEnv(t);
-    else if (type(t) == THROW)
-        ppEnv(t);
-    else if (type(t) == ENV)
-        ppEnv(t);
-    else if (type(t) == GONE)
-        {
-        ppPutString("<GONE ");
-        ppPutInt(cdr(t));
-        ppPutString(">");
-        }
-    else
-        {
-        ppPutString("<");
-        //printf("type(t) is  %s\n",type(t));
-        ppPutString(type(t));
-        ppPutString(" ");
-        ppPutInt(t);
-        ppPutString(">");
-        }
-    }
-
-static void
-ppString(int t)
-    {
-    if (ppFlags & ppQUOTES)
-        {
-        ppPutString("\"");
-        ppPutString(cellString(0,0,t));
-        ppPutString("\"");
-        }
-    else
-        {
-        char *s = cellString(0,0,t);
-        while (*s != '\0')
+        ppLevel(fp,car(items),mode + 1);
+        items = cdr(items);
+        if (items)
             {
-            ppPutChar(*s);
-            ++s;
-            }
-        }
-    }
-
-static void
-ppSymbol(int t)
-    {
-    //printf("{SYMBOL %d}",t);
-    if (ppFlags & ppQUOTES)
-        ppPutString(":");
-    ppPutString(symbols[ival(t)]);
-    }
-
-static void
-ppParenthesizedExpr(int t)
-    {
-    ppPutString("(");
-    pp(car(t));
-    ppPutString(")");
-    }
-
-static void
-ppArray(int t)
-    {
-    //if (ppFlags & ppEXPAND)
-        //{
-        //ppFlags ^= ppEXPAND;
-        ppPutString("[");
-        ppCSV(t);
-        ppPutString("]");
-        //ppFlags ^= ppEXPAND;
-        //}
-    //else
-        //{
-        //ppPutString("<ARRAY ");
-        //ppPutInt(t);
-        //ppPutString(">");
-        //}
-    }
-
-static void
-ppJoin(int t)
-    {
-    //if (ppFlags & ppEXPAND)
-        //{
-        //ppFlags ^= ppEXPAND;
-        ppPutString("(");
-        while (type(t) == JOIN)
-            {
-            pp(car(t));
-            t = cdr(t);
-            if (type(t) == JOIN)
-               ppPutString(",");
-            }
-        if (t != 0)
-           {
-           ppPutString(" # ");
-           pp(t);
-           }
-
-        ppPutString(")");
-        //ppFlags ^= ppEXPAND;
-        //}
-    //else
-        //{
-        //ppPutString("<LIST ");
-        //ppPutInt(t);
-        //ppPutString(">");
-        //}
-    }
-
-static void
-ppClosure(int t)
-    {
-    if (ppFlags & ppEXPAND)
-        {
-        ppIndent = 0;
-        ppPutString("function ");
-        if (closure_name(t) != 0)
-            pp(closure_name(t));
-        ppPutString("(");
-        if (closure_parameters(t)) ppCSV(closure_parameters(t));
-        ppPutString(")");
-
-        ppPutString("\n");
-        ppIndent += 4;
-        pp(closure_body(t));
-        ppIndent -= 4;
-        }
-    else
-        {
-        ppPutString("<function ");
-        if (closure_name(t) != 0)
-            pp(closure_name(t));
-        if (closure_parameters(t))
-            pp(closure_parameters(t));
-        else
-            ppPutString("()");
-        ppPutString(">");
-        }
-    }
-
-static void
-ppBlock(int b)
-    {
-    ppPrintIndent();
-    ppPutString("{");
-    ppPutString("\n");
-
-    if (car(b) != 0) // non-empty block!
-        {
-        //printf("//body\n");
-        ppSeq(car(b));
-        }
-    //else
-        //printf("//empty body\n");
-
-    ppPrintIndent();
-    ppPutString("}");
-    if ((ppFlags & ppFLAT) == 0) 
-        ppPutString("\n");
-    }
-
-static void
-ppVarDefList(int  s)
-    {
-    ppPutString("var ");
-    while (s != 0)
-        {
-        pp(car(s));
-        s = cdr(s);
-        if (s != 0)
-            ppPutString(",");
-        }
-
-    ppPutString(";\n");
-    }
-
-static void
-ppVarDef(int def)
-    {
-    ppPutString("var ");
-    pp(def);
-    ppPutString(";");
-    }
-
-static void
-ppPrintIndent()
-    {
-    int i;
-    for (i = 0; i < ppIndent; ++i)
-        ppPutChar(' ');
-    }
-
-static void
-ppStatement(int  s)
-    {
-    ppPrintIndent();
-    pp(car(s));
-    if (type(car(s)) != XCALL)
-        {
-        ppPutString(";");
-        ppPutString("\n");
-        }
-    }
-
-void
-ppSeq(int  s)
-    {
-    int  statement;
-
-    while (s != 0)
-        {
-        statement = car(s);
-        if (type(statement) != STATEMENT)
-            ppPrintIndent();
-        pp(statement);
-        s = cdr(s);
-        }
-    }
-
-static void
-ppCall(int c)
-    {
-    int op,args;
-    int oldFlags;
-
-    op = car(c);
-    args = cdr(c);
-
-    if (isIdentifier(op,"return"))
-        {
-        pp(op);
-        ppPutString(" ");
-        ppCSV(args);
-        }
-    else if (isIdentifier(op,"var"))
-        {
-        pp(car(args));
-        if (cdr(args) != 0 && !isSymbol(cadr(args),UNINITIALIZED))
-            {
-            ppPutString(" = ");
-            pp(cadr(args));
-            }
-        }
-    else if (isIdentifier(op,"lambda"))
-        {
-        if (ppFlags & ppOBJECT)
-            ppEnv(c);
-        else 
-            {
-            ppPutString("function (");
-            if (car(args)) ppCSV(car(args));
-            ppPutString(") ");
-            oldFlags = ppFlags;
-            ppFlags |= ppFLAT;
-            if ((oldFlags & ppFLAT) == 0) ppFlatLimit = 10000;
-            pp(cadr(args));
-            ppFlags = oldFlags;
-            }
-        }
-    else if (isIdentifier(op,"function"))
-        {
-        ppPutString("function ");
-        pp(car(args));
-        ppPutString("(");
-        if (cadr(args)) ppCSV(cadr(args));
-        ppPutString(")");
-        oldFlags = ppFlags;
-        ppFlags |= ppQUOTES;
-
-        ppPutString("\n");
-        ppIndent += 4;
-        pp(caddr(args));
-        ppIndent -= 4;
-
-        ppFlags = oldFlags;
-        }
-    else
-        {
-        pp(op);
-        if (type(c) == XCALL )
-            ppPutString(" ");
-        ppPutString("(");
-        if (type(c) == CALL)
-            {
-            ppCSV(args);
-            ppPutString(")");
-            }
-        else
-            {
-            ppXArgs(args);
-            }
-        }
-    }
-
-void
-ppCSV(int  args)
-    {
-    int i = 0;
-    while (args != 0)
-        {
-        if (car(args) != 0 && type(car(args)) == BLOCK)
-            {
-            ppPutString("\n");
-            ppIndent += 4;
-            }
-        if (car(args) == 0)
-            ppPutString(NULLPTR);
-        else
-            pp(car(args));
-        if (car(args) != 0 && type(car(args)) == BLOCK)
-            ppIndent -= 4;
-        args = cdr(args);
-        if (args != 0)
-            ppPutString(",");
-        ++i;
-        }
-    }
-
-static int
-blockish(int item)
-    {
-    return type(item) == BLOCK || type(item) == NAKED_BLOCK;
-    }
-
-void
-ppXArgs(int  args)
-    {
-    int firstTime = 1;
-
-    while (args != 0)
-        {
-        if (cdr(args) != 0        //one extended argument
-        &&  cddr(args) == 0
-        &&  blockish(car(args)))
-            {
-            ppPutString(")");
-            ppPutString("\n");
-            ppIndent += 4;
-            pp(car(args));
-            ppIndent -= 4;
-            ppPrintIndent();
-            if (ppFlags & ppFLAT) ppPutString(" ");
-            ppPutString("else");
-
-            if (blockish(cadr(args)))
+            if (type(items) == CONS)
                 {
-                ppPutString("\n");
-                ppIndent += 4;
-                pp(cadr(args));
-                ppIndent -= 4;
+                fprintf(fp," ");
                 }
             else
                 {
-                ppPutString(" ");
-                pp(cadr(args));
+                Cfprintf(fp," . ",items);
+                ppLevel(fp,items,mode + 1);
+                break;
                 }
-            args = cdr(args);
             }
-        else if (cdr(args) == 0 && blockish(car(args)))
+        }
+    cfprintf(fp,"%s",close,items);
+    }
+
+void
+ppArray(FILE *fp,char *open,int items,char *close,int mode)
+    {
+    int size = count(items);
+    cfprintf(fp,"%s",open,items);
+    while (size != 0)
+        {
+        ppLevel(fp,car(items),mode + 1);
+        if (cdr(items) != 0)
             {
-            ppPutString(")"); 
-            ppPutString("\n");
-            ppIndent += 4;
-            pp(car(args));
-            ppIndent -= 4;
+            fprintf(fp," ");
             }
-        else if (firstTime)
+        ++items;
+        --size;
+        }
+    cfprintf(fp,"%s",close,items);
+    }
+
+void
+ppObject(FILE *fp,int expr,int mode)
+    {
+    int address;
+    if (Debugging)
+        address = 0;
+    else
+        address = expr;
+
+    if (SameSymbol(object_label(expr),ThunkSymbol))
+        {
+        cfprintf(fp,"<thunk %d>",address,expr);
+        }
+    else if (SameSymbol(object_label(expr),ErrorSymbol))
+        {
+        Cfprintf(fp,"<error ",expr);
+        ppLevel(fp,error_code(expr),mode+1);
+        cfprintf(fp," %d>",address,expr);
+        }
+    else if (SameSymbol(object_label(expr),BuiltInSymbol))
+        {
+        if (ppActual)
             {
-            firstTime = 0;
-            pp(car(args));
+            Cfprintf(fp,"<builtIn ",expr);
+            ppLevel(fp,closure_name(expr),mode+1);
+            ppList(fp,"(",closure_parameters(expr),")",mode);
+            Cfprintf(fp,">",expr);
             }
         else
-            {
-            ppPutString( ", ");
-            pp(car(args));
-            }
-
-        args = cdr(args);
+            ppLevel(fp,closure_name(expr),mode+1);
         }
-    }
-
-static void
-ppBinary(int b)
-    {
-    int left,op,right;
-
-    op = car(b);
-    left = cadr(b);
-    right = caddr(b);
-
-    if (isIdentifier(op,OPEN_BRACKET))
+    else if (SameSymbol(object_label(expr),ClosureSymbol))
         {
-        pp(left);
-        ppPutString("[");
-        pp(right);
-        ppPutString("]");
+        if (ppActual)
+            {
+            Cfprintf(fp,"<function ",expr);
+            ppLevel(fp,closure_name(expr),mode+1);
+            ppList(fp,"(",closure_parameters(expr),")",mode);
+            Cfprintf(fp,">",expr);
+            }
+        else
+            ppLevel(fp,closure_name(expr),mode+1);
+        }
+    else if (env_constructor(expr) == 0)
+        {
+        cfprintf(fp,"<environment %d>",address,expr);
         }
     else
         {
-        pp(left);
-        ppPutString(" ");
-        pp(op);
-        ppPutString(" ");
-        pp(right);
+        Cfprintf(fp,"<object ",expr);
+        ppLevel(fp,closure_name(env_constructor(expr)),mode+1);
+        cfprintf(fp," %d>",address,expr);
         }
     }
 
 void
-ppEnv(int obj)
+ppTable(FILE *fp,int expr,int mode)
     {
-    if (type(obj) == CLOSURE)
+    if (!isObject(expr))
         {
-        int old = ppFlags;
-        ppFlags &= ~ppEXPAND;
-        ppClosure(obj);
-        ppFlags = old;
-        }
-    else
-        {
-        ppPutString("<");
-        ppPutString(type(obj));
-        ppPutString(" ");
-        ppPutInt(obj);
-        ppPutString(">");
-        }
-
-    if (ppFlags & ppEXPAND)
-        {
-        int vars,vals;
-        int oldFlags;
-
-        oldFlags = ppFlags;
-
-        ppFlags &= ~ppEXPAND;
-
-        ppPutString(":\n");
-
-        vars = car(obj);
-        vals = cadr(obj);
-        while (vars != 0)
-            {
-            ppPutString("    ");
-            pp(car(vars));
-            ppPutString(": ");
-
-            ppFlags |= ppQUOTES;
-
-            ppFlags |= ppFLAT;
-            ppFlatLimit = 50;
-            ppLength = 0;
-
-            pp(car(vals));
-
-            ppFlags &= ~ppFLAT;
-            ppFlags &= ~ppQUOTES;
-
-            ppPutString("\n");
-
-            vars = cdr(vars);
-            vals = cdr(vals);
-            }
-        ppFlags = oldFlags;
-        }
-    }
-
-void
-ppToString(int expr,char *buffer,int size)
-    {
-    ppPutChar = putCharInString;
-    ppPutString = putStringInString;
-    ppPutInt = putIntInString;
-    ppPutReal = putRealInString;
-    ppBuffer = buffer;
-    ppBufferSize = size;
-    ppBufferIndex = 0;
-    ppLastChar = 0;
-    pp(expr);
-    }
-
-void
-ppToFile(int expr,FILE *fp)
-    {
-    ppPutChar = putCharInFile;
-    ppPutString = putStringInFile;
-    ppPutInt = putIntInFile;
-    ppPutReal = putRealInFile;
-    ppOutput = fp;
-    ppLastChar = 0;
-    ppLength = 0;
-    pp(expr);
-    }
-
-void
-ppStringToFile(char *s,FILE *fp)
-    {
-    ppOutput = fp;
-    putStringInFile(s);
-    }
-
-static void
-putCharInString(int ch)
-    {
-    //printf("putting <%c>\n",ch);
-    if (ppBufferIndex >= ppBufferSize - 1) return;
-
-    if ((ch == '\n' || ch == '\t' || ch == ' ') && (ppFlags & ppFLAT))
-        {
-        if (ppLastChar !=  '\n' && ppLastChar != '\t' && ppLastChar != ' ')
-            {
-            ppBuffer[ppBufferIndex] = ' ';
-            ppBuffer[ppBufferIndex+1] = '\0';
-            ++ppBufferIndex;
-            }
-        ppLastChar = ch;
+        ppLevel(fp,expr,0);
+        fprintf(fp,"\n");
         return;
         }
 
-    ppBuffer[ppBufferIndex] = ch;
-        
-    ppBuffer[ppBufferIndex+1] = '\0';
+    int vars = object_variables(expr);
+    int vals = object_values(expr);
 
-    ppLastChar = ch;
-    ++ppBufferIndex;
-    }
-
-static void
-putStringInString(char *s)
-    {
-    if (ppBufferIndex >= ppBufferSize - 1 - strlen(s)) return;
-
-    while (*s != 0)
-        {
-        putCharInString(*s);
-        ++s;
-        }
-    }
-
-static void
-putIntInString(int i)
-    {
-    char buffer[64];
-    sprintf(buffer,"%d",i);
-    putStringInString(buffer);
-    }
-
-static void
-putRealInString(double r)
-    {
-    char buffer[64];
-    putRealInBuffer(r,buffer);
-    putStringInString(buffer);
-    }
-
-static void
-putRealInBuffer(double r,char *s)
-    {
-    if (fabs(r) < 10e-6)
-        sprintf(s,"%6.6e",r);
-    else if (fabs(r) > 10e+6)
-        sprintf(s,"%6.6e",r);
-    else if (fabs(r) > 1)
-        sprintf(s,"%11.*f",(int)(11 - log(fabs(r)) / log(10)),r);
+    Cfprintf(fp,"<object",expr);
+    if (Debugging)
+        cfprintf(fp," %d>",expr,expr);
+        //cfprintf(fp," %d>",0,expr);
     else
-        sprintf(s,"%10.10f",r);
+        cfprintf(fp," %d>",expr,expr);
+    if (mode < 1)
+        {
+        fprintf(fp,"\n");
+        while (vars != 0)
+            {
+            cfprintf(fp,"%30s",SymbolTable[ival(car(vars))],car(vars));
+            Cfprintf(fp,"  : ",car(vars));
+            if (car(vals) == 0)
+                Cfprintf(fp,"nil",car(vals));
+            else
+                {
+                int old = ppQuoting;
+                ppQuoting = 1;
+                ppLevel(fp,car(vals),mode+1);
+                ppQuoting = old;
+                }
+            fprintf(fp,"\n");
+            vars = cdr(vars);
+            vals = cdr(vals);
+            }
+        }
+    }
+        
+void ppCons(FILE *fp,int expr,int mode)
+    {
+    int old = ppQuoting;
+
+    ppQuoting = 1;
+    if (SameSymbol(car(expr),ObjectSymbol))
+        ppObject(fp,expr,mode);
+    else
+        ppList(fp,"(",expr,")",mode);
+
+    ppQuoting = old;
     }
 
-static void
-putCharInFile(int ch)
+void
+ppString(FILE *fp,int expr,int mode)
     {
-    int outch;
-    if ((ch == '\n' || ch == '\t' || ch == ' ') && (ppFlags & ppFLAT))
+    int size = count(expr);
+    if (ppQuoting) Cfprintf(fp,"\"",expr);
+    while (size != 0)
         {
-        if (ppLastChar !=  '\n' && ppLastChar != '\t' && ppLastChar != ' ')
-            outch = ' ';
-        else
-            return;
+        cfprintf(fp,"%c",ival(expr),expr);
+        ++expr;
+        --size;
+        }
+    if (ppQuoting) Cfprintf(fp,"\"",expr);
+    }
+
+void
+scamPP(FILE *fp,int expr)
+    {
+    ppLevel(fp,expr,0);
+    }
+
+void
+ppLevel(FILE *fp,int expr,int mode)
+    {
+    if (expr == 0)
+        ;//fprintf(fp,"nil");
+    else if (type(expr) == INTEGER)
+        cfprintf(fp,"%d",ival(expr),expr);
+    else if (type(expr) == REAL)
+        cfprintf(fp,"%f",rval(expr),expr);
+    else if (type(expr) == STRING)
+        ppString(fp,expr,mode);
+    else if (type(expr) == SYMBOL)
+        cfprintf(fp,"%s",SymbolTable[ival(expr)],expr);
+    else if (type(expr) == CONS)
+        ppCons(fp,expr,mode);
+    else if (type(expr) == ARRAY)
+        ppArray(fp,"[",expr,"]",mode);
+    else if (type(expr) == PAST)
+        fprintf(fp,"!PAST!");
+    else if (type(expr) == FUTURE)
+        fprintf(fp,"!FUTURE!");
+    else
+        printf("%s",type(expr));
+    }
+
+void
+ppToString(int expr,char *buffer,int size,int *index)
+    {
+    char local[1024];
+    if (type(expr) == CONS)
+        {
+        buffer[*index] = '(';
+        *index += 1;
+        while (expr != 0)
+           {
+           ppToString(car(expr),buffer,size,index);
+           expr = cdr(expr);
+           if (expr != 0)
+                {
+                buffer[*index] = ' ';
+                *index += 1;
+                }
+           }
+        buffer[*index] = ')';
+        *index += 1;
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == SYMBOL)
+        {
+        strcpy(buffer+*index,SymbolTable[ival(expr)]);
+        *index += strlen(SymbolTable[ival(expr)]);
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == INTEGER)
+        {
+        sprintf(local,"%d",ival(expr));
+        strcpy(buffer+*index,local);
+        *index += strlen(local);
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == REAL)
+        {
+        sprintf(local,"%.17f",rval(expr));
+        strcpy(buffer+*index,local);
+        *index += strlen(local);
+        buffer[*index] = '\0';
+        }
+    else if (type(expr) == STRING)
+        {
+        buffer[*index] = '"';
+        *index += 1;
+        cellString(local,sizeof(local),expr);
+        strcpy(buffer+*index,local);
+        *index += strlen(local);
+        buffer[*index] = '"';
+        *index += 1;
+        buffer[*index] = '\0';
         }
     else
-        outch = ch;
-
-    if ((ppFlags & ppFLAT) && ppLength == ppFlatLimit - 3)
-        {
-        fprintf(ppOutput,"...");
-        ppLength += 3;
-        }
-    else if (!(ppFlags & ppFLAT) || ppLength < ppFlatLimit)
-        {
-        fprintf(ppOutput,"%c",outch);
-        ++ppLength;
-        }
-        
-    ppLastChar = ch;
+        Fatal("INTERNAL ERROR: unknown ppToString type: %s\n",type(expr));
     }
 
-static void
-putStringInFile(char *s)
+void
+debug(char *s,int i)
     {
-    while (*s != 0)
-        {
-        putCharInFile(*s);
-        ++s;
-        }
+    if (s != 0)
+        printf("%s: ",s);
+    ppLevel(stdout,i,0);
+    printf("\n");
     }
 
-static void
-putIntInFile(int i)
+void 
+debugOut(FILE *f, char *s, int i)
     {
-    char s[64];
-    sprintf(s,"%d",i);
-    putStringInFile(s);
+    if (s != 0)
+        fprintf(f, "%s: ",s);
+    ppLevel(f,i,0);
+    fprintf(f,"\n");
     }
-
-static void
-putRealInFile(double d)
-    {
-    char s[64];
-    putRealInBuffer(d,s);
-    putStringInFile(s);
-    }
-*/

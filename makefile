@@ -5,7 +5,8 @@ OUT = scam
 #FLAGS=-O3
 FLAGS = 
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o pp.o \
-       sway-lexer.o sway-parser.o thread.o
+	   thread.o \
+       sway-lexer.o sway-parser.o #sway-pp.o
 OPTS = -O1 # normal runtime
 OPTS = -ggdb -pg # for debugging
 
