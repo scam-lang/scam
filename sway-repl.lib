@@ -1,0 +1,19 @@
+var e = nil;
+var result = nil;
+println("Welcome to the Sway Interpreter!");
+e = catch(readExpr());
+while (e != 'quit && (not(error?(e)) || get('code,e) != 'emptyExpression))
+    {
+    result = catch(eval(e,this));
+    if (error?(result))
+        {
+        println("EXCEPTION: ",get('code,result),",",
+            suffix(get('value,result),1 + stringUntil(get('value,result)),":"));
+        }
+    else
+        { 
+        println(result);
+        }
+    e = catch(readExpr());
+    }
+if (error?(e),println());
