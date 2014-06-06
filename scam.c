@@ -122,7 +122,9 @@ main(int argc,char **argv,char **envv)
         P();
         env = makeEnvironment(env,0,0,0);
         V();
+        printf("adding sway.lib...\n");
         result = addToEnvironment(env,"sway.lib",SWAY);
+        printf("sway.lib added.\n");
 
         if (isThrow(result)) goto ERROR;
         }
@@ -210,12 +212,14 @@ addToEnvironment(int env,char *fileName,int mode)
 
     // now parse the file
 
+    printf("about to parse %s...\n",fileName);
+
     if (mode == SCAM)
         ptree = scamParse(p);
     else
         ptree = swayParse(p);
 
-    //printf("main library parsed.\n");
+    printf("parsing completed.\n");
 
     freeParser(p);
 

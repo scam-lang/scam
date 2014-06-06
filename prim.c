@@ -2272,7 +2272,13 @@ readExpr(int args)
 
     p = newParserFP(fp,OpenPortNames[CurrentInputIndex]);
 
-    e = expr(p);
+    if (Syntax == SWAY)
+        {
+        extern int statement(PARSER *);
+        e = statement(p);
+        }
+    else
+        e = expr(p);
 
     rethrow(e);
 

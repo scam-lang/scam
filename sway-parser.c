@@ -23,7 +23,7 @@
 #include "env.h"
 #include "util.h"
 
-#define TRACE 0
+#define TRACE 1
 
 /* operator types */
 
@@ -34,6 +34,8 @@
 #define SELECT               4       /* . and [          */
 #define NOTanOP              5
 
+int statement(PARSER *);
+
 /* recursive descent parsing function */
 
 static int functionDef(PARSER *);
@@ -43,7 +45,6 @@ static int varDefItem(PARSER *);
 static int optParamList(PARSER *);
 static int paramList(PARSER *);
 static int nakedBlock(PARSER *);
-static int statement(PARSER *);
 static int block(PARSER *);
 static int sexpr(PARSER *);
 static int exprAssign(PARSER *);
@@ -595,7 +596,7 @@ nakedBlock(PARSER *p)
  *             ;
  */
 
-static int
+int
 statement(PARSER *p)
     {
     int r;
@@ -800,7 +801,7 @@ static int
 exprMath(PARSER *p)
     {
     int a,b,c;
-    int result;
+    int result = 0;
 
     if (TRACE) printf("in exprMath...\n");
 
@@ -876,19 +877,24 @@ exprCall(PARSER *p,int item)
         extra = optExtraArgs(p);
         rethrowPop(extra,2); /* for args and op */
         P();
-        ENSURE_MEMORY(3,&extra,(int *) 0);
+        ENSURE_MEMORY(1,&extra,(int *) 0);
         args = POP();
         op = POP();
         /* append is destructive, does not use cons */
         result = cons(op,append(args,extra));
+        V();
         if (extra != 0)
             {
+            P();
+            ENSURE_MEMORY(2,&result,(int *) 0);
             result = cons2(FillerSymbol,cons2(XcallSymbol,result));
+            V();
             }
         V();
         if (opType(p) == SELECT)
             {
-            result = exprCall(p,exprSelect(p,result));
+            result = exprSelect(p,result);
+            result = exprCall(p,result);
             }
         // OOPS! We have to unlock before we recur!
         //V();
