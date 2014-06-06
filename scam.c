@@ -119,7 +119,9 @@ main(int argc,char **argv,char **envv)
 
     if (Syntax == SWAY)
         {
+        P();
         env = makeEnvironment(env,0,0,0);
+        V();
         result = addToEnvironment(env,"sway.lib",SWAY);
 
         if (isThrow(result)) goto ERROR;

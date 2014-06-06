@@ -214,12 +214,11 @@ swayParse(PARSER *p)
     end = match(p,END_OF_INPUT);
     rethrowPop(end,1);
 
-    result = PEEK(0);
-
+    result = POP();
+    P();
+    ENSURE_MEMORY(1,&result,(int *)0); 
     result = cons2(BeginSymbol,result);
-
-    (void) POP(); /* result */
-
+    V();
     return result;
     }
 
@@ -886,11 +885,13 @@ exprCall(PARSER *p,int item)
             {
             result = cons2(FillerSymbol,cons2(XcallSymbol,result));
             }
+        V();
         if (opType(p) == SELECT)
             {
             result = exprCall(p,exprSelect(p,result));
             }
-        V();
+        // OOPS! We have to unlock before we recur!
+        //V();
         }
     else
         {

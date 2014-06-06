@@ -162,6 +162,7 @@ do                                                          \
 #define P()                                                 \
 do                                                          \
     {                                                       \
+    /*printf("Calling P from (%s,%d)\n", __FILE__, __LINE__); */ \
     int S_I = THREAD_ID;                                    \
     if(P_REQ[S_I]!=NO_INTEREST)                             \
         {                                                   \
@@ -190,6 +191,7 @@ do                                                          \
 #define V()                                                 \
 do                                                          \
     {                                                       \
+    /*printf("Calling V from (%s,%d)\n", __FILE__, __LINE__); */ \
     int S_I = THREAD_ID;                                    \
     if(P_REQ[S_I]!=ACQUIRED)                                \
         {                                                   \

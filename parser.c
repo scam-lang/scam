@@ -124,7 +124,7 @@ scamParse(PARSER *p)
     rethrow(end);
     //printf("back from parsing\n");
     P();
-    ENSURE_MEMORY(2,&result,(int *) 0);
+    ENSURE_MEMORY(1,&result,(int *) 0);
     result = cons2(BeginSymbol,result);
     V();
     return result;

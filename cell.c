@@ -503,7 +503,6 @@ memoryInit()
     }
 
 
-
 /*
  *  memoryShutdown - Releases all thread specific memory, if main thread 
  *      we also release globally allocated memory.
