@@ -58,7 +58,6 @@ extern void threadingShutdown();
 
 extern void checkDeadlock(char*,int);
 extern int getRawThreadIndex();
-extern int getThreadIndex();
 
 extern int validate(char *);
 

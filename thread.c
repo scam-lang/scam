@@ -46,8 +46,6 @@ int QueueCount = 0;
 pthread_key_t key;
 pthread_mutex_t mutex,p_mutex,t_mutex,u_mutex;
 
-int Key[MAX_THREADS];
-
 int *P_REQ;
 int *P_P_REQ;
 int *T_P_REQ;
@@ -292,25 +290,6 @@ int getRawThreadIndex()
         }
     return -1;
     }
-
-/* getThread(int)  -   Perform a linear search for the thread id*/
-
-int
-getThreadIndex(int tid)
-    {
-    int i;
-    i = 0;
-    while(i < CreatedThreads)
-        {
-        if(Key[i] == tid)
-            {
-            return i;
-            }
-        ++i;
-        }
-    return -1;
-    }
-
 
 void
 checkDeadlock(char* f, int l)
