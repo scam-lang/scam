@@ -2274,8 +2274,8 @@ readExpr(int args)
 
     if (Syntax == SWAY)
         {
-        extern int statement(PARSER *);
-        e = statement(p);
+        extern int swayInteractive(PARSER *);
+        e = swayInteractive(p);
         }
     else
         e = expr(p);

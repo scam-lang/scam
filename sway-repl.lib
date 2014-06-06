@@ -8,7 +8,7 @@ while (e != 'quit && (not(error?(e)) || get('code,e) != 'emptyExpression))
     if (error?(result))
         {
         println("EXCEPTION: ",get('code,result),",",
-            suffix(get('value,result),1 + stringUntil(get('value,result)),":"));
+            suffix(get('value,result),1 + stringUntil(get('value,result),":")));
         }
     else
         { 

@@ -303,7 +303,13 @@ getNextCharacter(PARSER *p)
         if (p->bufferIndex == 0)
             {
             if (p->line == 1)
-                p->buffer = readline("scam> ");
+                {
+                extern int Syntax;
+                if (Syntax == SWAY)
+                    p->buffer = readline("sway> ");
+                else
+                    p->buffer = readline("scam> ");
+                }
             else
                 p->buffer = readline("more> ");
             if (p->buffer == 0) return EOF;

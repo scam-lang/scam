@@ -23,7 +23,7 @@
 #include "env.h"
 #include "util.h"
 
-#define TRACE 1
+#define TRACE 0
 
 /* operator types */
 
@@ -33,8 +33,6 @@
 #define ARITHMETIC           3       /* +, -, and so on  */
 #define SELECT               4       /* . and [          */
 #define NOTanOP              5
-
-int statement(PARSER *);
 
 /* recursive descent parsing function */
 
@@ -46,6 +44,8 @@ static int optParamList(PARSER *);
 static int paramList(PARSER *);
 static int nakedBlock(PARSER *);
 static int block(PARSER *);
+static int definition(PARSER *);
+static int statement(PARSER *);
 static int sexpr(PARSER *);
 static int exprAssign(PARSER *);
 static int exprConnect(PARSER *);
@@ -221,6 +221,24 @@ swayParse(PARSER *p)
     result = cons2(BeginSymbol,result);
     V();
     return result;
+    }
+
+/* swayInteractive
+ *
+ * read a single item from the input
+ *
+ */
+
+int
+swayInteractive(PARSER *p)
+    {
+    //force a lex
+    check(p,0);
+
+    if (isDefinitionPending(p))
+        return definition(p);
+    else
+        return statement(p);
     }
 
 /*    definition : functionDef
@@ -596,7 +614,7 @@ nakedBlock(PARSER *p)
  *             ;
  */
 
-int
+static int
 statement(PARSER *p)
     {
     int r;
@@ -610,6 +628,7 @@ statement(PARSER *p)
 
     if (!isXCall(r))
         {
+        printf("type of r is %s\n",type(r));
         PUSH(r);
         m = match(p, SEMI);
         r = POP();
@@ -890,14 +909,11 @@ exprCall(PARSER *p,int item)
             result = cons2(FillerSymbol,cons2(XcallSymbol,result));
             V();
             }
-        V();
         if (opType(p) == SELECT)
             {
             result = exprSelect(p,result);
             result = exprCall(p,result);
             }
-        // OOPS! We have to unlock before we recur!
-        //V();
         }
     else
         {
@@ -1140,7 +1156,7 @@ primary(PARSER *p)
         return p->pending;
     else
         {
-        return throw(SyntaxExceptionSymbol,
+        return throw(EmptyExpressionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
         }
