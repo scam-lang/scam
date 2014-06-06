@@ -255,7 +255,7 @@ tjoin (int args)
     {
     int tid = ival(car(args));
     pthread_join(Thread[tid], NULL);
-    return ival(car(args));
+    return newInteger(tid);
     }
 
 /* (gettid) */
