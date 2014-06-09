@@ -73,7 +73,6 @@ static int hasDefinitions(int);
 
 static int check(PARSER *,char *);
 static int match(PARSER *,char *);
-void ppf(char *,int,char *);
 
 /*
 
@@ -269,7 +268,7 @@ definition(PARSER *p)
         rethrow(d);
         }
 
-    if (TRACE) ppf("leaving definition: ",d,"\n");
+    if (TRACE) debug("leaving definition",d);
 
     return d;
     }
@@ -356,7 +355,7 @@ functionDef(PARSER *p)
     result = cons2(DefineSymbol,result);
     V();
 
-    if (TRACE) ppf("leaving functionDef: ",result,"\n");
+    if (TRACE) debug("leaving functionDef",result);
 
     return result;
     }
@@ -391,7 +390,7 @@ varDef(PARSER *p)
         v = cons2(BeginSymbol,v);
         V();
         }
-    if (TRACE) ppf("leaving varDef: ",v,"\n");
+    if (TRACE) debug("leaving varDef",v);
     return v;
     }
 
@@ -431,7 +430,7 @@ varDefList(PARSER *p)
     result = cons(item, result);
     V();
 
-    if (TRACE) ppf("leaving varDefList: ",result,"\n");
+    if (TRACE) debug("leaving varDefList",result);
 
     return result;
     }
@@ -481,7 +480,7 @@ varDefItem(PARSER *p)
         }
 
 
-    if (TRACE) ppf("leaving varDefItem: ",result,"\n");
+    if (TRACE) debug("leaving varDefItem",result);
 
     return result;
     }
@@ -540,7 +539,7 @@ paramList(PARSER *p)
     result = cons(a,b);
     V();
 
-    if (TRACE) ppf("leaving paramList: ",result,"`\n");
+    if (TRACE) debug("leaving paramList",result);
 
     return result;
     }
@@ -566,7 +565,7 @@ nakedBlock(PARSER *p)
             SymbolTable[p->file],p->line,type(p->pending));
         }
 
-    //ppf("pending: ",p->pending,"\n");
+    //debug("pending",p->pending);
     if (check(p,OPEN_BRACE))
         {
         return throw(SyntaxExceptionSymbol,
@@ -604,7 +603,7 @@ nakedBlock(PARSER *p)
         result = 0;
         }
 
-    if (TRACE) ppf("leaving nakedBlock: ",result,"\n");
+    if (TRACE) debug("leaving nakedBlock",result);
 
     return result;
     }
@@ -639,7 +638,7 @@ statement(PARSER *p)
         r = cddr(r); // strip xcall tags
         }
 
-    if (TRACE) ppf("leaving statement: ",r,"\n");
+    if (TRACE) debug("leaving statement",r);
 
     return r;
     }
@@ -695,7 +694,7 @@ exprAssign(PARSER *p)
 
     if (isXCall(a))
         {
-        if (TRACE) ppf("leaving exprAssign: ",a,"\n");
+        if (TRACE) debug("leaving exprAssign",a);
         return a;
         }
 
@@ -718,7 +717,7 @@ exprAssign(PARSER *p)
     else
         result = a;
 
-    if (TRACE) ppf("leaving exprAssign: ",result,"\n");
+    if (TRACE) debug("leaving exprAssign",result);
 
     return result;
     }
@@ -740,7 +739,7 @@ exprConnect(PARSER *p)
 
     if (isXCall(a))
         {
-        if (TRACE) ppf("leaving exprConnect: ",a,"\n");
+        if (TRACE) debug("leaving exprConnect",a);
         return a;
         }
 
@@ -764,7 +763,7 @@ exprConnect(PARSER *p)
 
     a = POP();
 
-    if (TRACE) ppf("leaving exprConnect: ",a,"\n");
+    if (TRACE) debug("leaving exprConnect",a);
 
     return a;
     }
@@ -786,7 +785,7 @@ exprCompare(PARSER *p)
 
     if (isXCall(a))
         {
-        if (TRACE) ppf("leaving exprCompare: ",a,"\n");
+        if (TRACE) debug("leaving exprCompare",a);
         return a;
         }
 
@@ -809,7 +808,7 @@ exprCompare(PARSER *p)
         }
     a = POP();
 
-    if (TRACE) ppf("leaving exprCompare: ",a,"\n");
+    if (TRACE) debug("leaving exprCompare",a);
 
     return a;
     }
@@ -829,7 +828,7 @@ exprMath(PARSER *p)
 
     if (isXCall(a))
         {
-        if (TRACE) ppf("leaving exprMath: ",a,"\n");
+        if (TRACE) debug("leaving exprMath",a);
         return a;
         }
 
@@ -852,7 +851,7 @@ exprMath(PARSER *p)
         }
     a = POP();
 
-    if (TRACE) ppf("leaving exprMath: ",result,"\n");
+    if (TRACE) debug("leaving exprMath",result);
 
     return a;
     }
@@ -920,7 +919,7 @@ exprCall(PARSER *p,int item)
         result = POP();  /* was op */
         }
 
-    if (TRACE) ppf("leaving exprCall: ",result,"\n");
+    if (TRACE) debug("leaving exprCall",result);
 
     return result;
     }
@@ -1183,7 +1182,7 @@ optArgList(PARSER *p)
     else
         result = 0;
 
-    //ppf("arglist is ",result,"\n");
+    //debug("arglist is ",result);
     if (TRACE) printf("leaving optArgList.\n");
 
     return result;
@@ -1335,7 +1334,7 @@ check(PARSER *p,char *t)
         }
 
     //printf("type(p->pending) is %s\n",type(p->pending));
-    //if (type(p->pending) == SYMBOL) ppf("pending is ",p->pending,"\n");
+    //if (type(p->pending) == SYMBOL) debug("pending is ",p->pending);
 
     if (isThrow(p->pending))
         return 0;
@@ -1364,15 +1363,4 @@ hasDefinitions(int expr)
         expr = cdr(expr);
         }
     return 0;
-    }
-
-
-
-void
-ppf(char *s1,int expr,char *s2)
-    {
-    //extern void scamPP(FILE *,int);
-    fprintf(stdout,"%s",s1);
-    scamPP(stdout,expr);
-    fprintf(stdout,"%s",s2);
     }

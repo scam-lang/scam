@@ -41,8 +41,4 @@ extern void ppf(char*,int,char*);
 extern int exprSeq(PARSER *);
 extern int expr(PARSER *);
 
-#define SCAM 1
-#define SWAY 2
-
-
 #endif

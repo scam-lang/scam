@@ -230,7 +230,7 @@ dummyThread(void *data)
         ShuttingDown = 1;
         QueueCount = 0;
         debug("EXCEPTION",error_code(result));
-        scamPP(stdout,error_value(result));
+        scamPPFile(stdout,error_value(result));
         printf("\n");
         P_V();
         }

@@ -14,14 +14,17 @@
 
 extern int ppQuoting;
 
-extern void scamPP(FILE *,int);
-extern void swayPP(FILE *,int);
-extern void scamPP(FILE *,int);
-extern void swayPPLevel(FILE *,int,int);
-extern void ppTable(FILE *,int,int);
-extern void ppFunction(FILE *,int,int);
+extern void scamPPFile(FILE *,int);
+extern void swayPPFile(FILE *,int);
+extern void scamPPString(char *,int,int);
+extern void swayPPString(char *,int,int);
+extern void ppTable(int,int);
 extern void debug(char *,int);
 extern void debugOut(FILE *, char *, int);
-extern void ppToString(int,char *,int,int *);
+extern void scamppToString(int,char *,int,int *);
+extern void swayppToString(int,char *,int,int *);
+
+extern int ppActual;
+extern int ppQuoting;
 
 #endif

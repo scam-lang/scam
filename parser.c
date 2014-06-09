@@ -305,7 +305,7 @@ check(PARSER *p,char *t)
         //printf("token is %s\n",type(p->pending));
         }
 
-    //printf("type(p->pending) is %s\n",type(p->pending)); //if (type(p->pending) == ID) ppf("pending is ",p->pending,"\n");
+    //printf("type(p->pending) is %s\n",type(p->pending)); //if (type(p->pending) == ID) debug("pending is",p->pending);
 
     if (isThrow(p->pending))
         return 0;

@@ -52,4 +52,7 @@ extern int QueueCount;          /* How many items are waiting for a thread */
 extern int Caching;             /* Sometimes we can save computed results */
 extern int ShuttingDown;        /* Tells threads to shut down or not */
 
+#define SCAM 1
+#define SWAY 2
+
 #endif

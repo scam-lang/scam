@@ -28,6 +28,7 @@
 #include "prim.h"
 #include "eval.h"
 #include "thread.h"
+#include "pp-base.h"
 
 PRIM BuiltIns[1000];
 FILE *OpenPorts[20];
@@ -1260,7 +1261,7 @@ static int
 display(int args)
     {
     FILE *port = OpenPorts[CurrentOutputIndex];
-    scamPP(port,car(args));
+    scamPPFile(port,car(args));
     return car(args);
     }
 
@@ -1274,7 +1275,7 @@ displayAtomic(int args)
     int spot = car(args);
     while (spot != 0)
         {
-        scamPP(port,car(spot));
+        scamPPFile(port,car(spot));
         spot = cdr(spot);
         }
     P_V();
@@ -1325,9 +1326,12 @@ ppp(int args)
     FILE *port = OpenPorts[CurrentOutputIndex];
 
     if (isObject(a))
-        ppTable(port,a,0);
+        {
+        ppToFile(port);
+        ppTable(a,0);
+        }
     else
-        scamPP(port,a);
+        scamPPFile(port,a);
     return 0;
     }
 
@@ -1337,7 +1341,8 @@ pppTable(int args)
     int a = car(args);
     FILE *port = OpenPorts[CurrentOutputIndex];
 
-    ppTable(port,a,0);
+    ppToFile(port);
+    ppTable(a,0);
 
     return 0;
     }
@@ -1554,14 +1559,14 @@ inspect(int args)
     if (cadr(args) == 0)
         fprintf(stdout,"nil");
     else
-        scamPP(stdout,cadr(args));
+        scamPPFile(stdout,cadr(args));
 
     fprintf(stdout," is ");
 
     if (result == 0)
         fprintf(stdout,"nil");
     else
-        scamPP(stdout,result);
+        scamPPFile(stdout,result);
 
     fprintf(stdout,"\n");
     return result;
@@ -2288,7 +2293,11 @@ readExpr(int args)
         {
         char buffer[8096];
         int index = 0;
-        ppToString(e,buffer,sizeof(buffer),&index);
+        if (Syntax == SWAY)
+            swayppToString(e,buffer,sizeof(buffer),&index);
+        else
+            //scamppToString(e,buffer,sizeof(buffer),&index);
+            scamPPString(buffer,sizeof(buffer),e);
         add_history(buffer);
         }
 

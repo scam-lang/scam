@@ -23,6 +23,7 @@
 #include "types.h"
 #include "util.h"
 #include "env.h"
+#include "pp-base.h"
 
 #define MOVED 1
 #define UNMOVED 0
@@ -1979,7 +1980,8 @@ saveMTStack(char *fname, int ext, int index)
         if (isObject(STACK[i]))
             {
             last = STACK[i];
-            ppTable(f,STACK[i],0);
+            ppToFile(f);
+            ppTable(STACK[i],0);
             }
         }
 
@@ -1988,10 +1990,12 @@ saveMTStack(char *fname, int ext, int index)
 
     /*
     fprintf(stdout,"The top level environment: ");
-    ppTable(stdout,last,0);
+    ppToFile(stdout);
+    ppTable(last,0);
     */
     fprintf(f,"The top level environment: ");
-    ppTable(f,last,0);
+    ppToFile(f);
+    ppTable(last,0);
 
     /* close the file */
     fclose(f);

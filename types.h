@@ -33,10 +33,7 @@ extern char *STRING;// = "STRING";
 extern char *SYMBOL;// = "SYMBOL";
 extern char *CONS;// = "THUNK";
 extern char *ARRAY;// = "ARRAY";
-extern char *PAST;// = "PAST";
-extern char *FUTURE;// = "FUTURE";
 extern char *UNINITIALIZED;// = "UNINITIALIZED";
-extern char *RUNNER;// = "RUNNER";
 
 /* scam types for an imperative front-end */
 

@@ -154,13 +154,13 @@ ERROR:
             {
             fprintf(stdout,"from %s,line %d:\n    ",
                 filename(spot),line(spot));
-            ppf("",car(spot),"\n");
+            debug(0,car(spot));
             spot = cdr(spot);
             }
         }
     printf("------------------------------------\n");
     debug("EXCEPTION",error_code(result));
-    scamPP(stdout,error_value(result));
+    scamPPFile(stdout,error_value(result));
     printf("\n");
 
     exitValue = -1;

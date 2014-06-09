@@ -21,6 +21,7 @@
 #include "cell.h"
 #include "types.h"
 #include "env.h"
+#include "scam.h"
 
 static int skipWhiteSpace(PARSER *);
 
@@ -304,7 +305,6 @@ getNextCharacter(PARSER *p)
             {
             if (p->line == 1)
                 {
-                extern int Syntax;
                 if (Syntax == SWAY)
                     p->buffer = readline("sway> ");
                 else

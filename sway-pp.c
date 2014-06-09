@@ -15,8 +15,7 @@
 #include "cell.h"   /* include util.h, thread.h */
 #include "env.h"    /* includes pp.h */
 
-int ppActual = 1;
-int ppQuoting = 0;
+static void ppLevel(FILE *,int,int);
 
 #ifdef HI
 
@@ -57,7 +56,7 @@ int ppQuoting = 0;
 
 #endif
 
-void
+static void
 ppList(FILE *fp,char *open,int items,char *close,int mode)
     {
     cfprintf(fp,"%s",open,items);
@@ -82,7 +81,7 @@ ppList(FILE *fp,char *open,int items,char *close,int mode)
     cfprintf(fp,"%s",close,items);
     }
 
-void
+static void
 ppArray(FILE *fp,char *open,int items,char *close,int mode)
     {
     int size = count(items);
@@ -100,7 +99,7 @@ ppArray(FILE *fp,char *open,int items,char *close,int mode)
     cfprintf(fp,"%s",close,items);
     }
 
-void
+static void
 ppObject(FILE *fp,int expr,int mode)
     {
     int address;
@@ -155,49 +154,8 @@ ppObject(FILE *fp,int expr,int mode)
         }
     }
 
-void
-ppTable(FILE *fp,int expr,int mode)
-    {
-    if (!isObject(expr))
-        {
-        ppLevel(fp,expr,0);
-        fprintf(fp,"\n");
-        return;
-        }
-
-    int vars = object_variables(expr);
-    int vals = object_values(expr);
-
-    Cfprintf(fp,"<object",expr);
-    if (Debugging)
-        cfprintf(fp," %d>",expr,expr);
-        //cfprintf(fp," %d>",0,expr);
-    else
-        cfprintf(fp," %d>",expr,expr);
-    if (mode < 1)
-        {
-        fprintf(fp,"\n");
-        while (vars != 0)
-            {
-            cfprintf(fp,"%30s",SymbolTable[ival(car(vars))],car(vars));
-            Cfprintf(fp,"  : ",car(vars));
-            if (car(vals) == 0)
-                Cfprintf(fp,"nil",car(vals));
-            else
-                {
-                int old = ppQuoting;
-                ppQuoting = 1;
-                ppLevel(fp,car(vals),mode+1);
-                ppQuoting = old;
-                }
-            fprintf(fp,"\n");
-            vars = cdr(vars);
-            vals = cdr(vals);
-            }
-        }
-    }
-        
-void ppCons(FILE *fp,int expr,int mode)
+static void
+ppCons(FILE *fp,int expr,int mode)
     {
     int old = ppQuoting;
 
@@ -210,7 +168,7 @@ void ppCons(FILE *fp,int expr,int mode)
     ppQuoting = old;
     }
 
-void
+static void
 ppString(FILE *fp,int expr,int mode)
     {
     int size = count(expr);
@@ -225,12 +183,12 @@ ppString(FILE *fp,int expr,int mode)
     }
 
 void
-scamPP(FILE *fp,int expr)
+swayPP(FILE *fp,int expr)
     {
     ppLevel(fp,expr,0);
     }
 
-void
+static void
 ppLevel(FILE *fp,int expr,int mode)
     {
     if (expr == 0)
@@ -247,16 +205,12 @@ ppLevel(FILE *fp,int expr,int mode)
         ppCons(fp,expr,mode);
     else if (type(expr) == ARRAY)
         ppArray(fp,"[",expr,"]",mode);
-    else if (type(expr) == PAST)
-        fprintf(fp,"!PAST!");
-    else if (type(expr) == FUTURE)
-        fprintf(fp,"!FUTURE!");
     else
         printf("%s",type(expr));
     }
 
 void
-ppToString(int expr,char *buffer,int size,int *index)
+swayppToString(int expr,char *buffer,int size,int *index)
     {
     char local[1024];
     if (type(expr) == CONS)
@@ -265,7 +219,7 @@ ppToString(int expr,char *buffer,int size,int *index)
         *index += 1;
         while (expr != 0)
            {
-           ppToString(car(expr),buffer,size,index);
+           swayppToString(car(expr),buffer,size,index);
            expr = cdr(expr);
            if (expr != 0)
                 {
@@ -310,22 +264,4 @@ ppToString(int expr,char *buffer,int size,int *index)
         }
     else
         Fatal("INTERNAL ERROR: unknown ppToString type: %s\n",type(expr));
-    }
-
-void
-debug(char *s,int i)
-    {
-    if (s != 0)
-        printf("%s: ",s);
-    ppLevel(stdout,i,0);
-    printf("\n");
-    }
-
-void 
-debugOut(FILE *f, char *s, int i)
-    {
-    if (s != 0)
-        fprintf(f, "%s: ",s);
-    ppLevel(f,i,0);
-    fprintf(f,"\n");
     }
