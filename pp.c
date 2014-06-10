@@ -16,49 +16,12 @@
 #include "env.h"    /* includes pp.h */
 #include "pp-base.h"
 
+#define min(a,b) (a < b? a : b)
+
 int ppActual = 1;
 int ppQuoting = 0;
 
 static void ppLevel(int,int);
-
-#ifdef HI
-
-#define cfprintf(fp,str,value,spot) \
-    do \
-        { \
-        if (status(spot) == MARKED) fprintf(fp,COLOR_START); \
-        fprintf(fp,str,value); \
-        if (status(spot) == MARKED) fprintf(fp,COLOR_END); \
-        } \
-    while (0)
-
-#define Cfprintf(fp,str,spot) \
-    do \
-        { \
-        if (status(spot) == MARKED) fprintf(fp,COLOR_START); \
-        fprintf(fp,str); \
-        if (status(spot) == MARKED) fprintf(fp,COLOR_END); \
-        } \
-    while (0)
-#else
-
-
-
-#define cfprintf(fp,str,value,spot) \
-    do \
-        { \
-        fprintf(fp,str,value); \
-        } \
-    while (0)
-
-#define Cfprintf(fp,str,spot) \
-    do \
-        { \
-        fprintf(fp,str); \
-        } \
-    while (0)
-
-#endif
 
 static void
 ppList(char *open,int items,char *close,int level)
@@ -165,50 +128,6 @@ ppObject(int expr,int level)
         }
     }
 
-void
-ppTable(int expr,int level)
-    {
-    if (!isObject(expr))
-        {
-        ppLevel(expr,0);
-        ppPutChar('\n');
-        return;
-        }
-
-    int vars = object_variables(expr);
-    int vals = object_values(expr);
-
-    ppPutString("<object");
-    ppPutChar(' ');
-    ppPutInt(expr);
-    ppPutChar('>');
-
-    if (level < 1)
-        {
-        ppPutChar('\n');
-        while (vars != 0)
-            {
-            char buffer[512];
-            snprintf(buffer,sizeof(buffer),"%32s",
-                 SymbolTable[ival(car(vars))]);
-            ppPutString(buffer);
-            ppPutString("  : ");
-            if (car(vals) == 0)
-                ppPutString("nil");
-            else
-                {
-                int old = ppQuoting;
-                ppQuoting = 1;
-                ppLevel(car(vals),level+1);
-                ppQuoting = old;
-                }
-            ppPutChar('\n');
-            vars = cdr(vars);
-            vals = cdr(vals);
-            }
-        }
-    }
-        
 static void
 ppCons(int expr,int level)
     {
@@ -240,7 +159,7 @@ ppFormattedString(int expr)
 void
 scamPPFile(FILE *fp,int expr)
     {
-    ppToFile(fp);
+    ppToFile(fp,0);
     ppLevel(expr,0);
     }
 
@@ -364,3 +283,58 @@ swayPPString(char *buffer,int size,int expr)
     {
     scamPPString(buffer,size,expr);
     }
+
+void
+ppTable(int expr,int level,int span)
+    {
+    if (!isObject(expr))
+        {
+        ppLevel(expr,level);
+        ppPutChar('\n');
+        return;
+        }
+
+    int vars = object_variables(expr);
+    int vals = object_values(expr);
+
+    ppPutString("<object");
+    ppPutChar(' ');
+    ppPutInt(expr);
+    ppPutChar('>');
+
+    if (level < 1)
+        {
+        ppPutChar('\n');
+        while (vars != 0)
+            {
+            char buffer[512];
+            snprintf(buffer,sizeof(buffer),"%24s",
+                 SymbolTable[ival(car(vars))]);
+            ppPutString(buffer);
+            ppPutString(" : ");
+            if (car(vals) == 0)
+                ppPutString("nil");
+            else
+                {
+                int oldQuoting = ppQuoting;
+                int oldLength = ppLength;
+                int oldMaxLength = ppMaxLength;
+                int oldFlat = ppFlat;
+                ppQuoting = 1;
+                ppFlat = 1;
+                ppLength = 0;
+                if (span != 0)
+                    ppMaxLength = span;
+                ppLevel(car(vals),level+1);
+                ppFlat = oldFlat;
+                ppLength = oldLength + ppLength;
+                ppMaxLength = oldMaxLength;
+                ppQuoting = oldQuoting;
+                }
+            ppPutChar('\n');
+            vars = cdr(vars);
+            vals = cdr(vals);
+            }
+        }
+    }
+        

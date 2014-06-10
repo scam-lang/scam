@@ -1980,7 +1980,7 @@ saveMTStack(char *fname, int ext, int index)
         if (isObject(STACK[i]))
             {
             last = STACK[i];
-            ppToFile(f);
+            ppToFile(f,0);
             ppTable(STACK[i],0);
             }
         }
@@ -1990,11 +1990,11 @@ saveMTStack(char *fname, int ext, int index)
 
     /*
     fprintf(stdout,"The top level environment: ");
-    ppToFile(stdout);
+    ppToFile(stdout,0);
     ppTable(last,0);
     */
     fprintf(f,"The top level environment: ");
-    ppToFile(f);
+    ppToFile(f,0);
     ppTable(last,0);
 
     /* close the file */

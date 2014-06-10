@@ -1,12 +1,12 @@
 extern int ppIndent;
-extern int ppFlatLimit;
+extern int ppFlat;
 extern int ppLength;
-extern int ppFlags;
+extern int ppMaxLength;
 
 extern FILE *ppOutput;
 
 extern void ppToString(char *,int);
-extern void ppToFile(FILE *);
+extern void ppToFile(FILE *,int);
 
 extern void (*ppPutChar)(int);
 extern void (*ppPutString)(char *);

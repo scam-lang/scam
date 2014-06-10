@@ -1325,24 +1325,28 @@ ppp(int args)
     int a = cadr(args);
     FILE *port = OpenPorts[CurrentOutputIndex];
 
-    if (isObject(a))
-        {
-        ppToFile(port);
-        ppTable(a,0);
-        }
+    if (Syntax == SWAY)
+        swayPPFile(port,a);
     else
         scamPPFile(port,a);
+
     return 0;
     }
+
+/* (ppTable object @) */
 
 static int
 pppTable(int args)
     {
     int a = car(args);
+    int opt = cadr(args);
     FILE *port = OpenPorts[CurrentOutputIndex];
 
-    ppToFile(port);
-    ppTable(a,0);
+    ppToFile(port,0);
+    if (opt != 0)
+        ppTable(a,0,ival(car(opt)));
+    else
+        ppTable(a,0,0);
 
     return 0;
     }
@@ -3994,7 +3998,8 @@ loadBuiltIns(int env)
     BuiltIns[count] = pppTable;
     b = makeBuiltIn(env,
         newSymbolUnsafe("ppTable"),
-        cons(newSymbolUnsafe("a"),0),
+        cons(newSymbolUnsafe("a"),
+            cons(AtSymbol,0)),
         newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;

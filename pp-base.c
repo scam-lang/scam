@@ -6,9 +6,9 @@
 #include "pp-base.h"
 
 int ppIndent = 0;
-int ppFlatLimit = 65;
+int ppFlat = 0;
 int ppLength = 0;
-int ppFlags = 0;
+int ppMaxLength = 0;
 
 FILE *ppOutput;
 
@@ -27,10 +27,7 @@ void (*ppPutString)(char *) = putStringToFile;
 void (*ppPutInt)(int) = putIntToFile;
 void (*ppPutReal)(double) = putRealToFile;
 
-static char *ppBuffer;
-static int  ppBufferIndex;
-static int  ppBufferSize;
-static int  ppLastChar = 0;
+static char *ppBuffer = 0;
 
 void
 ppPrintIndent()
@@ -48,54 +45,60 @@ ppToString(char *buffer,int size)
     ppPutInt = putIntToString;
     ppPutReal = putRealToString;
     ppBuffer = buffer;
-    ppBufferSize = size;
-    ppBufferIndex = 0;
-    ppLastChar = 0;
+    ppMaxLength = size;
+    ppLength = 0;
     }
 
 void
-ppToFile(FILE *fp)
+ppToFile(FILE *fp,int size)
     {
     ppPutChar = putCharToFile;
     ppPutString = putStringToFile;
     ppPutInt = putIntToFile;
     ppPutReal = putRealToFile;
     ppOutput = fp;
-    ppLastChar = 0;
-    ppLength = 0;
+    ppLength = size;
     }
 
 static void
 putCharToString(int ch)
     {
-    //printf("putting <%c>\n",ch);
-    if (ppBufferIndex >= ppBufferSize - 1) return;
-
-    if ((ch == '\n' || ch == '\t' || ch == ' ') && (ppFlags & ppFLAT))
+    if (ppLength > ppMaxLength - 1)
         {
-        if (ppLastChar !=  '\n' && ppLastChar != '\t' && ppLastChar != ' ')
-            {
-            ppBuffer[ppBufferIndex] = ' ';
-            ppBuffer[ppBufferIndex+1] = '\0';
-            ++ppBufferIndex;
-            }
-        ppLastChar = ch;
         return;
         }
 
-    ppBuffer[ppBufferIndex] = ch;
-        
-    ppBuffer[ppBufferIndex+1] = '\0';
+    if (ppLength == ppMaxLength - 4)
+        {
+        ppBuffer[ppLength++] = '.';
+        ppBuffer[ppLength++] = '.';
+        ppBuffer[ppLength++] = '.';
+        ppBuffer[ppLength] = '\0';
+        return;
+        }
 
-    ppLastChar = ch;
-    ++ppBufferIndex;
+    if (ch == '\n' && ppFlat)
+        {
+        ppBuffer[ppLength++] = '\\';
+        ppBuffer[ppLength++] = 'n';
+        ppBuffer[ppLength] = '\0';
+        }
+    else if (ch == '\t')
+        {
+        ppBuffer[ppLength++] = '\\';
+        ppBuffer[ppLength++] = 't';
+        ppBuffer[ppLength] = '\0';
+        }
+    else
+        {
+        ppBuffer[ppLength++] = ch;
+        ppBuffer[ppLength] = '\0';
+        }
     }
 
 static void
 putStringToString(char *s)
     {
-    if (ppBufferIndex >= ppBufferSize - 1 - strlen(s)) return;
-
     while (*s != 0)
         {
         putCharToString(*s);
@@ -130,28 +133,34 @@ static void
 putCharToFile(int ch)
     {
     int outch;
-    if ((ch == '\n' || ch == '\t' || ch == ' ') && (ppFlags & ppFLAT))
-        {
-        if (ppLastChar !=  '\n' && ppLastChar != '\t' && ppLastChar != ' ')
-            outch = ' ';
-        else
-            return;
-        }
-    else
-        outch = ch;
 
-    if ((ppFlags & ppFLAT) && ppLength == ppFlatLimit - 3)
+    if (ppMaxLength != 0 && ppLength >= ppMaxLength - 1)
+        {
+        return;
+        }
+
+    if (ppMaxLength != 0 && ppLength == ppMaxLength - 3)
         {
         fprintf(ppOutput,"...");
         ppLength += 3;
+        return;
         }
-    else if (!(ppFlags & ppFLAT) || ppLength < ppFlatLimit)
+
+    if (ch == '\n' && ppFlat)
         {
-        fprintf(ppOutput,"%c",outch);
+        fprintf(ppOutput,"\\n");
+        ppLength += 2;
+        }
+    else if (ch == '\t')
+        {
+        fprintf(ppOutput,"\\t");
+        ppLength += 2;
+        }
+    else
+        {
+        fprintf(ppOutput,"%c",ch);
         ++ppLength;
         }
-        
-    ppLastChar = ch;
     }
 
 static void
@@ -186,3 +195,4 @@ putRealToFile(double r)
         sprintf(s,"%10.10f",r);
     putStringToFile(s);
     }
+
