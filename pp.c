@@ -17,13 +17,13 @@
 #include "pp-base.h"
 
 #define min(a,b) (a < b? a : b)
+#define SEP (Syntax == SWAY? "," : " ")
 
-int ppActual = 1;
 int ppQuoting = 0;
 
 static void ppLevel(int,int);
 
-static void
+void
 ppList(char *open,int items,char *close,int level)
     {
     ppPutString(open);
@@ -35,7 +35,7 @@ ppList(char *open,int items,char *close,int level)
             {
             if (type(items) == CONS)
                 {
-                ppPutChar(' ');
+                ppPutString(SEP);
                 }
             else
                 {
@@ -44,24 +44,6 @@ ppList(char *open,int items,char *close,int level)
                 break;
                 }
             }
-        }
-    ppPutString(close);
-    }
-
-static void
-ppArray(char *open,int items,char *close,int level)
-    {
-    int size = count(items);
-    ppPutString(open);
-    while (size != 0)
-        {
-        ppLevel(car(items),level + 1);
-        if (cdr(items) != 0)
-            {
-            ppPutChar(' ');
-            }
-        ++items;
-        --size;
         }
     ppPutString(close);
     }
@@ -91,27 +73,17 @@ ppObject(int expr,int level)
         }
     else if (SameSymbol(object_label(expr),BuiltInSymbol))
         {
-        if (ppActual)
-            {
-            ppPutString("<builtin ");
-            ppLevel(closure_name(expr),level+1);
-            ppList("(",closure_parameters(expr),")",level);
-            ppPutChar('>');
-            }
-        else
-            ppLevel(closure_name(expr),level+1);
+        ppPutString("<builtin ");
+        ppLevel(closure_name(expr),level+1);
+        ppList("(",closure_parameters(expr),")",level);
+        ppPutChar('>');
         }
     else if (SameSymbol(object_label(expr),ClosureSymbol))
         {
-        if (ppActual)
-            {
-            ppPutString("<function ");
-            ppLevel(closure_name(expr),level+1);
-            ppList("(",closure_parameters(expr),")",level);
-            ppPutChar('>');
-            }
-        else
-            ppLevel(closure_name(expr),level+1);
+        ppPutString("<function ");
+        ppLevel(closure_name(expr),level+1);
+        ppList("(",closure_parameters(expr),")",level);
+        ppPutChar('>');
         }
     else if (env_constructor(expr) == 0)
         {
@@ -142,7 +114,7 @@ ppCons(int expr,int level)
     ppQuoting = old;
     }
 
-static void
+void
 ppFormattedString(int expr)
     {
     int size = count(expr);
@@ -186,78 +158,15 @@ ppLevel(int expr,int level)
     else if (type(expr) == CONS)
         ppCons(expr,level);
     else if (type(expr) == ARRAY)
-        ppArray("[",expr,"]",level);
+        ppList("[",expr,"]",level);
     else
         ppPutString(type(expr));
     }
 
 void
-scamppToString(int expr,char *buffer,int size,int *index)
-    {
-    char local[1024];
-    if (type(expr) == CONS)
-        {
-        buffer[*index] = '(';
-        *index += 1;
-        while (expr != 0)
-           {
-           scamppToString(car(expr),buffer,size,index);
-           expr = cdr(expr);
-           if (expr != 0)
-                {
-                buffer[*index] = ' ';
-                *index += 1;
-                }
-           }
-        buffer[*index] = ')';
-        *index += 1;
-        buffer[*index] = '\0';
-        }
-    else if (type(expr) == SYMBOL)
-        {
-        strcpy(buffer+*index,SymbolTable[ival(expr)]);
-        *index += strlen(SymbolTable[ival(expr)]);
-        buffer[*index] = '\0';
-        }
-    else if (type(expr) == INTEGER)
-        {
-        sprintf(local,"%d",ival(expr));
-        strcpy(buffer+*index,local);
-        *index += strlen(local);
-        buffer[*index] = '\0';
-        }
-    else if (type(expr) == REAL)
-        {
-        sprintf(local,"%.17f",rval(expr));
-        strcpy(buffer+*index,local);
-        *index += strlen(local);
-        buffer[*index] = '\0';
-        }
-    else if (type(expr) == STRING)
-        {
-        buffer[*index] = '"';
-        *index += 1;
-        cellString(local,sizeof(local),expr);
-        strcpy(buffer+*index,local);
-        *index += strlen(local);
-        buffer[*index] = '"';
-        *index += 1;
-        buffer[*index] = '\0';
-        }
-    else
-        Fatal("INTERNAL ERROR: unknown ppToString type: %s\n",type(expr));
-    }
-
-void
 debug(char *s,int i)
     {
-    if (s != 0)
-        printf("%s: ",s);
-    if (Syntax == SWAY)
-        swayPPFile(stdout,i);
-    else
-        scamPPFile(stdout,i);
-    printf("\n");
+    debugOut(stdout,s,i);
     }
 
 void 

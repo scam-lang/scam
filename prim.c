@@ -2296,9 +2296,8 @@ readExpr(int args)
     if (fp == stdin)
         {
         char buffer[8096];
-        int index = 0;
         if (Syntax == SWAY)
-            swayppToString(e,buffer,sizeof(buffer),&index);
+            swayPPString(buffer,sizeof(buffer),e);
         else
             //scamppToString(e,buffer,sizeof(buffer),&index);
             scamPPString(buffer,sizeof(buffer),e);

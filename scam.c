@@ -134,7 +134,12 @@ main(int argc,char **argv,char **envv)
     V();
 
     if (argc-argIndex == 0)
-        result = addToEnvironment(env,"repl.lib",Syntax);
+        {
+        if (Syntax == SWAY)
+            result = addToEnvironment(env,"sway-repl.lib",Syntax);
+        else
+            result = addToEnvironment(env,"repl.lib",Syntax);
+        }
     else
         result = addToEnvironment(env,argv[argIndex],Syntax);
 

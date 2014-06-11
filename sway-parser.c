@@ -627,7 +627,6 @@ statement(PARSER *p)
 
     if (!isXCall(r))
         {
-        printf("type of r is %s\n",type(r));
         PUSH(r);
         m = match(p, SEMI);
         r = POP();
