@@ -13,4 +13,8 @@ extern void (*ppPutString)(char *);
 extern void (*ppPutInt)(int);
 extern void (*ppPutReal)(double);
 
+extern void ppPutIndent(void);
+extern void ppSaveOutput(void);
+extern void ppRestoreOutput(void);
+
 #define ppFLAT 1

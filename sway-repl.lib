@@ -2,6 +2,7 @@ var e = nil;
 var result = nil;
 println("Welcome to the Sway Interpreter!");
 e = catch(readExpr());
+inspect(e);
 while (e != 'quit && (not(error?(e)) || get('code,e) != 'emptyExpression))
     {
     result = catch(eval(e,this));

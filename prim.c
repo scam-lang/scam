@@ -2296,10 +2296,10 @@ readExpr(int args)
     if (fp == stdin)
         {
         char buffer[8096];
+        printf("generating history item...\n");
         if (Syntax == SWAY)
             swayPPString(buffer,sizeof(buffer),e);
         else
-            //scamppToString(e,buffer,sizeof(buffer),&index);
             scamPPString(buffer,sizeof(buffer),e);
         add_history(buffer);
         }

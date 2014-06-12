@@ -27,10 +27,19 @@ void (*ppPutString)(char *) = putStringToFile;
 void (*ppPutInt)(int) = putIntToFile;
 void (*ppPutReal)(double) = putRealToFile;
 
+static void (*oldPutChar)(int) = putCharToFile;
+static void (*oldPutString)(char *) = putStringToFile;
+static void (*oldPutInt)(int) = putIntToFile;
+static void (*oldPutReal)(double) = putRealToFile;
+static int oldMaxLength;
+static int oldLength;
+static char *oldBuffer;
+static FILE *oldOutput;
+
 static char *ppBuffer = 0;
 
 void
-ppPrintIndent()
+ppPutIndent()
     {
     int i;
     for (i = 0; i < ppIndent; ++i)
@@ -40,6 +49,7 @@ ppPrintIndent()
 void
 ppToString(char *buffer,int size)
     {
+    //printf("setting output to string...\n");
     ppPutChar = putCharToString;
     ppPutString = putStringToString;
     ppPutInt = putIntToString;
@@ -52,12 +62,40 @@ ppToString(char *buffer,int size)
 void
 ppToFile(FILE *fp,int size)
     {
+    //printf("setting output to file...\n");
     ppPutChar = putCharToFile;
     ppPutString = putStringToFile;
     ppPutInt = putIntToFile;
     ppPutReal = putRealToFile;
     ppOutput = fp;
-    ppLength = size;
+    ppMaxLength = size;
+    ppLength = 0;
+    }
+
+void
+ppSaveOutput()
+    {
+    oldPutChar = ppPutChar;
+    oldPutString = ppPutString;
+    oldPutInt = ppPutInt;
+    oldPutReal = ppPutReal;
+    oldMaxLength = ppMaxLength;
+    oldLength = ppLength;
+    oldOutput = ppOutput;
+    oldBuffer = ppBuffer;
+    }
+
+void
+ppRestoreOutput()
+    {
+    ppPutChar = oldPutChar;
+    ppPutString = oldPutString;
+    ppPutInt = oldPutInt;
+    ppPutReal = oldPutReal;
+    ppMaxLength = oldMaxLength;
+    ppLength = oldLength;
+    ppBuffer = oldBuffer;
+    ppOutput = oldOutput;
     }
 
 static void
@@ -99,6 +137,7 @@ putCharToString(int ch)
 static void
 putStringToString(char *s)
     {
+    printf("<<to string>>");
     while (*s != 0)
         {
         putCharToString(*s);

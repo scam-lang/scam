@@ -66,6 +66,7 @@ static int isStatementPending(PARSER *);
 static int isBlockPending(PARSER *);
 static int isExprPending(PARSER *);
 static int opType(PARSER *);
+static int operatorType(int);
 static int isXCall(int);
 static int hasDefinitions(int);
 
@@ -1258,36 +1259,39 @@ isExprPending(PARSER *p)
 static int
 opType(PARSER *p)
     {
-    int result;
-    int Pending;
-
     //force lex
     check(p,0);
 
-    Pending = p->pending;
+    return operatorType(p->pending);
+    }
 
-    //printf("Pending address is %d\n", Pending);
-    //printf("Pending type is %s\n", type(Pending));
-    //printf("Pending is %s\n", name(Pending));
+static int
+operatorType(int expr)
+    {
+    int result;
 
-    if (type(Pending) != SYMBOL)
+    //printf("expr address is %d\n", expr);
+    //printf("expr type is %s\n", type(expr));
+    //printf("expr is %s\n", name(expr));
+
+    if (type(expr) != SYMBOL)
         {
         result = NOTanOP;
         }
     else
         {
-        if (SameSymbol(Pending,EqSymbol)
-        ||  SameSymbol(Pending,HeadAssignSymbol)
-        ||  SameSymbol(Pending,TailAssignSymbol))
+        if (SameSymbol(expr,EqSymbol)
+        ||  SameSymbol(expr,HeadAssignSymbol)
+        ||  SameSymbol(expr,TailAssignSymbol))
             result = UPDATER;
-        else if (SameSymbol(Pending,AndAndSymbol) || SameSymbol(Pending,OrOrSymbol))
+        else if (SameSymbol(expr,AndAndSymbol) || SameSymbol(expr,OrOrSymbol))
             result = LOGICAL_CONNECTIVE;
-        else if (SameSymbol(Pending,LtSymbol) || SameSymbol(Pending,GtSymbol)
-        || SameSymbol(Pending,EqEqSymbol) ||  SameSymbol(Pending,NeqSymbol)
-        || SameSymbol(Pending,GteSymbol) || SameSymbol(Pending,LteSymbol))
+        else if (SameSymbol(expr,LtSymbol) || SameSymbol(expr,GtSymbol)
+        || SameSymbol(expr,EqEqSymbol) ||  SameSymbol(expr,NeqSymbol)
+        || SameSymbol(expr,GteSymbol) || SameSymbol(expr,LteSymbol))
             result = LOGICAL_COMPARISON;
-        else if (SameSymbol(Pending,DotSymbol)
-        || SameSymbol(Pending,OpenBracketSymbol))
+        else if (SameSymbol(expr,DotSymbol)
+        || SameSymbol(expr,OpenBracketSymbol))
             result = SELECT;
         else
             result = ARITHMETIC;

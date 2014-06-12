@@ -72,7 +72,11 @@ main(int argc,char **argv,char **envv)
 
     /* initialize memory */
 
-    read_history(".scam_history");
+    if (Syntax == SWAY)
+        read_history(".sway_history");
+    else
+        read_history(".scam_history");
+
     scamInit(0);
 
     /* find the home directory for finding files */

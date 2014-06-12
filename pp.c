@@ -35,7 +35,7 @@ ppList(char *open,int items,char *close,int level)
             {
             if (type(items) == CONS)
                 {
-                ppPutString(SEP);
+                ppPutString(" ");
                 }
             else
                 {
@@ -172,6 +172,7 @@ debug(char *s,int i)
 void 
 debugOut(FILE *f, char *s, int i)
     {
+    ppSaveOutput();
     if (s != 0)
         fprintf(f, "%s: ",s);
     if (Syntax == SWAY)
@@ -179,18 +180,7 @@ debugOut(FILE *f, char *s, int i)
     else
         scamPPFile(stdout,i);
     fprintf(f,"\n");
-    }
-
-void
-swayPPFile(FILE *fp,int expr)
-    {
-    scamPPFile(fp,expr);
-    }
-
-void
-swayPPString(char *buffer,int size,int expr)
-    {
-    scamPPString(buffer,size,expr);
+    ppRestoreOutput();
     }
 
 void
