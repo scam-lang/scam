@@ -147,7 +147,10 @@ main(int argc,char **argv,char **envv)
     else
         result = addToEnvironment(env,argv[argIndex],Syntax);
 
-    write_history(".scam_history");
+    if (Syntax == SWAY)
+        write_history(".sway_history");
+    else
+        write_history(".scam_history");
 
     if (isThrow(result) && result != SHUTDOWN_THROW) goto ERROR;
 

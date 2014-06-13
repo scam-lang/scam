@@ -2299,10 +2299,25 @@ readExpr(int args)
         int oldFlat = ppFlat;
         ppFlat = 1;
         if (Syntax == SWAY)
+            {
+            extern int isFunctionDefinition(int);
+            extern int isXCall(int);
             swayPPString(buffer,sizeof(buffer),e);
+            /* add semicolon to statements */
+            if (!isFunctionDefinition(e) && !isXCall(e))
+                {
+                int len = strlen(buffer);
+                if (len < sizeof(buffer) - 1)
+                    {
+                    buffer[len] = ';';
+                    buffer[len+1] = '\0';
+                    }
+                }
+            }
         else
             scamPPString(buffer,sizeof(buffer),e);
         ppFlat = oldFlat;
+
         add_history(buffer);
         }
 

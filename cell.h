@@ -651,7 +651,6 @@ extern int DotSymbol;
 extern int AssignSymbol;
 extern int UndefinedVariableSymbol;
 extern int UninitializedVariableSymbol;
-extern int FillerSymbol;
 extern int XcallSymbol;
 extern int PrettyStatementSymbol;
 

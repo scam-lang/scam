@@ -1,19 +1,36 @@
 var e = nil;
 var result = nil;
-println("Welcome to the Sway Interpreter!");
+print("Welcome to the Sway Interpreter!");
+println(" To exit, enter q; or quit;");
 e = catch(readExpr());
-while (e != 'quit && (not(error?(e)) || get('code,e) != 'emptyExpression))
+while (e != 'quit && e != 'q)
     {
-    result = catch(eval(e,this));
-    if (error?(result))
+    if (error?(e))
         {
-        println("EXCEPTION: ",get('code,result),",",
-            suffix(get('value,result),1 + stringUntil(get('value,result),":")));
+        println("EXCEPTION: ",get('code,e),",",
+            suffix(get('value,e),1 + stringUntil(get('value,e),":")));
         }
     else
-        { 
-        println(result);
+        {
+        result = catch(eval(e,this));
+        if (error?(result))
+            {
+            println("EXCEPTION: ",get('code,result),",",
+                suffix(get('value,result),1 + stringUntil(get('value,result),":")));
+            }
+        else
+            { 
+            println(result);
+            }
         }
-    e = catch(readExpr());
+    if (eof?())
+        {
+        e = 'quit;
+        }
+    else
+        {
+        e = catch(readExpr());
+        }
     }
 if (error?(e),println());
+println("Happy happy, joy joy!");

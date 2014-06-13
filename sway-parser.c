@@ -635,7 +635,7 @@ statement(PARSER *p)
         }
     else
         {
-        r = cddr(r); // strip xcall tags
+        r = cdr(r); // strip xcall tag
         }
 
     if (TRACE) debug("leaving statement",r);
@@ -904,8 +904,8 @@ exprCall(PARSER *p,int item)
         if (extra != 0)
             {
             P();
-            ENSURE_MEMORY(2,&result,(int *) 0);
-            result = cons2(FillerSymbol,cons2(XcallSymbol,result));
+            ENSURE_MEMORY(1,&result,(int *) 0);
+            result = cons2(XcallSymbol,result);
             V();
             }
         if (opType(p) == SELECT)
@@ -1348,8 +1348,7 @@ check(PARSER *p,char *t)
 static int
 isXCall(int expr)
     {
-    return type(expr) == CONS && SameSymbol(car(expr),FillerSymbol)
-        && SameSymbol(cadr(expr),XcallSymbol);
+    return type(expr) == CONS && SameSymbol(car(expr),XcallSymbol);
     }
 
 static int

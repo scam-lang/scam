@@ -18,11 +18,13 @@
 
 #define MAX_CSV 10
 
+int  isXCall(int);
+int  isFunctionDefinition(int);
+
 extern void ppList(char *,int,char *,int);
 extern void ppFormattedString(int);
 static void ppComplex(int,int);
 static void ppLevel(int,int);
-static int  isXCall(int);
 static int  isBinary(int);
 
 static void ppStartLine(void);
@@ -41,6 +43,12 @@ static int
 isDefinition(int expr)
     {
     return type(expr) == CONS && SameSymbol(car(expr),DefineSymbol);
+    }
+
+int
+isFunctionDefinition(int expr)
+    {
+    return isDefinition(expr) && type(cadr(expr)) == CONS;
     }
 
 static int
@@ -64,7 +72,7 @@ isBlock(int expr)
            || SameSymbol(car(expr),ScopeSymbol));
     }
 
-static int
+int
 isXCall(int call)
     {
     if (type(call) != CONS) return 0;
@@ -312,6 +320,14 @@ ppCall(int c,int level)
             ppStartLine();
             ppPutString("else ");
             ppLevel(cadr(c),level+1);
+            remaining = 0;
+            }
+        else if (remaining == 2 && isBlock(cadr(c)))
+            {
+            ppLevel(car(c),level+1);
+            ppPutChar(')');
+            ppEndLine();
+            ppBlock(cadr(c),level);
             remaining = 0;
             }
         else if (remaining == 3 && isBlock(cadr(c)) && isBlock(caddr(c)))

@@ -116,7 +116,6 @@ int ErrorSymbol;
 int ErrorSymbol;
 int ExceptionSymbol;
 int FalseSymbol;
-int FillerSymbol;
 int FunctionSymbol;
 int GtSymbol;
 int GteSymbol;
@@ -277,7 +276,6 @@ scamInit(int memSize)
     VarSymbol            = newSymbol("var");
 
     AndAndSymbol         = newSymbol("&&");
-    FillerSymbol         = newSymbol("__filler");
     FunctionSymbol       = newSymbol("function");
     GtSymbol             = newSymbol(">");
     GteSymbol            = newSymbol(">=");
@@ -1981,7 +1979,7 @@ saveMTStack(char *fname, int ext, int index)
             {
             last = STACK[i];
             ppToFile(f,0);
-            ppTable(STACK[i],0);
+            ppTable(STACK[i],0,0);
             }
         }
 
@@ -1991,11 +1989,11 @@ saveMTStack(char *fname, int ext, int index)
     /*
     fprintf(stdout,"The top level environment: ");
     ppToFile(stdout,0);
-    ppTable(last,0);
+    ppTable(last,0,0);
     */
     fprintf(f,"The top level environment: ");
     ppToFile(f,0);
-    ppTable(last,0);
+    ppTable(last,0,0);
 
     /* close the file */
     fclose(f);
