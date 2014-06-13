@@ -175,10 +175,7 @@ debugOut(FILE *f, char *s, int i)
     ppSaveOutput();
     if (s != 0)
         fprintf(f, "%s: ",s);
-    if (Syntax == SWAY)
-        swayPPFile(stdout,i);
-    else
-        scamPPFile(stdout,i);
+    scamPPFile(stdout,i);
     fprintf(f,"\n");
     ppRestoreOutput();
     }

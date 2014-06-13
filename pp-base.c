@@ -137,7 +137,6 @@ putCharToString(int ch)
 static void
 putStringToString(char *s)
     {
-    printf("<<to string>>");
     while (*s != 0)
         {
         putCharToString(*s);
