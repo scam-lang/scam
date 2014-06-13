@@ -38,6 +38,25 @@ lastArg(int expr)
     }
 
 static int
+isDefinition(int expr)
+    {
+    return type(expr) == CONS && SameSymbol(car(expr),DefineSymbol);
+    }
+
+static int
+isVarDefBlock(int expr)
+    {
+    if (!SameSymbol(car(expr),BeginSymbol)) return 0;
+    expr = cdr(expr);
+    while (expr != 0)
+        {
+        if (!isDefinition(car(expr))) return 0;
+        expr = cdr(expr);
+        }
+    return 1;
+    }
+
+static int
 isBlock(int expr)
     {
     return type(expr) == CONS
@@ -70,7 +89,6 @@ swayPPFile(FILE *fp,int expr)
 void
 swayPPString(char *buffer,int size,int expr)
     {
-    printf("generating string\n");
     ppToString(buffer,size);
     ppLevel(expr,0);
     }
@@ -155,9 +173,7 @@ ppStartLine()
 static void
 ppEndLine()
     {
-    if (ppFlat)
-        ppPutChar(' ');
-    else
+    if (!ppFlat)
         ppPutChar('\n');
     }
 
@@ -196,9 +212,28 @@ ppBlock(int body,int level)
     }
 
 static void
+ppVarDefBlock(int body,int level)
+    {
+    body = cdr(body);
+    ppPutString("var ");
+    while (body != 0)
+        {
+        int d = car(body);
+        ppLevel(cadr(d),level+1);
+        ppPutString(" = ");
+        ppLevel(caddr(d),level+1);
+        if (cdr(body) != 0) ppPutChar(',');
+        body = cdr(body);
+        }
+    }
+
+static void
 ppVarDefinition(int t,int level)
     {
-    ppList("(",t,")",level);
+    ppPutString("var ");
+    ppLevel(cadr(t),level+1);
+    ppPutString(" = ");
+    ppLevel(caddr(t),level+1);
     }
 
 static void
@@ -274,6 +309,7 @@ ppCall(int c,int level)
             ppEndLine();
             ppBlock(car(c),level);
             ppEndLine();
+            ppStartLine();
             ppPutString("else ");
             ppLevel(cadr(c),level+1);
             remaining = 0;
@@ -284,7 +320,7 @@ ppCall(int c,int level)
             c = cdr(c);
             --remaining;
             }
-        else if (remaining == 3 && isBlock(caddr(c)) && isXCall(caddr(c)))
+        else if (remaining == 3 && isBlock(cadr(c)) && isXCall(caddr(c)))
             {
             ppLevel(car(c),level+1);
             c = cdr(c);
@@ -311,6 +347,8 @@ ppComplex(int t,int level)
         ppLevel(cadr(t),level+1);
         ppPutChar(')');
         }
+    else if (isVarDefBlock(t))
+        ppVarDefBlock(t,level);
     else if (length(t) == 3 && isBinary(car(t)))
         ppBinary(t,level);
     else
