@@ -1,36 +1,38 @@
-var e = nil;
-var result = nil;
-print("Welcome to the Sway Interpreter!");
-println(" To exit, enter q; or quit;");
-e = catch(readExpr());
-while (e != 'quit && e != 'q)
+function repl()
     {
-    if (error?(e))
+    var e = nil;
+    var result = nil;
+    e = catch(readExpr());
+    while (e != 'quit && e != 'q)
         {
-        println("EXCEPTION: ",get('code,e),",",
-            suffix(get('value,e),1 + stringUntil(get('value,e),":")));
-        }
-    else
-        {
-        result = catch(eval(e,this));
-        if (error?(result))
+        if (error?(e) && get('code,e) == 'emptyExpression)
             {
-            println("EXCEPTION: ",get('code,result),",",
-                suffix(get('value,result),1 + stringUntil(get('value,result),":")));
+            println();
+            return 'done;
+            }
+        else if (error?(e))
+            {
+            println("EXCEPTION: ",get('code,e),",",
+                suffix(get('value,e),1 + stringUntil(get('value,e),":")));
             }
         else
-            { 
-            println(result);
+            {
+            result = catch(eval(e,this));
+            if (error?(result))
+                {
+                println("EXCEPTION: ",get('code,result),",",
+                    suffix(get('value,result),1 + stringUntil(get('value,result),":")));
+                }
+            else
+                { 
+                println(result);
+                }
             }
-        }
-    if (eof?())
-        {
-        e = 'quit;
-        }
-    else
-        {
         e = catch(readExpr());
         }
     }
-if (error?(e),println());
+
+print("Welcome to the Sway Interpreter!");
+println(" To exit, enter <Ctl>-D, q;, or quit;");
+repl();
 println("Happy happy, joy joy!");

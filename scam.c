@@ -30,7 +30,7 @@
 /* change PROGRAM_NAME and PROGRAM_VERSION appropriately */
 
 char *PROGRAM_NAME = "scam";
-char *PROGRAM_VERSION = "2.0a";
+char *PROGRAM_VERSION = "2.0b";
 int displayPrimitives = 0;
 int displayHelp = 0;
 int TraceBack = 0;

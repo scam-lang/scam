@@ -1153,12 +1153,14 @@ primary(PARSER *p)
         }
     else if (isThrow(p->pending))
         return p->pending;
-    else
-        {
+    else if (check(p,END_OF_INPUT))
         return throw(EmptyExpressionSymbol,
             "file %s,line %d: expected an expression, got %s instead",
             SymbolTable[p->file],p->line,type(p->pending));
-        }
+    else
+        return throw(SyntaxExceptionSymbol,
+            "file %s,line %d: expected an expression, got %s instead",
+            SymbolTable[p->file],p->line,type(p->pending));
 
     if (TRACE) printf("leaving primary.\n");
     return result;
