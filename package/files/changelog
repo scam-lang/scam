@@ -1,3 +1,11 @@
+scam (2.0b)
+
+  * sway pretty printing completed, added interactive versions of scam and sway
+
+scam (2.0a)
+
+  * new major version, concurrency is now implemented at the thread level
+
 scam (1.6b)
 
   * fixed bug in string-equal? and thus equal?
