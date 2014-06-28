@@ -1,3 +1,5 @@
+; thread.lib
+; author: Gabriel Loewen
 ; user defined thread pool object
 ;   cnt -- number of threads to place in the pool
 (define (tpool cnt)
