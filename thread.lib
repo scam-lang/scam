@@ -49,7 +49,7 @@
                (define callbacks (caddr item))
                (unlock)
                (define res (eval job env))
-
+                (lock)
                ; if any callbacks were pushed, call them!
                (while (not (nil? callbacks))
                   ((car callbacks) res)
