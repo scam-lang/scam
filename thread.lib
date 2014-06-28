@@ -82,14 +82,14 @@
             )
             (unlock)
          )
-         (sleep 500000000) ; sleep 0.5 seconds
+         (nanosleep 500000000) ; sleep 0.5 seconds
       )
    )
 
    ; wait for all jobs to finish and then shutdown
    (define (shutdown)
       (while (not (empty?))
-         (sleep 500000000)
+         (nanosleep 500000000)
       )
       (set! ending #t)
    )

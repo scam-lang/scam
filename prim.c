@@ -3394,12 +3394,22 @@ ffile(int args)
     }
 
 
-/* (sleep seconds)
+/* (sleep seconds)*/
+
+int
+ssleep(int args)
+    {
+    int val = ival(car(args));
+    sleep(val);
+    return 0;
+    }
+
+/* (nanosleep seconds)
  * Note: this is a high precision sleep using nanosleep.  
  * 1 second is 1000000000 nanoseconds
  */
 int
-ssleep(int args)
+snanosleep(int args)
     {
     struct timespec tim;
     int val = ival(car(args));
@@ -3419,6 +3429,15 @@ loadBuiltIns(int env)
     b = makeBuiltIn(env,
         newSymbolUnsafe("gettid"),
         0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+
+    BuiltIns[count] = snanosleep;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("nanosleep"),
+        cons(newSymbolUnsafe("nanoseconds"),0),
         newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);
     ++count;
