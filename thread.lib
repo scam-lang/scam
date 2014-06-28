@@ -65,8 +65,8 @@
                   )
                )
             )
-            (unlock)
          )
+         (unlock)
          (nanosleep 500000000) ; sleep 0.5 seconds
       )
    )
