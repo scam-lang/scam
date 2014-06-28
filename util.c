@@ -186,7 +186,6 @@ ProcessOptions(int argc, char **argv)
                     printf("\tM - Print out the default memory size.\n\n");
                     printf("\tm - Set memory size in bytes, -m<SIZE>\n\n");
                     printf("\tt - Enable traceback\n\n");
-                    printf("\tT - Enable multi-threading\n\n");
                     printf("\tv - Print out the version\n\n");
                     exit(0);
                 }
