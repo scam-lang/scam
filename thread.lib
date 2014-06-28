@@ -41,15 +41,6 @@
       )
    )
 
-   ;{ create n worker threads
-   (define (init num)
-      (while (> num 0)
-         (set! threads (cons (thread (worker)) threads))
-         (set! num (- num 1))
-      )
-   )
-   ;}
-
    ; wait for the current queue of jobs completes before moving on
    (define (join)
       (set! wait #t)
@@ -101,6 +92,5 @@
       (set! threads (cons (thread (worker)) threads))
       (set! cnt (- cnt 1))
    )
-   ;(init cnt)
    this
 )
