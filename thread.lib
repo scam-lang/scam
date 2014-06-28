@@ -31,16 +31,6 @@
       (unlock)
    )
 
-   ; pop a job off of the queue
-   (define (pop)
-      (if (nil? queue) 
-         nil
-         (let ((pop (car queue)))
-           (set! queue (cdr queue))
-           pop)
-      )
-   )
-
    ; wait for the current queue of jobs completes before moving on
    (define (join)
       (set! wait #t)
@@ -52,7 +42,14 @@
          (lock)
          (if (not (nil? queue))
             (begin
-               (define item (pop))
+               (define item 
+                  (if (nil? queue) 
+                     nil
+                    (let ((item (car queue)))
+                      (set! queue (cdr queue))
+                      item)
+                    )
+                )
                (define job (car item))
                (define env (cadr item))
                (define callbacks (caddr item))
