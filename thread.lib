@@ -1,5 +1,32 @@
 ; thread.lib
 ; author: Gabriel Loewen
+
+; execute a number of expressions iteratively (non-threaded)
+(define (pexecute* # $)
+   (while (not (nil? $))
+      (eval (car $) #)
+      (set! $ (cdr $))
+      )
+   )
+
+; execute a number of expressions in separate threads
+(define (pexecute # $)
+   (define tids nil)
+   (define (exec lst)
+      (if (not (nil? lst))
+         (begin
+            (set! tids (cons (thread (eval (car lst) #)) tids))
+            (exec (cdr lst))
+            )
+         )
+      )
+   (exec $)
+   (while (not (nil? tids))
+      (tjoin (car tids))
+      (set! tids (cdr tids))
+      )
+   )
+
 ; user defined thread pool object
 ;   cnt -- number of threads to place in the pool
 (define (tpool cnt)
@@ -49,7 +76,8 @@
                (define callbacks (caddr item))
                (unlock)
                (define res (eval job env))
-                (lock)
+               (lock)
+
                ; if any callbacks were pushed, call them!
                (while (not (nil? callbacks))
                   ((car callbacks) res)
@@ -84,4 +112,4 @@
       (set! cnt (- cnt 1))
    )
    this
-)
+   )
