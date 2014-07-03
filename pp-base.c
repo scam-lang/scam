@@ -189,7 +189,7 @@ putCharToFile(int ch)
         fprintf(ppOutput,"\\n");
         ppLength += 2;
         }
-    else if (ch == '\t')
+    else if (ch == '\t' && ppFlat)
         {
         fprintf(ppOutput,"\\t");
         ppLength += 2;
