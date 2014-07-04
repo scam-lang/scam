@@ -44,9 +44,9 @@
       (if (== wait #t)
         (set! waitQueue (append waitQueue (list (list $ex # @))))
         (set! queue (append queue (list (list $ex # @))))
-      )
+        )
       (unlock)
-   )
+      )
    
    ; special push, change calling environment
    (define (push* env $ex @)
@@ -54,14 +54,14 @@
       (if (== wait #t)
         (set! waitQueue (append waitQueue (list (list $ex env @))))
         (set! queue (append queue (list (list $ex env @))))
-      )
+        )
       (unlock)
-   )
+      )
 
    ; wait for the current queue of jobs completes before moving on
    (define (join)
       (set! wait #t)
-   )
+      )
 
    ; waits for jobs to be available and then executes them
    (define (worker)
@@ -82,7 +82,7 @@
                (while (not (nil? callbacks))
                   ((car callbacks) res)
                   (set! callbacks (cdr callbacks))
-               )
+                  )
 
                ; after evaluating, ensure that the waiting queue is activated
                (if (and (== wait #t) (nil? queue)) 
@@ -90,26 +90,26 @@
                      (set! queue waitQueue)
                      (set! waitQueue nil)
                      (set! wait #f)
+                     )
                   )
                )
             )
-         )
          (unlock)
          (nanosleep 500000000) ; sleep 0.5 seconds
+         )
       )
-   )
 
    ; wait for all jobs to finish and then shutdown
    (define (shutdown)
       (while (not (empty?))
          (nanosleep 500000000)
-      )
+         )
       (set! ending #t)
-   )
+      )
 
    (while (> cnt 0)
       (set! threads (cons (thread (worker)) threads))
       (set! cnt (- cnt 1))
-   )
+      )
    this
    )
