@@ -1,0 +1,28 @@
+(define test (allocate 2))
+(define (fib n)
+    (set! test (allocate 2))
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        )
+    )
+
+
+(define x 0)
+(define result nil)
+(define t (time))
+
+(set 'x 22)
+(set 'result (fib x))
+(display result)
+(display "\n")
+(display (- (time) t))
+(display " seconds\n")
+
+------------------------------------------
+gc 1: 0.005199s (total 0.005199s), 1989097 cells free
+gc 2: 0.005306s (total 0.010505s), 1989158 cells free
+gc 3: 0.006679s (total 0.017184s), 1989143 cells free
+gc 4: 0.005161s (total 0.022345s), 1989226 cells free
+17711
+2.174070 seconds

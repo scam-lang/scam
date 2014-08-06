@@ -1,0 +1,36 @@
+(include "compile.lib")
+
+(define (fib n)
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        )
+    )
+
+(define x 23)
+(define result)
+
+(define s (time))
+(define result (fib x))
+(define f (time))
+(println "(fib " x ") is " result ", " (- f s) " seconds.")
+
+(println "compiling fib...")
+(compile fib this)
+(println "fib compiled.")
+
+(define s (time))
+(define result (fib x))
+(define f (time))
+(println "(fib " x ") is " result ", " (- f s) " seconds.")
+------------------------------------------
+gc 1: 0.019879s (total 0.019879s), 1987021 cells free
+gc 2: 0.021643s (total 0.041522s), 1987157 cells free
+gc 3: 0.021349s (total 0.062871s), 1987077 cells free
+(fib 23) is 28657, 3.964587 seconds.
+compiling fib...
+fib compiled.
+gc 4: 0.019160s (total 0.082031s), 1987011 cells free
+gc 5: 0.022984s (total 0.105015s), 1987062 cells free
+gc 6: 0.021673s (total 0.126688s), 1987027 cells free
+(fib 23) is 28657, 2.203579 seconds.
