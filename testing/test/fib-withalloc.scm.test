@@ -20,9 +20,9 @@
 (display " seconds\n")
 
 ------------------------------------------
-gc 1: 0.005199s (total 0.005199s), 1989097 cells free
-gc 2: 0.005306s (total 0.010505s), 1989158 cells free
-gc 3: 0.006679s (total 0.017184s), 1989143 cells free
-gc 4: 0.005161s (total 0.022345s), 1989226 cells free
+gc 1: 0.020054s (total 0.020054s), 1988633 cells free
+gc 2: 0.022309s (total 0.042363s), 1988628 cells free
+gc 3: 0.022564s (total 0.064927s), 1988644 cells free
+gc 4: 0.022429s (total 0.087356s), 1988644 cells free
 17711
-2.174070 seconds
+5.3056340218 seconds

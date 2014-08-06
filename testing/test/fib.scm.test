@@ -17,6 +17,6 @@
 (display  "seconds\n")
 
 ------------------------------------------
-gc 1: 0.005636s (total 0.005636s), 1989273 cells free
+gc 1: 0.022073s (total 0.022073s), 1988691 cells free
 17711
-0.941303seconds
+2.1382420063seconds

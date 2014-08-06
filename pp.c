@@ -33,7 +33,7 @@ ppList(char *open,int items,char *close,int level)
         items = cdr(items);
         if (items)
             {
-            if (type(items) == CONS)
+            if (type(items) == CONS || type(items) == ARRAY)
                 {
                 ppPutString(" ");
                 }

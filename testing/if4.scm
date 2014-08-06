@@ -3,13 +3,17 @@
 (define if
     (lambda (# test $tBranch $)
         (define oldIf (get 'if (get '__context __context)))
+        (print "the old if: ")
         (pp oldIf)
+        (println)
         (println "the test is "  test)
         (pass oldIf # test $tBranch $)
         )
     )
 
+(print "the new if: ")
 (pp if)
+(println)
 
 (println "testing if 3 is less than 4...")
 (if (< 3 4)

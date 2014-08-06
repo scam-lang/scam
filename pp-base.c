@@ -121,7 +121,7 @@ putCharToString(int ch)
         ppBuffer[ppLength++] = 'n';
         ppBuffer[ppLength] = '\0';
         }
-    else if (ch == '\t')
+    else if (ch == '\t' && ppFlat)
         {
         ppBuffer[ppLength++] = '\\';
         ppBuffer[ppLength++] = 't';
