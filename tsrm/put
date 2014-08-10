@@ -1,6 +1,7 @@
 #!/bin/bash
 if [ $2server == server ] ; then
     SERVER=beastie.cs.ua.edu;
+    where="beastie"
     echo putting to beastie;
 else
     SERVER=nixie.cs.ua.edu;
