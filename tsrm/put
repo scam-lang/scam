@@ -1,7 +1,6 @@
 #!/bin/bash
 if [ $2server == server ] ; then
     SERVER=beastie.cs.ua.edu;
-    where="beastie"
     echo putting to beastie;
 else
     SERVER=nixie.cs.ua.edu;
@@ -12,6 +11,8 @@ hyperlatex index.tex
 makeindex index.idx
 cp index.pdf book.pdf
 fix index*.html
+where=`uname -n`
+echo On $where.cs.ua.edu...
 if [ $where".cs.ua.edu" == $SERVER ]  ; then
     echo sending scam book files to $SERVER via direct copy...
     cp index.html *.html lusth.css *.tex book.pdf /var/www/scam/tsrm/;

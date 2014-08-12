@@ -1,129 +1,131 @@
 \chapter{Concurrency}
 \label{Concurrency}
 
-\section{Concurrency constructs in Scam}
-
-Scam provides for concurrency using lightweight threads. Communication between 
-threads can only happen through shared memory. The following subsections describes the 
+Scam provides for concurrency using lightweight threads.
+The following subsections describes the 
 built-in concurrency and concurrency control functions and give details on 
 their use.
 
-\subsection{Built-in support for threads}
-
+\section{Built-in support for threads}
 
 The following functions can be used to control threads and their
 interactions:
 
 \begin{description}
-\item[thread] This one-argument function takes in an expression and evaluates in parallel to the calling thread and returns the thread id of the new thread.  The code below:
-    \begin{verbatim}
-        (thread (println "Hello World 1"))
-        (thread (println "Hello World 2"))
-        (thread (println "Hello World 3"))
-    \end{verbatim} 
+\item[thread]
+This one-argument function takes in an expression and evaluates in
+parallel to the calling thread and returns the thread id of the new
+thread.  The code below:
 
-    yields something similar to the following output:
+\begin{verbatim}
+    (thread (println "Hello World 1"))
+    (thread (println "Hello World 2"))
+    (thread (println "Hello World 3"))
+\end{verbatim} 
 
-    \begin{verbatim}
-        HellHelo Worllod  3
-        World 1
-        Hello World 2
-    \end{verbatim} 
+yields something similar to the following output:
 
-    The problem here is that threads are executing in parallel.  This means that when you print out from one thread to the console another thread could be as well; and you get the overlap seen above.  To get around you can either use a mutex or the build in function {\it displayAtomic}.
+\begin{verbatim}
+    HellHelo Worllod  3
+    World 1
+    Hello World 2
+\end{verbatim} 
 
-\item[getTID] This no-argument function returns the thread ID of the current thread.  The code below:
+The problem here is that threads are executing in parallel.  This means
+that when you print out from one thread to the console another thread
+could be as well; and you get the overlap seen above.  To get around
+you can either use a mutex or the built-in function {\it displayAtomic}.
 
-    \begin{verbatim}
-        (thread (println (getTID)))
-    \end{verbatim}
-
-
-    yields something similar to the following output:
-
-    \begin{verbatim}
-        2
-    \end{verbatim}
-
-\item[lock] This no-argument function acquires the built-in mutex.
-\item[unlock] This no-argument function releases the built-in mutex.
-Only the thread that acquired the mutex can release it.  The code below 
-demostrates both lock and unlock:
-
-    \begin{verbatim}
-        (thread (begin (lock) (println "Hello World 1") (unlock)))
-        (thread (begin (lock) (println "Hello World 2") (unlock)))
-        (thread (begin (lock) (println "Hello World 3") (unlock)))
-    \end{verbatim} 
-
-    yields something similar to the following output:
-
-    \begin{verbatim}
-        Hello World 2
-        Hello World 3
-        Hello World 1
-    \end{verbatim} 
-
-\item[tjoin] This one-argument function causes the current thread to wait until
-a particular thread terminates. If the desired thread has already terminated,
-the function immediately returns. The desired thread is specified by passing
-its thread ID to the function.  The code below:
-
-    \begin{verbatim}
-        (define firstTID (thread (println (fib 25))))
-        (tjoin firstTID)
-        (thread (println (fib 10)))
-    \end{verbatim} 
-
-    yields something similar to the following output:
-
-    \begin{verbatim}
-       75025
-       55
-    \end{verbatim} 
-
-    Note that the thread which is evaluating fibonacci of 10 must wait until the thread which is evaluating fibonacci of 25 has finished.
-
-\item[displayAtomic] This variadic function is similar to {\it display}; however, it ensures that there will be no overlap of output if the user only uses {\it displayAtomic} for printing.
+\item[getTID]
+This no-argument function returns the thread ID of the current thread.
 The code below:
 
-    \begin{verbatim}
-        (thread (displayAtomic "Hello World 1\n"))
-        (thread (displayAtomic "Hello World 2\n"))
-        (thread (displayAtomic "Hello World 3\n"))
-    \end{verbatim} 
+\begin{verbatim}
+    (thread (println (getTID)))
+\end{verbatim}
 
-    yields something similar to the following output:
+yields something similar to the following output:
 
-    \begin{verbatim}
-        Hello World 2
-        Hello World 1
-        Hello World 3
-    \end{verbatim} 
+\begin{verbatim}
+    2
+\end{verbatim}
 
-\end{description}
+\item[lock]
+This no-argument function acquires the built-in mutex.
 
-\subsection{Support for higher-level thread interactions}
-
-The thread library provides additional functions that make handling threads easier.  
-
-\begin{description}
-\item[pexecute] This variadic function takes in a list of expressions and evaluates them in parallel with no return value.
-\item[pexecute*] This variadic function takes in a list of expressions and evaluates them sequentially starting with the first expression with no return value.
-\item[tpool] This one-argument function creates a new thread pool object.  The single argument specifies the number of concurrent threads allowed.
-    The object contains the following methods:
-    \begin{description}
-        \item[push] This variadic function takes in an expression and an optional number of call-back functions.  The call-back functions are called with the result of the evaluated expression.
-        \item[push*] This variadic function takes in an expression, a environment,  and an optional number of expressions.  The required expression is evaluated under the given environment.  The optional expressions are then evaluated with the return value of the evaluated required expression.
-        \item[empty?] This no-argument function returns true if there are no expressions in the work queue or in the running queue, otherwise it returns false.
-        \item[join] This no-argument function turns off acceptance of new expressions until the running queue is empty.
-        \item[shutdown] This no-argument function waits for the active threads to finish before letting the thread pool expire. 
-    \end{description}
+\item[unlock]
+This no-argument function releases the built-in mutex.
 Only the thread that acquired the mutex can release it.
+The code below demonstrates both {\it lock} and {\it unlock}:
+
+\begin{verbatim}
+    (thread (begin (lock) (println "Hello World 1") (unlock)))
+    (thread (begin (lock) (println "Hello World 2") (unlock)))
+    (thread (begin (lock) (println "Hello World 3") (unlock)))
+\end{verbatim} 
+
+yields something similar to the following output:
+
+\begin{verbatim}
+    Hello World 2
+    Hello World 3
+    Hello World 1
+\end{verbatim} 
+
+Only the thread that locked the mutex can unlock it.
+
+\item[tjoin]
+This one-argument function causes the current thread to wait until
+a particular thread terminates. If the desired thread has already
+terminated, the function immediately returns. The desired thread is
+specified by passing its thread ID to the function.  The code below:
+
+\begin{verbatim}
+    (define firstTID (thread (println (fib 25))))
+    (tjoin firstTID)
+    (thread (println (fib 10)))
+\end{verbatim} 
+
+yields something similar to the following output:
+
+\begin{verbatim}
+   75025
+   55
+\end{verbatim} 
+
+Note that the thread which is evaluating fibonacci of 10 must wait until
+the thread which is evaluating fibonacci of 25 has finished.
+
+\item[displayAtomic]
+This variadic function is similar to {\it display}; however, it ensures
+that there will be no overlap of output if the user only uses {\it
+displayAtomic} for printing.  The code below:
+
+\begin{verbatim}
+    (thread (displayAtomic "Hello World 1\n"))
+    (thread (displayAtomic "Hello World 2\n"))
+    (thread (displayAtomic "Hello World 3\n"))
+\end{verbatim} 
+
+yields something similar to the following output:
+
+\begin{verbatim}
+    Hello World 2
+    Hello World 1
+    Hello World 3
+\end{verbatim} 
+
 \end{description}
 
-\subsubsection{Thread pools}
-In order to avoid the sometimes inevitable system-level restrictions on the maximum number of lightweight threads allowed per process, Scam supports the creation of thread pools.  A thread pool pre-allocates a fixed number of threads, and maintains a queue of expressions.  Expressions may be pushed onto the queue, and the thread pool will automatically pop the expressions off in order to be executed concurrently.  The code below:
+\section{Thread pools}
+In order to avoid the sometimes inevitable system-level restrictions
+on the maximum number of lightweight threads allowed per process, Scam
+supports the creation of thread pools.  A thread pool pre-allocates
+a fixed number of threads, and maintains a queue of expressions.
+Expressions may be pushed onto the queue, and the thread pool
+will automatically pop the expressions off in order to be executed
+concurrently.  The code below
+illustrates the use of a pool:
 
     \begin{verbatim}
         (define pool (tpool 10))
@@ -133,9 +135,44 @@ In order to avoid the sometimes inevitable system-level restrictions on the maxi
         ((pool 'shutdown))
     \end{verbatim} 
 
-\subsection{Parallel execution of expressions}
 
-Expressions in Scam can be evaluated in parallel with the variadic function
+The following constructors and methods are associated with pools:
+
+\begin{description}
+\item[tpool]
+This one-argument constructor creates a new thread pool object.
+The single argument specifies the number of concurrent threads allowed.
+
+\item[push]
+This variadic function takes in an expression and an optional
+number of call-back functions.  The call-back functions are called
+with the result of the evaluated expression.
+
+\item[push*]
+This variadic function takes in an expression, a environment,
+and an optional number of expressions. 
+The required expression is evaluated under the given environment.
+The optional expressions are then evaluated with the return value
+of the evaluated required expression.
+\item[empty?]
+
+This no-argument function returns true if there are no expressions
+in the work queue or in the running queue, otherwise it returns
+false.
+
+\item[join]
+This no-argument function turns off acceptance of new expressions
+until the running queue is empty.
+
+\item[shutdown]
+This no-argument function waits for the active threads to finish
+before letting the thread pool expire.
+\end{description}
+
+\section{Parallel execution of expressions}
+
+For compatibility with MIT Scheme, 
+expressions in Scam can be evaluated in parallel with the variadic function
 {\it pexecute}:
 
 \begin{verbatim}
@@ -154,13 +191,24 @@ which is equivalent to the following:
 \end{verbatim}
 
 Each of the expressions will execute in parallel in separate processes.
-Another function, {\it pexecute*}, is similar to {\it pexecute}, except that it evaluates each expression one by one.
+Conventionally, the expressions are calls to no-argument functions, as in:
+
+\begin{verbatim}
+    (pexecute f g (lambda () ...))
+\end{verbatim}
+
+In the above example, the functions {\it f} and {\it g}
+and the body of the lambda
+will all be executed in parallel.
+
+Another function, {\it pexecute*}, is similar to {\it pexecute}, except
+that it serializes each expression, in the order given. The call:
 
 \begin{verbatim}
     (pexecute* expr1 expr2 .... exprN)
 \end{verbatim}
 
-which is equivalent to the following:
+is equivalent to the following:
 
 \begin{verbatim}
     (begin
@@ -171,21 +219,13 @@ which is equivalent to the following:
         )
 \end{verbatim}
 
-Conventionally, the expressions are calls to no-argument functions, as in:
-
-\begin{verbatim}
-    (begin (thread f) (thread g) (thread (lambda () ...))))
-\end{verbatim}
-
-In the above example, the functions {\it f} and {\it g}
-and the body of the lambda
-will all be executed in parallel.
+The {\it pexecute*} function is useful for debugging concurrency problems.
 
 \subsection{Debugging concurrency problems}
 
 Locking and unlocking of threads can be difficult to debug.  For this reason, 
-Scam has a builtin function for determining which thread has the current lock.
-This function, {\it debugMatrix} enables and disables the debugging mechanism.
+Scam has a built-in function for determining which thread has the current lock.
+This function, {\it debugMutex} enables and disables the debugging mechanism.
 
 \begin{verbatim}
     (debugMutex #t)
