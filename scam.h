@@ -38,6 +38,7 @@ extern char* Home;              /* The home directory of the current user */
 extern int Syntax;              /* Which parser to use */
 extern int MemorySize;          /* Heap size */
 
+extern int DebugMutex;          /* Turns on debugging for lock/unlock */
 extern int Debugging;           /* If we are printing debugging statements*/
 extern int TraceBack;           /* TODO : I don't know */
 extern int StackDebugging;      /* Outputs the stack */

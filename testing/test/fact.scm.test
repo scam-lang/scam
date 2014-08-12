@@ -17,9 +17,9 @@
 ------------------------------------------
 starting fact.scm
 including fib.scm
-gc 1: 0.018453s (total 0.018453s), 1988491 cells free
+gc 1: 0.017353s (total 0.017353s), 1989793 cells free
 17711
-2.1425490379seconds
+3.4158670902seconds
 fact: fib(5) is 5
 fact: fact(5) is 120
 fact.scm included - SHOULD ONLY SEE THIS ONCE

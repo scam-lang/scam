@@ -50,6 +50,7 @@ extern int getTID(int);
 extern int waitFor(int);
 extern int lock(int);
 extern int unlock(int);
+extern int debugMutex(int);
 
 
 

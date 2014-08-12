@@ -146,14 +146,38 @@ threadingShutdown()
 int
 lock(int args)
     {
+    if(DebugMutex)
+        {
+        P_P();
+        printf("Thread %d is acquiring...",THREAD_ID);
+        P_V();
+        }
     pthread_mutex_lock(&u_mutex);
+    if(DebugMutex)
+        {
+        P_P();
+        printf("Thread %d has acquired...",THREAD_ID);
+        P_V();
+        }
     return 0;
     }
 
 int
 unlock(int args)
     {
+    if(DebugMutex)
+        {
+        P_P();
+        printf("Thread %d is releasing...",THREAD_ID);
+        P_V();
+        }
     pthread_mutex_unlock(&u_mutex);
+    if(DebugMutex)
+        {
+        P_P();
+        printf("Thread %d has released...",THREAD_ID);
+        P_V();
+        }
     return 0;
     }
 
@@ -164,7 +188,6 @@ unlock(int args)
  *        - the calling environment gets extended, and then the expression is evaluated
  *              under the extended environment
  */
-
 int
 thread(int args)
     {
@@ -181,6 +204,8 @@ thread(int args)
     /* fatal if we exceed the thread limit */
     if (tid > MAX_THREADS - 1)
         {
+        V();
+        T_V();
         Fatal("You have reached the max thread limit of %d\n", MAX_THREADS);
         }
 
@@ -404,3 +429,10 @@ validate(char *str)
     }
     return 1;
 }
+
+int
+debugMutex(int args)
+    {
+    DebugMutex = SameSymbol(car(args),TrueSymbol);
+    return 0;
+    }

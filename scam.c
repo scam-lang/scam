@@ -39,8 +39,10 @@ int GCDisplay = 1;
 int GCMode = DEFAULT_GC;
 int Caching = 0;
 int ShuttingDown = 0;
+
 int Debugging = 0;
 int StackDebugging = 0;
+int DebugMutex = 0;
 
 char *LibraryName = "SCAM_LIB";
 char *LibraryPointer = "/usr/local/lib/scam/";
