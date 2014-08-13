@@ -37,6 +37,8 @@ int TraceBack = 0;
 int Syntax = SCAM;
 int GCDisplay = 1;
 int GCMode = DEFAULT_GC;
+
+int ThreadError = -1;
 int Caching = 0;
 int ShuttingDown = 0;
 

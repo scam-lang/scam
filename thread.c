@@ -249,14 +249,24 @@ dummyThread(void *data)
             {
             printStack();
             }
-        T_P();
-        printf("Error in thread %d (%d)\n" ,tid,WorkingThreads);
-        T_V();
-        ShuttingDown = 1;
-        QueueCount = 0;
-        debug("EXCEPTION",error_code(result));
-        scamPPFile(stdout,error_value(result));
-        printf("\n");
+        if(Debugging)
+            {
+            T_P();
+            printf("Error in thread %d (%d)\n" ,tid,WorkingThreads);
+            T_V();
+            ShuttingDown = 1;
+            QueueCount = 0;
+            debug("EXCEPTION",error_code(result));
+            scamPPFile(stdout,error_value(result));
+            printf("\n");
+            }
+        else
+            {
+            if(ThreadError == -1)
+                {
+                ThreadError = tid;
+                }
+            }
         P_V();
         }
 
@@ -278,8 +288,14 @@ dummyThread(void *data)
 int
 tjoin (int args)
     {
+    T_P();
+    --WorkingThreads;
     int tid = ival(car(args));
+    T_V();
     pthread_join(Thread[tid], NULL);
+    T_P();
+    ++WorkingThreads;
+    T_V();
     return newInteger(tid);
     }
 
@@ -430,9 +446,18 @@ validate(char *str)
     return 1;
 }
 
+/* Enable or disable mutex debugging */
 int
 debugMutex(int args)
     {
     DebugMutex = SameSymbol(car(args),TrueSymbol);
     return 0;
+    }
+
+
+/* If there is an error in a thread this will return the thread id */
+int
+getThreadError(int args)
+    {
+    return newInteger(ThreadError);
     }

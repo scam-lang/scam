@@ -25,6 +25,10 @@
       (tjoin (car tids))
       (set! tids (cdr tids))
       )
+   (define tErr (getThreadError))
+   (if (> tErr -1)
+     (println "There was an error in thread " tErr ", re-run with pexecute* to get the error")
+     )
    )
 
 ; user defined thread pool object

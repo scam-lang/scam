@@ -28,7 +28,7 @@
 #define MOVED 1
 #define UNMOVED 0
 
-#define MAX_THREAD_TIMEOUT 1.0
+#define MAX_THREAD_TIMEOUT 10.0
 
 /* number of garbage collections */
 int GCCount = 0;

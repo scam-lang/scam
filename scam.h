@@ -50,6 +50,7 @@ extern int GCDisplay;           /* Print out garbage collection information */
 extern int GCQueueCount;        /* How many threads are waiting for a Garbage Collection */
 extern int QueueCount;          /* How many items are waiting for a thread */
 
+extern int ThreadError;         /* If error in thread set to thread id of first thread to report an error */
 extern int Caching;             /* Sometimes we can save computed results */
 extern int ShuttingDown;        /* Tells threads to shut down or not */
 

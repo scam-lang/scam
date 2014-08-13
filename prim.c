@@ -4254,6 +4254,14 @@ loadBuiltIns(int env)
     defineVariable(env,closure_name(b),b);
     ++count;
 
+    BuiltIns[count] = getThreadError;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("getThreadError"),
+        0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
     BuiltIns[count] = debugMutex;
     b = makeBuiltIn(env,
         newSymbolUnsafe("debugMutex"),
