@@ -153,6 +153,10 @@ lock(int args)
         P_V();
         }
 
+    P();
+    --WorkingThreads;
+    V();
+
     int ret = 0;
 
     while(ret == 0) {
@@ -163,6 +167,10 @@ lock(int args)
         }
         V();
     }
+
+    P();
+    ++WorkingThreads;
+    V();
     //pthread_mutex_lock(&u_mutex);
     if(DebugMutex)
         {
