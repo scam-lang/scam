@@ -54,6 +54,8 @@ extern int ThreadError;         /* If error in thread set to thread id of first 
 extern int Caching;             /* Sometimes we can save computed results */
 extern int ShuttingDown;        /* Tells threads to shut down or not */
 
+extern int GlobalLock;          /* Single global lock for semaphores */
+
 #define SCAM 1
 #define SWAY 2
 

@@ -152,7 +152,18 @@ lock(int args)
         printf("Thread %d is acquiring...",THREAD_ID);
         P_V();
         }
-    pthread_mutex_lock(&u_mutex);
+
+    int ret = 0;
+
+    while(ret == 0) {
+        P();
+        if(GlobalLock==0) {
+            ret = 1;
+            GlobalLock = 1;
+        }
+        V();
+    }
+    //pthread_mutex_lock(&u_mutex);
     if(DebugMutex)
         {
         P_P();
@@ -171,7 +182,8 @@ unlock(int args)
         printf("Thread %d is releasing...",THREAD_ID);
         P_V();
         }
-    pthread_mutex_unlock(&u_mutex);
+    //pthread_mutex_unlock(&u_mutex);
+    GlobalLock = 0;
     if(DebugMutex)
         {
         P_P();

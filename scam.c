@@ -52,6 +52,8 @@ char *ArgumentsName = "ScamArgs";
 char *EnvironmentName = "ScamEnv";
 char *Home = "~";
 
+int GlobalLock = 0;
+
 FILE* DebugFile;
 
 
