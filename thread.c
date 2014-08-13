@@ -149,33 +149,37 @@ lock(int args)
     if(DebugMutex)
         {
         P_P();
-        printf("Thread %d is acquiring...",THREAD_ID);
+        printf("Thread %d is acquiring...\n",THREAD_ID);
         P_V();
         }
 
+    // Remove from the working set
     P();
     --WorkingThreads;
     V();
 
     int ret = 0;
 
-    while(ret == 0) {
+    do{
         P();
-        if(GlobalLock==0) {
+        if(GlobalLock == 0) 
+            {
             ret = 1;
             GlobalLock = 1;
-        }
+            }
         V();
-    }
+        usleep(10);
+    } while(ret == 0);
 
+    // Add back to working set
     P();
     ++WorkingThreads;
     V();
-    //pthread_mutex_lock(&u_mutex);
+
     if(DebugMutex)
         {
         P_P();
-        printf("Thread %d has acquired...",THREAD_ID);
+        printf("Thread %d has acquired...\n",THREAD_ID);
         P_V();
         }
     return 0;
@@ -187,15 +191,14 @@ unlock(int args)
     if(DebugMutex)
         {
         P_P();
-        printf("Thread %d is releasing...",THREAD_ID);
+        printf("Thread %d is releasing...\n",THREAD_ID);
         P_V();
         }
-    //pthread_mutex_unlock(&u_mutex);
     GlobalLock = 0;
     if(DebugMutex)
         {
         P_P();
-        printf("Thread %d has released...",THREAD_ID);
+        printf("Thread %d has released...\n",THREAD_ID);
         P_V();
         }
     return 0;

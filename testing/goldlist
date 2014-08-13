@@ -25,3 +25,5 @@ hook.scm
 jeff1.scm
 gc.scm
 if4.scm
+unlock.scm
+semaphores.scm
