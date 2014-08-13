@@ -12,6 +12,6 @@
 (f 3)
 ------------------------------------------
 f is <function f(x)>
-gc 1: 0.017206s (total 0.017206s), 1990357 cells free
+gc 1: 0.004794s (total 0.004794s), 1989017 cells free
 x is 3
 y is 9

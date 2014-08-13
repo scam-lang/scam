@@ -24,13 +24,13 @@
 (define f (time))
 (println "(fib " x ") is " result ", " (- f s) " seconds.")
 ------------------------------------------
-gc 1: 0.019914s (total 0.019914s), 1988202 cells free
-gc 2: 0.017955s (total 0.037869s), 1988220 cells free
-gc 3: 0.017510s (total 0.055379s), 1988299 cells free
-(fib 23) is 28657, 5.8761470318 seconds.
+gc 1: 0.004877s (total 0.004877s), 1986898 cells free
+gc 2: 0.005115s (total 0.009992s), 1986894 cells free
+gc 3: 0.005127s (total 0.015119s), 1986977 cells free
+(fib 23) is 28657, 1.2774741650 seconds.
 compiling fib...
 fib compiled.
-gc 4: 0.017713s (total 0.073092s), 1988218 cells free
-gc 5: 0.017691s (total 0.090783s), 1988201 cells free
-gc 6: 0.017803s (total 0.108586s), 1988263 cells free
-(fib 23) is 28657, 3.5127739906 seconds.
+gc 4: 0.004803s (total 0.019922s), 1986859 cells free
+gc 5: 0.005138s (total 0.025060s), 1986859 cells free
+gc 6: 0.005116s (total 0.030176s), 1986859 cells free
+(fib 23) is 28657, 0.7600739002 seconds.
