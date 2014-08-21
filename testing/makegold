@@ -13,7 +13,8 @@ for s in $*
     	    scam $1 2>&1 | cat >> gold/$1.gold
 
         fi
-        svn add gold/$1.gold
+        svn add gold/$1.gold &> /dev/null
+        svn add $1 &> /dev/null
     fi
 	shift
     done
