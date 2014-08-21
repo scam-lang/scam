@@ -28,7 +28,7 @@ debug	: OPTS := -DDEBUG $(OPTS)
 debug	: scam
 
 scam		: $(OBJS) scam.o
-		$(CC) -o $(OUT) $(LOPTS) $(OPTS) $(OBJS) scam.o -lm -pthread -lreadline
+		$(CC) -o $(OUT) $(LOPTS) $(OPTS) $(OBJS) scam.o -lm -lpthread -lreadline
 		cp $(OUT) ~/bin/
 
 install : scam
