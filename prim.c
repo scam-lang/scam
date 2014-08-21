@@ -1862,7 +1862,7 @@ isGensym(int args)
 
     if (type(id) != SYMBOL) return FalseSymbol;
 
-    return scamBoolean(isdigit(*SymbolTable[ival(id)]));
+    return scamBoolean(isdigit((int)(*SymbolTable[ival(id)])));
     }
 
 /*******ports*********************************/
