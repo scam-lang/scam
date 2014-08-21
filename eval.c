@@ -35,7 +35,8 @@ static int evaluatedList(int,int);
         depth[S_I]++;                       \
         int i = depth[S_I];                 \
         printf("%d",S_I);                   \
-        while(i) {                          \
+        while(i)                            \
+        {                                   \
             printf( " " );                  \
             --i;                            \
         }                                   \
@@ -50,7 +51,8 @@ static int evaluatedList(int,int);
         int S_I = THREAD_ID;                \
         int i = depth[S_I];                 \
         printf("%d",S_I);                   \
-        while( i ) {                        \
+        while( i )                          \
+        {                                   \
             printf( " " );                  \
             --i;                            \
         }                                   \
@@ -462,10 +464,11 @@ makeTraceEntry(int item,int error)
 
     /* caller is responsible for ensuring enough memory */
 
-    if (type(item) == CONS && SameSymbol(car(item),BeginSymbol)) {
+    if (type(item) == CONS && SameSymbol(car(item),BeginSymbol)) 
+        {
         DEC("makeTraceEntry");
         return;
-    }
+        }
 
     P();
     ENSURE_MEMORY(ADDTRACE_SIZE,&item,&error,(int *) 0);

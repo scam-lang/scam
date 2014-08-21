@@ -76,7 +76,8 @@ ProcessOptions(int argc, char **argv)
 
     argIndex = 1;
 
-    while (argIndex < argc && *argv[argIndex] == '-') {
+    while (argIndex < argc && *argv[argIndex] == '-')
+        {
 
         separateArg = 0;
         argUsed = 0;
@@ -195,7 +196,9 @@ ProcessOptions(int argc, char **argv)
             }
 
         if (separateArg && argUsed)
+        {
             ++argIndex;
+        }
 
         ++argIndex;
         }

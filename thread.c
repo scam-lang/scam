@@ -38,30 +38,36 @@
 #include "types.h"
 #include "thread.h"
 
+/* Threads */
+pthread_t *Thread;
+
+/* Thread management */
 int CreatedThreads = 0;
 int WorkingThreads = 0;
 int ScamThreadID = 0;
 int QueueCount = 0;
 
+/* Lock and Unlock */
 pthread_key_t key;
 pthread_mutex_t mutex,p_mutex,t_mutex,u_mutex;
 
+/* Deadlock Detection*/
 int *P_REQ;
 int *P_P_REQ;
 int *T_P_REQ;
-pthread_t *Thread;
 
-static void *dummyThread(void *);
+/* Internal function for pthread */
+static void *InternalThread(void *);
 
+/* Work queue for threads  */
 THREAD_ARGS ThreadQueue[MAX_THREADS];
 int QueueFront = 0;
 int QueueBack  = 0;
 
-/* threadingInit -  Initializes all thread specific 
-                    data-structures, mutexs, and
-                    thread conditionals.
+/*
+ *  threadingInit - Initializes all thread specific data-structures, mutexs, and
+ *                  thread conditionals.
  */
-
 void
 threadingInit()
     {
@@ -71,13 +77,11 @@ threadingInit()
     Thread = malloc(sizeof(pthread_t) * MAX_THREADS);
 
     /* Deadlock detection */
-   
     P_REQ = malloc(sizeof(int) * MAX_THREADS);
     P_P_REQ = malloc(sizeof(int) * MAX_THREADS);
     T_P_REQ = malloc(sizeof(int) * MAX_THREADS);
 
     /* Thread mutexes */
-    
     pthread_mutex_init(&mutex, NULL);   /* Global Mutex */
     pthread_mutex_init(&p_mutex, NULL); /* Printing Mutex*/
     pthread_mutex_init(&t_mutex, NULL); /* Memory Mutex */
@@ -111,12 +115,13 @@ threadingInit()
             thread id of 0
             was created by the OS
      */
-    //OUCH! ScamThreadID needs to be zero, see pre-increment in thread()
-    //ScamThreadID = 1;
     CreatedThreads = 1;
     WorkingThreads = 1;
 }
 
+/*
+ *  threadingShutdown - Cleans up and releases threading resources.
+ */
 void
 threadingShutdown()
     {
@@ -128,12 +133,11 @@ threadingShutdown()
     free(P_P_REQ); 
     free(T_P_REQ); 
     
-    /* Thread hanles  */
+    /* Thread handles  */
    
     free(Thread);
 
     /* Thread mutexes */
-    
     pthread_mutex_destroy(&mutex);   /* Global Mutex */
     pthread_mutex_destroy(&p_mutex); /* Printing Mutex*/
     pthread_mutex_destroy(&t_mutex); /* Memory Mutex */
@@ -143,6 +147,13 @@ threadingShutdown()
     WorkingThreads = 0;
     }
 
+/*
+ *  lock -    Implements semaphore lock functionality.  System only 
+ *              provides a single semaphore for users.
+ *
+ *  @args -  Ignored
+ *
+ */
 int
 lock(int args)
     {
@@ -153,7 +164,7 @@ lock(int args)
         P_V();
         }
 
-    // Remove from the working set
+    // Remove from working group in case of garbage collection
     P();
     --WorkingThreads;
     V();
@@ -171,7 +182,7 @@ lock(int args)
         usleep(10);
     } while(ret == 0);
 
-    // Add back to working set
+    // Add back to working set for garbage collection
     P();
     ++WorkingThreads;
     V();
@@ -185,6 +196,14 @@ lock(int args)
     return 0;
     }
 
+
+/*
+ *  unlock -    Implements semaphore unlock functionality.  System only 
+ *              provides a single semaphore for users.
+ *
+ *  @args -  Ignored
+ *
+ */
 int
 unlock(int args)
     {
@@ -241,7 +260,7 @@ thread(int args)
 
     int *arg = malloc(sizeof(int));
     *arg = tid;
-    int p_ret = pthread_create(&Thread[CreatedThreads-1], NULL, (void *)dummyThread,(void *)arg);
+    int p_ret = pthread_create(&Thread[CreatedThreads-1], NULL, (void *)InternalThread,(void *)arg);
 
     T_V();
     if(p_ret)
@@ -252,8 +271,12 @@ thread(int args)
     return ret;
     }
 
-void *
-dummyThread(void *data)
+/*
+ *  internalThread -    This is the actual function called by thread when 
+ *                      created a new pthread.
+ */
+static void *
+InternalThread(void *data)
     {
 
     /* We save our thread id into the thread specific memory location */
@@ -308,22 +331,33 @@ dummyThread(void *data)
     return NULL;
     }
 
+/*
+ *  tjoin   - Interface for users to call join on their threads in SCAM
+ *
+ *  @args   - The thread ID to join on
+ */
 int
 tjoin (int args)
     {
+    int tid = ival(car(args));
+
+    // Might garbage collect and then wait with pthread_join
     T_P();
     --WorkingThreads;
-    int tid = ival(car(args));
     T_V();
+
     pthread_join(Thread[tid], NULL);
+
+    // I can now garbage collect again
     T_P();
     ++WorkingThreads;
     T_V();
     return newInteger(tid);
     }
 
-/* (gettid) */
-
+/*
+ *  getTID  - Interface for users to get the current threads ID in SCAM
+ */
 int
 getTID(int args)
     {
@@ -335,26 +369,13 @@ getTID(int args)
     return result;
     }
 
-
-int getRawThreadIndex()
-    {
-    int i;
-    pthread_t tid;
-    
-    tid = pthread_self();
-
-    i = 0;
-    while(i < CreatedThreads)
-        {
-        if(Thread[i] == tid)
-            {
-            return i;
-            }
-        ++i;
-        }
-    return -1;
-    }
-
+/*  
+ *  checkDeadlock - Check to see if there is a deadlock between internal mutexes.
+ *                  if there is a deadlock a fatal is thrown.
+ *
+ *  @f  - File where possible deadlock occured
+ *  @l  - Line where possible deadlock occured
+ */
 void
 checkDeadlock(char* f, int l)
     {
@@ -371,6 +392,7 @@ checkDeadlock(char* f, int l)
                 {
                 printf("Deadlock between threads %d and %d.",T1,T2);
                 printf("Thread %d : Has P and wants P_P, Thread %d has P_P and wants P\n",T2,T2);
+                Fatal("Internal Error : Please let your instructor know");
                 }
 
             /* P and T_P */
@@ -379,6 +401,7 @@ checkDeadlock(char* f, int l)
                 {
                 printf("Deadlock between threads %d and %d.",T1,T2);
                 printf("Thread %d : Has P and wants T_P, Thread %d has T_P and wants P\n",T2,T2);
+                Fatal("Internal Error : Please let your instructor know");
                 }
                 
 
@@ -388,6 +411,7 @@ checkDeadlock(char* f, int l)
                 {
                 printf("Deadlock between threads %d and %d.",T1,T2);
                 printf("Thread %d : Has P_P and wants T_P, Thread %d has T_P and wants P_P\n",T2,T2);
+                Fatal("Internal Error : Please let your instructor know");
                 }
 
             ++T2;

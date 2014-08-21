@@ -58,7 +58,6 @@ extern void threadingInit();
 extern void threadingShutdown();
 
 extern void checkDeadlock(char*,int);
-extern int getRawThreadIndex();
 
 extern int validate(char *);
 
@@ -81,7 +80,6 @@ extern pthread_key_t key;
 
 #define MAX_THREADS 128 
 /* One of these will be faster */
-#define __THREAD_ID (getRawThreadIndex())
 #define THREAD_ID (*((int*)pthread_getspecific(key)))
 
 /* Deadlock detection, lock interests */
