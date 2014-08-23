@@ -128,13 +128,10 @@ concurrently.  The code below
 illustrates the use of a pool:
 
     \begin{verbatim}
-        (define (myprint msg) (displayAtomic "Result is " msg "\n"))
         (define pool (tpool 10))
         ((pool 'push) (fib 10))
         ((pool 'push) (fib 11))
-        ((pool 'push) (fib 12) myprint)
-        ((pool 'push*) (fib 14) this)
-        ((pool 'push*) (fib 14) this myprint)
+        ((pool 'push) (fib 12))
         ((pool 'shutdown))
     \end{verbatim} 
 
@@ -257,17 +254,16 @@ On the releasing side, debugging emits messages of the form:
     thread XXXX has released.
 \end{verbatim}
 
-[We need something like this to simulate 
 When a process executing in parallel throws an exception, {\it pexecute} will
 produce an error message similar to:
 
 \begin{verbatim}
     file philosophers.scm,line 356: parallel execution of thread 3 failed
-    try using ????? for more information
+    try using pexecute* for more information
 \end{verbatim}
 
 If a thread terminates with an exception,
 calling ???? may reveal the
 exception that caused the failure.
-The ???? call simulates concurrency, but actually runs the
+The {\it pexecture*} call simulates concurrency, but actually runs the
 given expressions sequentially in the parent process.
