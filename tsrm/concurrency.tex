@@ -128,10 +128,13 @@ concurrently.  The code below
 illustrates the use of a pool:
 
     \begin{verbatim}
+        (define (myprint msg) (displayAtomic "Result is " msg "\n"))
         (define pool (tpool 10))
         ((pool 'push) (fib 10))
         ((pool 'push) (fib 11))
-        ((pool 'push) (fib 12))
+        ((pool 'push) (fib 12) myprint)
+        ((pool 'push*) (fib 14) this)
+        ((pool 'push*) (fib 14) this myprint)
         ((pool 'shutdown))
     \end{verbatim} 
 

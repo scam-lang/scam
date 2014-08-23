@@ -36,48 +36,54 @@
 (define (tpool cnt)
    (define ending #f)     ; shutdown flag for threads
    (define queue nil)     ; queue of expressions and environments
-   (define waitQueue nil) ; queue waiting jobs
    (define threads nil)   ; list of threads
-   (define wait #f)
 
-   (define (empty?) (and (nil? queue) (nil? waitQueue)))
+   (define workingThreads 0)
+   (define waitingThreads 0)
+
+   (define (empty?) (and (nil? queue)))
 
    ; push a job to the queue
    (define (push # $ex @)
       (lock)
-      (if (== wait #t)
-        (set! waitQueue (append waitQueue (list (list $ex # @))))
-        (set! queue (append queue (list (list $ex # @))))
-        )
+      (set! queue (append queue (list (list $ex # @))))
+      (set! waitingThreads (+ waitingThreads 1))
       (unlock)
       )
    
    ; special push, change calling environment
    (define (push* env $ex @)
       (lock)
-      (if (== wait #t)
-        (set! waitQueue (append waitQueue (list (list $ex env @))))
-        (set! queue (append queue (list (list $ex env @))))
-        )
+      (set! queue (append queue (list (list $ex env @))))
+      (set! waitingThreads (+ waitingThreads 1))
       (unlock)
       )
 
-   ; wait for the current queue of jobs completes before moving on
+   ; wait for the current queue of jobs completes before allowing other jobs in
    (define (join)
-      (set! wait #t)
+      ; sleep until the waiting threads have started working
+      (while (< workingThreads waitingThreads)
+         (nanosleep 500000000) ; sleep 0.5 seconds
+         )
+      ; sleep until the working threads are done
+      (while (> workingThreads 0)
+         (nanosleep 500000000) ; sleep 0.5 seconds
+         )
       )
 
    ; waits for jobs to be available and then executes them
    (define (worker)
       (while (not ending)
          (lock)
-         (if (not (nil? queue))
+         (if (not (nil? queue)) 
             (begin
                (define item (car queue))
                (set! queue (cdr queue))
                (define job (car item))
                (define env (cadr item))
                (define callbacks (caddr item))
+               (set! workingThreads (+ workingThreads 1))
+               (set! waitingThreads (- waitingThreads 1))
                (unlock)
                (define res (eval job env))
                (lock)
@@ -87,15 +93,7 @@
                   ((car callbacks) res)
                   (set! callbacks (cdr callbacks))
                   )
-
-               ; after evaluating, ensure that the waiting queue is activated
-               (if (and (== wait #t) (nil? queue)) 
-                  (begin
-                     (set! queue waitQueue)
-                     (set! waitQueue nil)
-                     (set! wait #f)
-                     )
-                  )
+               (set! workingThreads (- workingThreads 1))
                )
             )
          (unlock)
