@@ -1,0 +1,125 @@
+scam (2.0c)
+
+  * allocated arrays now initialized to zeros
+  * print values for arrays made more friendly-looking
+  * allocations attempts of arrays with size zero now return nil
+
+scam (2.0b)
+
+  * sway pretty printing completed, added interactive versions of scam and sway
+
+scam (2.0a)
+
+  * new major version, concurrency is now implemented at the thread level
+
+scam (1.6b)
+
+  * fixed bug in string-equal? and thus equal?
+
+scam (1.6a)
+
+  * changed concurrency to add some extra shared memory for building
+    higher level concurrency control structures.
+
+scam (1.6)
+
+  * fixed error messages bug
+
+scam (1.5)
+
+  * add concurrency via pexecute function
+
+scam (1.4)
+
+  * fixed bug in is? -- now returns true for 'object
+
+scam (1.3)
+
+  * added definition of dot to main.lib (fixes pretty.lib)
+
+scam (1.2)
+
+  * fixed return bug
+
+scam (1.1)
+
+  * using an uninitialized variable now throws an exception
+  * allowed object to be called as functions to access fields
+  * fixed gc bug in while function
+  * changed ScamArgs not to include 'scam' and scam options
+  * added randomInt, randomMax, randomSeed, and random.lib
+
+scam (1.0)
+
+  * fixed string conversion bug for items like (cons 2 3)
+  * fixed pretty print conversion bug for items like (cons 2 3)
+  * fixed another gc string bug
+  * fixed bug caused by assumption that 0 is the same as (int *)0 on amd64 (it is not)
+  * add -g option for changing the gc display status
+  * added a compile-library function to the pretty (print) library
+
+scam (0.1.9)
+
+  * fixed string and array bug in compile function (compile.lib)
+  * reorganized the reflection and compile libraries
+  * added a compile-library function to the reflection library
+  * fixed a gc string bug (introduced by the fix in 0.1.7)
+
+scam (0.1.8)
+
+  * moved defined? from reflection library to main library
+  * fixed bug in length so that length of empty list returns zero
+  * removed file name and line number asserts from cons (check why)
+  * all read functions now return END_OF_INPUT symbol if file is already at EOF
+  * scam now takes command-line arguments
+
+scam (0.1.7)
+
+  * added redefine, prior, and priorDefinition to reflection.lib
+  * reflection.lib is no longer included by main.lib
+  * folded clone.lib into reflection.lib
+  * added primitives lineNumber and fileName
+  * added assoc to main.lib
+  * added the ability to gc arrays 
+  * fixed gc string bug - now strings are gc'd in a contiguous fashion
+
+scam (0.1.6)
+
+  * can now parse an empty file
+  * added the string coercion function
+  * removed non-variadic versions of and, or
+  * updated inherit.lib to reflect new object organization
+  * added ++ and -- operators
+  * added pretty.lib for pretty printing code
+
+scam (0.1.5)
+
+  * changed environment predefineds to __context, __level, __label, etc.
+  * detects formal parameters that are not symbols
+  * (- 3) now returns -3, for example
+  * dot operator now chains, as in (. obj x y z) equals (. (. (. obj x) y) z)
+
+scam (0.1.4)
+
+  * added the pp function to pretty print all objects in the system
+  * fixed gc bug in variadic math functions (hopefully!)
+
+scam (0.1.3)
+
+  * removed limit on number of statements per scope
+  * allowed function calls to generate symbols for assign, set!, and .
+  * added inherit.lib
+
+scam (0.1.2)
+
+  * added library functions
+
+scam (0.1.1)
+
+  * added traceback on exceptions (use -t option to display traceback)
+
+scam (0.1.0)
+
+  * initial Scam pre-release
+
+  -- John C. Lusth <lusth@cs.ua.edu>  2011-08-23 

@@ -146,7 +146,11 @@ static void
 ppLevel(int expr,int level)
     {
     if (expr == 0)
-        ;//fprintf(fp,"nil");
+        {
+        ppPutChar('n');
+        ppPutChar('i');
+        ppPutChar('l');
+        }
     else if (type(expr) == INTEGER)
         ppPutInt(ival(expr));
     else if (type(expr) == REAL)

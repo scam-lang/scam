@@ -2676,6 +2676,7 @@ array(int args)
         {
         return 0;
         }
+
     P();
     ENSURE_CONTIGUOUS_MEMORY(size,&args,(int *) 0);
 
@@ -2696,6 +2697,8 @@ static int
 allocate(int args)
     {
     int size = ival(car(args));
+
+    if (size < 1) return 0;
 
     P();
     ENSURE_CONTIGUOUS_MEMORY(size,(int *) 0);

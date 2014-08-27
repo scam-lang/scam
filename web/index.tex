@@ -81,12 +81,6 @@ Latest Scam versions:
         \xlink{scam-2.0b-OSX\_64.tgz}{scam-2.0b-OSX\_64.tgz}
     \item[64-bit Cygwin tarball]
         \xlink{scam-2.0b-Cyg64.tgz}{scam-2.0b-Cyg64.tgz}
-    \item
-        ~
-    \item[32-bit Debian package]
-        \xlink{scam-2.0b-i386.deb} {scam-2.0b-i386.deb}
-    \item[64-bit Debian package]
-        \xlink{scam-2.0b-amd64.deb}{scam-2.0b-amd64.deb}
 \end{description}
 
 %Here is an experimental Microsoft Windows version: \xlink{scam.exe}{scam.exe}.
@@ -107,29 +101,14 @@ Latest Scam versions:
 
 \section*{Installation Notes}
 
-To install Scam from a deb package
-(using {\tt scam-2.0b-i386.deb} as an example), run the command:
-
-\begin{verbatim}
-    sudo dpkg -i scam-2.0b-i386.deb
-\end{verbatim}
-
-If you are on a system without {\it sudo}, run the above command
-as {\it root} without the {\it sudo} prefix.
-
-To install Scam from a tarball, perform the following steps
+To install Scam, perform the following steps
 (using {\tt scam-2.0b-i386.tgz} as an example)...
 
 \begin{enumerate}
 
 \item
-    Save the download to a file, noting where it was saved. For the rest 
-    of the steps, assume the tar file was saved in a Downloads directory
-    that hangs of the your home directory.
-\item
     Make a directory named {\it scam} that hangs off your home directory
     and then move into that directory
-
 
 \begin{verbatim}
     mkdir ~/scam
@@ -137,10 +116,19 @@ To install Scam from a tarball, perform the following steps
 \end{verbatim}
 
 \item
-    Untar the download in the {\it scam} directory:
+    Retrieve the tarball:
 
 \begin{verbatim}
-    tar xvzf ~/Downloads/scam-2.0b-i386.tgz
+        wget beastie.cs.ua.edu/scam/scam-2.0b-i386.tgz
+\end{verbatim}
+
+    Mac users may need to use \verb!curl -O! instead of \verb!wget!.
+
+\item
+    Extract the files in the tarball:
+
+\begin{verbatim}
+    tar xvzf scam-2.0b-i386.tgz
 \end{verbatim}
 
 \item
@@ -158,7 +146,6 @@ If you don't know what a path is, then do this instead:
 \end{verbatim}
 
 \end{enumerate}
-
 
 If you have trouble installing Scam, send a message to 
 \xlink{lusth@cs.ua.edu}{mailto:lusth@cs.ua.edu}.
