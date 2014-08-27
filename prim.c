@@ -2672,6 +2672,10 @@ array(int args)
     args = car(args);
     size = length(args);
 
+    if (size == 0)
+        {
+        return 0;
+        }
     P();
     ENSURE_CONTIGUOUS_MEMORY(size,&args,(int *) 0);
 
