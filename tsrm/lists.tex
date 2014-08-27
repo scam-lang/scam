@@ -7,7 +7,7 @@ with the given elements:
 
 \begin{verbatim}
     (array 1 "two" 'three)
-    -> [1,"two",three]
+    -> [1 two three]
 \end{verbatim}
 
 while a function named {\it allocate} is used to allocate an array
@@ -15,10 +15,10 @@ of the given size:
 
 \begin{verbatim}
     (allocate 5)
-    -> [nil,nil,nil,nil,nil]
+    -> [0 0 0 0 0]
 \end{verbatim}
 
-Note that the elements of an allocated array are initialized to {\it nil}.
+Note that the elements of an allocated array are initialized to {\it zero}.
 
 The functions for manipulating lists, arrays, and strings are quite
 similar. In the following sections, we will use the term {\it collection}
@@ -68,13 +68,13 @@ of a list:
 
 \begin{verbatim}
     (getElement (list "a" #t 7) 0)
-    -> "a"
+    -> a
 
     (getElement (array "b" #f 11) 1)
     -> #f
 
     (getElement "howdy" 2)
-    -> "w"
+    -> w
 \end{verbatim}
 
 What happens if the index is too large?
@@ -97,13 +97,13 @@ returns the first item and the tail of a collection, respectively:
     -> 3
 
     (cdr "howdy")
-    -> "owdy"
+    -> owdy
 
     (cdr (array 2 4 6))
-    -> [4,6]
+    -> [4 6]
 
     (car "bon jour")
-    -> "b"
+    -> b
 \end{verbatim}
 
 In addition to extracting elements of a collection, one can 

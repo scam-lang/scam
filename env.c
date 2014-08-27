@@ -172,7 +172,7 @@ makeEnvironment(int context,int constructor,int vars,int vals)
     /* 4 cons and a possible integer */
     set_object_value_hook(o,
         cons(context,
-            cons(context == 0? newIntegerUnsafe(0) : env_level(context),
+            cons(context == 0? integerZero : env_level(context),
                 cons(constructor,
                     cons(o,vals)))));
 

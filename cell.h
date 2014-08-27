@@ -665,6 +665,9 @@ extern int nilIndex;
 extern int trueIndex;
 extern int falseIndex;
 
+extern int integerZero;
+extern int integerOne;
+
 extern int SetBangSymbol;
 extern int AndAndSymbol;
 extern int OrOrSymbol;
@@ -677,6 +680,5 @@ extern int FunctionSymbol;
 extern int HeadAssignSymbol;
 extern int TailAssignSymbol;
 extern int OpenBracketSymbol;
-
 
 #endif

@@ -178,6 +178,9 @@ int nilIndex;
 int trueIndex;
 int falseIndex;
 
+int integerZero;
+int integerOne;
+
 static double getTime(void);
 
 /* scamInit - Initialize memory and setup the scam running environment */
@@ -299,6 +302,9 @@ scamInit(int memSize)
     stdinIndex           = findSymbol("stdin");
     stdoutIndex          = findSymbol("stdout");
     stderrIndex          = findSymbol("stderr");
+
+    integerZero          = newInteger(0);
+    integerOne           = newInteger(1);
 
     /* Save where we are so we don't have to keep copying over the Symbols */
     HeapBottom = MEMORY_SPOT;
@@ -1071,7 +1077,7 @@ allocateContiguous(char *typ,int size)
         }
     int start, amount, i,init;
 
-    init = (typ == STRING) ? ' ' : 0;
+    init = (typ == STRING) ? 'x' : integerZero;
 
     /* caller is responsible for ensuring 'size' cells available */
 

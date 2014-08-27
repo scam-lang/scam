@@ -680,7 +680,7 @@ plus(int args)
 
     args = car(args);
 
-    if (args == 0) return newInteger(0);
+    if (args == 0) return integerZero;
 
     a = car(args);
     args = cdr(args);
@@ -751,7 +751,7 @@ minus(int args)
 
     args = car(args);
 
-    if (args == 0) return newInteger(0);
+    if (args == 0) return integerZero;
 
     a = car(args);
     args = cdr(args);
@@ -825,7 +825,7 @@ times(int args)
 
     args = car(args);
 
-    if (args == 0) return newInteger(1);
+    if (args == 0) return integerOne;
 
     a = car(args);
     args = cdr(args);
@@ -892,7 +892,7 @@ divides(int args)
 
     args = car(args);
 
-    if (args == 0) return newInteger(1);
+    if (args == 0) return integerOne;
 
     a = car(args);
     args = cdr(args);
@@ -966,7 +966,7 @@ mod(int args)
 
     args = car(args);
 
-    if (args == 0) return newInteger(0);
+    if (args == 0) return integerZero;
 
     a = car(args);
     args = cdr(args);
@@ -2709,7 +2709,7 @@ llength(int args)
     int item = car(args);
 
     if (item == 0)
-        return newInteger(0);
+        return integerZero;
     else if (type(item) == ARRAY)
         return newInteger(count(item));
     else if (type(item) == STRING)
