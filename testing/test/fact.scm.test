@@ -1,0 +1,25 @@
+(println "starting fact.scm")
+(println "including fib.scm")
+
+(include "fib.scm")
+
+(define (fact n)
+    (if (< n 2)
+        1
+        (* n (fact (- n 1)))
+        )
+    )
+
+(println "fact: fib(5) is " (fib 5))
+(println "fact: fact(5) is " (fact 5))
+
+(println "fact.scm included - SHOULD ONLY SEE THIS ONCE");
+------------------------------------------
+starting fact.scm
+including fib.scm
+gc 1: 0.017502s (total 0.017502s), 1989772 cells free
+17711
+3.4488551617seconds
+fact: fib(5) is 5
+fact: fact(5) is 120
+fact.scm included - SHOULD ONLY SEE THIS ONCE

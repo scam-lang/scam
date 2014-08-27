@@ -1,0 +1,22 @@
+(define (fib n)
+    (if (< n 2)
+        n
+        (+ (fib (- n 1)) (fib (- n 2)))
+        )
+    )
+
+(define x 0)
+(define result nil)
+(define t (time))
+
+(set 'x 22)
+(set 'result (fib x))
+(display result)
+(display "\n")
+(display (- (time) t))
+(display  "seconds\n")
+
+------------------------------------------
+gc 1: 0.017458s (total 0.017458s), 1989989 cells free
+17711
+3.4065408707seconds
