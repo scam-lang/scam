@@ -147,9 +147,10 @@ ppLevel(int expr,int level)
     {
     if (expr == 0)
         {
-        ppPutChar('n');
-        ppPutChar('i');
-        ppPutChar('l');
+        // TODO: What should we should about nil and strings?
+        //ppPutChar('n');
+        //ppPutChar('i');
+        //ppPutChar('l');
         }
     else if (type(expr) == INTEGER)
         ppPutInt(ival(expr));
