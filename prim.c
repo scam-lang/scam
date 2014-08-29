@@ -1374,10 +1374,21 @@ iif(int args)
             ret = FalseSymbol;
             }
         }
-    else
+    else if (SameSymbol(cadr(args),TrueSymbol))
         {
         ret = makeThunk(caddr(args),car(args));
         }
+    else
+        {
+        V();
+        return throw(ExceptionSymbol,
+                "file %s,line %d: "
+                "if test does not resolve to a boolean, got %s instead.",
+                SymbolTable[file(cadr(args))],line(cadr(args)),
+                type(cadr(args))
+                );
+        }
+
     V();
     return ret;
     }
@@ -1422,6 +1433,16 @@ cond(int args)
             {
             env = POP();
             return evalBlock(cdar(cases),env,ALLBUTLAST);
+            }
+        else if (!SameSymbol(result,FalseSymbol)) 
+            {
+            env = POP();
+            return throw(ExceptionSymbol,
+                "file %s,line %d: "
+                "cond test does not resolve to a boolean, got %s instead.",
+                SymbolTable[file(condition)],line(condition),
+                type(result)
+                );
             }
 
         cases = cdr(cases);
