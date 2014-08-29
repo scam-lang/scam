@@ -1,5 +1,6 @@
 scam (2.0c)
 
+  * if and cond throw exceptions if test result is not boolean
   * allocated arrays now initialized to zeros
   * print values for arrays made more friendly-looking
   * allocations attempts of arrays with size zero now return nil
