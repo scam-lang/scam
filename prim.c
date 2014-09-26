@@ -2562,10 +2562,10 @@ oopen(int args)
                 return throw(ExceptionSymbol,
                     "file %s,line %d: "
                     "file %s cannot be opened for reading",
-                    SymbolTable[file(args)],line(args),
+                    SymbolTable[file(target)],line(target),
                     buffer);
             
-            result = addOpenPort(fp,InputPortSymbol,file(args),line(args),buffer);
+            result = addOpenPort(fp,InputPortSymbol,file(target),line(target),buffer);
             }
         else if (ival(mode) == writeIndex)
             {
@@ -2578,10 +2578,10 @@ oopen(int args)
                 return throw(ExceptionSymbol,
                     "file %s,line %d: "
                     "file %s cannot be opened for writing",
-                    SymbolTable[file(args)],line(args),
+                    SymbolTable[file(target)],line(target),
                     buffer);
             
-            result = addOpenPort(fp,OutputPortSymbol,file(args),line(args),buffer);
+            result = addOpenPort(fp,OutputPortSymbol,file(target),line(target),buffer);
             }
         else if (ival(mode) == appendIndex)
             {
@@ -2591,9 +2591,9 @@ oopen(int args)
                 return throw(ExceptionSymbol,
                     "file %s,line %d: "
                     "file %s cannot be opened for appending",
-                    SymbolTable[file(args)],line(args),
+                    SymbolTable[file(target)],line(target),
                     buffer);
-            result = addOpenPort(fp,OutputPortSymbol,file(args),line(args),buffer);
+            result = addOpenPort(fp,OutputPortSymbol,file(target),line(target),buffer);
             }
         else 
             {
@@ -2601,7 +2601,7 @@ oopen(int args)
                 "file %s,line %d: "
                 "%s is an unknown mode "
                 "(should be 'read, 'write, or 'append)",
-                SymbolTable[file(args)],line(args),
+                SymbolTable[file(target)],line(target),
                 SymbolTable[ival(mode)]);
             }
         }
@@ -2611,7 +2611,7 @@ oopen(int args)
             "file %s,line %d: "
             "%s is an unknown mode "
             "(should be 'read, 'write, or 'append)",
-            SymbolTable[file(args)],line(args),
+            SymbolTable[file(target)],line(target),
             type(mode));
         }
 
