@@ -585,7 +585,7 @@ memoryShutdown()
 
 /* Generic cons "function" */
 
-#define _cons(CAR,CDR,TYPE,L,F,RES)                                 \
+#define _cons(CAR,CDR,TYPE,F,L,RES)                                 \
     {                                                               \
                                                                     \
     /* caller is responsible for ensuring memory available */       \
@@ -614,9 +614,10 @@ memoryShutdown()
             {                                                       \
             Fatal("Tried to reallocate cell.\n" \
                 "    original allocation: thread %d,%s,%d\n"     \
-                "    new allocation:      thread %d,%s,%d\n",     \
+                "    new allocation:      thread %d,%s,%d\n"      \
+                "    gc count:            %d\n",              \
                 creator(RES),lastFile(RES),lastLine(RES), \
-                THREAD_ID,__FILE__,__LINE__);                       \
+                THREAD_ID,__FILE__,__LINE__,GCCount);                       \
             }                                                       \
         creator(RES)    = THREAD_ID;                                \
         lastEditor(RES) = THREAD_ID;                                \
@@ -625,8 +626,8 @@ memoryShutdown()
         }                                                           \
                                                                     \
     settype(RES,TYPE);                                              \
-    setline(RES,L);                                                 \
     setfile(RES,F);                                                 \
+    setline(RES,L);                                                 \
     setcar(RES,CAR);                                                \
     setcdr(RES,CDR);                                                \
     }
@@ -651,7 +652,7 @@ t_cons(int a,int b,char* f, int l)
             THREAD_ID,f,l);
         P_V();
         }
-    _cons(a, b, CONS, line(a), file(a), ret); //this macro sets ret
+    _cons(a, b, CONS, file(a), line(a), ret); //this macro sets ret
     return ret;
     }
 
