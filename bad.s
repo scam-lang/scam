@@ -1,14 +1,22 @@
+(define words nil)
+
 (define (overloadMinus fileName)
+    (define p (open fileName 'read))
     (define (iter x items count)
         (cond
-            ((= count 10000000) items)
+            ((eof?) items)
             (else
                 (inspect count)
-                (iter '(readToken) (cons (string 'x1234567890) items) (+ count 1))
+                (iter (readToken) (cons x items) (+ count 1))
                 )
             )
         )
-    (iter '(readToken) nil 0)
+    (define oldPort (setPort p))
+    (set! words (iter (readToken) nil 0))
+    (close p)
+    (setPort oldPort)
+    (inspect words)
+    (inspect (length words))
     )
 
 (overloadMinus "words")
