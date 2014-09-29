@@ -54,6 +54,7 @@ void threadSafeEnsure(char *,int,int);
 void threadSafeContiguousEnsure(char *,int,int);
 
 /* FreeList  */
+int FreeList[1];
 void freePush(int);
 int freePop();
 int FreeCount[MAX_THREADS];
@@ -77,10 +78,6 @@ static int newMemorySpot[MAX_THREADS];
 
 #define  MEMORY_SIZE (2000000)
 int MemorySize = MEMORY_SIZE;
-
-/* Free cell list */
-int FreeListSize = MEMORY_SIZE;
-int FreeList[MAX_THREADS];
 
 /* Stack */
 int StackSize = 1024 * 32;
@@ -188,6 +185,7 @@ static double getTime(void);
 void
 scamInit(int memSize)
     {
+
     /* Take in argument if someone passed it in */
     if(memSize > 0 )
         {
@@ -198,7 +196,6 @@ scamInit(int memSize)
     if (GCMode != STOP_AND_COPY)
         {
         MemorySize *= 2;
-        FreeListSize *= 2;
         }
 
     /* Initialize the global Symbol table */
@@ -493,7 +490,7 @@ memoryInit()
     /* Initial spot on Stack */
     STACK_SPOT = 0;
 
-    if (StackDebugging)
+    if (StackDebugging || 1)
         {
         /* The shadow stack is used to make sure no one is playing with the stack */
         SHADOW = malloc(sizeof(S_CELL)*StackSize);
@@ -574,7 +571,7 @@ memoryShutdown()
 
     free(STACK);
     STACK = NULL;
-    if (StackDebugging)
+    if (StackDebugging || 1)
         {
         STACK_SPOT = -1;
         free(SHADOW);
@@ -612,12 +609,12 @@ memoryShutdown()
         {                                                           \
         if (creator(RES) != -1)                                     \
             {                                                       \
-            Fatal("Tried to reallocate cell.\n" \
-                "    original allocation: thread %d,%s,%d\n"     \
-                "    new allocation:      thread %d,%s,%d\n"      \
-                "    gc count:            %d\n",              \
-                creator(RES),lastFile(RES),lastLine(RES), \
-                THREAD_ID,__FILE__,__LINE__,GCCount);                       \
+            Fatal("Tried to reallocate cell.\n"                     \
+                "    original allocation: thread %d,%s,%d\n"        \
+                "    new allocation:      thread %d,%s,%d\n"        \
+                "    gc count:            %d\n",                    \
+                creator(RES),lastFile(RES),lastLine(RES),           \
+                THREAD_ID,__FILE__,__LINE__,GCCount);               \
             }                                                       \
         creator(RES)    = THREAD_ID;                                \
         lastEditor(RES) = THREAD_ID;                                \
@@ -1181,6 +1178,10 @@ TOP:
                     FILE *fp = fopen("thread.log","a");
                     fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
                     fclose(fp);
+                    if( THREAD_ID == 0) 
+                        {
+                        printf("Out of Memory\n");
+                        }
                     V();
                     exit(-1);
                     }
@@ -1197,6 +1198,10 @@ TOP:
                 FILE *fp = fopen("thread.log","a");
                 fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
                 fclose(fp);
+                if( THREAD_ID == 0) 
+                    {
+                    printf("Out of Memory\n");
+                    }
                 V();
                 exit(-1);
                 }
@@ -1253,6 +1258,10 @@ TOP:
             FILE *fp = fopen("thread.log","a");
             fprintf(fp,"Thread %d: gc failed: out of memory\n",THREAD_ID);
             fclose(fp);
+            if( THREAD_ID == 0) 
+                {
+                printf("Out of Memory\n");
+                }
             V();
             exit(-1);
             }
@@ -1932,12 +1941,12 @@ stopAndCopy(void)
 
     for (i = HeapBottom; i < MEMORY_SPOT; ++i)
        assert(THE_CARS.creator[i] >= 0);
-    for (i = MEMORY_SPOT; i < MEMORY_SIZE; ++i)
+    for (i = MEMORY_SPOT; i < MemorySize; ++i)
        THE_CARS.creator[i] = -1;
 
     if (StackDebugging)
         {
-        for (i = MEMORY_SPOT; i < MEMORY_SIZE; ++i)
+        for (i = MEMORY_SPOT; i < MemorySize; ++i)
            THE_CARS.creator[i] = -1;
         memset(NEW_CARS.creator,-2,sizeof(int) * MemorySize);
         }
