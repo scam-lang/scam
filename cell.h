@@ -533,7 +533,7 @@ do                                                      \
     {                                                                       \
     if(STACK_SPOT==StackSize)                                               \
         {                                                                   \
-        Fatal("Stack overflow.\n");                                         \
+        Fatal("Stack overflow. Infinite recursion?\n");                     \
         }                                                                   \
     int VAL = (LOC);                                                        \
     G_PUSH(STACK,STACK_SPOT,VAL);                                           \

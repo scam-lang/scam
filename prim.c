@@ -980,7 +980,15 @@ mod(int args)
         newType = type(b);
 
         if (oldType == INTEGER && newType == INTEGER)
+            {
+            if (ival(b) == 0)
+                return throw(MathExceptionSymbol,
+                    "file %s,line %d: "
+                    "modulus divide by zero",
+                    SymbolTable[file(args)],line(args)
+                    );
             itotal %= ival(b);
+            }
         else
             return throw(ExceptionSymbol,
                 "file %s,line %d: "
