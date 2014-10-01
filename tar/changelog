@@ -1,5 +1,7 @@
 scam (2.0c)
 
+  * modulus now throws a divide by zero exception
+  * out of memory error now printed
   * if and cond throw exceptions if test result is not boolean
   * allocated arrays now initialized to zeros
   * print values for arrays made more friendly-looking
