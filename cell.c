@@ -1969,6 +1969,7 @@ stopAndCopy(void)
                "%d cells free\n",
                GCCount+1,delta,total,
                MemorySize-MEMORY_SPOT);
+        sleep(1);
         }
 
     ++GCCount;

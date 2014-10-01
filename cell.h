@@ -340,7 +340,7 @@ do                                          \
     if (MEMORY_SPOT + size >= MemorySize)                       \
         {                                                       \
         if(Debugging || StackDebugging)                         \
-            printf("gc from line %s,%d\n",__FILE__,__LINE__);   \
+            printf("gc %d from line %s,%d\n",GCCount,__FILE__,__LINE__);   \
         ensureContiguousMemory(__FILE__,__LINE__,size,item,##__VA_ARGS__);        \
         }                                                       \
     }
@@ -355,7 +355,7 @@ do                                          \
     if (FREE_COUNT < size && (MEMORY_SPOT + size) >= MemorySize)\
         {                                                       \
         if(Debugging || StackDebugging)                         \
-            printf("gc from line %s,%d\n",__FILE__,__LINE__);   \
+            printf("gc %d from line %s,%d\n",GCCount,__FILE__,__LINE__);   \
         ensureMemory(__FILE__,__LINE__,size,item,##__VA_ARGS__);                  \
         }                                                       \
     }

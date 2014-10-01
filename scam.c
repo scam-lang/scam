@@ -73,7 +73,7 @@ main(int argc,char **argv,char **envv)
 
     if (MemorySize < MIN_MEMORY_SIZE)
         {
-        Fatal("Desired memory size of $d cells is too small, need at least %d cells.\n",
+        Fatal("Desired memory size of %d cells is too small, need at least %d cells.\n",
             MemorySize,MIN_MEMORY_SIZE);
         }
 

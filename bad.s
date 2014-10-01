@@ -1,5 +1,3 @@
-(define words nil)
-
 (define (overloadMinus fileName)
     (define (iter x items count)
         (cond
@@ -10,9 +8,9 @@
                 )
             )
         )
-    (set! words (iter (readToken) nil 0))
+    (inspect (iter (readToken) nil 0))
     )
 
 (overloadMinus "words")
 
-; run this with: cat words | scam -m2 bad.s
+; run this with: cat words | scam bad.s

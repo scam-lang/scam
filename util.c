@@ -147,7 +147,7 @@ ProcessOptions(int argc, char **argv)
                 break;
             case 'm':
                 {
-                MemorySize *= atoi(arg);
+                MemorySize *= atof(arg);
                 argUsed = 1;
                 }
                 break;
