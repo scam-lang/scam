@@ -170,13 +170,11 @@ extern void reclaim(void);
 #define THE_CARS        (theCars[INDEX])
 
 #define FREE_LIST       (FreeList[INDEX])
-//#define STACK           (Thread[THREAD_ID].Stack)
 #define STACK           (Stack[THREAD_ID])
 
 #define MEMORY_SPOT     (MemorySpot[INDEX])
 #define NEW_MEM_SPOT    (newMemorySpot[INDEX])
 #define FREE_COUNT      (FreeCount[INDEX])
-//#define STACK_SPOT      (Thread[THREAD_ID].StackSpot)
 #define STACK_SPOT      (StackSpot[THREAD_ID])
 
 #define NEW_CARS        (newCars[INDEX])

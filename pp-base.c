@@ -204,6 +204,7 @@ putCharToFile(int ch)
 static void
 putStringToFile(char *s)
     {
+    assert( s != 0);
     while (*s != 0)
         {
         putCharToFile(*s);

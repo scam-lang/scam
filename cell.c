@@ -372,7 +372,7 @@ memoryInit()
         THE_CARS.status      = malloc(sizeof(char) * MemorySize);
 
         /* Used to output who created a cons cell */
-        if(StackDebugging || 1)
+        if(StackDebugging)
             {
             THE_CARS.creator    = malloc(sizeof(int) * MemorySize);
             THE_CARS.lastEditor = malloc(sizeof(int) * MemorySize);
@@ -411,7 +411,7 @@ memoryInit()
             {
             memset(THE_CARS.fwd , -1 , sizeof(int) * MemorySize);
             }
-        if(StackDebugging || 1 )
+        if(StackDebugging)
             {
                 memset(THE_CARS.creator , -1 , sizeof(int) * MemorySize);
                 memset(THE_CARS.lastEditor , -1 , sizeof(int) * MemorySize);
@@ -435,7 +435,7 @@ memoryInit()
             NEW_CARS.fval       = malloc(sizeof(int (**)(int,int)) * MemorySize);
 
             NEW_CARS.status     = malloc(sizeof(char) * MemorySize);
-            if (StackDebugging || 1)
+            if (StackDebugging)
                 {
                 NEW_CARS.creator    = malloc(sizeof(int) * MemorySize);
                 NEW_CARS.lastEditor = malloc(sizeof(int) * MemorySize);
@@ -464,7 +464,7 @@ memoryInit()
             /* If not set then GC will not move anything  */
             memset(NEW_CARS.status , UNMOVED , sizeof(char) * MemorySize);
             memset(NEW_CARS.fwd , -1 , sizeof(int) * MemorySize);
-            if(StackDebugging || 1)
+            if(StackDebugging)
                 {
                 memset(NEW_CARS.creator , -1 , sizeof(int) * MemorySize);
                 memset(NEW_CARS.lastEditor , -1 , sizeof(int) * MemorySize);
@@ -490,7 +490,7 @@ memoryInit()
     /* Initial spot on Stack */
     STACK_SPOT = 0;
 
-    if (StackDebugging || 1)
+    if (StackDebugging)
         {
         /* The shadow stack is used to make sure no one is playing with the stack */
         SHADOW = malloc(sizeof(S_CELL)*StackSize);
@@ -527,7 +527,7 @@ memoryShutdown()
         free(THE_CARS.fval);
 
         free(THE_CARS.status);
-        if(StackDebugging || 1)
+        if(StackDebugging)
             {
             free(THE_CARS.creator);
             free(THE_CARS.lastEditor);
@@ -556,7 +556,7 @@ memoryShutdown()
 
             free(NEW_CARS.status);
 
-            if(StackDebugging || 1)
+            if(StackDebugging)
                 {
                 free(NEW_CARS.creator);
                 free(NEW_CARS.lastEditor);
@@ -571,7 +571,7 @@ memoryShutdown()
 
     free(STACK);
     STACK = NULL;
-    if (StackDebugging || 1)
+    if (StackDebugging)
         {
         STACK_SPOT = -1;
         free(SHADOW);
@@ -605,7 +605,7 @@ memoryShutdown()
         ++MEMORY_SPOT;                                              \
         }                                                           \
                                                                     \
-    if(StackDebugging || 1)                                         \
+    if(StackDebugging)                                              \
         {                                                           \
         if (creator(RES) != -1)                                     \
             {                                                       \
@@ -725,9 +725,11 @@ newString(char *s)
 
     start = MEMORY_SPOT;
 
+    assert( s != 0);
+
     while (*s != 0)
         {
-        if (StackDebugging || 1)
+        if (StackDebugging)
             {
             creator(MEMORY_SPOT) = THREAD_ID;
             setEditor(MEMORY_SPOT,THREAD_ID);
@@ -769,9 +771,11 @@ newStringUnsafe(char *s)
    
     start = MEMORY_SPOT;
 
+    assert( s != 0);
+
     while (*s != 0)
         {
-        if (StackDebugging || 1)
+        if (StackDebugging)
             {
             creator(MEMORY_SPOT) = THREAD_ID;
             setEditor(MEMORY_SPOT,THREAD_ID);
@@ -1085,7 +1089,7 @@ allocateContiguous(char *typ,int size)
     /* set the types and cdrs appropriately and set the counts */
     for (i = start; amount > 0; ++i,--amount)
         {
-        if (StackDebugging || 1)
+        if (StackDebugging)
             {
             creator(i) = THREAD_ID;
             setEditor(i,THREAD_ID);
@@ -1107,14 +1111,14 @@ void
 ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     {
     va_list ap;
-    int i;
-    int *store[1000]; //This is bad!
+    int *store[20]; //This is bad!
     int storePtr = 0;
 
     va_start(ap, item);
 
     while (item != 0)
         {
+        assert(storePtr < 20);
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1123,9 +1127,9 @@ ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     threadSafeContiguousEnsure(fileName,lineNumber,needed);
 
     //OUCH! why was this loop missing?
-    for (i = storePtr - 1;i >= 0;--i)
+    while(storePtr--)
         {
-        *(store[i]) = POP();
+        *(store[storePtr]) = POP();
         }
     }
 
@@ -1133,14 +1137,14 @@ void
 ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     {
     va_list ap;
-    int i;
-    int *store[512]; //This is bad!
+    int *store[20]; //This is bad!
     int storePtr = 0;
 
     va_start(ap, item);
 
     while (item != 0)
         {
+        assert(storePtr < 20);
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1148,9 +1152,9 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 
     threadSafeEnsure(fileName,lineNumber,needed);
 
-    for (i = storePtr - 1;i >= 0;--i)
+    while(storePtr--)
         {
-        *(store[i]) = POP();
+        *(store[storePtr]) = POP();
         }
     }
 
@@ -1204,6 +1208,14 @@ TOP:
                     }
                 V();
                 exit(-1);
+                }
+            }
+        if(StackDebugging)
+            {
+            int i;
+            for(i = MEMORY_SPOT; i < MemorySize; ++i) 
+                {
+                creator(i) = -1;
                 }
             }
         GCQueueCount = 0;
@@ -1681,7 +1693,7 @@ scanFree(void)
     newrval(NEW) =  rval(OLD);                              \
     newfval(NEW) =  fval(OLD);                              \
                                                             \
-    if (StackDebugging||1)                                  \
+    if (StackDebugging)                                     \
         {                                                   \
         NEW_CARS.creator[NEW]       = creator(OLD);         \
         NEW_CARS.lastEditor[NEW]    = lastEditor(OLD);      \
@@ -1742,7 +1754,7 @@ moveBackbone(int old)
         /* Move the cells */
         size = count(old);
         int TMP = NEW_MEM_SPOT;
-        while(size>1)
+        while(size > 1)
         {
             RAW_COPY(old);
             newcdr(TMP) = NEW_MEM_SPOT;
@@ -1843,13 +1855,16 @@ stopAndCopy(void)
     //printf("new MemSpot set to %d\n",NEW_MEM_SPOT);
     //printf("MemSize is %d\n",MemorySize);
 
-    for(i=HeapBottom;StackDebugging && i<MEMORY_SPOT;++i)
+    if(StackDebugging)
         {
-        if(creator(i) == -1)
+        for(i=HeapBottom;StackDebugging && i<MEMORY_SPOT;++i)
             {
-            printf("Error at position %d\n",i);
-            debug("Cell",i);
-            Fatal("allocated cell not attached to a thread\n");
+            if(creator(i) == -1)
+                {
+                printf("Error at position %d\n",i);
+                debug("Cell",i);
+                Fatal("allocated cell not attached to a thread\n");
+                }
             }
         }
 
@@ -1917,6 +1932,11 @@ stopAndCopy(void)
     NEW_CARS = tempCars;
 
     MEMORY_SPOT = NEW_MEM_SPOT;
+
+    // Clear the data, for debugging purposes
+    memset(NEW_CARS.type + HeapBottom,0,sizeof(char*) * (MemorySize - HeapBottom));
+    memset(NEW_CARS.cdr + HeapBottom,0,sizeof(int)* (MemorySize - HeapBottom));
+    
     //printf("MemSpot now is %d\n",MEMORY_SPOT);
     //printf("MemSize is %d\n",MemorySize);
     //printf("Free now is %d\n",MemorySize-MEMORY_SPOT);
@@ -1939,19 +1959,14 @@ stopAndCopy(void)
         }
     */
 
-    for (i = HeapBottom; i < MEMORY_SPOT; ++i)
-       assert(THE_CARS.creator[i] >= 0);
-    for (i = MEMORY_SPOT; i < MemorySize; ++i)
-       THE_CARS.creator[i] = -1;
-
     if (StackDebugging)
         {
-        for (i = MEMORY_SPOT; i < MemorySize; ++i)
-           THE_CARS.creator[i] = -1;
-        memset(NEW_CARS.creator,-2,sizeof(int) * MemorySize);
+        for (i = HeapBottom; i < MEMORY_SPOT; ++i)
+            {
+            NEW_CARS.creator[i] = -1;
+            assert(THE_CARS.creator[i] >= 0);
+            }
         }
-
-
     if (GCDisplay)
         {
         if(Debugging)
