@@ -1119,6 +1119,7 @@ ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     while (item != 0)
         {
         assert(storePtr < 20);
+        assert(*item != 0);
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1145,6 +1146,7 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     while (item != 0)
         {
         assert(storePtr < 20);
+        assert(*item != 0);
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -2137,3 +2139,13 @@ getTime()
     gettimeofday(&tv,(struct timezone *)0);
     return tv.tv_sec + tv.tv_usec / 1000000.0;
     }
+
+
+void
+print_stack()
+{
+    int i;
+    for(i = 0 ; i < STACK_SPOT; ++i) {
+        debug("Stack",STACK[i]);
+    }
+}

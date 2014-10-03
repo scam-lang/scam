@@ -155,6 +155,8 @@ extern void ensureContiguousMemory(char *,int,int,int *,...);
 extern void stopAndCopy(void);
 extern void reclaim(void);
 
+extern void print_stack(void);
+
 /* Powers of two */
 #define CONSTANT 4
 #define UPDATED 2

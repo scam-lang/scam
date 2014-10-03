@@ -57,6 +57,8 @@ extern int ShuttingDown;        /* Tells threads to shut down or not */
 extern int GlobalLock;          /* Single global lock for semaphores */
 
 
+void print_trace(void);
+
 #define SCAM 1
 #define SWAY 2
 

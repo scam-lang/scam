@@ -9,10 +9,12 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include <execinfo.h>
 
 #include "scam.h"
 #include "cell.h"
@@ -250,4 +252,23 @@ addToEnvironment(int env,char *fileName,int mode)
     //printf("after %s loaded, %d memory cells in use\n",fileName,MEMORY_SPOT);
 
     return result;
+    }
+
+void print_trace(void)
+    {
+    const int A_SIZE = 100;
+    void *array[A_SIZE];
+    size_t size;
+    char **strings;
+    size_t i;
+
+    size = backtrace(array,A_SIZE);
+    strings = backtrace_symbols( array, size);
+
+    for( i = 0 ; i < size ; ++i)
+        {
+        printf("%s\n", strings[i]);
+        }
+
+    free(strings);
     }

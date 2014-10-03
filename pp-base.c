@@ -204,7 +204,12 @@ putCharToFile(int ch)
 static void
 putStringToFile(char *s)
     {
-    assert( s != 0);
+    if (s == 0)
+        {
+        print_trace();
+        print_stack();
+        assert( s != 0);
+        }
     while (*s != 0)
         {
         putCharToFile(*s);
