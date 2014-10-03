@@ -4,6 +4,9 @@
             ((eof?) items)
             (else
                 (inspect count)
+                (if (gced) 
+                    (inspect items)
+                 )
                 (iter (readToken) (cons x items) (+ count 1))
                 )
             )

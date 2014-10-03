@@ -247,7 +247,6 @@ ppVarDefinition(int t,int level)
 static void
 ppFunctionDefinition(int t,int level)
     {
-    int body;
     ppStartLine();
     ppPutString("function ");
     ppPutString(SymbolTable[ival(car(cadr(t)))]);

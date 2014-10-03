@@ -9,7 +9,7 @@ OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o \
 	   pp.o pp-base.o \
        sway-lexer.o sway-parser.o sway-pp.o
 OPTS = -O1 # normal runtime
-OPTS = -ggdb -pg -gstabs -rdynamic# for debugging
+OPTS = -O0 -ggdb -pg -rdynamic# for debugging
 
 LOPTS = 
 
@@ -60,8 +60,14 @@ types.o		: types.c types.h
 util.o		: util.c util.h types.h cell.h
 		$(CC) -c $(OPTS) -Wall $(FLAGS) util.c
 
+pp-base.o   : pp-base.c pp-base.h
+		$(CC) -c $(OPTS) -Wall $(FLAGS) pp-base.c
+
 pp.o		: pp.c pp.h
 		$(CC) -c $(OPTS) -Wall $(FLAGS) pp.c
+
+sway-pp.o	: sway-pp.c
+		$(CC) -c $(OPTS) -Wall $(FLAGS) sway-pp.c
 
 scam.o		: scam.c cell.h parser.h prim.h eval.h
 		$(CC) -c $(OPTS) $(IREADLINE) -Wall $(FLAGS) scam.c

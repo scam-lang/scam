@@ -56,7 +56,7 @@ char *EnvironmentName = "ScamEnv";
 char *Home = "~";
 
 int GlobalLock = 0;
-
+int RecentGC = 0;
 
 FILE* DebugFile;
 
@@ -265,9 +265,10 @@ void print_trace(void)
     size = backtrace(array,A_SIZE);
     strings = backtrace_symbols( array, size);
 
+    printf("\nStack Trace:\n");
     for( i = 0 ; i < size ; ++i)
         {
-        printf("%s\n", strings[i]);
+        printf("\t%s\n", strings[i]);
         }
 
     free(strings);

@@ -1146,7 +1146,7 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     while (item != 0)
         {
         assert(storePtr < 20);
-        assert(*item != 0);
+        //assert(*item != 0);
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1168,7 +1168,6 @@ TOP:
         {
         return;
         }
-
     /* all threads need to garbage collect at the same time */
     if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
         {
@@ -1198,6 +1197,7 @@ TOP:
         else if (GCMode == STOP_AND_COPY)
             {
             stopAndCopy();
+            RecentGC = 1;
             GCQueueCount = 0;
             if (MEMORY_SPOT + needed >= MemorySize)
                 {
@@ -1239,6 +1239,7 @@ TOP:
 
         goto TOP;
         }
+    RecentGC = 1;
     }
 
 void
@@ -1249,7 +1250,6 @@ TOP:
         {
         return;
         }
-
     /* all threads need to garbage collect */
     if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
         {
@@ -1260,6 +1260,7 @@ TOP:
         else if (GCMode == STOP_AND_COPY)
             {
             stopAndCopy();
+            RecentGC = 1;
             }
 
         P_P();
@@ -1294,6 +1295,7 @@ TOP:
         P();
         goto TOP;
         }
+    RecentGC = 1;
     }
 
 int 
@@ -2145,7 +2147,8 @@ void
 print_stack()
 {
     int i;
+    printf("Stack (%d):\n", STACK_SPOT);
     for(i = 0 ; i < STACK_SPOT; ++i) {
-        debug("Stack",STACK[i]);
+        debug("\t",STACK[i]);
     }
 }

@@ -3010,6 +3010,16 @@ string_append(int args)
     return start;
     }
 
+static int
+gced(int args){
+    if (RecentGC == 1) 
+        {
+        RecentGC = 0;
+        return scamBoolean(1==1);
+        }
+    return scamBoolean(0==1);
+}
+
 /* (string-equal a b) */
 
 static int
@@ -4276,6 +4286,14 @@ loadBuiltIns(int env)
     BuiltIns[count] = ggc;
     b = makeBuiltIn(env,
         newSymbolUnsafe("gc"),
+        0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = gced;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("gced"),
         0,
         newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);

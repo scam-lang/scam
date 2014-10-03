@@ -5,6 +5,9 @@
 #include <assert.h>
 #include "pp-base.h"
 
+#include "scam.h"
+#include "cell.h"
+
 int ppIndent = 0;
 int ppFlat = 0;
 int ppLength = 0;
@@ -170,7 +173,6 @@ putRealToString(double r)
 static void
 putCharToFile(int ch)
     {
-    int outch;
 
     if (ppMaxLength != 0 && ppLength >= ppMaxLength - 1)
         {
@@ -206,6 +208,11 @@ putStringToFile(char *s)
     {
     if (s == 0)
         {
+        if(ShuttingDown)
+            {
+                return;
+            }
+        ShuttingDown = 1;
         print_trace();
         print_stack();
         assert( s != 0);

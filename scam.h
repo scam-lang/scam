@@ -23,6 +23,7 @@
 #define STOP_AND_COPY 0
 #define MARK_SWEEP 1
 
+extern int RecentGC;
 
 /* Global variables */
 extern char *PROGRAM_NAME;      /* The name of the program (scam) */
