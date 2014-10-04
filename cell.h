@@ -335,7 +335,7 @@ do                                          \
  */
 #define ENSURE_CONTIGUOUS_MEMORY(size,item,...)                 \
     {                                                           \
-    if ((MEMORY_SPOT + size) > MemorySize)                      \
+    if ((MEMORY_SPOT + size) >= MemorySize)                     \
         {                                                       \
         if(Debugging || StackDebugging)                         \
             printf("gc %d from line %s,%d\n",                   \
@@ -354,7 +354,7 @@ do                                          \
  */
 #define ENSURE_MEMORY(size,item,...)                                    \
     {                                                                   \
-    if ((FREE_COUNT < size) && (MEMORY_SPOT + size) > MemorySize)       \
+    if ((FREE_COUNT < size) && (MEMORY_SPOT + size) >= MemorySize)      \
         {                                                               \
         if(Debugging || StackDebugging)                                 \
             printf("gc %d from line %s,%d\n",                           \
