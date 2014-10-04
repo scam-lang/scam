@@ -1972,28 +1972,6 @@ stopAndCopy(void)
     memset(NEW_CARS.type    + HeapBottom, 0, sizeof(char*) * count);
     memset(NEW_CARS.ival    + HeapBottom, 0, sizeof(int)   * count);
     memset(NEW_CARS.cdr     + HeapBottom, 0, sizeof(int)   * count);
-    
-    //printf("MemSpot now is %d\n",MEMORY_SPOT);
-    //printf("MemSize is %d\n",MemorySize);
-    //printf("Free now is %d\n",MemorySize-MEMORY_SPOT);
-
-    /* STACKCHECK  */
-    /*
-    for (i = 0; i < CreatedThreads; ++i)
-        {
-        printf("after: free list of thread %d (%d items)...\n",i,StackSpot[i]);
-        for (j = 0; j < StackSpot[i]; ++j)
-            {
-            printf("%s,%d: updating: %d ",
-                __FILE__,__LINE__,StackSpot[i] - j -1);
-            if (Syntax == SWAY)
-                scamPP(stdout,Stack[i][j],0);
-            else
-                scamPP(stdout,Stack[i][j],0);
-            printf("\n");
-            }
-        }
-    */
 
     if (StackDebugging)
         {
@@ -2012,11 +1990,7 @@ stopAndCopy(void)
             }
         delta = getTime() - startTime;
         total += delta;
-        //printf("gc %d (from %s,%d): %fs (total %fs), "
-        //       "%d cells free\n",
-        //       GCCount+1,fileName,lineNumber,delta,total,
-        //       MemorySize-MEMORY_SPOT);
-        printf("gc %d: %fs (total %fs), "
+        printf("sAc: %d: %fs (total %fs), "
                "%d cells free\n",
                GCCount+1,delta,total,
                MemorySize-MEMORY_SPOT);
