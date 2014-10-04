@@ -24,6 +24,7 @@
 #include "util.h"
 #include "env.h"
 #include "pp-base.h"
+#include "stack.h"
 
 #define MOVED 1
 #define UNMOVED 0
@@ -1020,6 +1021,7 @@ findSymbol(char *s)
             {
             return i;
             }
+
     if (SymbolCount >= SymbolSize)
         {
         char **symT;
@@ -1118,8 +1120,7 @@ ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 
     while (item != 0)
         {
-        assert(storePtr < 20);
-        assert(*item != 0);
+        assert(storePtr < 20);  // Saving grace!
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1127,7 +1128,6 @@ ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 
     threadSafeContiguousEnsure(fileName,lineNumber,needed);
 
-    //OUCH! why was this loop missing?
     while(storePtr--)
         {
         *(store[storePtr]) = POP();
@@ -1145,8 +1145,7 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 
     while (item != 0)
         {
-        assert(storePtr < 20);
-        //assert(*item != 0);
+        assert(storePtr < 20);  // Saving grace!
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1160,118 +1159,19 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
         }
     }
 
-void
-threadSafeEnsure(char *fileName,int lineNumber,int needed)
-    {
-TOP:
-    if (memAvailable(needed))
-        {
-        return;
-        }
-    /* all threads need to garbage collect at the same time */
-    if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
-        {
-        if (GCMode == MARK_SWEEP)
-            {
-            reclaim();
-            if (FREE_COUNT < needed)
-                {
-                compact();
-                GCQueueCount = 0;
-                if (MEMORY_SPOT + needed >= MemorySize)
-                    {
-                    FILE *fp = fopen("thread.log","a");
-                    fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
-                    fclose(fp);
-                    if( THREAD_ID == 0) 
-                        {
-                        printf("Out of Memory\n");
-                        }
-                    V();
-                    exit(-1);
-                    }
-                }
-            else
-                GCQueueCount = 0;
-            }
-        else if (GCMode == STOP_AND_COPY)
-            {
-            stopAndCopy();
-            RecentGC = 1;
-            GCQueueCount = 0;
-            if (MEMORY_SPOT + needed >= MemorySize)
-                {
-                FILE *fp = fopen("thread.log","a");
-                fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
-                fclose(fp);
-                if( THREAD_ID == 0) 
-                    {
-                    printf("Out of Memory\n");
-                    }
-                V();
-                exit(-1);
-                }
-            }
-        if(StackDebugging)
-            {
-            int i;
-            for(i = MEMORY_SPOT; i < MemorySize; ++i) 
-                {
-                creator(i) = -1;
-                }
-            }
-        GCQueueCount = 0;
-        return;
-        }
-    else
-        {
-        ++GCQueueCount;
-        int StartingWorking = WorkingThreads;
-        double startTime = getTime();
-        V();
-        while (GCQueueCount != 0 && WorkingThreads == StartingWorking)
-            {
-            usleep(10000);
-            if (getTime() - startTime > MAX_THREAD_TIMEOUT)
-                Fatal("deadlock detected while garbage collecting\n");
-            }
-        P();
-
-        goto TOP;
-        }
-    RecentGC = 1;
-    }
 
 void
-threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
+MarkCompact(int needed, int contiguous)
     {
-TOP:
-    if (MEMORY_SPOT + needed < MemorySize)
+    reclaim();
+    if (FREE_COUNT < needed || (contiguous && (MEMORY_SIZE - MEMORY_SPOT < needed)))
         {
-        return;
-        }
-    /* all threads need to garbage collect */
-    if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
-        {
-        if (GCMode == MARK_SWEEP)
-            {
-            compact();
-            }
-        else if (GCMode == STOP_AND_COPY)
-            {
-            stopAndCopy();
-            RecentGC = 1;
-            }
-
-        P_P();
-        printf("%d: queue count %d, reset to zero\n",__LINE__,GCQueueCount);
-        P_V();
+        compact();
         GCQueueCount = 0;
-
         if (MEMORY_SPOT + needed >= MemorySize)
             {
             FILE *fp = fopen("thread.log","a");
-            fprintf(fp,"Thread %d: gc failed: out of memory\n",THREAD_ID);
+            fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
             fclose(fp);
             if( THREAD_ID == 0) 
                 {
@@ -1280,22 +1180,87 @@ TOP:
             V();
             exit(-1);
             }
-        return;
         }
-    else
+    }
+
+/*
+ *  GC  : Perform a garbage collect.
+ */
+
+void 
+GC(int needed, int contiguous)
+    {
+ TOP:
+    if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
+        {
+        if (GCMode == MARK_SWEEP)
+            {
+            MarkCompact(needed, contiguous);
+            }
+        else if (GCMode == STOP_AND_COPY)
+            {
+            stopAndCopy();
+            }
+        }
+    else    // Someone is working, I go on the waiting thread.
         {
         ++GCQueueCount;
         int StartingWorking = WorkingThreads;
-        P_V();
+        double startTime = getTime();
         V();
-        while (GCQueueCount != 0 && WorkingThreads == StartingWorking)
+        /* While GC has not happened and we have someone working who busy wait (with sleep!)  */
+        while (GCQueueCount != 0 && StartingWorking < WorkingThreads)
             {
             usleep(10000);
+            if (getTime() - startTime > MAX_THREAD_TIMEOUT)
+                Fatal("deadlock detected while garbage collecting\n");
             }
         P();
+        // Either someone exited so I have to do GC or someone did a GC and I should grab some memory!
         goto TOP;
         }
-    RecentGC = 1;
+   RecentGC = 1;
+    }
+
+
+/*
+ *  threadSafeEnsure    - Validate that we have enough memory, if not 
+ *                        we do a garbage collection.  If we have more
+ *                        than one thread all threads sleep save one 
+ *                        who will then do the garbage collection.
+ *
+ *  Note: We have a lock on P when entering and leaving.
+ */
+
+void
+threadSafeEnsure(char *fileName,int lineNumber,int needed)
+    {
+    if (memAvailable(needed))
+        {
+        return;
+        }
+        GC(needed,0);
+    }
+
+/*
+ *  threadSafeContiguousEnsure    - Validate that we have enough memory, if not 
+ *                                  we do a garbage collection.  If we have more
+ *                                  than one thread all threads sleep save one 
+ *                                  who will then do the garbage collection.
+ *
+ *  Note: We have a lock on P when entering and leaving.
+ */
+
+void
+threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
+    {
+
+    if (MEMORY_SPOT + needed < MemorySize)
+        {
+        return;
+        }
+
+    GC(needed,1);
     }
 
 int 
@@ -1579,24 +1544,34 @@ markRoots(int mode)
 void
 markObject(int obj,int mode)
     {
-    /* Ignore all marked cells */
-    if (status(obj) == mode)
-        {
-        return;
-        }
-    
-    setstatus(obj,mode);
+    struct Stack *s = create_stack();
 
-    char* TYPE = type(obj);
-    if (TYPE == ARRAY || TYPE == CONS)
-        {
-        markObject(car(obj),mode);
-        markObject(cdr(obj),mode);
+    push(s,&obj);
+
+    while( !empty(s) ) {
+
+        int o = *(int*)(pop(s));
+
+        /* Ignore all marked cells */
+        if(status(o) == mode)
+            {
+            continue;
+            }
+        
+        setstatus(o,mode);
+
+        char* TYPE = type(obj);
+        if (TYPE == ARRAY || TYPE == CONS)
+            {
+            push(s,&(cdr(o)));
+            push(s,&(car(o)));
+            }
+        else if(TYPE == STRING)
+            {
+            push(s,&(cdr(o)));
+            }
         }
-    else if(TYPE == STRING)
-        {
-        markObject(cdr(obj),mode);
-        }
+    delete_stack(s,0);
     }
 
 /* reclaim - reclaim memory using mark and sweep
@@ -1677,8 +1652,9 @@ scanFree(void)
 
 /* 
  *  rawCopy  -  Copy the cell from old to newMemorySpot.  After copy we
- *              then set the status of the new and old to MOVED and the
- *              old cdr now points to the new location.
+ *              then set the status of the new and old to MOVED and 
+ *              UNMOVED respectivly.  The cdr in the old semispace now 
+ *              points to the new location in the new semi-space.
  */
 
 #define RAW_COPY(OLD)                                       \
@@ -1722,7 +1698,6 @@ scanFree(void)
 int
 moveBackbone(int old)
     {
-    int original;
 
     /* symbols don't have backbones */
     if(old < HeapBottom)
@@ -1736,10 +1711,7 @@ moveBackbone(int old)
         return cdr(old);
         }
 
-    original = old; /* save in case old points to the middle */
-
     char* t = type(old);
-
 
     /* Single CELL backbones */
     if (t != STRING && t != ARRAY)   /* CONS, SYMBOL, INTEGER, REAL */
@@ -1748,31 +1720,37 @@ moveBackbone(int old)
         }
     else   /* STRING or ARRAY */
         {
-        int size;
+        /* 
+            DOCUMENTATION:
+                This should copy the ENTIRE array or 
+                string structure over (not contents 
+                of array). 
+        */
+
+        int orig = old;
+        int size = count(old);
+
         /* Backup to the beginning of the array or string */
-        while (type(old-1) == t && count(old-1) == count(old)+1)
+        while (type(old-1) == t && count(old-1) == size + 1)
             {
-            old--;
+            --old;
+            ++size;
             }
 
-        /* Move the cells */
-        size = count(old);
-        int TMP = NEW_MEM_SPOT;
-        while(size > 1)
-        {
-            RAW_COPY(old);
-            newcdr(TMP) = NEW_MEM_SPOT;
-            ++TMP;
+        /* Move ALL the cells in the string/array */
+        while(size-- > 0)
+            {
+            RAW_COPY(old);  // Updates memory spot
+            newcdr(NEW_MEM_SPOT-1) = NEW_MEM_SPOT;
             ++old;
-            --size;
-        }
-
+            }
         /* reset the last cdr pointer to nil */
-        RAW_COPY(old);
-        newcdr(TMP) = 0;
+        newcdr(NEW_MEM_SPOT-1) = 0;
+
+        old = orig;
         }
 
-    return cdr(original);
+    return cdr(old);
     }
 
 /* 
@@ -1787,7 +1765,6 @@ moveStackItem(int old)
     {
     /* Symbols have already been moved and they are at the */
     /* same (relative) address */
-
     if(old < HeapBottom)
         {
         return old;
@@ -1804,6 +1781,13 @@ moveStackItem(int old)
 
     /* Shallow copy */
     (void) moveBackbone(old); // Where old was placed
+
+
+    /* 
+        DOCUMENTATION : 
+            Why can't I just check for a CON or ARRAY and handle each one?
+            If I do it throws a segmentation fault for some unknown reason.
+    */
 
     /* deep copy */
     while(spot < NEW_MEM_SPOT)
@@ -1826,6 +1810,7 @@ moveStackItem(int old)
             }
         spot++;
         }
+
     return cdr(old);
     }
 
@@ -1856,8 +1841,6 @@ stopAndCopy(void)
 
     /* Move Qeueue Items  */
     NEW_MEM_SPOT = HeapBottom;
-    //printf("new MemSpot set to %d\n",NEW_MEM_SPOT);
-    //printf("MemSize is %d\n",MemorySize);
 
     if(StackDebugging)
         {
@@ -1875,31 +1858,13 @@ stopAndCopy(void)
     for (i = 0; i < MAX_THREADS; ++i)
         {
         /* If not used then env and expr are 0 */
-        //debug("env is",ThreadQueue[i].env);
-        //debug("expr is",ThreadQueue[i].expr);
         ThreadQueue[i].env = moveStackItem(ThreadQueue[i].env);
         ThreadQueue[i].expr = moveStackItem(ThreadQueue[i].expr);
         }
 
-    /* STACKCHECK */
-    /*
-    for (i = 0; i < CreatedThreads; ++i)
-        {
-        printf("before: free list of thread %d (%d items)...\n",i,StackSpot[i]);
-        for (j = 0; j < StackSpot[i]; ++j)
-            {
-            printf("%d",j);
-            debug("",Stack[i][j]);
-            }
-        }
-    */
-
-
     /* Move Stack Items */
     for (i = 0; i < CreatedThreads; ++i)
         {
-        //printf("moving free list of thread %d (%d items)...\n",
-        //    i,StackSpot[i]);
         for (j = 0; j < StackSpot[i]; ++j)
             {
             Stack[i][j] = moveStackItem(Stack[i][j]);
@@ -1926,9 +1891,7 @@ stopAndCopy(void)
                 ShadowStack[i][j] = C;
                 }
             }
-        //printf("free list of thread %d moved.\n",i);
         }   
-    //printf("new MemSpot now is %d\n",NEW_MEM_SPOT);
 
     /* flip the semispace with the working heap */
     CELL tempCars = THE_CARS;
@@ -1937,9 +1900,18 @@ stopAndCopy(void)
 
     MEMORY_SPOT = NEW_MEM_SPOT;
 
+    /*
+        DOCUMENTATION : 
+            Is this correct?  From the above 4 lines I assume everything is 
+            swapped and I should be able to set this back to nothing.
+     */
+
     // Clear the data, for debugging purposes
-    memset(NEW_CARS.type + HeapBottom,0,sizeof(char*) * (MemorySize - HeapBottom));
-    memset(NEW_CARS.cdr + HeapBottom,0,sizeof(int)* (MemorySize - HeapBottom));
+    int count = MemorySize - HeapBottom;
+    //memset(NEW_CARS.creator + HeapBottom,-1, sizeof(int)   * count);
+    memset(NEW_CARS.type    + HeapBottom, 0, sizeof(char*) * count);
+    memset(NEW_CARS.ival    + HeapBottom, 0, sizeof(int)   * count);
+    memset(NEW_CARS.cdr     + HeapBottom, 0, sizeof(int)   * count);
     
     //printf("MemSpot now is %d\n",MEMORY_SPOT);
     //printf("MemSize is %d\n",MemorySize);

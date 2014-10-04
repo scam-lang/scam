@@ -7,7 +7,8 @@ FLAGS =
 OBJS = types.o cell.o lexer.o parser.o prim.o env.o eval.o util.o \
 	   thread.o \
 	   pp.o pp-base.o \
-       sway-lexer.o sway-parser.o sway-pp.o
+       sway-lexer.o sway-parser.o sway-pp.o \
+       stack.o
 OPTS = -O1 # normal runtime
 OPTS = -O0 -ggdb -pg -rdynamic# for debugging
 
@@ -38,6 +39,9 @@ install : scam
 
 parser.o	: parser.c cell.h types.h parser.h util.h
 		$(CC) -c $(OPTS) $(IREADLINE) -Wall $(FLAGS) parser.c
+
+stack.o	    : stack.c stack.h
+		$(CC) -c $(OPTS) $(IREADLINE) -Wall $(FLAGS) stack.c
 
 cell.o		: cell.c cell.h types.h
 		$(CC) -c $(OPTS) -Wall $(FLAGS) cell.c

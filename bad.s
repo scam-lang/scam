@@ -4,6 +4,7 @@
             ((eof?) items)
             (else
                 (inspect count)
+                ; Jeff : After every GC print the items
                 (if (gced) 
                     (inspect items)
                  )
@@ -17,3 +18,4 @@
 (overloadMinus "words")
 
 ; run this with: cat words | scam bad.s
+; Jeff: or with the debugger: scam bad.s < words 
