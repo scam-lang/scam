@@ -41,7 +41,7 @@ parser.o	: parser.c cell.h types.h parser.h util.h
 		$(CC) -c $(OPTS) $(IREADLINE) -Wall $(FLAGS) parser.c
 
 stack.o	    : stack.c stack.h
-		$(CC) -c $(OPTS) $(IREADLINE) -Wall $(FLAGS) stack.c
+		$(CC) -c -O3 -rdynamic -Wall $(FLAGS) stack.c
 
 cell.o		: cell.c cell.h types.h
 		$(CC) -c $(OPTS) -Wall $(FLAGS) cell.c
