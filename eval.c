@@ -305,7 +305,7 @@ evalCall(int call,int env, int mode)
             printf("ival: %d changed to %d\n",b_i,a_i);
             printf("cdr : %d changed to %d\n",b_c,a_c);
             P_V();
-            Fatal("");
+            Fatal("closure changed after processing arguments!");
             }
         rethrow(eargs);
 

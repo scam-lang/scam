@@ -1248,7 +1248,7 @@ GC(int needed, int contiguous)
         while (GCQueueCount > 0)
             {
             usleep(10000);
-            if (getTime() - startTime > MAX_THREAD_TIMEOUT)
+            if (!StackDebugging && getTime() - startTime > MAX_THREAD_TIMEOUT)
                 Fatal("deadlock detected while garbage collecting\n");
             }
         P();
@@ -2013,7 +2013,7 @@ saveMTStack(char *fname, int ext, int index)
     char buf[512];
     /* concatenate the filename with the extension */
     snprintf(buf,sizeof(buf),"%s%s%d", fname, ".", ext);
-    printf("saving stack to: %s\n",buf);
+    printf("\nsaving stack to: %s\n",buf);
 
     /* open the filename in write mode */
     f = fopen(buf, "w");
@@ -2042,6 +2042,7 @@ saveMTStack(char *fname, int ext, int index)
     ppTable(last,0,0);
 
     /* close the file */
+    fflush(f);
     fclose(f);
     }
 
@@ -2052,6 +2053,7 @@ void
 saveStack(char *fname, int ext)
     {
     saveMTStack(fname, ext, 0);
+    fflush(stdout);
     }
 
 /* diff - compares 2 files produced by saveStack.  If the files differ
@@ -2061,6 +2063,7 @@ saveStack(char *fname, int ext)
 void
 diff(char *first, char *second, int ext)
     {
+    printf("\nStaring Diff\n");
     /* concatenate the first filename with extension */
     char *fnameOne = malloc((strlen(first) + 1) * sizeof(char) + sizeof(int));
     if(fnameOne==NULL)
@@ -2101,6 +2104,7 @@ diff(char *first, char *second, int ext)
         /* the diff failed! */
         Fatal("diff failed!\n");
         }
+    printf("\nDiff Done!\n");
     }
 
 void
