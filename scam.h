@@ -63,4 +63,14 @@ void print_trace(void);
 #define SCAM 1
 #define SWAY 2
 
+#define ASSERT(x)               \
+    do {                        \
+        int T = x;              \
+        if( T == 0)             \
+            {                   \
+            print_trace();      \
+            assert(x);          \
+            }                   \
+    }while(0)
+
 #endif

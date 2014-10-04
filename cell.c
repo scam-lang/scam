@@ -224,7 +224,7 @@ scamInit(int memSize)
     /* nil has to be the first symbol (Because you check for 0 isn't it) */
     NilSymbol            = newSymbol("nil");
 
-    assert(MEMORY_SPOT == 1);
+    ASSERT(MEMORY_SPOT == 1);
 
     FalseSymbol          = newSymbol("#f");
     TrueSymbol           = newSymbol("#t");
@@ -616,7 +616,7 @@ memoryShutdown()
     if(RES == MemorySize)                                           \
         {                                                           \
         print_trace();                                              \
-        assert(RES < MemorySize);                                   \
+        ASSERT(RES < MemorySize);                                   \
         }                                                           \
                                                                     \
     if(StackDebugging)                                              \
@@ -731,16 +731,18 @@ append(int list1,int list2)
 int
 newString(char *s)
     {
+    int start,length;
+    
+    ASSERT( s != 0);
 
-    int start;
-    int length = strlen(s);
-   
+    length = strlen(s);
+
+    ASSERT(length > 0);
+
     P();
     ENSURE_CONTIGUOUS_MEMORY(length+1, (int *)0);
 
     start = MEMORY_SPOT;
-
-    assert( s != 0);
 
     while (*s != 0)
         {
@@ -780,13 +782,14 @@ newString(char *s)
 int
 newStringUnsafe(char *s)
     {
+    int start,length;
 
-    int start;
-    int length = strlen(s);
-   
+    ASSERT(s != 0); 
+
+    length = strlen(s);
+    ASSERT(length > 0); 
+
     start = MEMORY_SPOT;
-
-    assert( s != 0);
 
     while (*s != 0)
         {
@@ -1085,41 +1088,33 @@ length(int items)
     return total;
     }
 
+/* caller is responsible for ensuring 'size' cells available */
 int
 allocateContiguous(char *typ,int size)
     {
-    if( P_REQ[THREAD_ID] != ACQUIRED && WorkingThreads > 1)
-        {
-        Fatal("allocateContigious : thread %d does not hold the lock!\n",
-            THREAD_ID);
-        }
-    int start, amount, i,init;
+    ASSERT(size > 0);
 
-    init = (typ == STRING) ? 'x' : integerZero;
-
-    /* caller is responsible for ensuring 'size' cells available */
-
-    start = MEMORY_SPOT;
-    amount = size;
+    int init = (typ == STRING) ? 'x' : integerZero;
+    int start = MEMORY_SPOT;
 
     /* set the types and cdrs appropriately and set the counts */
-    for (i = start; amount > 0; ++i,--amount)
+    while( size > 0)
         {
         if (StackDebugging)
             {
-            creator(i) = THREAD_ID;
-            setEditor(i,THREAD_ID);
-            setLastFile(i,__FILE__);
-            setLastLine(i,__LINE__);
+            creator(MEMORY_SPOT) = THREAD_ID;
+            setEditor(MEMORY_SPOT,THREAD_ID);
+            setLastFile(MEMORY_SPOT,__FILE__);
+            setLastLine(MEMORY_SPOT,__LINE__);
             }
-        settype(i,typ);
-        setcar(i,init);
-        setcdr(i,i + 1);
-        setcount(i,amount);
+        settype(MEMORY_SPOT,typ);
+        setcar(MEMORY_SPOT,init);
+        setcdr(MEMORY_SPOT,MEMORY_SPOT + 1);
+        setcount(MEMORY_SPOT,size);
+        ++MEMORY_SPOT;
+        --size;
         }
-    setcdr(i - 1,0);
-
-    MEMORY_SPOT += size;
+    setcdr(MEMORY_SPOT - 1,0);
     return start;
     }
 
@@ -1142,7 +1137,7 @@ ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 
     while (item != 0)
         {
-        assert(storePtr < 20);  // Saving grace!
+        ASSERT(storePtr < 20);  // Saving grace!
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1173,7 +1168,7 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 
     while (item != 0)
         {
-        assert(storePtr < 20);  // Saving grace!
+        ASSERT(storePtr < 20);  // Saving grace!
         PUSH(*item);
         store[storePtr++] = item;
         item = va_arg(ap,int *);
@@ -1238,13 +1233,15 @@ follow(int i)
     struct Stack *s = create_stack();
 
     push(s,i);
-
     while (!empty(s))
     {
         i = pop(s);
+        if(status(i) == -5) continue;
+        status(i) = -5;
+
         char *t = type(i);
 
-        assert( t != 0);
+        ASSERT( t != 0);
 
         if( t == CONS)
         {
@@ -1254,9 +1251,10 @@ follow(int i)
         else if(t == ARRAY)
         {
             int c = count(i);
-            while(c)
+
+            while(c > 0)
             {
-                assert(ARRAY == type(i));
+                ASSERT(ARRAY == type(i));
                 push(s,car(i));
                 i = cdr(i);
                 --c;
@@ -1264,9 +1262,9 @@ follow(int i)
         }else if(t == STRING)
         {
             int c = count(i);
-            while(c)
+            while(c > 0)
             {
-                assert(STRING == type(i));
+                ASSERT(STRING == type(i));
                 i = cdr(i);
                 --c;
             }
@@ -1968,7 +1966,7 @@ StopAndCopy(void)
 
     MEMORY_SPOT = NEW_MEM_SPOT;
 
-    assert(NEW_CARS.type != THE_CARS.type);
+    ASSERT(NEW_CARS.type != THE_CARS.type);
 
     /*
         DOCUMENTATION : 
@@ -1991,7 +1989,7 @@ StopAndCopy(void)
         for (i = HeapBottom; i < MEMORY_SPOT; ++i)
             {
             NEW_CARS.creator[i] = -1;
-            assert(THE_CARS.creator[i] >= 0);
+            ASSERT(THE_CARS.creator[i] >= 0);
             }
         }
     }
