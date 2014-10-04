@@ -281,6 +281,7 @@ InternalThread(void *data)
 
     /* We save our thread id into the thread specific memory location */
     pthread_setspecific(key,data);
+    printf("Tid: %d\n", *(int*)data);
 
     /* Initialize memory for this thread */
     memoryInit();

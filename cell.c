@@ -25,6 +25,7 @@
 #include "env.h"
 #include "pp-base.h"
 #include "stack.h"
+#include "thread.h"
 
 #define MOVED 1
 #define UNMOVED 0
@@ -1125,7 +1126,6 @@ ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
         store[storePtr++] = item;
         item = va_arg(ap,int *);
         }
-
     threadSafeContiguousEnsure(fileName,lineNumber,needed);
 
     while(storePtr--)
@@ -1191,8 +1191,10 @@ void
 GC(int needed, int contiguous)
     {
  TOP:
+    // If we only have a single thread or everyone else is waiting!
     if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
         {
+        printf("Thread %d is GCing!\n", THREAD_ID);
         if (GCMode == MARK_SWEEP)
             {
             MarkCompact(needed, contiguous);
@@ -1204,6 +1206,7 @@ GC(int needed, int contiguous)
         }
     else    // Someone is working, I go on the waiting thread.
         {
+        printf("Thread %d is waiting at position %d\n", THREAD_ID, GCQueueCount);
         ++GCQueueCount;
         int StartingWorking = WorkingThreads;
         double startTime = getTime();
@@ -1235,11 +1238,13 @@ GC(int needed, int contiguous)
 void
 threadSafeEnsure(char *fileName,int lineNumber,int needed)
     {
-    if (memAvailable(needed))
+    // If we have enough memory and no one is trying to GC!
+    if (memAvailable(needed) && GCQueueCount == 0)
         {
         return;
         }
-        GC(needed,0);
+    printf("Thread %d\n", THREAD_ID);
+    GC(needed,0);
     }
 
 /*
@@ -1254,12 +1259,12 @@ threadSafeEnsure(char *fileName,int lineNumber,int needed)
 void
 threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
     {
-
-    if (MEMORY_SPOT + needed < MemorySize)
+    // If we have enough memory and no one is trying to GC!
+    if (MEMORY_SPOT + needed < MemorySize && GCQueueCount == 0)
         {
         return;
         }
-
+    printf("Thread %d\n", THREAD_ID);
     GC(needed,1);
     }
 
@@ -1546,11 +1551,24 @@ markObject(int obj,int mode)
     {
     struct Stack *s = create_stack();
 
-    push(s,&obj);
+    if( s == 0)
+        {
+        Fatal( "Could not create the stack");
+        }
+
+    if( push(s,&obj) == -1) 
+        {
+        Fatal("Could not push onto stack");
+        }
 
     while( !empty(s) ) {
+        int *d = (int*)pop(s);
+        if( d == 0)
+            {
+            Fatal("Could not pop from the stack");
+            }
 
-        int o = *(int*)(pop(s));
+        int o = *d;
 
         /* Ignore all marked cells */
         if(status(o) == mode)
@@ -1563,8 +1581,15 @@ markObject(int obj,int mode)
         char* TYPE = type(obj);
         if (TYPE == ARRAY || TYPE == CONS)
             {
-            push(s,&(cdr(o)));
-            push(s,&(car(o)));
+            if( push(s,&(cdr(o))) == -1)
+                {
+                Fatal("Could not push to the stack");
+                }
+
+            if( push(s,&(car(o))) == -1)
+                {
+                Fatal("Could not push to the stack");
+                }
             }
         else if(TYPE == STRING)
             {
