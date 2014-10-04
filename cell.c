@@ -41,6 +41,11 @@ void saveStack(char*,int);
 void diff(char*,char*,int);
 
 /* GC */
+static void MarkCompact(int,int);
+static void stopAndCopy();
+static void reclaim();
+static void compact();
+
 void markObject(int,int);
 void markRoots(int);
 void compact(void);
@@ -213,7 +218,9 @@ scamInit(int memSize)
     /* Initialize memory for main thread */
 
     memoryInit();
-   
+
+    printf("MemorySize: %d\n" , MemorySize );
+
     /* Add Symbols to SymbolTable */
 
     /* TODO : Why does it have to be first? */
@@ -584,8 +591,9 @@ memoryShutdown()
 
 /* Generic cons "function" */
 
-#define _cons(CAR,CDR,TYPE,F,L,RES)                                 \
+#define _cons(CAR,CDR,TYPE,F,L,RES,FL,LN)                           \
     {                                                               \
+    int p = 0;                                                      \
                                                                     \
     /* caller is responsible for ensuring memory available */       \
     if (GCMode == MARK_SWEEP )                                      \
@@ -593,6 +601,7 @@ memoryShutdown()
         if (FREE_LIST != 0)                                         \
             {                                                       \
             RES = freePop();                                        \
+            p = 1;                                                  \
             }                                                       \
         else                                                        \
             {                                                       \
@@ -607,21 +616,23 @@ memoryShutdown()
         ++MEMORY_SPOT;                                              \
         }                                                           \
                                                                     \
+    assert(RES < MemorySize);                                       \
     if(StackDebugging)                                              \
         {                                                           \
-        if (creator(RES) != -1)                                     \
+        if (creator(RES) != -1 && p==0)                             \
             {                                                       \
-            Fatal("Tried to reallocate cell.\n"                     \
+            Fatal("Tried to reallocate cell %d.\n"                  \
                 "    original allocation: thread %d,%s,%d\n"        \
                 "    new allocation:      thread %d,%s,%d\n"        \
                 "    gc count:            %d\n",                    \
+                RES,                                                \
                 creator(RES),lastFile(RES),lastLine(RES),           \
                 THREAD_ID,__FILE__,__LINE__,GCCount);               \
             }                                                       \
         creator(RES)    = THREAD_ID;                                \
         lastEditor(RES) = THREAD_ID;                                \
-        lastFile(RES)   = __FILE__;                                 \
-        lastLine(RES)   = __LINE__;                                 \
+        lastFile(RES)   = FL;                                       \
+        lastLine(RES)   = LN;                                       \
         }                                                           \
                                                                     \
     settype(RES,TYPE);                                              \
@@ -651,7 +662,7 @@ t_cons(int a,int b,char* f, int l)
             THREAD_ID,f,l);
         P_V();
         }
-    _cons(a, b, CONS, file(a), line(a), ret); //this macro sets ret
+    _cons(a, b, CONS, file(a), line(a), ret,__FILE__,__LINE__); //this macro sets ret
     return ret;
     }
 
@@ -667,7 +678,7 @@ int
 cons2(int a,int b)
     {
     int ret = 0;
-    _cons(a,b,CONS,file(b),line(b),ret); //this macro sets ret
+    _cons(a,b,CONS,file(b),line(b),ret,__FILE__,__LINE__); //this macro sets ret
     return ret;
     }
 
@@ -682,7 +693,7 @@ int
 consfl(int a,int b,int fileIndex,int lineNumber)
     {
     int ret = 0;
-    _cons(a,b,CONS,fileIndex,lineNumber,ret); //this macro sets ret
+    _cons(a,b,CONS,fileIndex,lineNumber,ret,__FILE__,__LINE__); //this macro sets ret
     return ret;
     }
 
@@ -819,7 +830,7 @@ newSymbol(char *s)
     int ret = 0;
     P();
     ENSURE_MEMORY(1,(int *) 0);
-    _cons(index,0,SYMBOL,0,0,ret); //this macro sets ret
+    _cons(index,0,SYMBOL,0,0,ret,__FILE__,__LINE__); //this macro sets ret
     V();
     return ret;
     }
@@ -835,7 +846,7 @@ newSymbolUnsafe(char *s)
     {
     int index = findSymbol(s);
     int ret = 0;
-    _cons(index,0,SYMBOL,0,0,ret); //this macro sets ret
+    _cons(index,0,SYMBOL,0,0,ret,__FILE__,__LINE__); //this macro sets ret
     return ret;
     }
 
@@ -852,7 +863,7 @@ newInteger(int i)
     int ret = 0;
     P();
     ENSURE_MEMORY(1,(int *) 0);
-    _cons(i,0,INTEGER,0,0,ret); //this macro sets ret
+    _cons(i,0,INTEGER,0,0,ret,__FILE__,__LINE__); //this macro sets ret
     V();
     return ret;
     }
@@ -861,7 +872,7 @@ int
 newIntegerUnsafe(int i)
     {
     int ret = 0;
-    _cons(i,0,INTEGER,0,0,ret); //this macro sets ret
+    _cons(i,0,INTEGER,0,0,ret,__FILE__,__LINE__); //this macro sets ret
     return ret;
     }
 
@@ -878,7 +889,7 @@ newReal(double r)
     int ret = 0;
     P();
     ENSURE_MEMORY(1,(int *) 0);
-    _cons(0,0,REAL,0,0,ret); //this macro sets ret
+    _cons(0,0,REAL,0,0,ret,__FILE__,__LINE__); //this macro sets ret
     V();
     setrval(ret,r);
     return ret;
@@ -898,7 +909,7 @@ newPunctuation(char *t)
     int ret = 0;
     P();
     ENSURE_MEMORY(1,(int *) 0);
-    _cons(0,0,t,0,0,ret); //this macro sets ret
+    _cons(0,0,t,0,0,ret,__FILE__,__LINE__); //this macro sets ret
     V();
     return ret;
     }
@@ -1160,74 +1171,6 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     }
 
 
-void
-MarkCompact(int needed, int contiguous)
-    {
-    reclaim();
-    if (FREE_COUNT < needed || (contiguous && (MEMORY_SIZE - MEMORY_SPOT < needed)))
-        {
-        compact();
-        GCQueueCount = 0;
-        if (MEMORY_SPOT + needed >= MemorySize)
-            {
-            FILE *fp = fopen("thread.log","a");
-            fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
-            fclose(fp);
-            if( THREAD_ID == 0) 
-                {
-                printf("Out of Memory\n");
-                }
-            V();
-            exit(-1);
-            }
-        }
-    }
-
-/*
- *  GC  : Perform a garbage collect.
- */
-
-void 
-GC(int needed, int contiguous)
-    {
-    printf("Thread %d has called GC\n", THREAD_ID);
- TOP:
-    // If we only have a single thread or everyone else is waiting!
-    if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
-        {
-        printf("Thread %d is GCing!\n", THREAD_ID);
-        if (GCMode == MARK_SWEEP)
-            {
-            MarkCompact(needed, contiguous);
-            }
-        else if (GCMode == STOP_AND_COPY)
-            {
-            stopAndCopy();
-            }
-        }
-    else    // Someone is working, I go on the waiting thread.
-        {
-        printf("Thread %d is waiting at position %d\n", THREAD_ID, GCQueueCount);
-        ++GCQueueCount;
-        int StartingWorking = WorkingThreads;
-        double startTime = getTime();
-        V();
-        /* While GC has not happened and we have someone working who busy wait (with sleep!)  */
-        while (GCQueueCount != 0 && StartingWorking < WorkingThreads)
-            {
-            usleep(10000);
-            if (getTime() - startTime > MAX_THREAD_TIMEOUT)
-                Fatal("deadlock detected while garbage collecting\n");
-            }
-        P();
-        --GCQueueCount;
-        // Either someone exited so I have to do GC or someone did a GC and I should grab some memory!
-        goto TOP;
-        }
-   RecentGC = 1;
-    }
-
-
 /*
  *  threadSafeEnsure    - Validate that we have enough memory, if not 
  *                        we do a garbage collection.  If we have more
@@ -1268,19 +1211,64 @@ threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
     GC(needed,1);
     }
 
+
+/*
+ *  GC  : Perform a garbage collect.
+ */
+
+void 
+GC(int needed, int contiguous)
+    {
+
+    printf("Working Thread: %d\n", WorkingThreads);
+ TOP:
+    // If we only have a single thread or everyone else is waiting!
+    if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
+        {
+        ++GCQueueCount;
+        if (GCMode == MARK_SWEEP)
+            {
+            MarkCompact(needed, contiguous);
+            }
+        else if (GCMode == STOP_AND_COPY)
+            {
+            stopAndCopy();
+            }
+        ++GCCount;
+        }
+    else    // Someone is working, I go on the waiting thread.
+        {
+        printf("Thread %d is in the queue at position %d\n", THREAD_ID, GCQueueCount);
+        ++GCQueueCount;
+        double startTime = getTime();
+        V();
+        /* While GC has not happened and we have someone working who busy wait (with sleep!)  */
+        while (GCQueueCount < WorkingThreads)
+            {
+            usleep(10000);
+            if (getTime() - startTime > MAX_THREAD_TIMEOUT)
+                Fatal("deadlock detected while garbage collecting\n");
+            }
+        P();
+        --GCQueueCount;
+        printf("Thread %d is leaving the queue at position %d\n", THREAD_ID, GCQueueCount);
+        // Either someone exited so I have to do GC or someone did a GC and I should grab some memory!
+        goto TOP;
+        }
+   RecentGC = 1;
+    }
+
 int 
 memAvailable(int needed)
     {
-    if (GCMode == MARK_SWEEP && 
-        (FREE_COUNT >= needed || MEMORY_SPOT + needed < MemorySize))
+    if (GCMode == MARK_SWEEP)
         {
-        return 1;
+        return (FREE_COUNT >= needed || (MEMORY_SPOT + needed) <= MemorySize);
         }
-    else if (GCMode == STOP_AND_COPY && MEMORY_SPOT + needed < MemorySize)
+    else if (GCMode == STOP_AND_COPY)
         {
-        return 1;
+        return (MEMORY_SPOT + needed <= MemorySize);
         }
-
     return 0;
     }
 
@@ -1289,6 +1277,32 @@ memAvailable(int needed)
  * Begin Garbage collection routines                               *
  *                                                                 *
  *******************************************************************/
+
+static void
+MarkCompact(int needed, int contiguous)
+    {
+    reclaim();
+    if (FREE_COUNT < needed || (contiguous && (MEMORY_SIZE - MEMORY_SPOT < needed)))
+        {
+        compact();
+        GCQueueCount = 0;
+        if (MEMORY_SPOT + needed >= MemorySize)
+            {
+            FILE *fp = fopen("thread.log","a");
+            fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
+            fflush(fp);
+            fclose(fp);
+            if( THREAD_ID == 0) 
+                {
+                printf("Out of Memory\n");
+                }
+            V();
+            STACK_SPOT = 0;
+            exit(-1);
+            }
+        }
+    }
+
 
 /* 
  *  freePop - Return the index to the next free spot on the Free list
@@ -1314,7 +1328,11 @@ freePop()
 inline void
 freePush(int location)
     {
-    setcdr(location,FREE_LIST);
+    if(StackDebugging)
+        {
+        creator(location) = -1;
+        }
+    cdr(location) = FREE_LIST;
     FREE_LIST = location;
     ++FREE_COUNT;
     }
@@ -1323,7 +1341,7 @@ freePush(int location)
  *
  */
 
-void
+static void
 compact()
     {
     double startTime;
@@ -1377,7 +1395,14 @@ compact()
         }
  
     MEMORY_SPOT = spot;
-
+    if(StackDebugging)
+        {
+        while( spot < MemorySize)
+            {
+            creator(spot) = -1;
+            ++spot;
+            }
+        }
     return;
     }
 
@@ -1411,9 +1436,9 @@ computeLocations(int start,int end,int toRegion)
 void
 updateReferences(int start,int end)
     {
+    int i,j;
+
     /* Go through the Root list and update references */
-    int i;
-    int j;
     for (i=0; i<CreatedThreads; ++i)
         {
         /* If this thread is active */
@@ -1549,6 +1574,11 @@ markRoots(int mode)
 void
 markObject(int obj,int mode)
     {
+    if(status(obj) == mode)
+        {
+        return;
+        }
+
     struct Stack *s = create_stack();
 
     if( s == 0)
@@ -1562,6 +1592,7 @@ markObject(int obj,int mode)
         }
 
     while( !empty(s) ) {
+
         int *d = (int*)pop(s);
         if( d == 0)
             {
@@ -1602,7 +1633,7 @@ markObject(int obj,int mode)
 /* reclaim - reclaim memory using mark and sweep
  */
 
-void
+static void
 reclaim()
     {
     double startTime;
@@ -1630,7 +1661,7 @@ reclaim()
 
         delta = getTime() - startTime;
         total+=delta;
-        printf( "gc:%d, took %fs (%fs marking) and "
+        printf( "reclaim:%d, took %fs (%fs marking) and "
                 "reclaimed %d contiguous cells, "
                 "leaving %d cells free (total: %fs)\n",
                 ++num,delta,endRoots-startTime,start,FREE_COUNT,total);
@@ -1658,6 +1689,10 @@ scanFree(void)
     spot = MEMORY_SPOT - 1;
     while( !ismarked(spot) )
         {
+        if(StackDebugging)
+            {
+            creator(spot) = -1;
+            }
         spot--;
         }
     MEMORY_SPOT = spot + 1;
@@ -1848,7 +1883,7 @@ moveStackItem(int old)
  *
  */
 
-void 
+static void 
 stopAndCopy(void)
     {
     double startTime = 0,delta;

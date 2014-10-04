@@ -49,6 +49,14 @@ scamBoolean(int item)
 /* (quote $item) */
 
 static int
+flush(int args)
+    {
+    FILE *port = OpenPorts[CurrentOutputIndex];
+    fflush(port);
+    return 0;
+    }
+
+static int
 quote(int args)
     {
     return car(args);
@@ -1725,14 +1733,7 @@ ggc(int args)
     if (WorkingThreads == 1)
         {
         P();
-        if (GCMode == STOP_AND_COPY)
-            {
-            stopAndCopy();
-            }
-        else if (GCMode == MARK_SWEEP)
-            {
-            reclaim();
-            }
+        GC(0,1);
         V();
         }
     else
@@ -4286,6 +4287,14 @@ loadBuiltIns(int env)
     BuiltIns[count] = ggc;
     b = makeBuiltIn(env,
         newSymbolUnsafe("gc"),
+        0,
+        newIntegerUnsafe(count));
+    defineVariable(env,closure_name(b),b);
+    ++count;
+
+    BuiltIns[count] = flush;
+    b = makeBuiltIn(env,
+        newSymbolUnsafe("flush"),
         0,
         newIntegerUnsafe(count));
     defineVariable(env,closure_name(b),b);

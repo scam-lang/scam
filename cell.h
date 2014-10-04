@@ -152,9 +152,7 @@ extern char *cellStringTr(char *,int,int);
 /* Memory GC routines */
 extern void ensureMemory(char *,int,int,int *,...);
 extern void ensureContiguousMemory(char *,int,int,int *,...);
-extern void stopAndCopy(void);
-extern void reclaim(void);
-
+extern void GC(int,int);
 extern void print_stack(void);
 
 /* Powers of two */
@@ -214,7 +212,7 @@ do                                  \
         setEditor(A,THREAD_ID);     \
         setLastFile(A,__FILE__);    \
         setLastLine(A,__LINE__);    \
-        if(creator(A) != THREAD_ID)  \
+        if(A >= HeapBottom && creator(A) != THREAD_ID)  \
             {                           \
             printf("Thread %d, touching Thread %d's type\n",THREAD_ID,creator(A));\
             printf("File : %s, Line : %d\n", __FILE__, __LINE__);\
@@ -242,7 +240,7 @@ do                                  \
         setEditor(A,THREAD_ID);     \
         setLastFile(A,__FILE__);    \
         setLastLine(A,__LINE__);    \
-        if(creator(A) != THREAD_ID)  \
+        if(A >= HeapBottom && creator(A) != THREAD_ID)  \
             {                           \
             printf("Thread %d, touching Thread %d's ival\n",THREAD_ID,creator(A));\
             printf("File : %s, Line : %d\n", __FILE__, __LINE__);\
@@ -261,7 +259,7 @@ do                                      \
         setEditor(spot,THREAD_ID);     \
         setLastFile(spot,__FILE__);    \
         setLastLine(spot,__LINE__);    \
-        if(creator(spot) != THREAD_ID)  \
+        if(spot>= HeapBottom && creator(spot) != THREAD_ID)  \
             {                           \
             printf("Thread %d, touching Thread %d's rval\n",THREAD_ID,creator(spot));\
             printf("File : %s, Line : %d\n", __FILE__, __LINE__);\
@@ -298,7 +296,7 @@ do                                          \
         setEditor(a,THREAD_ID);             \
         setLastFile(spot,__FILE__);            \
         setLastLine(spot,__LINE__);            \
-        if(creator(spot) != THREAD_ID)      \
+        if(spot >= HeapBottom && creator(spot) != THREAD_ID)      \
             {                               \
             printf("Thread %d, touching Thread %d's cdr\n",THREAD_ID,creator(spot));\
             printf("File : %s, Line : %d\n", __FILE__, __LINE__);\
