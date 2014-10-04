@@ -1842,7 +1842,6 @@ StopAndCopy(void)
     {
     int i,j;
 
-
     /* Move Qeueue Items  */
     NEW_MEM_SPOT = HeapBottom;
 
@@ -1871,7 +1870,15 @@ StopAndCopy(void)
         {
         for (j = 0; j < StackSpot[i]; ++j)
             {
+            char *oldType = type(Stack[i][j]);
             Stack[i][j] = moveStackItem(Stack[i][j]);
+            // The types better not be different
+            if (strcmp(oldType, type(Stack[i][j])))
+               {
+               printf("Old type: %s\n", oldType); 
+               printf("New type: %s\n", type(Stack[i][j])); 
+               Fatal("After moving a stack item, the types changed...\n");
+               }
             if(StackDebugging)
                 {
                 int tmp = Stack[i][j];
