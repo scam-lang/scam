@@ -42,13 +42,10 @@ void diff(char*,char*,int);
 
 /* GC */
 static void MarkCompact(int,int);
-static void stopAndCopy();
-static void reclaim();
-static void compact();
+static void StopAndCopy();
 
 void markObject(int,int);
 void markRoots(int);
-void compact(void);
 void scanFree(void);
 int computeLocations(int,int,int);
 void updateReferences(int,int);
@@ -61,10 +58,10 @@ void threadSafeEnsure(char *,int,int);
 void threadSafeContiguousEnsure(char *,int,int);
 
 /* FreeList  */
-int FreeList[1];
+int FreeList;
 void freePush(int);
 int freePop();
-int FreeCount[MAX_THREADS];
+int FreeCount;
 
 /* global constants */
 char **SymbolTable;
@@ -77,11 +74,11 @@ static int SymbolSize = 100;
 static int SymbolIncrement = 100;
 
 /* semispace for stop and copy */
-CELL theCars[MAX_THREADS];
-static CELL newCars[MAX_THREADS];
+CELL theCars;
+CELL newCars;
 
-int MemorySpot[MAX_THREADS];
-static int newMemorySpot[MAX_THREADS];
+int MemorySpot;
+static int newMemorySpot;
 
 #define  MEMORY_SIZE (2000000)
 int MemorySize = MEMORY_SIZE;
@@ -404,7 +401,7 @@ memoryInit()
             }
 
         /* Make sure everything is 0 */
-        memset(THE_CARS.type , -1 , sizeof(char*) * MemorySize);
+        memset(THE_CARS.type , 0 , sizeof(char*) * MemorySize);
 
         memset(THE_CARS.line , 0 , sizeof(short) * MemorySize);
         memset(THE_CARS.file , 0 , sizeof(short) * MemorySize);
@@ -460,7 +457,7 @@ memoryInit()
                 Fatal("Could not allocate memory for semispace.\n");
                 }
 
-            memset(NEW_CARS.type , -1 , sizeof(char*) * MemorySize);
+            memset(NEW_CARS.type ,  0 , sizeof(char*) * MemorySize);
 
             memset(NEW_CARS.line , -1 , sizeof(short) * MemorySize);
             memset(NEW_CARS.file , -1 , sizeof(short) * MemorySize);
@@ -616,7 +613,12 @@ memoryShutdown()
         ++MEMORY_SPOT;                                              \
         }                                                           \
                                                                     \
-    assert(RES < MemorySize);                                       \
+    if(RES == MemorySize)                                           \
+        {                                                           \
+        print_trace();                                              \
+        assert(RES < MemorySize);                                   \
+        }                                                           \
+                                                                    \
     if(StackDebugging)                                              \
         {                                                           \
         if (creator(RES) != -1 && p==0)                             \
@@ -1121,6 +1123,14 @@ allocateContiguous(char *typ,int size)
     return start;
     }
 
+
+/*
+ *  ensureContiguousMemory    - Saves variables on the stack in case of garbage collection.
+ *                    Checks to see if there is enough contiguous memory, if not 
+ *                    does a GC.
+ *
+ *  Note:  Must have called P() before reaching this function!
+ */
 void
 ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
     {
@@ -1144,6 +1154,13 @@ ensureContiguousMemory(char *fileName,int lineNumber,int needed, int *item, ...)
         *(store[storePtr]) = POP();
         }
     }
+
+/*
+ *  ensureMemory    - Saves variables on the stack in case of garbage collection.
+ *                    Checks to see if there is enough memory, if not does a GC.
+ *
+ *  Note:  Must have called P() before reaching this function!
+ */
 
 void
 ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
@@ -1207,7 +1224,7 @@ threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
     {
 TOP2:
     // If we have enough memory and no one is trying to GC!
-    if (MEMORY_SPOT + needed < MemorySize && GCQueueCount < 1)
+    if (MEMORY_SPOT + needed <= MemorySize && GCQueueCount < 1)
         {
         return;
         }
@@ -1223,9 +1240,24 @@ TOP2:
 void 
 GC(int needed, int contiguous)
     {
+    static int num = 0;
+    static double total = 0.0;
+    double startTime,delta;
+
     // If we only have a single thread or everyone else is waiting!
     if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
         {
+
+        if(Debugging)
+            {
+            saveStack("before", GCCount);
+            }
+
+        if (GCDisplay)
+            {
+            startTime = getTime();
+            }
+
         printf("Thread %d is doing the GC\n", THREAD_ID);
         if (GCMode == MARK_SWEEP)
             {
@@ -1233,10 +1265,42 @@ GC(int needed, int contiguous)
             }
         else if (GCMode == STOP_AND_COPY)
             {
-            stopAndCopy();
+            StopAndCopy();
             }
+
+        if(GCDisplay)
+            {
+            delta = getTime() - startTime;
+            total+=delta;
+            printf("contiguous: %d, needed: %d\n",contiguous,needed);
+            printf("gc:%d, took %fs "
+                "leaving %d uncontiguous and %d contiguous cells free (total: %fs)\n",
+                ++num,delta,FREE_COUNT,MemorySize- MEMORY_SPOT,total);
+            }
+
+        if(StackDebugging)
+            {
+                saveStack("after", GCCount);
+            }
+
         ++GCCount;
         GCQueueCount = 0;
+
+        /* Could not allocate the memory needed */
+        if ( (contiguous || FREE_COUNT < needed) && (MEMORY_SPOT + needed > MemorySize))
+            {
+            FILE *fp = fopen("thread.log","a");
+            fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
+            fflush(fp);
+            fclose(fp);
+            if( THREAD_ID == 0) 
+                {
+                printf("Out of Memory\n");
+                }
+            V();
+            STACK_SPOT = 0;
+            exit(-1);
+            }
         }
     else    // Someone is working, I go on the waiting thread.
         {
@@ -1248,7 +1312,7 @@ GC(int needed, int contiguous)
         while (GCQueueCount > 0)
             {
             usleep(10000);
-            if (!StackDebugging && getTime() - startTime > MAX_THREAD_TIMEOUT)
+            if (!Debugging && (getTime() - startTime > MAX_THREAD_TIMEOUT))
                 Fatal("deadlock detected while garbage collecting\n");
             }
         P();
@@ -1258,16 +1322,17 @@ GC(int needed, int contiguous)
    RecentGC = 1;
     }
 
-int 
+inline int 
 memAvailable(int needed)
     {
+    printf("Thread: %d\n",THREAD_ID);
+    if( (MEMORY_SPOT + needed) <= MemorySize)
+        {
+        return 1;
+        }
     if (GCMode == MARK_SWEEP)
         {
-        return (FREE_COUNT >= needed || (MEMORY_SPOT + needed) <= MemorySize);
-        }
-    else if (GCMode == STOP_AND_COPY)
-        {
-        return (MEMORY_SPOT + needed <= MemorySize);
+        return (FREE_COUNT >= needed);
         }
     return 0;
     }
@@ -1281,26 +1346,21 @@ memAvailable(int needed)
 static void
 MarkCompact(int needed, int contiguous)
     {
-    reclaim();
+    FREE_LIST = 0;
+    FREE_COUNT = 0;
+
+    markRoots(MARKED);
+    scanFree();
     if (FREE_COUNT < needed || (contiguous && (MEMORY_SIZE - MEMORY_SPOT < needed)))
         {
-        compact();
-        GCQueueCount = 0;
-        if (MEMORY_SPOT + needed >= MemorySize)
-            {
-            FILE *fp = fopen("thread.log","a");
-            fprintf(fp,"thread %d: gc failed: out of memory\n",THREAD_ID);
-            fflush(fp);
-            fclose(fp);
-            if( THREAD_ID == 0) 
-                {
-                printf("Out of Memory\n");
-                }
-            V();
-            STACK_SPOT = 0;
-            GCQueueCount = 0;
-            exit(-1);
-            }
+        FREE_LIST  = 0;
+        FREE_COUNT = 0;
+
+        /* Mark all of the reachable objects */
+        markRoots(MARKED);
+        MEMORY_SPOT = computeLocations(HeapBottom,MemorySize,HeapBottom);
+        updateReferences(HeapBottom,MemorySize);
+        relocate(HeapBottom,MemorySize);
         }
     }
 
@@ -1336,75 +1396,6 @@ freePush(int location)
     cdr(location) = FREE_LIST;
     FREE_LIST = location;
     ++FREE_COUNT;
-    }
-
-/* compact - compacting garbage collection implementation
- *
- */
-
-static void
-compact()
-    {
-    double startTime;
-    double endRoots;
-    double delta;
-    static double total;
-    static int num;
-    int spot;
-
-    /* Reset the free list */
-
-    FREE_LIST  = 0;
-    FREE_COUNT = 0;
-
-    if (GCDisplay)
-        {
-        int start = MEMORY_SPOT;
-        startTime = getTime();
-        if(Debugging)
-            {
-            saveStack("before", num);
-            }
-
-        /* Mark all of the reachable objects */
-        markRoots(MARKED);
-        endRoots = getTime();
-    
-        spot = computeLocations(HeapBottom,MemorySize,HeapBottom);
-        updateReferences(HeapBottom,MemorySize);
-        relocate(HeapBottom,MemorySize);
-
-        if(Debugging)
-            {
-            saveStack("after", num);
-            diff("before", "after", num);
-            }
-
-        delta = getTime() - startTime;
-        total+=delta;
-        printf("compact:%d, took %fs (%fs marking), "
-            "leaving %d contiguous cells free (total: %fs)\n",
-            ++num,delta,endRoots-startTime,start-spot,total);
-        }
-    else
-        {
-        /* Mark all of the reachable objects */
-        markRoots(MARKED);
-        spot = computeLocations(HeapBottom,MemorySize,HeapBottom);
-        updateReferences(HeapBottom,MemorySize);
-        relocate(HeapBottom,MemorySize);
-        }
- 
-    MEMORY_SPOT = spot;
-    if(StackDebugging)
-        {
-        while( spot < MemorySize)
-            {
-            creator(spot) = -1;
-            ++spot;
-            }
-        }
-    return;
     }
 
 inline int
@@ -1581,7 +1572,6 @@ markObject(int obj,int mode)
         }
 
     struct Stack *s = create_stack();
-
     if( s == 0)
         {
         Fatal( "Could not create the stack");
@@ -1629,49 +1619,6 @@ markObject(int obj,int mode)
             }
         }
     delete_stack(s,0);
-    }
-
-/* reclaim - reclaim memory using mark and sweep
- */
-
-static void
-reclaim()
-    {
-    double startTime;
-    double endRoots;
-    double delta;
-    static double total;
-    static int num;
-
-    /* zero out the free list */
-
-    FREE_LIST = 0;
-    FREE_COUNT = 0;
-
-    if (GCDisplay)
-        {
-        startTime = getTime();
-
-        markRoots(MARKED);
-
-        endRoots = getTime();
-
-        int start = MEMORY_SPOT;
-        scanFree();
-        start = start - MEMORY_SPOT;
-
-        delta = getTime() - startTime;
-        total+=delta;
-        printf( "reclaim:%d, took %fs (%fs marking) and "
-                "reclaimed %d contiguous cells, "
-                "leaving %d cells free (total: %fs)\n",
-                ++num,delta,endRoots-startTime,start,FREE_COUNT,total);
-        }
-    else
-        {
-        markRoots(MARKED);
-        scanFree();
-        }
     }
 
 /*
@@ -1799,11 +1746,12 @@ moveBackbone(int old)
             }
 
         /* Move ALL the cells in the string/array */
-        while(size-- > 0)
+        while(size > 0)
             {
             RAW_COPY(old);  // Updates memory spot
-            newcdr(NEW_MEM_SPOT-1) = NEW_MEM_SPOT;
+            newcdr(NEW_MEM_SPOT - 1) = NEW_MEM_SPOT;
             ++old;
+            --size;
             }
         /* reset the last cdr pointer to nil */
         newcdr(NEW_MEM_SPOT-1) = 0;
@@ -1848,11 +1796,18 @@ moveStackItem(int old)
         DOCUMENTATION : 
             Why can't I just check for a CON or ARRAY and handle each one?
             If I do it throws a segmentation fault for some unknown reason.
+
+        BECAUSE:
+            When we copy over items we need to scan them and make sure they 
+            are not arrays.  So what this does is copies over items, scans 
+            over them and if they are an array we make sure we copy the 
+            contents of the array, the same for a cons.
     */
 
     /* deep copy */
     while(spot < NEW_MEM_SPOT)
         {
+
         char *t = newtype(spot);
         /* If we have not performed a deep copy on this node */
         if(t == ARRAY)
@@ -1862,7 +1817,6 @@ moveStackItem(int old)
             }
         else if(t==CONS)
             {
-
             /* newcar(spot) points to a location in theCars */
             newcar(spot) = moveBackbone(newcar(spot));
 
@@ -1871,13 +1825,12 @@ moveStackItem(int old)
             }
         spot++;
         }
-
     return cdr(old);
     }
 
 
 /*
- * oldStopAndCopy - performs the semispace copying collection algorithm
+ * StopAndCopy - performs the semispace copying collection algorithm
  *
  * Premise - Two heaps are maintained.  One is the working heap,
  * the other will become the working heap once a garbage collection occurs.
@@ -1885,27 +1838,17 @@ moveStackItem(int old)
  */
 
 static void 
-stopAndCopy(void)
+StopAndCopy(void)
     {
-    double startTime = 0,delta;
-    static double total;
     int i,j;
 
-    if (GCDisplay)
-        {
-        startTime = getTime();
-        if(Debugging)
-            {
-            saveStack("before", GCCount);
-            }
-        }
 
     /* Move Qeueue Items  */
     NEW_MEM_SPOT = HeapBottom;
 
     if(StackDebugging)
         {
-        for(i=HeapBottom;StackDebugging && i<MEMORY_SPOT;++i)
+        for(i = HeapBottom;i < MEMORY_SPOT; ++i)
             {
             if(creator(i) == -1)
                 {
@@ -1916,7 +1859,7 @@ stopAndCopy(void)
             }
         }
 
-    for (i = 0; i < MAX_THREADS; ++i)
+    for (i = 1; i < CreatedThreads; ++i)
         {
         /* If not used then env and expr are 0 */
         ThreadQueue[i].env = moveStackItem(ThreadQueue[i].env);
@@ -1961,6 +1904,8 @@ stopAndCopy(void)
 
     MEMORY_SPOT = NEW_MEM_SPOT;
 
+    assert(NEW_CARS.type != THE_CARS.type);
+
     /*
         DOCUMENTATION : 
             Is this correct?  From the above 4 lines I assume everything is 
@@ -1971,11 +1916,11 @@ stopAndCopy(void)
     int count = MemorySize - HeapBottom;
     if(StackDebugging)
         {
-        memset(NEW_CARS.creator + HeapBottom,-1, sizeof(int)   * count);
+        memset(NEW_CARS.creator + HeapBottom,-1, sizeof(int) * count);
         }
     memset(NEW_CARS.type    + HeapBottom, 0, sizeof(char*) * count);
-    memset(NEW_CARS.ival    + HeapBottom, 0, sizeof(int)   * count);
-    memset(NEW_CARS.cdr     + HeapBottom, 0, sizeof(int)   * count);
+    memset(NEW_CARS.ival    + HeapBottom, -1, sizeof(int)   * count);
+    memset(NEW_CARS.cdr     + HeapBottom, -1, sizeof(int)   * count);
 
     if (StackDebugging)
         {
@@ -1985,23 +1930,6 @@ stopAndCopy(void)
             assert(THE_CARS.creator[i] >= 0);
             }
         }
-    if (GCDisplay)
-        {
-        if(Debugging)
-            {
-            saveStack("after", GCCount);
-            diff("before", "after", GCCount);
-            }
-        delta = getTime() - startTime;
-        total += delta;
-        printf("sAc: %d: %fs (total %fs), "
-               "%d cells free\n",
-               GCCount+1,delta,total,
-               MemorySize-MEMORY_SPOT);
-        sleep(1);
-        }
-
-    ++GCCount;
     }
 
 void
@@ -2025,18 +1953,13 @@ saveMTStack(char *fname, int ext, int index)
             {
             last = STACK[i];
             ppToFile(f,0);
-            ppTable(STACK[i],0,0);
+            //ppTable(STACK[i],0,0);
             }
         }
 
     while (env_context(last) != 0)
         last = env_context(last);
 
-    /*
-    fprintf(stdout,"The top level environment: ");
-    ppToFile(stdout,0);
-    ppTable(last,0,0);
-    */
     fprintf(f,"The top level environment: ");
     ppToFile(f,0);
     ppTable(last,0,0);

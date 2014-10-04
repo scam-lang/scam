@@ -106,12 +106,13 @@ extern int ShadowSpot[];    /* Each thread has it's own stack */
 
 /* Heap */
 /* TODO : Maybe each thread can have it's own stack, have idea. */
-extern CELL theCars[];
-extern int MemorySpot[];
+extern CELL theCars;
+extern CELL newCars;
+extern int MemorySpot;
 
 
 /* Free List */
-extern int FreeCount[]; /* Some GCs keeps a list of freeded cells */
+extern int FreeCount; /* Some GCs keeps a list of freeded cells */
 
 /**** Public functions ****/
 
@@ -165,19 +166,18 @@ extern void print_stack(void);
    Useful for changes that can be made lateri 
    (ie. multiple heaps vs a single heap).
 */
-#define INDEX 0
+#define THE_CARS        (theCars)
 
-#define THE_CARS        (theCars[INDEX])
-
-#define FREE_LIST       (FreeList[INDEX])
+#define FREE_LIST       (FreeList)
 #define STACK           (Stack[THREAD_ID])
 
-#define MEMORY_SPOT     (MemorySpot[INDEX])
-#define NEW_MEM_SPOT    (newMemorySpot[INDEX])
-#define FREE_COUNT      (FreeCount[INDEX])
+#define MEMORY_SPOT     (MemorySpot)
+#define NEW_MEM_SPOT    (newMemorySpot)
+#define FREE_COUNT      (FreeCount)
 #define STACK_SPOT      (StackSpot[THREAD_ID])
 
-#define NEW_CARS        (newCars[INDEX])
+#define NEW_CARS        (newCars)
+
 
 /* TODO : Future work, possibility of each thread having it's own heap
  *          FROM is the heap
@@ -335,11 +335,15 @@ do                                          \
  */
 #define ENSURE_CONTIGUOUS_MEMORY(size,item,...)                 \
     {                                                           \
-    if (MEMORY_SPOT + size >= MemorySize)                       \
+    if ((MEMORY_SPOT + size) > MemorySize)                      \
         {                                                       \
         if(Debugging || StackDebugging)                         \
-            printf("gc %d from line %s,%d\n",GCCount,__FILE__,__LINE__);   \
-        ensureContiguousMemory(__FILE__,__LINE__,size,item,##__VA_ARGS__);        \
+            printf("gc %d from line %s,%d\n",                   \
+                    GCCount,                                    \
+                    __FILE__,                                   \
+                    __LINE__);                                  \
+        ensureContiguousMemory(__FILE__,__LINE__,               \
+                size,item,##__VA_ARGS__);                       \
         }                                                       \
     }
 
@@ -348,14 +352,17 @@ do                                          \
  *   a garbage collection.  We also make sure to push on any items that we
  *   might modify
  */
-#define ENSURE_MEMORY(size,item,...)                            \
-    {                                                           \
-    if (FREE_COUNT < size && (MEMORY_SPOT + size) >= MemorySize)\
-        {                                                       \
-        if(Debugging || StackDebugging)                         \
-            printf("gc %d from line %s,%d\n",GCCount,__FILE__,__LINE__);   \
-        ensureMemory(__FILE__,__LINE__,size,item,##__VA_ARGS__);                  \
-        }                                                       \
+#define ENSURE_MEMORY(size,item,...)                                    \
+    {                                                                   \
+    if ((FREE_COUNT < size) && (MEMORY_SPOT + size) > MemorySize)       \
+        {                                                               \
+        if(Debugging || StackDebugging)                                 \
+            printf("gc %d from line %s,%d\n",                           \
+                    GCCount,                                            \
+                    __FILE__,                                           \
+                    __LINE__);                                          \
+        ensureMemory(__FILE__,__LINE__,size,item,##__VA_ARGS__);        \
+        }                                                               \
     }
 
 /**** STACK functions ****/

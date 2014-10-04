@@ -9,6 +9,7 @@
  */
 
 #include <string.h>
+#include <assert.h>
 
 #include "scam.h"
 #include "types.h"
@@ -53,10 +54,14 @@ ppObject(int expr,int level)
     {
     int address;
 
-    if (Debugging)
+    if (Debugging == 1)
+    {
         address = 0;
+    }
     else
+    {
         address = expr;
+    }
 
     if (SameSymbol(object_label(expr),ThunkSymbol))
         {
@@ -94,7 +99,7 @@ ppObject(int expr,int level)
     else
         {
         ppPutString("<object ");
-        ppLevel(closure_name(env_constructor(expr)),level+1);
+        //ppLevel(closure_name(env_constructor(expr)),level+1);
         ppPutInt(address);
         ppPutChar('>');
         }
@@ -159,13 +164,26 @@ ppLevel(int expr,int level)
     else if (type(expr) == STRING)
         ppFormattedString(expr);
     else if (type(expr) == SYMBOL)
+        {
+        assert(SymbolTable[ival(expr)] > 0);
         ppPutString(SymbolTable[ival(expr)]);
+        }
     else if (type(expr) == CONS)
         ppCons(expr,level);
     else if (type(expr) == ARRAY)
         ppList("[",expr,"]",level);
     else
+        {
+        if(type(expr) ==0)
+        {
+            printf("\nHERE: %d\n",expr);
+            printf("Type: %s\n",type(expr));
+            assert(&THE_CARS != &NEW_CARS);
+            assert(THE_CARS.type != NEW_CARS.type);
+        }
+        assert(type(expr) > 0);
         ppPutString(type(expr));
+        }
     }
 
 void
@@ -200,7 +218,14 @@ ppTable(int expr,int level,int span)
 
     ppPutString("<object");
     ppPutChar(' ');
+    if(Debugging)
+        {
+        ppPutInt(0);
+        }
+    else
+        {
     ppPutInt(expr);
+        }
     ppPutChar('>');
 
     if (level < 1)

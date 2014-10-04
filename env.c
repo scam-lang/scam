@@ -196,9 +196,10 @@ makeThunk(int expr,int env)
 
     /* caller is responsible for ensuring adequate memory */
 
+    assert(MAKE_THUNK_SIZE == 4 + MAKE_OBJECT_SIZE);
+
     o = makeObject(ThunkSymbol);
 
-    assert(MAKE_THUNK_SIZE == 4 + MAKE_OBJECT_SIZE);
 
     set_object_variable_hook(o,
         cons(ContextSymbol,

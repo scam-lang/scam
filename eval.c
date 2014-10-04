@@ -18,12 +18,12 @@
 #include "eval.h"
 #include "prim.h"
 
-static int processPassThroughArguments(int,int,int,int,int);
-static int processNoEvaluationArguments(int,int,int,int,int,int);
-static int processArguments(int,int,int,int,int,int);
-static int unevaluatedList(int);
-static void makeTraceEntry(int,int);
-static int evaluatedList(int,int);
+int processPassThroughArguments(int,int,int,int,int);
+int processNoEvaluationArguments(int,int,int,int,int,int);
+int processArguments(int,int,int,int,int,int);
+int unevaluatedList(int);
+void makeTraceEntry(int,int);
+int evaluatedList(int,int);
 
 #ifdef DEBUG
     int depth[MAX_THREADS] = {0};
@@ -218,8 +218,7 @@ int
 evalCall(int call,int env, int mode)
     {
     INC( "evalCall" , call );
-    int closure,eargs;
-    int callingLevel = ival(env_level(env));
+    int closure,eargs; int callingLevel = ival(env_level(env));
 
     /* NORMAL mode unless apply is being called */
 
@@ -330,12 +329,16 @@ evalCall(int call,int env, int mode)
                 setcar(call,closure);
                 }
             P();
-            ENSURE_MEMORY(MAKE_ENVIRONMENT_SIZE + INTEGER_SIZE \
-                + MAKE_THUNK_SIZE + 5,&closure,&eargs,(int*) 0);
+            ENSURE_MEMORY(MAKE_ENVIRONMENT_SIZE
+                    + INTEGER_SIZE \
+                    + MAKE_THUNK_SIZE,
+                    &closure,
+                    &eargs,
+                    (int*) 0);
+            assert(MAKE_ENVIRONMENT_SIZE + INTEGER_SIZE + MAKE_THUNK_SIZE == 24);
             params = closure_parameters(closure);
             body = closure_body(closure);
             xenv = closure_context(closure);
-
             xenv = makeEnvironment(xenv,closure,params,eargs);
             set_env_level(xenv,newIntegerUnsafe(callingLevel + 1));
 
@@ -425,7 +428,7 @@ evalBlock(int items,int env,int mode)
     if (mode == ALLBUTLAST)
         {
         P();
-        ENSURE_MEMORY(MAKE_THUNK_SIZE,(int *) 0);
+        ENSURE_MEMORY(MAKE_THUNK_SIZE + 1,(int *) 0);
         result = makeThunk(car(PEEK(EB_ITEMS)),PEEK(EB_ENV));
         V();
         }
@@ -453,7 +456,7 @@ evalBlock(int items,int env,int mode)
  *
  */
 
-static void
+void
 makeTraceEntry(int item,int error)
     {
     INC("makeTraceEntry",item);
@@ -486,7 +489,7 @@ makeTraceEntry(int item,int error)
     DEC("makeTraceEntry");
     }
 
-static int
+int
 processPassThroughArguments(int name,int params,int args,int fi,int li)
     {
     INC("processPassThroughArguments",params);
@@ -514,7 +517,7 @@ processPassThroughArguments(int name,int params,int args,int fi,int li)
     return args;
     }
 
-static int
+int
 processNoEvaluationArguments(int name,int params,int args,int env,int fi,int li)
     {
     INC("processNoEvaluationArguments",params);
@@ -604,7 +607,7 @@ processNoEvaluationArguments(int name,int params,int args,int env,int fi,int li)
  *  Not heap safe
  */
 
-static int
+int
 processArguments(int name,int params,int args,int env,int fi,int li)
     {
     INC("processArguments",name);
@@ -760,7 +763,7 @@ processArguments(int name,int params,int args,int env,int fi,int li)
 /* evaluatedList - maps eval over a list of expressions
  */
 
-static int
+int
 evaluatedList(int items,int env)
     {
     INC( "evaluatedList" , items );
@@ -852,7 +855,7 @@ evaluatedList(int items,int env)
  *                   is available
  */
 
-static int
+int
 unevaluatedList(int args)
     {
     INC("unevaluatedList",args);

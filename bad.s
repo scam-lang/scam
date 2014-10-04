@@ -3,7 +3,7 @@
         (cond
             ((eof?) items)
             (else
-                (inspect count)
+                ;(inspect count)
                 ; Jeff : After every GC print the items
                 (if (gced) 
                     (inspect items)

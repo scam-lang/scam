@@ -110,11 +110,6 @@ threadingInit()
     *tid = ScamThreadID;
     pthread_setspecific(key,tid);
 
-    /* The main thread has the properties:
-            working
-            thread id of 0
-            was created by the OS
-     */
     CreatedThreads = 1;
     WorkingThreads = 1;
 }

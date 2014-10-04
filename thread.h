@@ -118,7 +118,7 @@ do                                                          \
         }                                                   \
     else                                                    \
         {                                                   \
-        if(0 && StackDebugging)                             \
+        if(StackDebugging)                                  \
             {                                               \
             fprintf(stderr,                                 \
                     "P_P: Thread %d (%s,%d)\n",             \
@@ -143,7 +143,7 @@ do                                                          \
         }                                                   \
     else                                                    \
         {                                                   \
-        if(0 && StackDebugging)                             \
+        if(StackDebugging)                                  \
             {                                               \
             fprintf(stderr,                                 \
                     "P_V: Thread %d (%s,%d)\n",             \
@@ -172,7 +172,7 @@ do                                                          \
         }                                                   \
     else                                                    \
         {                                                   \
-        if (0 && StackDebugging)                            \
+        if (StackDebugging)                                 \
             {                                               \
             fprintf(stderr,                                 \
                     "P: Thread %d (%s,%d)\n",               \
@@ -199,7 +199,7 @@ do                                                          \
         }                                                   \
     else                                                    \
         {                                                   \
-        if (0 && StackDebugging)                            \
+        if (StackDebugging)                                 \
             {                                               \
             fprintf(stderr,                                 \
                     "V: Thread %d (%s,%d)\n",               \
