@@ -1240,8 +1240,8 @@ follow(int i)
         status(i) = -5;
 
         char *t = type(i);
-
-        ASSERT( t != 0);
+        ASSERT(i < MEMORY_SPOT,i,MEMORY_SPOT);
+        ASSERT( t != 0,i);
 
         if( t == CONS)
         {

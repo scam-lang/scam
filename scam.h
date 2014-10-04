@@ -63,14 +63,21 @@ void print_trace(void);
 #define SCAM 1
 #define SWAY 2
 
-#define ASSERT(x)               \
-    do {                        \
-        int T = x;              \
-        if( T == 0)             \
-            {                   \
-            print_trace();      \
-            assert(x);          \
-            }                   \
+#define NUMARGS(...)  (sizeof((int[]){__VA_ARGS__})/sizeof(int))
+
+extern void myPrint(int,...);
+
+
+#define ASSERT(x,...)                           \
+    do {                                        \
+        int T = x;                              \
+        if( T == 0)                             \
+            {                                   \
+            print_trace();                      \
+            myPrint(NUMARGS(__VA_ARGS__),       \
+                ##__VA_ARGS__);                 \
+            assert(x);                          \
+            }                                   \
     }while(0)
 
 #endif

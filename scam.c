@@ -15,6 +15,7 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 #include <execinfo.h>
+#include <stdarg.h>
 
 #include "scam.h"
 #include "cell.h"
@@ -274,3 +275,17 @@ void print_trace(void)
     free(strings);
     }
 
+void myPrint(int count,...)
+{
+    if(count)
+        {
+        va_list ap;
+        va_start(ap,count);
+        do {
+            printf("%d ",va_arg(ap,int));
+            --count;
+        }while(count);
+
+        printf("\n");
+        }
+}
