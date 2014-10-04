@@ -1183,12 +1183,14 @@ ensureMemory(char *fileName,int lineNumber,int needed, int *item, ...)
 void
 threadSafeEnsure(char *fileName,int lineNumber,int needed)
     {
+TOP1:
     // If we have enough memory and no one is trying to GC!
     if (memAvailable(needed) && GCQueueCount == 0)
         {
         return;
         }
     GC(needed,0);
+    goto TOP1;
     }
 
 /*
@@ -1203,12 +1205,14 @@ threadSafeEnsure(char *fileName,int lineNumber,int needed)
 void
 threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
     {
+TOP2:
     // If we have enough memory and no one is trying to GC!
     if (MEMORY_SPOT + needed < MemorySize && GCQueueCount < 1)
         {
         return;
         }
     GC(needed,1);
+    goto TOP2;
     }
 
 
@@ -1219,13 +1223,10 @@ threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
 void 
 GC(int needed, int contiguous)
     {
-
-    printf("Working Thread: %d\n", WorkingThreads);
- TOP:
     // If we only have a single thread or everyone else is waiting!
     if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
         {
-        ++GCQueueCount;
+        printf("Thread %d is doing the GC\n", THREAD_ID);
         if (GCMode == MARK_SWEEP)
             {
             MarkCompact(needed, contiguous);
@@ -1235,6 +1236,7 @@ GC(int needed, int contiguous)
             stopAndCopy();
             }
         ++GCCount;
+        GCQueueCount = 0;
         }
     else    // Someone is working, I go on the waiting thread.
         {
@@ -1243,17 +1245,15 @@ GC(int needed, int contiguous)
         double startTime = getTime();
         V();
         /* While GC has not happened and we have someone working who busy wait (with sleep!)  */
-        while (GCQueueCount < WorkingThreads)
+        while (GCQueueCount > 0)
             {
             usleep(10000);
             if (getTime() - startTime > MAX_THREAD_TIMEOUT)
                 Fatal("deadlock detected while garbage collecting\n");
             }
         P();
-        --GCQueueCount;
         printf("Thread %d is leaving the queue at position %d\n", THREAD_ID, GCQueueCount);
         // Either someone exited so I have to do GC or someone did a GC and I should grab some memory!
-        goto TOP;
         }
    RecentGC = 1;
     }
@@ -1298,6 +1298,7 @@ MarkCompact(int needed, int contiguous)
                 }
             V();
             STACK_SPOT = 0;
+            GCQueueCount = 0;
             exit(-1);
             }
         }
@@ -1968,7 +1969,10 @@ stopAndCopy(void)
 
     // Clear the data, for debugging purposes
     int count = MemorySize - HeapBottom;
-    //memset(NEW_CARS.creator + HeapBottom,-1, sizeof(int)   * count);
+    if(StackDebugging)
+        {
+        memset(NEW_CARS.creator + HeapBottom,-1, sizeof(int)   * count);
+        }
     memset(NEW_CARS.type    + HeapBottom, 0, sizeof(char*) * count);
     memset(NEW_CARS.ival    + HeapBottom, 0, sizeof(int)   * count);
     memset(NEW_CARS.cdr     + HeapBottom, 0, sizeof(int)   * count);
