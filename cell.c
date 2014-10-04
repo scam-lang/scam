@@ -1190,6 +1190,7 @@ MarkCompact(int needed, int contiguous)
 void 
 GC(int needed, int contiguous)
     {
+    printf("Thread %d has called GC\n", THREAD_ID);
  TOP:
     // If we only have a single thread or everyone else is waiting!
     if (WorkingThreads < 2 || GCQueueCount == WorkingThreads - 1)
@@ -1219,6 +1220,7 @@ GC(int needed, int contiguous)
                 Fatal("deadlock detected while garbage collecting\n");
             }
         P();
+        --GCQueueCount;
         // Either someone exited so I have to do GC or someone did a GC and I should grab some memory!
         goto TOP;
         }
@@ -1243,7 +1245,6 @@ threadSafeEnsure(char *fileName,int lineNumber,int needed)
         {
         return;
         }
-    printf("Thread %d\n", THREAD_ID);
     GC(needed,0);
     }
 
@@ -1260,11 +1261,10 @@ void
 threadSafeContiguousEnsure(char *fileName,int lineNumber,int needed)
     {
     // If we have enough memory and no one is trying to GC!
-    if (MEMORY_SPOT + needed < MemorySize && GCQueueCount == 0)
+    if (MEMORY_SPOT + needed < MemorySize && GCQueueCount < 1)
         {
         return;
         }
-    printf("Thread %d\n", THREAD_ID);
     GC(needed,1);
     }
 
