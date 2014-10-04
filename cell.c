@@ -1872,8 +1872,9 @@ StopAndCopy(void)
             {
             char *oldType = type(Stack[i][j]);
             Stack[i][j] = moveStackItem(Stack[i][j]);
+            char *newType = newtype(Stack[i][j]);
             // The types better not be different
-            if (strcmp(oldType, type(Stack[i][j])))
+            if (strcmp(oldType, newType))
                {
                printf("Old type: %s\n", oldType); 
                printf("New type: %s\n", type(Stack[i][j])); 
