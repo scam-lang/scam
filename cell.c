@@ -1280,12 +1280,12 @@ validate_gc()
     int i,j;
     for(i = 0 ; i < WorkingThreads; ++i)
     {
+        printf("Validating thread %d\n", THREAD_ID);
         for(j = 0; j < STACK_SPOT; ++j)
         {
-            printf("Validating thread %d\n", THREAD_ID);
             follow(Stack[i][j]);
-            printf("Finished validating thread %d\n", THREAD_ID);
         }
+        printf("Finished validating thread %d\n", THREAD_ID);
     }
 }
 
