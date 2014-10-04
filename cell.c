@@ -1232,6 +1232,66 @@ TOP2:
     goto TOP2;
     }
 
+static void
+follow(int i)
+{
+    struct Stack *s = create_stack();
+
+    push(s,i);
+
+    while (!empty(s))
+    {
+        i = pop(s);
+        char *t = type(i);
+
+        assert( t != 0);
+
+        if( t == CONS)
+        {
+            push(s,cdr(i));
+            push(s,car(i));
+        }
+        else if(t == ARRAY)
+        {
+            int c = count(i);
+            while(c)
+            {
+                assert(ARRAY == type(i));
+                push(s,car(i));
+                i = cdr(i);
+                --c;
+            }
+        }else if(t == STRING)
+        {
+            int c = count(i);
+            while(c)
+            {
+                assert(STRING == type(i));
+                i = cdr(i);
+                --c;
+            }
+        }
+    }
+
+    delete_stack(s);
+}
+
+static void
+validate_gc()
+{
+    int i,j;
+    for(i = 0 ; i < WorkingThreads; ++i)
+    {
+        for(j = 0; j < STACK_SPOT; ++j)
+        {
+            printf("Validating thread %d\n", THREAD_ID);
+            follow(Stack[i][j]);
+            printf("Finished validating thread %d\n", THREAD_ID);
+        }
+    }
+}
+
+
 
 /*
  *  GC  : Perform a garbage collect.
@@ -1301,6 +1361,8 @@ GC(int needed, int contiguous)
             STACK_SPOT = 0;
             exit(-1);
             }
+
+        validate_gc();
         }
     else    // Someone is working, I go on the waiting thread.
         {
@@ -1577,20 +1639,14 @@ markObject(int obj,int mode)
         Fatal( "Could not create the stack");
         }
 
-    if( push(s,&obj) == -1) 
+    if( push(s,obj) == -1) 
         {
         Fatal("Could not push onto stack");
         }
 
     while( !empty(s) ) {
 
-        int *d = (int*)pop(s);
-        if( d == 0)
-            {
-            Fatal("Could not pop from the stack");
-            }
-
-        int o = *d;
+        int o = pop(s);
 
         /* Ignore all marked cells */
         if(status(o) == mode)
@@ -1603,22 +1659,22 @@ markObject(int obj,int mode)
         char* TYPE = type(obj);
         if (TYPE == ARRAY || TYPE == CONS)
             {
-            if( push(s,&(cdr(o))) == -1)
+            if( push(s,(cdr(o))) == -1)
                 {
                 Fatal("Could not push to the stack");
                 }
 
-            if( push(s,&(car(o))) == -1)
+            if( push(s,(car(o))) == -1)
                 {
                 Fatal("Could not push to the stack");
                 }
             }
         else if(TYPE == STRING)
             {
-            push(s,&(cdr(o)));
+            push(s,(cdr(o)));
             }
         }
-    delete_stack(s,0);
+    delete_stack(s);
     }
 
 /*

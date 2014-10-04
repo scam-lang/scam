@@ -15,7 +15,7 @@ create_stack()
     }
 
 int
-push(struct Stack* s, void* item)
+push(struct Stack* s, int item)
     {
     if( s == 0) 
         {
@@ -35,7 +35,7 @@ push(struct Stack* s, void* item)
     return 0;
     }
 
-void*
+int
 pop(struct Stack *s)
     {
 
@@ -44,7 +44,7 @@ pop(struct Stack *s)
         return 0;
         }
 
-    void *d;
+    int d;
     struct Stack* n;
 
     // Get data
@@ -71,7 +71,7 @@ empty(struct Stack *s)
     }
 
 int
-delete_stack(struct Stack *s, int free_data)
+delete_stack(struct Stack *s)
     {
     if( s == 0 ) return -1;
 
@@ -83,12 +83,6 @@ delete_stack(struct Stack *s, int free_data)
 
         // Fixup stack
         s->top = n->top;
-
-        // Maybe free data
-        if (free_data) 
-            {
-            free(n->data);
-            }
 
         // Free node
         free(n);
