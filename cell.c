@@ -310,7 +310,7 @@ scamInit(int memSize)
     integerOne           = newInteger(1);
 
     /* Save where we are so we don't have to keep copying over the Symbols */
-    HeapBottom = MEMORY_SPOT;
+    NEW_MEM_SPOT = HeapBottom = MEMORY_SPOT;
 
     /* If Stop and Copy, copy over Symbol table to "shadow" cars */
     int i;
@@ -591,6 +591,8 @@ memoryShutdown()
 #define _cons(CAR,CDR,TYPE,F,L,RES,FL,LN)                           \
     {                                                               \
     int p = 0;                                                      \
+                                                                    \
+    ASSERT(GCMode == STOP_AND_COPY);                                \
                                                                     \
     /* caller is responsible for ensuring memory available */       \
     if (GCMode == MARK_SWEEP )                                      \
@@ -1360,7 +1362,7 @@ GC(int needed, int contiguous)
             exit(-1);
             }
 
-        validate_gc();
+        //validate_gc();
         }
     else    // Someone is working, I go on the waiting thread.
         {
@@ -1789,10 +1791,12 @@ moveBackbone(int old)
                 of array). 
         */
 
-        int orig = old;
+        ASSERT(t == STRING || t == ARRAY);
+
+        int orig = old;     // Need to this to restore old
         int size = count(old);
 
-        /* Backup to the beginning of the array or string */
+        /* Backup to the beginning of the array/string */
         while (type(old-1) == t && count(old-1) == size + 1)
             {
             --old;
@@ -1802,13 +1806,14 @@ moveBackbone(int old)
         /* Move ALL the cells in the string/array */
         while(size > 0)
             {
+            ASSERT( t == type(old));
             RAW_COPY(old);  // Updates memory spot
             newcdr(NEW_MEM_SPOT - 1) = NEW_MEM_SPOT;
             ++old;
             --size;
             }
         /* reset the last cdr pointer to nil */
-        newcdr(NEW_MEM_SPOT-1) = 0;
+        newcdr(NEW_MEM_SPOT - 1) = 0;
 
         old = orig;
         }
@@ -1897,8 +1902,6 @@ StopAndCopy(void)
     int i,j;
 
     /* Move Qeueue Items  */
-    NEW_MEM_SPOT = HeapBottom;
-
     if(StackDebugging)
         {
         for(i = HeapBottom;i < MEMORY_SPOT; ++i)
@@ -1927,13 +1930,15 @@ StopAndCopy(void)
             char *oldType = type(Stack[i][j]);
             Stack[i][j] = moveStackItem(Stack[i][j]);
             char *newType = newtype(Stack[i][j]);
+
             // The types better not be different
-            if (strcmp(oldType, newType))
+            if (oldType != newType)
                {
                printf("Old type: %s\n", oldType); 
                printf("New type: %s\n", type(Stack[i][j])); 
                Fatal("After moving a stack item, the types changed...\n");
                }
+
             if(StackDebugging)
                 {
                 int tmp = Stack[i][j];
@@ -1965,9 +1970,7 @@ StopAndCopy(void)
     NEW_CARS = tempCars;
 
     MEMORY_SPOT = NEW_MEM_SPOT;
-
-    ASSERT(NEW_CARS.type != THE_CARS.type);
-
+    NEW_MEM_SPOT = HeapBottom;
     /*
         DOCUMENTATION : 
             Is this correct?  From the above 4 lines I assume everything is 
@@ -1979,10 +1982,12 @@ StopAndCopy(void)
     if(StackDebugging)
         {
         memset(NEW_CARS.creator + HeapBottom,-1, sizeof(int) * count);
+        memset(THE_CARS.creator + MEMORY_SPOT,-1, sizeof(int) * (MemorySize-MEMORY_SPOT));
         }
-    memset(NEW_CARS.type    + HeapBottom, 0, sizeof(char*) * count);
+    memset(NEW_CARS.type    + HeapBottom,  0, sizeof(char*) * count);
     memset(NEW_CARS.ival    + HeapBottom, -1, sizeof(int)   * count);
     memset(NEW_CARS.cdr     + HeapBottom, -1, sizeof(int)   * count);
+    memset(NEW_CARS.status  + HeapBottom,  0, sizeof(char)  * count);
 
     if (StackDebugging)
         {

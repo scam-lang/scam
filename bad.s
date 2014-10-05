@@ -3,11 +3,11 @@
         (cond
             ((eof?) items)
             (else
-                ;(inspect count)
+                (inspect count)
                 ; Jeff : After every GC print the items
-                (if (gced) 
-                    (inspect items)
-                 )
+                ;(if (gced) 
+                ;    (inspect items)
+                ;)
                 (iter (readToken) (cons x items) (+ count 1))
                 )
             )
