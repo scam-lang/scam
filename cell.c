@@ -592,8 +592,6 @@ memoryShutdown()
     {                                                               \
     int p = 0;                                                      \
                                                                     \
-    ASSERT(GCMode == STOP_AND_COPY);                                \
-                                                                    \
     /* caller is responsible for ensuring memory available */       \
     if (GCMode == MARK_SWEEP )                                      \
         {                                                           \
@@ -1229,70 +1227,6 @@ TOP2:
     goto TOP2;
     }
 
-static void
-follow(int i)
-{
-    struct Stack *s = create_stack();
-
-    push(s,i);
-    while (!empty(s))
-    {
-        i = pop(s);
-        if(status(i) == -5) continue;
-        status(i) = -5;
-
-        char *t = type(i);
-        ASSERT(i < MEMORY_SPOT,i,MEMORY_SPOT);
-        ASSERT( t != 0,i);
-
-        if( t == CONS)
-        {
-            push(s,cdr(i));
-            push(s,car(i));
-        }
-        else if(t == ARRAY)
-        {
-            int c = count(i);
-
-            while(c > 0)
-            {
-                ASSERT(ARRAY == type(i));
-                push(s,car(i));
-                i = cdr(i);
-                --c;
-            }
-        }else if(t == STRING)
-        {
-            int c = count(i);
-            while(c > 0)
-            {
-                ASSERT(STRING == type(i));
-                i = cdr(i);
-                --c;
-            }
-        }
-    }
-
-    delete_stack(s);
-}
-
-static void
-validate_gc()
-{
-    int i,j;
-    for(i = 0 ; i < WorkingThreads; ++i)
-    {
-        printf("Validating thread %d\n", THREAD_ID);
-        for(j = 0; j < STACK_SPOT; ++j)
-        {
-            follow(Stack[i][j]);
-        }
-        printf("Finished validating thread %d\n", THREAD_ID);
-    }
-}
-
-
-
 /*
  *  GC  : Perform a garbage collect.
  */
@@ -1362,7 +1296,6 @@ GC(int needed, int contiguous)
             exit(-1);
             }
 
-        //validate_gc();
         }
     else    // Someone is working, I go on the waiting thread.
         {
