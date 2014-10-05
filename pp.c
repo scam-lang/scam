@@ -9,7 +9,6 @@
  */
 
 #include <string.h>
-#include <assert.h>
 
 #include "scam.h"
 #include "types.h"
@@ -165,7 +164,6 @@ ppLevel(int expr,int level)
         ppFormattedString(expr);
     else if (type(expr) == SYMBOL)
         {
-        assert(SymbolTable[ival(expr)] > 0);
         ppPutString(SymbolTable[ival(expr)]);
         }
     else if (type(expr) == CONS)
@@ -174,14 +172,6 @@ ppLevel(int expr,int level)
         ppList("[",expr,"]",level);
     else
         {
-        if(type(expr) ==0)
-        {
-            printf("\nHERE: %d\n",expr);
-            printf("Type: %s\n",type(expr));
-            assert(&THE_CARS != &NEW_CARS);
-            assert(THE_CARS.type != NEW_CARS.type);
-        }
-        assert(type(expr) > 0);
         ppPutString(type(expr));
         }
     }

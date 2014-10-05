@@ -9,7 +9,6 @@
  */
 
 #include  <stdio.h>
-#include <assert.h>
 
 #include "scam.h"
 #include "cell.h"
@@ -335,7 +334,6 @@ evalCall(int call,int env, int mode)
                     &closure,
                     &eargs,
                     (int*) 0);
-            assert(MAKE_ENVIRONMENT_SIZE + INTEGER_SIZE + MAKE_THUNK_SIZE == 24);
             params = closure_parameters(closure);
             body = closure_body(closure);
             xenv = closure_context(closure);

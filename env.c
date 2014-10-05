@@ -103,7 +103,7 @@ defineVariable(int env,int var,int val)
 
     /* need two cons cells */
 
-    assert(DEFINE_VARIABLE_SIZE == 2);
+    ASSERT(DEFINE_VARIABLE_SIZE == 2);
 
     vars = env_variable_hook(env);
     vals = env_value_hook(env);
@@ -130,7 +130,7 @@ makeObject(int type)
     {
     int vars,vals;
 
-    assert(MAKE_OBJECT_SIZE == 5);
+    ASSERT(MAKE_OBJECT_SIZE == 5);
 
     /* caller is responsible for ensuring adequate memory */
 
@@ -156,7 +156,7 @@ makeEnvironment(int context,int constructor,int vars,int vals)
     {
     int o;
 
-    assert(MAKE_ENVIRONMENT_SIZE == 9 + MAKE_OBJECT_SIZE);
+    ASSERT(MAKE_ENVIRONMENT_SIZE == 9 + MAKE_OBJECT_SIZE);
 
     /* caller is responsible for ensuring adequate memory */
 
@@ -196,7 +196,7 @@ makeThunk(int expr,int env)
 
     /* caller is responsible for ensuring adequate memory */
 
-    assert(MAKE_THUNK_SIZE == 4 + MAKE_OBJECT_SIZE);
+    ASSERT(MAKE_THUNK_SIZE == 4 + MAKE_OBJECT_SIZE);
 
     o = makeObject(ThunkSymbol);
 
@@ -229,7 +229,7 @@ makeClosure(int context,int name,int parameters,int body,int mode)
     {
     int o;
 
-    assert(MAKE_CLOSURE_SIZE == 9 + MAKE_OBJECT_SIZE);
+    ASSERT(MAKE_CLOSURE_SIZE == 9 + MAKE_OBJECT_SIZE);
 
     /* caller is responsible for ensuring adequate memory */
 
@@ -270,7 +270,7 @@ makeBuiltIn(int env,int name,int parameters,int body)
     {
     int b;
 
-    assert(MAKE_BUILTIN_SIZE == MAKE_CLOSURE_SIZE);
+    ASSERT(MAKE_BUILTIN_SIZE == MAKE_CLOSURE_SIZE);
 
     /* caller is responsible for ensuring adequate memory */
 
@@ -295,7 +295,7 @@ int
 makeThrow(int code,int value,int trace)
     {
     int o;
-    assert(MAKE_THROW_SIZE == 6 + MAKE_OBJECT_SIZE);
+    ASSERT(MAKE_THROW_SIZE == 6 + MAKE_OBJECT_SIZE);
 
     /* caller is responsible for ensuring adequate memory */
 

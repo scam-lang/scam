@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <assert.h>
 #include "pp-base.h"
 
 #include "scam.h"
@@ -206,17 +205,6 @@ putCharToFile(int ch)
 static void
 putStringToFile(char *s)
     {
-    if (s == 0)
-        {
-        if(ShuttingDown)
-            {
-                return;
-            }
-        ShuttingDown = 1;
-        print_trace();
-        print_stack();
-        assert( s != 0);
-        }
     while (*s != 0)
         {
         putCharToFile(*s);

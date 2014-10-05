@@ -47,8 +47,8 @@ static void StopAndCopy();
 void markObject(int,int);
 void markRoots(int);
 void scanFree(void);
-int computeLocations(int,int,int);
-void updateReferences(int,int);
+void computeLocations();
+void updateReferences();
 void relocate(int,int);
 int moveStackItem(int);
 
@@ -215,8 +215,6 @@ scamInit(int memSize)
     /* Initialize memory for main thread */
 
     memoryInit();
-
-    printf("MemorySize: %d\n" , MemorySize );
 
     /* Add Symbols to SymbolTable */
 
@@ -615,7 +613,6 @@ memoryShutdown()
                                                                     \
     if(RES == MemorySize)                                           \
         {                                                           \
-        print_trace();                                              \
         ASSERT(RES < MemorySize);                                   \
         }                                                           \
                                                                     \
@@ -1252,7 +1249,6 @@ GC(int needed, int contiguous)
             startTime = getTime();
             }
 
-        printf("Thread %d is doing the GC\n", THREAD_ID);
         if (GCMode == MARK_SWEEP)
             {
             MarkCompact(needed, contiguous);
@@ -1266,7 +1262,6 @@ GC(int needed, int contiguous)
             {
             delta = getTime() - startTime;
             total+=delta;
-            printf("contiguous: %d, needed: %d\n",contiguous,needed);
             printf("gc:%d, took %fs "
                 "leaving %d uncontiguous and %d contiguous cells free (total: %fs)\n",
                 ++num,delta,FREE_COUNT,MemorySize- MEMORY_SPOT,total);
@@ -1299,7 +1294,6 @@ GC(int needed, int contiguous)
         }
     else    // Someone is working, I go on the waiting thread.
         {
-        printf("Thread %d is in the queue at position %d\n", THREAD_ID, GCQueueCount);
         ++GCQueueCount;
         double startTime = getTime();
         V();
@@ -1311,7 +1305,6 @@ GC(int needed, int contiguous)
                 Fatal("deadlock detected while garbage collecting\n");
             }
         P();
-        printf("Thread %d is leaving the queue at position %d\n", THREAD_ID, GCQueueCount);
         // Either someone exited so I have to do GC or someone did a GC and I should grab some memory!
         }
    RecentGC = 1;
@@ -1320,7 +1313,6 @@ GC(int needed, int contiguous)
 inline int 
 memAvailable(int needed)
     {
-    printf("Thread: %d\n",THREAD_ID);
     if( (MEMORY_SPOT + needed) <= MemorySize)
         {
         return 1;
@@ -1341,11 +1333,13 @@ memAvailable(int needed)
 static void
 MarkCompact(int needed, int contiguous)
     {
+
     FREE_LIST = 0;
     FREE_COUNT = 0;
 
     markRoots(MARKED);
     scanFree();
+
     if (FREE_COUNT < needed || (contiguous && (MEMORY_SIZE - MEMORY_SPOT < needed)))
         {
         FREE_LIST  = 0;
@@ -1353,7 +1347,7 @@ MarkCompact(int needed, int contiguous)
 
         /* Mark all of the reachable objects */
         markRoots(MARKED);
-        MEMORY_SPOT = computeLocations(HeapBottom,MemorySize,HeapBottom);
+        computeLocations();
         updateReferences(HeapBottom,MemorySize);
         relocate(HeapBottom,MemorySize);
         }
@@ -1373,7 +1367,7 @@ freePop()
         }
     int spot = FREE_LIST;
     FREE_LIST = cdr(FREE_LIST);
-    FREE_COUNT++;
+    --FREE_COUNT;
     return spot;
     }
 
@@ -1393,14 +1387,14 @@ freePush(int location)
     ++FREE_COUNT;
     }
 
-inline int
-computeLocations(int start,int end,int toRegion)
+inline void
+computeLocations()
     {
-    register int scan = start;
-    register int free = toRegion;
+    register int scan = HeapBottom;
+    register int free = HeapBottom;
 
     /* All values before scan will have an appropriate forwarding address */
-    while (scan < end)
+    while (scan < MEMORY_SPOT)
         {
         /* Only move marked cells */
         if (ismarked(scan))
@@ -1411,8 +1405,7 @@ computeLocations(int start,int end,int toRegion)
             }
         ++scan;
         }
-    /* This will be the last spot that we can move an object */
-    return free;
+    NEW_MEM_SPOT = free;
     }
 
 /*
@@ -1432,7 +1425,7 @@ updateReferences(int start,int end)
         for (j=0; j< StackSpot[i]; ++j)
             {
             int tmp = Stack[i][j];
-            if (tmp >= start)
+            if (tmp >= HeapBottom)
                 {
                 tmp = fwd(tmp);
                 Stack[i][j] = tmp;
@@ -1459,19 +1452,18 @@ updateReferences(int start,int end)
             }
         }
 
-    int scan = start;
-    while (scan <= end)
+    int scan = HeapBottom;
+    while (scan <= MEMORY_SPOT)
         {
         if (ismarked(scan))
             {
-            int tmp;
             char* TYPE = type(scan);
             if (TYPE == CONS || TYPE == ARRAY)
                 {
                 /* Make sure we dont change pointers to 
                    objects that do not move
                  */
-                tmp = car(scan);
+                int tmp = car(scan);
                 if (tmp >= HeapBottom)
                     {
                     setcar(scan,fwd(tmp));
@@ -1484,7 +1476,7 @@ updateReferences(int start,int end)
                 }
             else if (TYPE == STRING)
                 {
-                tmp = cdr(scan);
+                int tmp = cdr(scan);
                 if (tmp >= HeapBottom)
                     {
                     setcdr(scan,fwd(tmp));
@@ -1494,7 +1486,7 @@ updateReferences(int start,int end)
             }
         ++scan;
         }
-    return;
+    MEMORY_SPOT = NEW_MEM_SPOT;
     }
 
 #define move(scan,dest)                                         \

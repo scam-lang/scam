@@ -290,7 +290,7 @@ functionDef(PARSER *p)
 
     f = match(p,SYMBOL);
     rethrow(f);
-    assert(SameSymbol(f,FunctionSymbol));
+    ASSERT(SameSymbol(f,FunctionSymbol));
 
     if (check(p,SYMBOL))
         v = match(p,SYMBOL);
@@ -375,7 +375,7 @@ varDef(PARSER *p)
 
     m = match(p,SYMBOL);
     rethrow(m);
-    assert(SameSymbol(m,VarSymbol));
+    ASSERT(SameSymbol(m,VarSymbol));
     v = varDefList(p);
     rethrow(v);
     //type(v) = VARIABLE_DEFINITION_LIST;

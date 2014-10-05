@@ -4509,7 +4509,7 @@ loadBuiltIns(int env)
         Fatal("Memory Size is WAAAAAY too small!\n");
         }
 
-    assert(count <= sizeof(BuiltIns) / sizeof(PRIM));
+    ASSERT(count <= sizeof(BuiltIns) / sizeof(PRIM));
 
     OpenPorts[0] = stdin;
     OpenPorts[1] = stdout;
