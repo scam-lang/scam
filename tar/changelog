@@ -1,5 +1,6 @@
 scam (2.0c)
 
+  * errors in both garbage collectors fixed
   * modulus now throws a divide by zero exception
   * out of memory error now printed
   * if and cond throw exceptions if test result is not boolean

@@ -7,11 +7,11 @@ OPTS = -m32
 ARCH = OSX_64
 OPTS =
 
-ARCH = i386
-OPTS = 
-
 ARCH = amd64
 OPTS =
+
+ARCH = i386
+OPTS = 
 
 tar		:	
 			(cd ..; touch *.c; make OPTS=$(OPTS))
