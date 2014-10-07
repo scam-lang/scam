@@ -81,7 +81,16 @@ newParser(char *fileName)
 PARSER *
 newParserFP(FILE *fp,char *fileName)
     {
-    PARSER *p = (PARSER *) malloc(sizeof(PARSER));
+    PARSER *p = malloc(sizeof(PARSER));
+    if (p == 0)
+        {
+        fprintf(stderr,"Out of System Memory.\n");
+        exit(-4);
+        }
+    //printf("allocated parser %p\n",p);
+    //free(p);
+    //p = malloc(sizeof(PARSER));
+    //printf("allocated parser %p\n",p);
     p->pending = -1;
     p->line = 1;
     p->file = findSymbol(fileName);

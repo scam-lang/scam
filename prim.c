@@ -2300,7 +2300,7 @@ static int
 readExpr(int args)
     {
     int e;
-    PARSER *p;
+    PARSER *p = 0;
     FILE *fp;
 
     extern int expr(PARSER *);
@@ -2319,9 +2319,19 @@ readExpr(int args)
     else
         e = expr(p);
 
-    rethrow(e);
+    printf("freeing parser %p\n",p);
+    if (p->input != 0 && p->input != stdin)
+        fclose(p->input);
 
-    freeParser(p);
+    if (p->output != 0 && p->output != stdout)
+        fclose(p->output);
+
+    printf("freeParser: freeing %p\n",p);
+    free(p);
+    printf("freeParser: freed\n");
+    printf("parser freed\n");
+
+    rethrow(e);
 
     if (fp == stdin)
         {
