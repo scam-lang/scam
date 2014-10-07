@@ -83,7 +83,6 @@ sway-parser.o	: sway-parser.c cell.h types.h parser.h util.h
 		$(CC) -c $(OPTS) $(IREADLINE) -Wall $(FLAGS) sway-parser.c
 
 thread.o	: thread.c thread.h scam.h cell.h pp.h env.h util.h eval.h types.h
-
 		$(CC) -c $(OPTS) $(IREADLINE) -Wall $(FLAGS) thread.c
 
 stacker		: stacker.c scanner.c scanner.h

@@ -36,6 +36,7 @@ extern int scamParse(PARSER *);
 extern int swayParse(PARSER *);
 extern PARSER *newParser(char *);
 extern PARSER *newParserFP(FILE *,char *);
+extern void pointParser(PARSER *,FILE *,char *);
 extern void freeParser(PARSER *);
 extern void ppf(char*,int,char*);
 extern int exprSeq(PARSER *);

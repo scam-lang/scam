@@ -87,10 +87,15 @@ newParserFP(FILE *fp,char *fileName)
         fprintf(stderr,"Out of System Memory.\n");
         exit(-4);
         }
-    //printf("allocated parser %p\n",p);
-    //free(p);
-    //p = malloc(sizeof(PARSER));
-    //printf("allocated parser %p\n",p);
+    pointParser(p,fp,fileName);
+    return p;
+    }
+
+/* this is the function that intefaces the parser with other modules */
+
+void
+pointParser(PARSER *p,FILE *fp,char *fileName)
+    {
     p->pending = -1;
     p->line = 1;
     p->file = findSymbol(fileName);
@@ -99,19 +104,12 @@ newParserFP(FILE *fp,char *fileName)
     p->output = stdout;
     p->buffer = 0;
     p->bufferIndex = 0;
-
-    return p;
     }
+
 
 void
 freeParser(PARSER *p)
     {
-    if (p->input != 0 && p->input != stdin)
-        fclose(p->input);
-
-    if (p->output != 0 && p->output != stdout)
-        fclose(p->output);
-
     free(p);
     }
 

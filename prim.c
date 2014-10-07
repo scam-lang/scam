@@ -2296,11 +2296,13 @@ readString(int args)
     return newString(buffer);
     }
 
+#define THREAD_PARSERS 100
+
 static int
 readExpr(int args)
     {
     int e;
-    PARSER *p = 0;
+    static PARSER *p[THREAD_PARSERS];
     FILE *fp;
 
     extern int expr(PARSER *);
@@ -2309,27 +2311,28 @@ readExpr(int args)
 
     rethrow(checkPortForReading(fp,"an expression",args));
 
-    p = newParserFP(fp,OpenPortNames[CurrentInputIndex]);
+    if (THREAD_ID >= THREAD_PARSERS)
+        {
+        return throw(ExceptionSymbol,
+            "file %s,line %d: "
+            "Only the first %d threads can call readExpr, "
+            "consider using a thread pool.",
+            SymbolTable[file(args)],line(args),
+            THREAD_PARSERS);
+        }
+
+    if (p[THREAD_ID] == 0)
+        p[THREAD_ID] = newParserFP(fp,OpenPortNames[CurrentInputIndex]);
+    else if (fp != p[THREAD_ID]->input)
+        pointParser(p[THREAD_ID],fp,OpenPortNames[CurrentInputIndex]);
 
     if (Syntax == SWAY)
         {
         extern int swayInteractive(PARSER *);
-        e = swayInteractive(p);
+        e = swayInteractive(p[THREAD_ID]);
         }
     else
-        e = expr(p);
-
-    printf("freeing parser %p\n",p);
-    if (p->input != 0 && p->input != stdin)
-        fclose(p->input);
-
-    if (p->output != 0 && p->output != stdout)
-        fclose(p->output);
-
-    printf("freeParser: freeing %p\n",p);
-    free(p);
-    printf("freeParser: freed\n");
-    printf("parser freed\n");
+        e = expr(p[THREAD_ID]);
 
     rethrow(e);
 
