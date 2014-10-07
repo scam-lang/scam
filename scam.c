@@ -14,7 +14,9 @@
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#ifndef __CYGWIN__
 #include <execinfo.h>
+#endif
 #include <stdarg.h>
 
 #include "scam.h"
@@ -257,6 +259,9 @@ addToEnvironment(int env,char *fileName,int mode)
 
 void print_trace(void)
     {
+#ifdef __CYGWIN__
+    printf("Stack Trace is not supported for Cywin, use Linux\n");
+#else
     const int A_SIZE = 100;
     void *array[A_SIZE];
     size_t size;
@@ -273,6 +278,7 @@ void print_trace(void)
         }
 
     free(strings);
+#endif
     }
 
 void myPrint(int count,...)
