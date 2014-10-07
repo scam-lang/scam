@@ -1,3 +1,7 @@
+scam (2.0d)
+
+  * fixed bug in readExpr, input files were incorrecly being closed
+
 scam (2.0c)
 
   * errors in both garbage collectors fixed
