@@ -2325,6 +2325,8 @@ readExpr(int args)
         p[THREAD_ID] = newParserFP(fp,OpenPortNames[CurrentInputIndex]);
     else if (fp != p[THREAD_ID]->input)
         pointParser(p[THREAD_ID],fp,OpenPortNames[CurrentInputIndex]);
+    else if (fp == stdin)
+        p[THREAD_ID]->line = 0; /* reset the line number */
 
     if (Syntax == SWAY)
         {
